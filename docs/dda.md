@@ -1,6 +1,10 @@
 # Documento de Decisión de Arquitectura (DDA)
 
 
+
+
+## Caso del Negocio
+
 | Actor | Descripción |
 |---|---|
 | Cliente | Empresa externa que solicita servicios de transporte, consulta el estado de sus envíos y gestiona sus contratos. |
@@ -14,6 +18,7 @@
 
 
 
+## Drivers de Requisitos Funcionales
 
 ### CDU001
 
@@ -89,3 +94,66 @@
 | **Flujos Alternos** | **FA1: Detección de Anomalías (Extensión CDU004.4)** — Si durante el cálculo de KPIs (Paso 3 del Flujo A) el sistema detecta valores fuera de rango (ej. Rentabilidad < 10% o Retrasos > 5%), se ejecuta Alertar Desviaciones. El sistema superpone una notificación crítica y resalta en rojo las rutas afectadas en el mapa. **FA2: Sin Datos para Proyección** — Si en el Flujo B no existe suficiente historial (menos de 6 meses), el sistema advierte que la proyección tendrá un margen de error alto. |
 | **Reglas de Negocio** | • **Corte Diario:** Debe integrar transacciones hasta las 23:59 del día anterior de todas las sucursales. • **Umbrales de Alerta:** Las desviaciones se configuran paramétricamente; por defecto, cualquier caída de ingresos del 15% semanal dispara la extensión. • **Privacidad:** La información de rentabilidad es confidencial y solo visible para roles de Gerencia General y Financiera. |
 | **Reglas de Calidad** | • **Rendimiento:** El tiempo de carga del Dashboard (CDU004.1) no debe exceder los 5 segundos. • **Usabilidad:** Las alertas de desviación (CDU004.4) deben ser "accionables", permitiendo al usuario hacer clic en la alerta para ir directamente a la orden o contrato problemático. |
+
+
+
+
+
+
+
+
+## Listado de stakeholders y preocupaciones arquitectónicas
+
+| Stakeholder | Visión / Interés Principal | Preocupación Arquitectónica |
+|---|---|---|
+| Gerente General (Patrocinador) | Enfoque estratégico y financiero; busca minimizar costos iniciales y asegurar un retorno de inversión corto. | Costo y Viabilidad Económica: Rechazará propuestas con gastos excesivos que no aporten beneficio inmediato. |
+| Gerente de TI (Responsabilidad Técnica) | Heredar una arquitectura robusta, mantenible y escalable. | Calidad Estructural y Escalabilidad: Teme a soluciones "parche" y prioriza la calidad sobre las prisas. |
+| Jefe de Operaciones (Voz Operativa) | Prioriza la rapidez operativa y la simplicidad de uso en sedes y puertos. | Usabilidad y Rendimiento: Un sistema lento o complejo para los usuarios operativos se considera un fracaso. |
+| Área Financiera (Control Económico) | Blindaje del presupuesto, evitando sobrecostos y licenciamientos costosos. | Reutilización de Recursos: Exigen una solución austera que aproveche al máximo la infraestructura (servidores) que la empresa ya posee. |
+| Clientes Corporativos (Exigencia de Mercado) | Confianza en el servicio mediante el conocimiento en tiempo real de la ubicación de su carga. | Disponibilidad y Trazabilidad: Exigen que el sistema esté activo 24/7 y ofrezca trazabilidad total de órdenes. |
+| Equipo de Desarrollo (Implementadores) | Construir la solución en un plazo máximo estricto de 4 semanas. | Riesgo Técnico y Familiaridad: Necesidad de utilizar tecnologías conocidas; aversión a innovaciones experimentales que retrasen la entrega. |
+
+
+
+
+## Características del Sistema Priorizado
+
+### Prioridad 1: Críticas (Mandatorias para el éxito del negocio)
+
+
+- Disponibilidad: Alta exigencia del mercado para operar 24/7. Existe un compromiso de disponibilidad del 99.5% y una exigencia de recuperación total del servicio en menos de 10 minutos para evitar camiones detenidos.
+
+
+- Escalabilidad: El sistema debe soportar la ambición del negocio de triplicar la operación en tres años. Debe absorber un aumento del 200% en el volumen de transacciones sin degradar la velocidad de respuesta.
+
+
+- Eficiencia de Costos: Restricción directa de la Gerencia y el Área Financiera para respetar un presupuesto ajustado, priorizando la reutilización de servidores actuales físicos (on-premise) antes de nuevas inversiones.
+
+
+- Seguridad (Security): Se manejan datos contractuales, tarifarios y financieros sensibles. Se requiere control de acceso por rol y auditoría total (quién hizo qué y cuándo).
+
+
+### Prioridad 2: Altas (Necesarias para la expansión regional)
+
+- Modificabilidad: La plataforma debe permitir evolucionar para soportar la internacionalización. Debe ser posible agregar módulos independientes (ej. para aduanas de Honduras o El Salvador) sin poner en riesgo la operación actual.
+
+- Rendimiento: Tiempo de respuesta aceptable para operadores en campo (despachadores, pilotos). El Jefe de Operaciones exige simplicidad y rapidez.
+
+- Interoperabilidad: La solución no debe ser una isla; debe estar lista para intercambiar datos en tiempo real con sistemas externos, como sistemas de aduanas y ERPs.
+
+- Portabilidad: Despliegue inicial on-premise pero con diseño cloud-ready para migración futura.
+
+- Auditabilidad: Trazabilidad total de contratos, órdenes y facturas electrónicas ante la SAT.
+
+
+### Prioridad 3: Medias (Soporte a la operación diaria)
+
+- Confiabilidad: Consistencia de datos en los 4 módulos (Contratos-Órdenes-Facturación-Reportes).
+
+- Mantenibilidad: Arquitectura limpia que el Gerente de TI pueda sostener en el tiempo.
+
+
+- Usabilidad: Traducción de los drivers operativos para que la experiencia de usuario facilite la logística en patio y rutas sin comprometer los datos, siendo simple para despachadores y pilotos.
+
+
+
