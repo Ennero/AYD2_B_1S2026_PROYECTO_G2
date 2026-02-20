@@ -50,6 +50,7 @@
 | Encargado de Patio | Personal en sitio responsable del despacho físico, validación de seguridad, pesaje y estiba de la carga. |
 | Piloto | Conductor de la unidad de transporte encargado de la ejecución del viaje, reporte de bitácora y confirmación de entrega. |
 | Agente Financiero | Responsable de la configuración de precios base, facturación electrónica y gestión de cobros. |
+| Certificador FEL | Entidad externa autorizada por la SAT para validar, firmar digitalmente y certificar los Documentos Tributarios Electrónicos (DTE) en el proceso de Facturación Electrónica en Línea. |
 | Gerencia | Usuario estratégico que visualiza reportes de rendimiento y KPIs para la toma de decisiones. |
 
 ### Diagrama de Casos de Uso de Negocio — Alto Nivel
@@ -125,7 +126,7 @@
 | **RF-08** | CDU002 | Registro de Despacho en Patio | Validación presencial de identidad del piloto, pesaje real vs. declarado y condición de estiba antes de autorizar la salida. | Encargado de Patio | Alta |
 | **RF-09** | CDU002 | Registro de Bitácora de Viaje | Reporte de novedades, cambios de estado y geolocalización por parte del piloto durante el tránsito. | Piloto | Media |
 | **RF-10** | CDU002 | Confirmación de Entrega y Evidencia | Registro fotográfico y firma de recepción al entregar la mercancía, dejando la orden lista para facturación. | Piloto | Alta |
-| **RF-11** | CDU003 | Generación y Emisión de Factura FEL | Emisión automática de la factura con validación fiscal, certificación DTE ante la SAT y generación de representación gráfica (PDF). | Agente Financiero | Alta |
+| **RF-11** | CDU003 | Generación y Emisión de Factura FEL | Emisión automática de la factura con validación fiscal, certificación DTE ante la SAT a través del Certificador FEL y generación de representación gráfica (PDF). | Agente Financiero, Certificador FEL | Alta |
 | **RF-12** | CDU003 | Gestión de Estado de Cuenta | Visualización de saldo, facturas pendientes y fechas de vencimiento para clientes y agentes financieros. | Agente Financiero, Cliente | Alta |
 | **RF-13** | CDU003 | Registro y Aplicación de Pagos | Reporte de depósito/transferencia por parte del cliente y confirmación/contabilización por parte del agente financiero con número de autorización bancaria. | Agente Financiero, Cliente | Alta |
 | **RF-14** | CDU004 | Visualización de Dashboard Gerencial | Corte diario consolidado de las tres sedes con cálculo de KPIs, márgenes de rentabilidad y tiempos de entrega. | Gerencia | Media |
@@ -182,15 +183,15 @@
 |---|---|
 | **Nombre** | Gestión Financiera y Facturación |
 | **Código** | CDU003 |
-| **Actores** | **Primarios:** Agente Financiero, Cliente. |
-| **Descripción** | Módulo que centraliza las operaciones fiscales y de tesorería. Permite la emisión automática de facturas (FEL) asegurando el cumplimiento tributario, y habilita un portal de gestión de cuentas donde clientes y agentes interactúan para el reporte y conciliación de pagos. |
+| **Actores** | **Primarios:** Agente Financiero, Cliente. **Secundarios:** Certificador FEL. |
+| **Descripción** | Módulo que centraliza las operaciones fiscales y de tesorería. Permite la emisión automática de facturas (FEL) asegurando el cumplimiento tributario mediante la integración con el Certificador FEL autorizado por la SAT, y habilita un portal de gestión de cuentas donde clientes y agentes interactúan para el reporte y conciliación de pagos. |
 | **Precondiciones** | 1. Existir una Orden de Servicio con estado "Entregado". 2. El Cliente debe tener un NIT válido registrado en el sistema. |
 | **Post Condiciones** | **Éxito:** Factura emitida y entregada; saldos de cuenta actualizados tras el registro del pago. **Fallo:** Emisión detenida por error fiscal o pago no procesado por falta de fondos. |
-| **Flujo Principal A (Emisión de Factura)** | 1. El Agente Financiero inicia el proceso en Generar y Emitir Factura FEL (CDU003.1). 2. El sistema ejecuta Validar Reglas Fiscales (CDU003.2) verificando montos y NIT. 3. El sistema procede a Certificar DTE ante SAT (CDU003.3) obteniendo la firma electrónica. 4. El sistema finaliza con Emitir Factura Física (CDU003.4), generando y enviando la representación gráfica (PDF). |
+| **Flujo Principal A (Emisión de Factura)** | 1. El Agente Financiero inicia el proceso en Generar y Emitir Factura FEL (CDU003.1). 2. El sistema ejecuta Validar Reglas Fiscales (CDU003.2) verificando montos y NIT. 3. El sistema envía el DTE al Certificador FEL, quien ejecuta Certificar DTE ante SAT (CDU003.3), validando, firmando digitalmente y devolviendo la certificación electrónica. 4. El sistema finaliza con Emitir Factura Física (CDU003.4), generando y enviando la representación gráfica (PDF). |
 | **Flujo Principal B (Gestión de Cuentas)** | 1. El Cliente o Agente Financiero acceden a Gestionar Estado de Cuenta (CDU003.5). 2. El sistema muestra el saldo actual y facturas pendientes. 3. Se pueden ejecutar las extensiones de pago (ver Flujos Alternos). |
 | **Flujos Alternos** | **FA1: Reporte de Pago del Cliente (Extensión CDU003.7)** — Desde el Estado de Cuenta, el Cliente ejecuta Registrar Información de Pago. Sube la boleta de depósito o transferencia. El sistema marca la factura como "Pago en Revisión". **FA2: Aplicación del Pago (Extensión CDU003.6)** — El Agente Financiero revisa la información y ejecuta Generar Pagos de Facturas. El sistema valida el monto y rebaja el saldo de la deuda del cliente. |
 | **Reglas de Negocio** | • **Validación Fiscal:** El sistema no permitirá certificar (CDU003.3) si el NIT no cumple con el algoritmo de la SAT.<br>• **Bloqueo por Mora:** Si el Estado de Cuenta (CDU003.5) muestra facturas con más de 45 días de vencimiento, se bloquean nuevos servicios automáticamente.<br>• **Traza Bancaria:** Para registrar un pago (CDU003.7/3.6) es obligatorio ingresar el Banco de Origen y Número de Autorización. |
-| **Reglas de Calidad** | • **Integridad:** La Factura Física (PDF) debe ser idéntica a los datos certificados en el XML de la SAT.<br>• **Seguridad:** El Cliente puede registrar información de pago, pero solo el Agente Financiero tiene permisos para confirmar y "Generar el Pago" real en el libro contable. |
+| **Reglas de Calidad** | • **Integridad:** La Factura Física (PDF) debe ser idéntica a los datos certificados en el XML de la SAT.<br>• **Seguridad:** El Cliente puede registrar información de pago, pero solo el Agente Financiero tiene permisos para confirmar y "Generar el Pago" real en el libro contable.<br>• **Interoperabilidad:** La comunicación con el Certificador FEL (CDU003.3) debe realizarse mediante APIs estándar, garantizando la certificación en tiempo real del DTE y el manejo adecuado de errores o indisponibilidad del servicio externo. |
 
 ---
 
@@ -427,12 +428,12 @@ Esta matriz relaciona los casos de uso (CDU) con los escenarios de atributos de 
 
 Esta matriz muestra qué actores participan en cada caso de uso. La marca **●** indica actor primario (participa directamente en el flujo principal) y **○** indica actor secundario (participa de forma indirecta o en extensiones).
 
-| CDU | Módulo | Cliente | Agente Operativo | Agente Logístico | Encargado de Patio | Piloto | Agente Financiero | Gerencia |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| CDU001 | Gestión Comercial y Contratos | ○ | ● | | | | ● | |
-| CDU002 | Gestión de Órdenes y Transporte | ● | | ● | ● | ● | | |
-| CDU003 | Gestión Financiera y Facturación | ● | | | | | ● | |
-| CDU004 | Inteligencia de Negocio y Reportes | | | | | | | ● |
+| CDU | Módulo | Cliente | Agente Operativo | Agente Logístico | Encargado de Patio | Piloto | Agente Financiero | Certificador FEL | Gerencia |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| CDU001 | Gestión Comercial y Contratos | ○ | ● | | | | ● | | |
+| CDU002 | Gestión de Órdenes y Transporte | ● | | ● | ● | ● | | | |
+| CDU003 | Gestión Financiera y Facturación | ● | | | | | ● | ○ | |
+| CDU004 | Inteligencia de Negocio y Reportes | | | | | | | | ● |
 
 > **●** Actor Primario — **○** Actor Secundario
 
