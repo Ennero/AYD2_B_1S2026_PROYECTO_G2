@@ -11,13 +11,13 @@ El es porceso documentado que explica el _porque_ detrás de una elección de di
 - **Decisión:** Se adopta un patrón de diseño de **Monolíto Modular** encapsulado en **contenedores Docker**, descartando una arquitectura pura de Microservicios.
 
 - **Justificación:**
-  - **Atiende a RES-03 (Tiempo de Entrega) y RES-04 (Tecnología Madura):** Una arquitectura orientada a miscroservicios requiere una configuración compleja de red, descrubirmiento de servicios y gestión de bases de datos distribuidas que es inviable completar en 4 semanas. El molito modular utiliza tecnologías maduras que garantizan la entrega a tiempo.
+  - **Atiende a RES-03 (Tiempo de Entrega) y RES-04 (Tecnología Madura):** Una arquitectura orientada a miscroservicios requiere una configuración compleja de red, descubrimiento de servicios y gestión de bases de datos distribuidas que es inviable completar en 4 semanas. El molito modular utiliza tecnologías maduras que garantizan la entrega a tiempo.
 
   - **Atiende a EAC-04 (Modificabilidad):** Aunque es un único entregable (monolito), el código se estructurará en módulos lógicos estrictamente separados (Ej. Gestión Comercial, Operaciones, Facturación). Esto permite que, en el futuro, el módulo de Aduanas se agregue sin alterar el "core" logísitico.
 
-  - **Atiende a RES-01 (Infraestructura Local), RES-02 (Cloud-Ready) y EAC-06 (Portabilidad):** Al contenerizar la aplicación con Docker, la solución puede ejectuarse de inmediate en los servidores _on-premise_ actuales. Al mismo tiempo, el uso de contenedores garantiza que el salto a la nube está transparente, cumpliendo la protabilidad exigida con un esfuerzo menor a una semana.
+  - **Atiende a RES-01 (Infraestructura Local), RES-02 (Cloud-Ready) y EAC-06 (Portabilidad):** Al contenerizar la aplicación con Docker, la solución puede ejectuarse de inmediate en los servidores _on-premise_ actuales. Al mismo tiempo, el uso de contenedores garantiza que el salto a la nube está transparente, cumpliendo la portabilidad exigida con un esfuerzo menor a una semana.
 
-- **Conseciencias (Trade-offs):**
+- **Consecuencias (Trade-offs):**
   - _Positivo:_ Despliegue rápido, menor costo inicial de infraestructura y cumplimiento total del cronograma.
   - _Negativo:_ Si un módulo experimenta un fallo de memoria crítico (Memory Leak), podría afectar temporalmente a los demás módulos al compartir el mismo entorno de ejecución base.
 
@@ -32,9 +32,9 @@ El es porceso documentado que explica el _porque_ detrás de una elección de di
 - **Justificación:**
   - **Atiende a EAC-03 (Seguridad y Auditabilidad) y RES-05 (Cumplimiento Legal FEL):** Las operaciones financieras y la facturación ante la SAT exigen cumplimiento estricto de las propiedades ACID (Atomicidad, Consistencia, Aislamiento, Durabilidad) para garantizar la integridad de los datos. Un modelo relacional garantiza que no haya "registros huérfanos" (ejemplo: un cobro sin un contrato asociado), asegurando la integridad de la bitácora de auditoria.
 
-  - **Atiende a EAC-02 (Escalabilidad y Rendimiento):** Para soportar el crecimiento del 200% manteniendo respuestas menores a 3 segundos, los motores RDBMS modernos permiten particionamiento de tablas y creación de índices optimizados, los cuales son más que suficientes para el volumen de la industría logísitica sin tener que recurrir a bases de datos distribuidas complejars.
+  - **Atiende a EAC-02 (Escalabilidad y Rendimiento):** Para soportar el crecimiento del 200% manteniendo respuestas menores a 3 segundos, los motores RDBMS modernos permiten particionamiento de tablas y creación de índices optimizados, los cuales son más que suficientes para el volumen de la industría logísitica sin tener que recurrir a bases de datos distribuidas complejas.
 
-- **Conseciencias (Trade-offs):**
+- **Consecuencias (Trade-offs):**
   - _Positivo:_ Integridad referencial absoluta, seguridad financiera y facilidad para generar reportes cruzados
   - _Negativo:_ El esquema de la base de datos es rígido. Cualquier cambio en la estructura de datos (ejemplo: agregar un nuevo campo a la tabla de contratos) requerirá una migración de base de datos, lo cual podría generar tiempos de inactividad si no se planifica adecuadamente.
 
@@ -53,7 +53,7 @@ El es porceso documentado que explica el _porque_ detrás de una elección de di
 
   - **Atiende a EAC-03 (Seguridad):** El uso de tokens JWT en el API Gateway asegura el control de acceso estricto basado en roles, garantizando que el ERP externo solo vea sus propias órdenes y no el tarifario interno.
 
-- **Conseciencias (Trade-offs):**
+- **Consecuencias (Trade-offs):**
   - _Positivo:_ Garantía el 99.5% de disponibilidad, resiliencia entre caídas y comunicación segura con terceros.
   - _Negativo:_ Añade un componente extra a la infraestructura (balanceador de carga) que debe ser configurado y mantenido por el equipo on-premise.
 
@@ -61,18 +61,18 @@ El es porceso documentado que explica el _porque_ detrás de una elección de di
 
 - **Título:** Implementación de Control de Acceso Basado en Roles (RBAC) y Bitácora de Auditoría Centralizada.
 
-- **Contexto:** El sistema maneja información sensible que es la "ventaja competitiva" de LogiTrans (Tarifarios Base y Contratos). Existe el riesgo de que personal interno (ejemplo: Pilotos o Encargados de Patio) o externos itenten acceder a estos datos. Además, se requiere un registro histórico de todas las acciones.
+- **Contexto:** El sistema maneja información sensible que es la "ventaja competitiva" de LogiTrans (Tarifarios Base y Contratos). Existe el riesgo de que personal interno (ejemplo: Pilotos o Encargados de Patio) o externos intenten acceder a estos datos. Además, se requiere un registro histórico de todas las acciones.
 
 - **Decisión:** Se implementará un modelo de seguridad **RBAC (Role-Based Access Control)** gestionado a través de Middlewares en el backend, acoplado a un patrón de diseño de **Interceptores (o Decoradores)** que registrarán automáticamente cada transacción de modificación en una tabla de auditoría de solo lectura (Append-Only).
 
 - **Justificación:**
-  - **Atiende a EAC-03 (Seguridad y Auditabilidad):** El uso de RBAC garantiza matemáticamente que una petición al módulo financiero sea rechazada si el token del usuario no tiene el rol explicíto de "Agente Financiero" o "Gerencia". Por otro lado, el patrón de interceptores asegura que ningún desarrollador olvide programar el registro en la bitácora, ya que la arquitectura misma intercepta la petición y guarda el "quien, qué cuándo" de forma autmatizada e inalterable.
+  - **Atiende a EAC-03 (Seguridad y Auditabilidad):** El uso de RBAC garantiza matemáticamente que una petición al módulo financiero sea rechazada si el token del usuario no tiene el rol explicíto de "Agente Financiero" o "Gerencia". Por otro lado, el patrón de interceptores asegura que ningún desarrollador olvide programar el registro en la bitácora, ya que la arquitectura misma intercepta la petición y guarda el "quien, qué, cuándo" de forma automatizada e inalterable.
 
-  - **Atiende a RNF-03:** Cumple el requisito no funciona de proteger los datos tarifarios de accesos no autorizados
+  - **Atiende a RNF-03:** Cumple el requisito no funcional de proteger los datos tarifarios de accesos no autorizados
 
-- **Conseciencias (Trade-offs):**
+- **Consecuencias (Trade-offs):**
   - _Positivo:_ Seguridad máxima, cumplimiento normativo y trazabilidad total para la gerencia.
-  - _Negativo:_ Aumenta ligeramente el tiempo de procesimiento de cada petición (latencia), ya que el sistema debe validar los permisos y escribir en la base de datos de auditoría antes de ejectutar la acción principal.
+  - _Negativo:_ Aumenta ligeramente el tiempo de procesamiento de cada petición (latencia), ya que el sistema debe validar los permisos y escribir en la base de datos de auditoría antes de ejectutar la acción principal.
 
 ## Decisión Arquitectónica 5: Gestión de Configuración y Control de Versiones
 
@@ -83,9 +83,9 @@ El es porceso documentado que explica el _porque_ detrás de una elección de di
 - **Decisión:** Se adopta de forma obligatoria la estrategia de ramificación **Git-flow** (ramas `main`, `develop`, `release` y `feature`), acompañada de protección de ramas mediante Pull Requests y revisiones de código (Code Reviews).
 
 - **Justificación:**
-  - **Atiende a RES-06 (Gestión de Configuración):** Cumple explícitamente con la restricción impuesta por los estándares del proecto (Cátedra) sobre el uso del repositorio.
+  - **Atiende a RES-06 (Gestión de Configuración):** Cumple explícitamente con la restricción impuesta por los estándares del proeproyectocto (Cátedra) sobre el uso del repositorio.
   - **Atiende a RES-03 (Tiempo de Entrega) y EAC-04 (Modificabilidad):** Al tener múltiples desarrolladores trabajando en módulo distintos (ejemplos: Comercial vs Facturación) en un plazo corto, Git-flow evita que el código de uno rompa el del otro. Las nuevas funcionalides se trabajan de forma aislada en ramas `feature`, y solo se integran a `develop` una vez que han pasado las pruebas y revisiones, garantizando la estabilidad del código base.
 
-- **Conseciencias (Trade-offs):**
+- **Consecuencias (Trade-offs):**
   - _Positivo:_ Orden Absoluto en el código, prevención de errores en producción y facilidad para auditar el trabajo individual de cada miembro del equipo (vital para la evaluación).
   - _Negativo:_ Requiere disciplina estricta en el equipo para seguir la metodología. Si un desarrollador olvida crear una rama `feature` y trabaja directamente en `develop`, podría generar conflictos o incluso romper la aplicación si no se detecta a tiempo.
