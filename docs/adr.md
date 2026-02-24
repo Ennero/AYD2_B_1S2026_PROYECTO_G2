@@ -83,9 +83,49 @@ El es porceso documentado que explica el _porque_ detrás de una elección de di
 - **Decisión:** Se adopta de forma obligatoria la estrategia de ramificación **Git-flow** (ramas `main`, `develop`, `release` y `feature`), acompañada de protección de ramas mediante Pull Requests y revisiones de código (Code Reviews).
 
 - **Justificación:**
-  - **Atiende a RES-06 (Gestión de Configuración):** Cumple explícitamente con la restricción impuesta por los estándares del proeproyectocto (Cátedra) sobre el uso del repositorio.
+  - **Atiende a RES-06 (Gestión de Configuración):** Cumple explícitamente con la restricción impuesta por los estándares del proyecto (Cátedra) sobre el uso del repositorio.
   - **Atiende a RES-03 (Tiempo de Entrega) y EAC-04 (Modificabilidad):** Al tener múltiples desarrolladores trabajando en módulo distintos (ejemplos: Comercial vs Facturación) en un plazo corto, Git-flow evita que el código de uno rompa el del otro. Las nuevas funcionalides se trabajan de forma aislada en ramas `feature`, y solo se integran a `develop` una vez que han pasado las pruebas y revisiones, garantizando la estabilidad del código base.
 
 - **Consecuencias (Trade-offs):**
   - _Positivo:_ Orden Absoluto en el código, prevención de errores en producción y facilidad para auditar el trabajo individual de cada miembro del equipo (vital para la evaluación).
   - _Negativo:_ Requiere disciplina estricta en el equipo para seguir la metodología. Si un desarrollador olvida crear una rama `feature` y trabaja directamente en `develop`, podría generar conflictos o incluso romper la aplicación si no se detecta a tiempo.
+
+## Decisión Arquitectónica 6: Protocolo de Comunicación Cliente-Servidor e Integración
+
+- **Título:** Adopción del Protocolo HTTP2 para Counicaciones y Exposición de APIs.
+
+- **Contexto:** El sistema debe mantener tiempos de respuesta menores a 3 segundos incluso cuando el volumen transaccional aumente un 200% debido a la expansión regional. Además debe exponer APIs para intercambiar datos de geolocalización en tiempo real con los ERPs de los clientes.
+
+- **Decisión:** Se establece el uso obligatorio del protocolo **HTTP2 (sobre TLS)** para toda la comunicación entre el frontend (navegadores) y el backend, así como para la capa de interoperabilidad con terceros, reemplazando el tradicional HTTP/1.1.
+
+- **Justificación:**
+  - **Atiende a EAC-02 (Escalabilidad y Rendimiento):** HTTP/2 introduce la "multiplexación" (enviar múltiples peticiones simultáneas por una sola conexión TCP) y la compresión de cabeceras (HPACK). Esto elimina el cuello de botella tecnológico de HTTP/1.1, reduciendo drásticamente la latencia de red y garantizando que el sistema responda en menos de 3 segundos, incluso con cargar concurrentes masivas de 3 sedes.
+
+  - **Atiende a EAC-05 (Interoperabilidad):** Los ERPs modernos consumirán la API de LogiTrans de forma muchos más eficiente al mantener una conexión viva y rápida mediante HTTP/2, ideal para la transmisión de estados de órdenes en tiempo real.
+
+  - **Atiende a EAC-03 (Seguridad):** La implementación práctica de HTTP/2 exige obligatoriamente cifrado (HTTPS/LTS), blindado las comunicaciones contra interceptaciones de intermediarios (ataques Man-in-the-Middle).
+
+- **Consecuencias (Trade-offs):**
+  - _Positivo:_ Reducción del tiempo de carga, optimización del ancho de banda y cifrado de extremo a extremo garantizado.
+
+  - _Negativo:_ Requiere configurar certicados SSL/TLS en el servidor local (on-premise) desde el día uno y configurar el Balanceador de Carga (NGINX) para manejar y terminar conexiones HTTP/2, lo que añade complejidad a la infraestructura inicial.
+
+## Decisión Arquitectónica 7: Estrategia de Gestión de Identidad y Sesiones
+
+- **Título:** Implementación de Caducidad de Sesión Estrictra (Short-Lived Tokens) y Rotación.
+
+- **Contexto:** El sistema gestiona datos altamente sensibles (tarifarios base, contratos, auditorías de la SAT) accesibles desde ubicaciones remotas (patios, fronteras, sedes departamentales). Un dispositivo dejado desbloqueado o una sesión interceptada representa un riesgo crítico de fuga de información y manipulación financiera.
+
+- **Decisión:** Se implementará una arquitectura de autenticación Stateless utilizando **JSON Web Tokens (JWT)** de corta duración, acompañados de mecanismos de _Refresh Tokens_ almacenados de forma segura (HttpOnly Cookies).
+
+- **Justificación:**
+  - **Atiende a EAC-03 (Seguridad y Auditabilidad):** Al establecer un tiempo de expiración muy corto, se minimiza la "ventana de oportunidad" para un atacante. Si un token es robado de un navegador en la sede de Puerto Barrios, ese token será inutil en cuestión de minutos. El _Refresh Token_ asegura que el usuario legítimo no tenga que poner su contraseña a cada rato, pero permite al sistema invalidar el acceso instantáneamente si se detecta una anomalía.
+
+  - **Atiende a RES-05 (Cumplimiento Legal - FEL):** Para garantizar que solo personal autorizado emita facturas certificadas por la SAT, la sesión debe validar continuamente la identidad del agente financiero, evitando que sesiones zombis ejecuten cobros.
+
+  - **Atiende a RNF-03:** Refuerza el control de acceso estrictor protegiendo la ventaja comptetiva de la empresa.
+
+- **Consecuencias (Trade-offs):**
+  - _Positivo:_ Mitigación drástica de ataques de secuestro de sesión (Session Hijacking) y cumplimiento de estándares de seguridad corporativa.
+
+  - _Negativo:_ Aumenta la complejidad del desarrollo en el Frontend (el cual debe programarse para solicitar un nuevo token de acceso silenciosamente antes de que expiere el actual) y genera una leve sobrecarga computacional en el servidor al tener que validar firmas criptográficas constantemente.
