@@ -55,11 +55,11 @@
 
 ### Diagrama de Casos de Uso de Negocio — Alto Nivel
 
-![Diagrama de Alto Nivel](imgs/high-level.png)
+![Diagrama de Alto Nivel](imgs/dda/high-level.png)
 
 ### Primera Descomposición
 
-![Primera Descomposición](imgs/first-descomposition.png)
+![Primera Descomposición](imgs/dda/first-descomposition.png)
 
 ---
 
@@ -137,7 +137,7 @@
 
 ### 4.2. CDU001 – Gestión Comercial y Contratos
 
-![CDU001](imgs/cdu001.png)
+![CDU001](imgs/dda/cdu001.png)
 
 | Campo | Descripción |
 |---|---|
@@ -158,7 +158,7 @@
 
 ### 4.3. CDU002 – Gestión de Órdenes y Transporte
 
-![CDU002](imgs/cdu002.png)
+![CDU002](imgs/dda/cdu002.png)
 
 | Campo | Descripción |
 |---|---|
@@ -177,7 +177,7 @@
 
 ### 4.4. CDU003 – Gestión Financiera y Facturación
 
-![CDU003](imgs/cdu003.png)
+![CDU003](imgs/dda/cdu003.png)
 
 | Campo | Descripción |
 |---|---|
@@ -197,7 +197,7 @@
 
 ### 4.5. CDU004 – Inteligencia de Negocio y Reportes
 
-![CDU004](imgs/cdu004.png)
+![CDU004](imgs/dda/cdu004.png)
 
 | Campo | Descripción |
 |---|---|
@@ -351,7 +351,7 @@ Este escenario valida el mandato gerencial sobre el hardware y el futuro salto a
 | ID | Categoría | Descripción de la Restricción | Origen / Stakeholder |
 |---|---|---|---|
 | **RES-01** | Infraestructura y Costos | **Priorización de la Eficiencia:** Es obligatorio reutilizar los servidores físicos actuales (despliegue on-premise) para minimizar costos iniciales, antes de proponer nuevas inversiones en hardware. | Gerente General / Área Financiera |
-| **RES-02** | Arquitectura de Despliegue | **Preparación para el Salto a la Nube:** Aunque el despliegue inicial es físico, el diseño de la arquitectura debe ser Cloud-Ready (ej. contenerización, microservicios) para permitir una migración futura sin refactorización profunda. | Gerente de TI / Gerencia General |
+| **RES-02** | Arquitectura de Despliegue | **Preparación para el Salto a la Nube:** Aunque el despliegue inicial es físico, el diseño de la arquitectura debe ser Cloud-Ready (contenerización) para permitir una migración futura sin refactorización profunda. | Gerente de TI / Gerencia General |
 | **RES-03** | Tiempo de Entrega | **Hoja de Ruta (Time-to-market):** La definición de la arquitectura y la solución funcional debe ser entregada en un plazo estricto máximo de 4 semanas. | Equipo de Desarrollo / Gerencia General |
 | **RES-04** | Tecnología y Riesgo | **Tecnologías Conocidas:** Se prohíbe el uso de tecnologías experimentales que pongan en riesgo la fecha límite; se debe optar por stacks tecnológicos maduros y de bajo riesgo técnico. | Equipo de Desarrollo |
 | **RES-05** | Cumplimiento Legal | **Facturación Electrónica:** Todo movimiento económico en el sistema debe estar obligatoriamente respaldado por una certificación de Factura Electrónica en Línea (FEL) ante la SAT. | Cumplimiento Legal (SAT) / Área Financiera |
