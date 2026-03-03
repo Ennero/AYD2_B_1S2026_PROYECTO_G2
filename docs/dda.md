@@ -22,6 +22,10 @@
     - [4.4. CDU003 – Gestión Financiera y Facturación](#44-cdu003--gestión-financiera-y-facturación)
     - [4.5. CDU004 – Inteligencia de Negocio y Reportes](#45-cdu004--inteligencia-de-negocio-y-reportes)
     - [4.6. Historias de Usuario](#46-historias-de-usuario)
+      - [CDU001 — Gestión Comercial y Contratos](#cdu001--gestión-comercial-y-contratos)
+      - [CDU002 — Gestión de Órdenes y Transporte](#cdu002--gestión-de-órdenes-y-transporte)
+      - [CDU003 — Gestión Financiera y Facturación](#cdu003--gestión-financiera-y-facturación)
+      - [CDU004 — Inteligencia de Negocio y Reportes](#cdu004--inteligencia-de-negocio-y-reportes)
   - [5. Drivers de Calidad](#5-drivers-de-calidad)
     - [5.1. Requisitos No Funcionales](#51-requisitos-no-funcionales)
     - [5.2. EAC-01: Disponibilidad (Crítico)](#52-eac-01-disponibilidad-crítico)
@@ -49,7 +53,7 @@
 |---|---|
 | Cliente | Empresa externa que solicita servicios de transporte, consulta el estado de sus envíos y gestiona sus contratos. |
 | Agente Operativo | Encargado de la gestión comercial: registra clientes, perfila riesgos y formaliza los contratos y tarifas. |
-| Agente Logístico | Responsable de la operación de transporte: asigna pilotos, selecciona vehículos y planifica las rutas de las órdenes generadas. |
+| Agente Logístico | Responsable de la operación de transporte: asigna binomios piloto-vehículo y planifica las rutas de las órdenes generadas. |
 | Encargado de Patio | Personal en sitio responsable del despacho físico, validación de seguridad, pesaje y estiba de la carga. |
 | Piloto | Conductor de la unidad de transporte encargado de la ejecución del viaje, reporte de bitácora y confirmación de entrega. |
 | Agente Financiero | Responsable de la configuración de precios base, facturación electrónica y gestión de cobros. |
@@ -120,12 +124,12 @@
 | ID | Módulo | Nombre del Requisito | Descripción | Actor(es) | Prioridad |
 |---|---|---|---|---|---|
 | **RF-01** | CDU001 | Registro y Perfilamiento de Clientes | Captura de datos fiscales, comerciales y de contacto del cliente, incluyendo validación de NIT ante la SAT y verificación de listas negras. | Agente Operativo | Alta |
-| **RF-02** | CDU001 | Gestión de Credenciales de Acceso | Generación y envío automático de credenciales cifradas al cliente, con obligación de cambio de contraseña en el primer inicio de sesión. | Agente Operativo, Cliente | Alta |
+| **RF-02** | CDU001 | Gestión de Credenciales de Acceso | Generación y envío automático de credenciales cifradas al cliente, con soporte para recuperación de contraseña mediante enlace seguro de un solo uso enviado al correo registrado. | Agente Operativo, Cliente | Alta |
 | **RF-03** | CDU001 | Formalización de Contrato Digital | Creación de propuesta legal con definición de rutas, plazos y tarifas, firma digital y aceptación/rechazo por parte del cliente. | Agente Operativo, Cliente | Alta |
 | **RF-04** | CDU001 | Configuración de Tarifario Base | Parametrización de precios diferenciados por tipo de unidad (Ligera 3.5T, Pesada 10-12T, Cabezal 22T+) y aplicación de descuentos especiales con justificación. | Agente Financiero | Alta |
 | **RF-05** | CDU001 | Validación de Riesgo y Crédito | Evaluación automática de solvencia del cliente antes de formalizar contratos u órdenes; bloqueo ante mora o límite de crédito excedido. | Sistema (automático) | Alta |
 | **RF-06** | CDU002 | Generación de Orden de Servicio | Creación de órdenes de transporte por parte del cliente, condicionada a contrato vigente y crédito disponible. | Cliente | Alta |
-| **RF-07** | CDU002 | Planificación y Asignación de Recursos | Asignación de piloto y vehículo compatibles con el peso y los requisitos técnico-legales de la orden. | Agente Logístico | Alta |
+| **RF-07** | CDU002 | Planificación y Asignación de Binomio | Asignación de un binomio piloto-vehículo compatible con el peso y los requisitos técnico-legales de la orden. El sistema gestiona pilotos y vehículos como un par indivisible (binomio). | Agente Logístico | Alta |
 | **RF-08** | CDU002 | Registro de Despacho en Patio | Validación presencial de identidad del piloto, pesaje real vs. declarado y condición de estiba antes de autorizar la salida. | Encargado de Patio | Alta |
 | **RF-09** | CDU002 | Registro de Bitácora de Viaje | Reporte de novedades, cambios de estado y geolocalización por parte del piloto durante el tránsito. | Piloto | Media |
 | **RF-10** | CDU002 | Confirmación de Entrega y Evidencia | Registro fotográfico y firma de recepción al entregar la mercancía, dejando la orden lista para facturación. | Piloto | Alta |
@@ -153,7 +157,7 @@
 | **Flujo Principal** | 1. El Agente Financiero mantiene actualizado el esquema de precios en Configurar Tarifario Base (CDU001.4). 2. El Agente Operativo realiza el Registro y Perfilamiento del cliente (CDU001.1), capturando datos fiscales y contactos. 3. El sistema genera y envía automáticamente las claves mediante Gestionar Credenciales de Acceso (CDU001.2). 4. El Cliente ingresa al sistema y puede Gestionar su Perfil (CDU001.7) para actualizar datos seguros. 5. El Agente Operativo crea una propuesta legal mediante Formalizar Contrato Digital (CDU001.3), definiendo rutas y plazos. 6. El sistema ejecuta la Validación de Riesgo y Crédito (CDU001.5) para asegurar la solvencia del cliente. 7. El Cliente recibe la propuesta y procede a Aceptar el Contrato (CDU001.8), finalizando el acuerdo legal. |
 | **Flujos Alternos** | **FA1: Rechazo por Riesgo Crediticio** — Si en el paso 6 la validación detecta mora o riesgo alto, el sistema bloquea la creación del contrato y notifica a Gerencia. **FA2: Negociación de Tarifas (Descuentos)** — Durante el paso 5, el Agente puede activar Aplicar Descuento Especial (CDU001.6), lo cual requiere una justificación y recalcula los montos del contrato antes de enviarlo al cliente. **FA3: Rechazo de Contrato por el Cliente** — En el paso 7, el Cliente puede Rechazar el Contrato (CDU001.8) si no está de acuerdo con las tarifas, regresando el flujo al Agente Operativo para renegociación. |
 | **Reglas de Negocio** | • **Validación Fiscal:** El sistema debe validar que el NIT del cliente cumpla con el algoritmo de la SAT y no esté en listas negras.<br>• **Parametrización Financiera:** Las tarifas base deben diferenciar entre Unidad Ligera (3.5 Ton), Camión Pesado (10-12 Ton) y Cabezal (22 Ton+).<br>• **Bloqueo Automático:** El sistema impedirá cualquier operación si el cliente excede su límite de crédito o tiene facturas vencidas según los plazos pactados (15, 30, 45 días). |
-| **Reglas de Calidad** | • **Seguridad:** Las credenciales de acceso (CDU001.2) deben enviarse encriptadas y el sistema debe forzar un cambio de contraseña en el primer inicio de sesión.<br>• **Disponibilidad:** El módulo de aceptación de contratos por parte del Cliente (CDU001.8) debe estar disponible 24/7 para no retrasar la operación logística.<br>• **Auditabilidad:** Toda modificación en el tarifario o aceptación de contrato debe registrar fecha, hora, IP y usuario responsable. |
+| **Reglas de Calidad** | • **Seguridad:** Las credenciales de acceso (CDU001.2) deben enviarse encriptadas. El sistema debe proveer un mecanismo seguro de recuperación de contraseña mediante enlace de un solo uso con vigencia limitada (30 minutos) enviado al correo registrado del cliente; el enlace expira tras su primer uso o al vencer el tiempo límite.<br>• **Disponibilidad:** El módulo de aceptación de contratos por parte del Cliente (CDU001.8) debe estar disponible 24/7 para no retrasar la operación logística.<br>• **Auditabilidad:** Toda modificación en el tarifario o aceptación de contrato debe registrar fecha, hora, IP y usuario responsable. |
 
 
 
@@ -168,11 +172,11 @@
 | **Nombre** | Gestión de Órdenes y Transporte |
 | **Código** | CDU002 |
 | **Actores** | **Primarios:** Cliente, Agente Logístico, Encargado de Patio, Piloto. |
-| **Descripción** | Gestiona el flujo operativo del transporte. Inicia con la solicitud del cliente, pasa por la asignación de recursos (piloto/camión) por parte del área logística, el despacho físico en patio, y el monitoreo del viaje hasta la entrega final. |
-| **Precondiciones** | 1. El Cliente debe tener un contrato vigente y crédito disponible. 2. Deben existir unidades y pilotos disponibles en el sistema. |
+| **Descripción** | Gestiona el flujo operativo del transporte. Inicia con la solicitud del cliente, pasa por la asignación de un binomio piloto-vehículo por parte del área logística, el despacho físico en patio, y el monitoreo del viaje hasta la entrega final. |
+| **Precondiciones** | 1. El Cliente debe tener un contrato vigente y crédito disponible. 2. Deben existir binomios piloto-vehículo disponibles y activos en el sistema. |
 | **Post Condiciones** | **Éxito:** Mercancía entregada, evidencia registrada y orden lista para facturación. **Fallo:** Orden rechazada por crédito o detenida en patio por incumplimiento de normas de seguridad. |
-| **Flujo Principal** | 1. El Cliente ingresa al sistema y ejecuta Generar Orden de Servicio (CDU002.1). 2. El sistema realiza automáticamente Validar Crédito y Contrato (CDU002.2). 3. El Agente Logístico recibe la solicitud y procede a Planificar y Asignar Recursos (CDU002.3). 4. El sistema ejecuta Validar Requisitos Técnicos y Legales (CDU002.4) para asegurar la compatibilidad del camión y licencia del piloto. 5. En la salida, el Encargado de Patio ejecuta Registrar Despacho en Patio (CDU002.5). 6. El sistema fuerza la validación Validar ID, Pesaje y Estiba (CDU002.6). 7. Al salir, el Piloto actualiza el estado mediante Cambiar Estado a "En Tránsito" (CDU002.7). 8. Durante el viaje, el Piloto realiza Registrar Bitácora de Viaje (CDU002.8) para reportar novedades. 9. Al llegar al destino, el Piloto finaliza con Confirmar Entrega y Evidencia (CDU002.9). |
-| **Flujos Alternos** | **FA1: Cliente Moroso (Paso 2)** — Si la validación de crédito falla, el sistema bloquea la orden y notifica al cliente que contacte a Cobros. **FA2: Recursos Insuficientes (Paso 4)** — Si el Agente Logístico asigna un camión con capacidad menor al peso de la orden, el sistema impide la asignación. **FA3: Rechazo en Patio (Paso 6)** — Si el pesaje real difiere de lo declarado o la estiba es insegura, el Encargado de Patio no puede autorizar la salida hasta corregirlo. |
+| **Flujo Principal** | 1. El Cliente ingresa al sistema y ejecuta Generar Orden de Servicio (CDU002.1). 2. El sistema realiza automáticamente Validar Crédito y Contrato (CDU002.2). 3. El Agente Logístico recibe la solicitud y procede a Planificar y Asignar Binomio (CDU002.3), seleccionando un par piloto-vehículo ya conformado en el sistema. 4. El sistema ejecuta Validar Requisitos Técnicos y Legales (CDU002.4) para asegurar que el binomio seleccionado es compatible con el tipo de carga y que tanto la licencia del piloto como la habilitación técnica del vehículo se encuentran vigentes. 5. En la salida, el Encargado de Patio ejecuta Registrar Despacho en Patio (CDU002.5). 6. El sistema fuerza la validación Validar ID, Pesaje y Estiba (CDU002.6). 7. Al salir, el Piloto actualiza el estado mediante Cambiar Estado a "En Tránsito" (CDU002.7). 8. Durante el viaje, el Piloto realiza Registrar Bitácora de Viaje (CDU002.8) para reportar novedades. 9. Al llegar al destino, el Piloto finaliza con Confirmar Entrega y Evidencia (CDU002.9). |
+| **Flujos Alternos** | **FA1: Cliente Moroso (Paso 2)** — Si la validación de crédito falla, el sistema bloquea la orden y notifica al cliente que contacte a Cobros. **FA2: Binomio Incompatible o No Disponible (Paso 4)** — Si el binomio piloto-vehículo seleccionado no cumple con la capacidad de carga requerida por la orden, o si alguno de sus integrantes (piloto o vehículo) tiene documentación vencida, el sistema impide la asignación y muestra el motivo. **FA3: Rechazo en Patio (Paso 6)** — Si el pesaje real difiere de lo declarado o la estiba es insegura, el Encargado de Patio no puede autorizar la salida hasta corregirlo. |
 | **Reglas de Negocio** | • **Validación de Crédito:** No se permiten órdenes si el cliente ha excedido su límite de crédito o tiene facturas vencidas.<br>• **Normativa de Peso:** El sistema no permitirá despachar una unidad si el peso ingresado en patio supera la capacidad técnica del vehículo (Ligera 3.5T, Pesada 12T, Trailer 22T+). |
 | **Reglas de Calidad** | • **Trazabilidad:** Cada cambio de estado (Despachado, En Tránsito, Entregado) debe registrar fecha, hora y geolocalización.<br>• **Usabilidad:** La interfaz del Piloto (Bitácora y Entrega) debe ser optimizada para móviles y funcionar con baja conectividad (modo offline-sync). |
 
@@ -226,7 +230,7 @@ Las historias de usuario (HU) se derivan de los requisitos funcionales (RF) y de
 |---|---|---|---|---|---|
 | **HU-01** | Como **Agente Operativo**, quiero registrar y perfilar nuevos clientes con validación de NIT ante la SAT, para asegurar que solo clientes legítimos operen en el sistema. | Agente Operativo | 1. El sistema valida el NIT con el algoritmo de la SAT. 2. Se verifica la ausencia del cliente en listas negras. 3. Se almacenan datos fiscales, comerciales y de contacto. 4. Se muestra mensaje de error si el NIT es inválido. | RF-01 | Alta |
 | **HU-02** | Como **Agente Operativo**, quiero que el sistema genere y envíe credenciales cifradas automáticamente al cliente registrado, para que pueda acceder al portal de forma segura. | Agente Operativo | 1. Las credenciales se generan automáticamente tras el registro exitoso. 2. El envío se realiza de forma cifrada. 3. Se registra la fecha y hora de generación en la bitácora. | RF-02 | Alta |
-| **HU-03** | Como **Cliente**, quiero cambiar mi contraseña en el primer inicio de sesión, para garantizar la seguridad de mi cuenta. | Cliente | 1. El sistema obliga al cambio de contraseña en el primer login. 2. La nueva contraseña debe cumplir requisitos mínimos de complejidad. 3. No se permite operar en el sistema hasta completar el cambio. | RF-02 | Alta |
+| **HU-03** | Como **Cliente**, quiero poder recuperar mi contraseña desde el portal de acceso en caso de olvidarla, para retomar el acceso a mi cuenta de forma segura y autónoma. | Cliente | 1. El sistema muestra un enlace de "¿Olvidé mi contraseña?" visible en la pantalla de inicio de sesión. 2. Al solicitarlo, el sistema envía al correo registrado del cliente un enlace de restablecimiento de un solo uso con vigencia de 30 minutos. 3. El enlace expira tras su primer uso o al cumplirse el tiempo límite. 4. La nueva contraseña debe cumplir los requisitos mínimos de complejidad del sistema. 5. Se registra el evento de recuperación (fecha, hora e IP) en la bitácora de auditoría. | RF-02 | Alta |
 | **HU-04** | Como **Agente Operativo**, quiero crear propuestas de contrato digital con definición de rutas, plazos y tarifas, para formalizar la relación comercial con el cliente. | Agente Operativo | 1. Se pueden definir rutas, plazos y tarifas en la propuesta. 2. La propuesta queda en estado "Pendiente de Aceptación". 3. Se registra la firma digital del Agente. | RF-03 | Alta |
 | **HU-05** | Como **Cliente**, quiero aceptar o rechazar un contrato digital desde el portal web, para formalizar o renegociar los términos del servicio de transporte. | Cliente | 1. El cliente visualiza la propuesta completa con tarifas y condiciones. 2. Al aceptar, el contrato pasa a estado "Vigente". 3. Al rechazar, se notifica al Agente Operativo para renegociación. | RF-03 | Alta |
 | **HU-06** | Como **Agente Financiero**, quiero configurar tarifas base diferenciadas por tipo de unidad y aplicar descuentos especiales con justificación, para mantener una estructura de precios competitiva. | Agente Financiero | 1. Se parametrizan precios por tipo de unidad (Ligera 3.5T, Pesada 10-12T, Cabezal 22T+). 2. Los descuentos requieren justificación obligatoria. 3. Toda modificación queda registrada en la bitácora de auditoría. | RF-04 | Alta |
@@ -237,7 +241,7 @@ Las historias de usuario (HU) se derivan de los requisitos funcionales (RF) y de
 | ID | Historia de Usuario | Actor | Criterios de Aceptación | RF Relacionado | Prioridad |
 |---|---|---|---|---|---|
 | **HU-08** | Como **Cliente**, quiero generar órdenes de servicio de transporte desde el portal, para solicitar el envío de mercancía de forma autónoma. | Cliente | 1. Solo se permite generar órdenes con contrato vigente y crédito disponible. 2. La orden queda en estado "Creada" y se notifica al área logística. 3. Se muestra un resumen con el costo estimado antes de confirmar. | RF-06 | Alta |
-| **HU-09** | Como **Agente Logístico**, quiero asignar piloto y vehículo compatibles a cada orden de transporte, para garantizar que los recursos cumplan los requisitos técnicos y legales de la carga. | Agente Logístico | 1. El sistema sugiere solo vehículos y pilotos disponibles y compatibles con el peso. 2. Se valida que la licencia del piloto sea vigente. 3. La orden cambia a estado "Asignada" tras la asignación exitosa. | RF-07 | Alta |
+| **HU-09** | Como **Agente Logístico**, quiero asignar un binomio piloto-vehículo a cada orden de transporte, para garantizar que el par conformado cumpla los requisitos técnicos y legales de la carga como una unidad indivisible. | Agente Logístico | 1. El sistema muestra únicamente binomios piloto-vehículo disponibles y cuya capacidad de carga sea compatible con el peso de la orden. 2. Se valida que tanto la licencia del piloto como la habilitación técnica del vehículo del binomio estén vigentes. 3. No se permite asignar piloto y vehículo de forma independiente; la asignación siempre se realiza como binomio. 4. La orden cambia a estado "Asignada" tras la asignación exitosa del binomio. | RF-07 | Alta |
 | **HU-10** | Como **Encargado de Patio**, quiero registrar el despacho validando la identidad del piloto, el pesaje real y las condiciones de estiba, para autorizar la salida segura de la unidad. | Encargado de Patio | 1. Se valida la identidad del piloto contra el registro del sistema. 2. El peso real no debe superar la capacidad técnica del vehículo. 3. Se registra la condición de estiba. 4. La orden cambia a estado "Despachada". | RF-08 | Alta |
 | **HU-11** | Como **Piloto**, quiero registrar la bitácora de viaje con novedades y geolocalización desde mi dispositivo móvil, para mantener informado al sistema sobre el estado del transporte en tiempo real. | Piloto | 1. La interfaz funciona en dispositivos móviles con baja conectividad (modo offline-sync). 2. Se registra geolocalización, fecha y hora de cada entrada. 3. Los datos se sincronizan automáticamente al recuperar conexión. | RF-09 | Media |
 | **HU-12** | Como **Piloto**, quiero confirmar la entrega con evidencia fotográfica y firma de recepción, para cerrar la orden y dejarla lista para facturación. | Piloto | 1. Se captura al menos una fotografía de la entrega. 2. Se registra la firma digital de recepción del destinatario. 3. La orden cambia a estado "Entregada". 4. Se notifica al área financiera para iniciar la facturación. | RF-10 | Alta |
@@ -494,13 +498,13 @@ Esta matriz establece la trazabilidad entre cada Historia de Usuario (HU) y los 
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | HU-01 | Registro y perfilamiento de clientes | ● | | | | | | | | | | | | | | | |
 | HU-02 | Generación automática de credenciales | | ● | | | | | | | | | | | | | | |
-| HU-03 | Cambio de contraseña en primer login | | ● | | | | | | | | | | | | | | |
+| HU-03 | Recuperar contraseña desde portal | | ● | | | | | | | | | | | | | | |
 | HU-04 | Crear propuesta de contrato digital | | | ● | | | | | | | | | | | | | |
 | HU-05 | Aceptar/Rechazar contrato digital | | | ● | | | | | | | | | | | | | |
 | HU-06 | Configuración de tarifario base | | | | ● | | | | | | | | | | | | |
 | HU-07 | Validación automática de riesgo/crédito | | | | | ● | | | | | | | | | | | |
 | HU-08 | Generar orden de servicio | | | | | | ● | | | | | | | | | | |
-| HU-09 | Asignar piloto y vehículo a orden | | | | | | | ● | | | | | | | | | |
+| HU-09 | Asignar binomio piloto-vehículo a orden | | | | | | | ● | | | | | | | | | |
 | HU-10 | Registrar despacho en patio | | | | | | | | ● | | | | | | | | |
 | HU-11 | Registrar bitácora de viaje | | | | | | | | | ● | | | | | | | |
 | HU-12 | Confirmar entrega con evidencia | | | | | | | | | | ● | | | | | | |
@@ -523,13 +527,13 @@ Esta matriz muestra a qué caso de uso (módulo) pertenece cada Historia de Usua
 |---|---|:---:|:---:|:---:|:---:|
 | HU-01 | Registro y perfilamiento de clientes | ● | | | |
 | HU-02 | Generación automática de credenciales | ● | | | |
-| HU-03 | Cambio de contraseña en primer login | ● | | | |
+| HU-03 | Recuperar contraseña desde portal | ● | | | |
 | HU-04 | Crear propuesta de contrato digital | ● | | | |
 | HU-05 | Aceptar/Rechazar contrato digital | ● | | | |
 | HU-06 | Configuración de tarifario base | ● | | | |
 | HU-07 | Validación automática de riesgo/crédito | ● | | | |
 | HU-08 | Generar orden de servicio | | ● | | |
-| HU-09 | Asignar piloto y vehículo a orden | | ● | | |
+| HU-09 | Asignar binomio piloto-vehículo a orden | | ● | | |
 | HU-10 | Registrar despacho en patio | | ● | | |
 | HU-11 | Registrar bitácora de viaje | | ● | | |
 | HU-12 | Confirmar entrega con evidencia | | ● | | |
