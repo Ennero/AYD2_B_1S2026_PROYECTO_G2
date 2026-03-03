@@ -21,6 +21,7 @@
     - [4.3. CDU002 – Gestión de Órdenes y Transporte](#43-cdu002--gestión-de-órdenes-y-transporte)
     - [4.4. CDU003 – Gestión Financiera y Facturación](#44-cdu003--gestión-financiera-y-facturación)
     - [4.5. CDU004 – Inteligencia de Negocio y Reportes](#45-cdu004--inteligencia-de-negocio-y-reportes)
+    - [4.6. Historias de Usuario](#46-historias-de-usuario)
   - [5. Drivers de Calidad](#5-drivers-de-calidad)
     - [5.1. Requisitos No Funcionales](#51-requisitos-no-funcionales)
     - [5.2. EAC-01: Disponibilidad (Crítico)](#52-eac-01-disponibilidad-crítico)
@@ -35,6 +36,8 @@
     - [7.2. Matriz RF vs. RNF](#72-matriz-rf-vs-rnf)
     - [7.3. Matriz CDU vs. EAC](#73-matriz-cdu-vs-eac)
     - [7.4. Matriz CDU vs. Actores](#74-matriz-cdu-vs-actores)
+    - [7.5. Matriz HU vs. RF](#75-matriz-hu-vs-rf)
+    - [7.6. Matriz HU vs. CDU](#76-matriz-hu-vs-cdu)
 
 ---
 
@@ -212,6 +215,50 @@
 | **Flujos Alternos** | **FA1: Detección de Anomalías (Extensión CDU004.4)** — Si durante el cálculo de KPIs (Paso 3 del Flujo A) el sistema detecta valores fuera de rango (ej. Rentabilidad < 10% o Retrasos > 5%), se ejecuta Alertar Desviaciones. El sistema superpone una notificación crítica y resalta en rojo las rutas afectadas en el mapa. **FA2: Sin Datos para Proyección** — Si en el Flujo B no existe suficiente historial (menos de 6 meses), el sistema advierte que la proyección tendrá un margen de error alto. |
 | **Reglas de Negocio** | • **Corte Diario:** Debe integrar transacciones hasta las 23:59 del día anterior de todas las sucursales.<br>• **Umbrales de Alerta:** Las desviaciones se configuran paramétricamente; por defecto, cualquier caída de ingresos del 15% semanal dispara la extensión.<br>• **Privacidad:** La información de rentabilidad es confidencial y solo visible para roles de Gerencia General y Financiera. |
 | **Reglas de Calidad** | • **Rendimiento:** El tiempo de carga del Dashboard (CDU004.1) no debe exceder los 5 segundos.<br>• **Usabilidad:** Las alertas de desviación (CDU004.4) deben ser "accionables", permitiendo al usuario hacer clic en la alerta para ir directamente a la orden o contrato problemático. |
+
+### 4.6. Historias de Usuario
+
+Las historias de usuario (HU) se derivan de los requisitos funcionales (RF) y describen la funcionalidad desde la perspectiva de cada actor del sistema. Cada historia sigue el formato estándar: *"Como [rol], quiero [acción], para [beneficio]"*.
+
+#### CDU001 — Gestión Comercial y Contratos
+
+| ID | Historia de Usuario | Actor | Criterios de Aceptación | RF Relacionado | Prioridad |
+|---|---|---|---|---|---|
+| **HU-01** | Como **Agente Operativo**, quiero registrar y perfilar nuevos clientes con validación de NIT ante la SAT, para asegurar que solo clientes legítimos operen en el sistema. | Agente Operativo | 1. El sistema valida el NIT con el algoritmo de la SAT. 2. Se verifica la ausencia del cliente en listas negras. 3. Se almacenan datos fiscales, comerciales y de contacto. 4. Se muestra mensaje de error si el NIT es inválido. | RF-01 | Alta |
+| **HU-02** | Como **Agente Operativo**, quiero que el sistema genere y envíe credenciales cifradas automáticamente al cliente registrado, para que pueda acceder al portal de forma segura. | Agente Operativo | 1. Las credenciales se generan automáticamente tras el registro exitoso. 2. El envío se realiza de forma cifrada. 3. Se registra la fecha y hora de generación en la bitácora. | RF-02 | Alta |
+| **HU-03** | Como **Cliente**, quiero cambiar mi contraseña en el primer inicio de sesión, para garantizar la seguridad de mi cuenta. | Cliente | 1. El sistema obliga al cambio de contraseña en el primer login. 2. La nueva contraseña debe cumplir requisitos mínimos de complejidad. 3. No se permite operar en el sistema hasta completar el cambio. | RF-02 | Alta |
+| **HU-04** | Como **Agente Operativo**, quiero crear propuestas de contrato digital con definición de rutas, plazos y tarifas, para formalizar la relación comercial con el cliente. | Agente Operativo | 1. Se pueden definir rutas, plazos y tarifas en la propuesta. 2. La propuesta queda en estado "Pendiente de Aceptación". 3. Se registra la firma digital del Agente. | RF-03 | Alta |
+| **HU-05** | Como **Cliente**, quiero aceptar o rechazar un contrato digital desde el portal web, para formalizar o renegociar los términos del servicio de transporte. | Cliente | 1. El cliente visualiza la propuesta completa con tarifas y condiciones. 2. Al aceptar, el contrato pasa a estado "Vigente". 3. Al rechazar, se notifica al Agente Operativo para renegociación. | RF-03 | Alta |
+| **HU-06** | Como **Agente Financiero**, quiero configurar tarifas base diferenciadas por tipo de unidad y aplicar descuentos especiales con justificación, para mantener una estructura de precios competitiva. | Agente Financiero | 1. Se parametrizan precios por tipo de unidad (Ligera 3.5T, Pesada 10-12T, Cabezal 22T+). 2. Los descuentos requieren justificación obligatoria. 3. Toda modificación queda registrada en la bitácora de auditoría. | RF-04 | Alta |
+| **HU-07** | Como **Sistema**, quiero validar automáticamente la solvencia y riesgo crediticio del cliente antes de formalizar contratos u órdenes, para bloquear operaciones con clientes morosos o que excedan su límite de crédito. | Sistema (automático) | 1. Se evalúa el historial de mora del cliente. 2. Se verifica que no exceda el límite de crédito. 3. Si falla la validación, se bloquea la operación y se notifica a Gerencia. | RF-05 | Alta |
+
+#### CDU002 — Gestión de Órdenes y Transporte
+
+| ID | Historia de Usuario | Actor | Criterios de Aceptación | RF Relacionado | Prioridad |
+|---|---|---|---|---|---|
+| **HU-08** | Como **Cliente**, quiero generar órdenes de servicio de transporte desde el portal, para solicitar el envío de mercancía de forma autónoma. | Cliente | 1. Solo se permite generar órdenes con contrato vigente y crédito disponible. 2. La orden queda en estado "Creada" y se notifica al área logística. 3. Se muestra un resumen con el costo estimado antes de confirmar. | RF-06 | Alta |
+| **HU-09** | Como **Agente Logístico**, quiero asignar piloto y vehículo compatibles a cada orden de transporte, para garantizar que los recursos cumplan los requisitos técnicos y legales de la carga. | Agente Logístico | 1. El sistema sugiere solo vehículos y pilotos disponibles y compatibles con el peso. 2. Se valida que la licencia del piloto sea vigente. 3. La orden cambia a estado "Asignada" tras la asignación exitosa. | RF-07 | Alta |
+| **HU-10** | Como **Encargado de Patio**, quiero registrar el despacho validando la identidad del piloto, el pesaje real y las condiciones de estiba, para autorizar la salida segura de la unidad. | Encargado de Patio | 1. Se valida la identidad del piloto contra el registro del sistema. 2. El peso real no debe superar la capacidad técnica del vehículo. 3. Se registra la condición de estiba. 4. La orden cambia a estado "Despachada". | RF-08 | Alta |
+| **HU-11** | Como **Piloto**, quiero registrar la bitácora de viaje con novedades y geolocalización desde mi dispositivo móvil, para mantener informado al sistema sobre el estado del transporte en tiempo real. | Piloto | 1. La interfaz funciona en dispositivos móviles con baja conectividad (modo offline-sync). 2. Se registra geolocalización, fecha y hora de cada entrada. 3. Los datos se sincronizan automáticamente al recuperar conexión. | RF-09 | Media |
+| **HU-12** | Como **Piloto**, quiero confirmar la entrega con evidencia fotográfica y firma de recepción, para cerrar la orden y dejarla lista para facturación. | Piloto | 1. Se captura al menos una fotografía de la entrega. 2. Se registra la firma digital de recepción del destinatario. 3. La orden cambia a estado "Entregada". 4. Se notifica al área financiera para iniciar la facturación. | RF-10 | Alta |
+
+#### CDU003 — Gestión Financiera y Facturación
+
+| ID | Historia de Usuario | Actor | Criterios de Aceptación | RF Relacionado | Prioridad |
+|---|---|---|---|---|---|
+| **HU-13** | Como **Agente Financiero**, quiero generar y emitir facturas electrónicas FEL con certificación ante la SAT, para cumplir con las obligaciones tributarias de forma automatizada. | Agente Financiero | 1. Se genera el DTE con validación fiscal (montos, NIT). 2. El DTE se envía al Certificador FEL y se recibe la certificación. 3. Se genera la representación gráfica (PDF) de la factura. 4. En caso de fallo del Certificador, se reintenta automáticamente. | RF-11 | Alta |
+| **HU-14** | Como **Cliente**, quiero consultar mi estado de cuenta con saldos, facturas pendientes y fechas de vencimiento, para gestionar mis pagos de forma transparente. | Cliente | 1. Se visualiza el saldo actual, facturas pendientes y fechas de vencimiento. 2. Se puede descargar el PDF de cada factura emitida. 3. Se muestra alerta visual si existen facturas próximas a vencer. | RF-12 | Alta |
+| **HU-15** | Como **Agente Financiero**, quiero visualizar el estado de cuenta de cada cliente, para dar seguimiento a los cobros pendientes y gestionar la cartera de forma eficiente. | Agente Financiero | 1. Se muestra la cartera completa por cliente con antigüedad de saldos. 2. Se identifican visualmente las facturas con más de 45 días de vencimiento. 3. Se puede filtrar por sede, cliente o rango de fechas. | RF-12 | Alta |
+| **HU-16** | Como **Cliente**, quiero reportar mis pagos (depósitos o transferencias) a través del portal, para que el área financiera pueda conciliarlos oportunamente. | Cliente | 1. El cliente sube la boleta de depósito/transferencia. 2. Se ingresa el monto, banco de origen y número de autorización. 3. La factura pasa a estado "Pago en Revisión". | RF-13 | Alta |
+| **HU-17** | Como **Agente Financiero**, quiero confirmar y aplicar los pagos reportados por los clientes con trazabilidad bancaria completa, para mantener los saldos actualizados y conciliados. | Agente Financiero | 1. Se revisa la información de pago del cliente (boleta, monto, banco, autorización). 2. Al confirmar, se rebaja el saldo de la deuda del cliente. 3. Se registra la traza completa (banco, número de autorización, fecha). 4. Si la factura supera 45 días de mora, se desbloquean servicios al aplicar el pago. | RF-13 | Alta |
+
+#### CDU004 — Inteligencia de Negocio y Reportes
+
+| ID | Historia de Usuario | Actor | Criterios de Aceptación | RF Relacionado | Prioridad |
+|---|---|---|---|---|---|
+| **HU-18** | Como **Gerente**, quiero visualizar un dashboard consolidado con KPIs de las tres sedes actualizado diariamente, para monitorear el rendimiento operativo y financiero del negocio. | Gerencia | 1. El dashboard muestra datos consolidados de Guatemala, Xela y Puerto Barrios. 2. Se calculan márgenes de rentabilidad y tiempos de entrega promedio. 3. El corte diario integra transacciones hasta las 23:59 del día anterior. 4. El tiempo de carga no excede 5 segundos. | RF-14 | Media |
+| **HU-19** | Como **Gerente**, quiero simular escenarios de proyección de capacidad operativa bajo distintos parámetros de crecimiento, para planificar la expansión de flota e infraestructura regional. | Gerencia | 1. Se permite ingresar variables como % de crecimiento anual y nuevos territorios. 2. El sistema calcula recursos necesarios (flota, infraestructura). 3. Se genera un reporte de estimación exportable. 4. Se advierte si el historial es menor a 6 meses (margen de error alto). | RF-15 | Baja |
+| **HU-20** | Como **Gerente**, quiero recibir alertas automáticas ante desviaciones de ingresos u otros indicadores configurables, para tomar acciones correctivas oportunamente. | Gerencia | 1. Se dispara alerta ante caída de ingresos ≥ 15% semanal (umbral por defecto configurable). 2. La alerta incluye enlace directo al elemento problemático. 3. Se resaltan en rojo las rutas o contratos afectados. 4. Solo es visible para roles de Gerencia General y Financiera. | RF-16 | Media |
 
 ---
 
@@ -436,6 +483,64 @@ Esta matriz muestra qué actores participan en cada caso de uso. La marca **●*
 | CDU004 | Inteligencia de Negocio y Reportes | | | | | | | | ● |
 
 > **●** Actor Primario — **○** Actor Secundario
+
+---
+
+### 7.5. Matriz HU vs. RF
+
+Esta matriz establece la trazabilidad entre cada Historia de Usuario (HU) y los Requisitos Funcionales (RF) de los que se derivan. La marca **●** indica que la HU cubre directamente ese RF.
+
+| HU | Descripción resumida | RF-01 | RF-02 | RF-03 | RF-04 | RF-05 | RF-06 | RF-07 | RF-08 | RF-09 | RF-10 | RF-11 | RF-12 | RF-13 | RF-14 | RF-15 | RF-16 |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| HU-01 | Registro y perfilamiento de clientes | ● | | | | | | | | | | | | | | | |
+| HU-02 | Generación automática de credenciales | | ● | | | | | | | | | | | | | | |
+| HU-03 | Cambio de contraseña en primer login | | ● | | | | | | | | | | | | | | |
+| HU-04 | Crear propuesta de contrato digital | | | ● | | | | | | | | | | | | | |
+| HU-05 | Aceptar/Rechazar contrato digital | | | ● | | | | | | | | | | | | | |
+| HU-06 | Configuración de tarifario base | | | | ● | | | | | | | | | | | | |
+| HU-07 | Validación automática de riesgo/crédito | | | | | ● | | | | | | | | | | | |
+| HU-08 | Generar orden de servicio | | | | | | ● | | | | | | | | | | |
+| HU-09 | Asignar piloto y vehículo a orden | | | | | | | ● | | | | | | | | | |
+| HU-10 | Registrar despacho en patio | | | | | | | | ● | | | | | | | | |
+| HU-11 | Registrar bitácora de viaje | | | | | | | | | ● | | | | | | | |
+| HU-12 | Confirmar entrega con evidencia | | | | | | | | | | ● | | | | | | |
+| HU-13 | Emitir factura FEL certificada | | | | | | | | | | | ● | | | | | |
+| HU-14 | Consultar estado de cuenta (Cliente) | | | | | | | | | | | | ● | | | | |
+| HU-15 | Gestionar estado de cuenta (Financiero) | | | | | | | | | | | | ● | | | | |
+| HU-16 | Reportar pago desde portal | | | | | | | | | | | | | ● | | | |
+| HU-17 | Confirmar y aplicar pagos | | | | | | | | | | | | | ● | | | |
+| HU-18 | Dashboard gerencial con KPIs | | | | | | | | | | | | | | ● | | |
+| HU-19 | Proyección de capacidad operativa | | | | | | | | | | | | | | | ● | |
+| HU-20 | Alertas de desviaciones | | | | | | | | | | | | | | | | ● |
+
+---
+
+### 7.6. Matriz HU vs. CDU
+
+Esta matriz muestra a qué caso de uso (módulo) pertenece cada Historia de Usuario. La marca **●** indica pertenencia directa.
+
+| HU | Descripción resumida | CDU001 Contratos | CDU002 Órdenes | CDU003 Facturación | CDU004 BI/Reportes |
+|---|---|:---:|:---:|:---:|:---:|
+| HU-01 | Registro y perfilamiento de clientes | ● | | | |
+| HU-02 | Generación automática de credenciales | ● | | | |
+| HU-03 | Cambio de contraseña en primer login | ● | | | |
+| HU-04 | Crear propuesta de contrato digital | ● | | | |
+| HU-05 | Aceptar/Rechazar contrato digital | ● | | | |
+| HU-06 | Configuración de tarifario base | ● | | | |
+| HU-07 | Validación automática de riesgo/crédito | ● | | | |
+| HU-08 | Generar orden de servicio | | ● | | |
+| HU-09 | Asignar piloto y vehículo a orden | | ● | | |
+| HU-10 | Registrar despacho en patio | | ● | | |
+| HU-11 | Registrar bitácora de viaje | | ● | | |
+| HU-12 | Confirmar entrega con evidencia | | ● | | |
+| HU-13 | Emitir factura FEL certificada | | | ● | |
+| HU-14 | Consultar estado de cuenta (Cliente) | | | ● | |
+| HU-15 | Gestionar estado de cuenta (Financiero) | | | ● | |
+| HU-16 | Reportar pago desde portal | | | ● | |
+| HU-17 | Confirmar y aplicar pagos | | | ● | |
+| HU-18 | Dashboard gerencial con KPIs | | | | ● |
+| HU-19 | Proyección de capacidad operativa | | | | ● |
+| HU-20 | Alertas de desviaciones | | | | ● |
 
 
 
