@@ -59,6 +59,8 @@ La plataforma adopta una **arquitectura modular orientada a servicios** con los 
 
 ![Diagrama de Contexto](imgs/architecture/context_diagram.png)
 
+> **Descripción del diagrama:** El diagrama presenta al sistema LogiTrans como núcleo central rodeado por siete actores humanos (Cliente, Agente Operativo, Agente Logístico, Encargado de Patio, Piloto, Agente Financiero y Gerencia) y dos sistemas externos (Certificador FEL de SAT y ERPs de Clientes Corporativos). Las flechas bidireccionales representan los flujos de datos e interacciones entre cada actor y la plataforma, delimitando claramente la frontera del sistema y diferenciando los roles internos de las integraciones externas.
+
 El diagrama de contexto sitúa al sistema LogiTrans como el núcleo central y define todos los actores externos que interactúan con él. Se identifican dos categorías de actores:
 
 ### Actores Humanos (Usuarios del Sistema)
@@ -87,6 +89,8 @@ El contexto deja en claro que el sistema **no** gestiona directamente la infraes
 ## 4. Diagrama de Bloques
 
 ![Diagrama de Bloques](imgs/architecture/blocks-diagram.jpeg)
+
+> **Descripción del diagrama:** El diagrama muestra los cuatro bloques funcionales del sistema — CDU001 (Gestión Comercial y Contratos), CDU002 (Gestión de Órdenes y Transporte), CDU003 (Gestión Financiera y Facturación) y CDU004 (Inteligencia de Negocio y Reportes) — conectados secuencialmente de izquierda a derecha siguiendo el ciclo de vida de un servicio de transporte. CDU001 alimenta a CDU002, que a su vez desencadena CDU003 para el cierre financiero, mientras CDU004 consume datos transversales de todos los módulos. Todos los bloques comparten una misma base de datos relacional centralizada, garantizando la consistencia e integridad referencial.
 
 El diagrama de bloques descompone el sistema en sus cuatro módulos funcionales principales, mostrando cómo se relacionan entre sí y con la base de datos compartida. El flujo de negocio recorre los módulos de izquierda a derecha en dirección a la facturación, siguiendo el ciclo de vida de un servicio de transporte:
 
@@ -143,6 +147,8 @@ Módulo de soporte a la decisión gerencial:
 ## 5. Diagrama de Componentes
 
 ![Diagrama de Componentes](imgs/architecture/components-diagram.jpg)
+
+> **Descripción del diagrama:** El diagrama descompone la arquitectura interna del sistema en cinco capas horizontales claramente diferenciadas: (1) la **Capa de Presentación** con una SPA que ofrece portales diferenciados por rol (Cliente, Agentes, Patio/Piloto y Gerencia); (2) la **Capa de API Gateway** que centraliza la autenticación RBAC/JWT, el enrutamiento y la protección ante ataques; (3) la **Capa de Servicios Backend** con un servicio REST independiente por módulo (Contratos, Órdenes, Facturación, BI y Autenticación); (4) la **Capa de Integración** con adapters dedicados para el Certificador FEL (SAT) y los ERPs de clientes; y (5) la **Capa de Persistencia** compuesta por PostgreSQL como base de datos relacional y un almacén de archivos para evidencias y documentos. Las interfaces entre capas están definidas mediante contratos API REST/JSON.
 
 El diagrama de componentes muestra la descomposición interna de la arquitectura de software, detallando los bloques de código y sus interfaces. La arquitectura se organiza en las siguientes capas:
 
@@ -205,6 +211,10 @@ Componentes que aíslan la lógica de negocio de las dependencias externas:
 
 ## 7. Infraestructura y Despliegue
 
+![Diagrama de Despliegue](imgs/architecture/deployment-diagram.png)
+
+> **Descripción del diagrama:** El diagrama de despliegue ilustra la topología física on-premise del sistema LogiTrans, compuesta por dos nodos interconectados en alta disponibilidad. El **Nodo Principal** (ubicado en Guatemala) aloja el API Gateway, todos los servicios backend contenerizados en Docker, la base de datos PostgreSQL primaria y la distribución del frontend. El **Nodo Secundario** (Failover/HA) mantiene una réplica sincronizada de la base de datos y los servicios en estado de espera activa, listos para asumir la operación en caso de falla del nodo principal (recuperación < 10 min). Ambos nodos se conectan hacia los sistemas externos — el Certificador FEL (SAT) y los ERPs de Clientes Corporativos — a través de Internet/VPN. La arquitectura contenerizada permite que toda la infraestructura pueda migrarse a un proveedor Cloud (AWS, GCP o Azure) sin reescritura de código.
+
 La plataforma se despliega en una topología de dos nodos sobre infraestructura física existente de la empresa:
 
 ```
@@ -235,5 +245,5 @@ La plataforma se despliega en una topología de dos nodos sobre infraestructura 
 
 ---
 
-**Fecha de última actualización:** 25 de febrero de 2026
+**Fecha de última actualización:** 2 de marzo de 2026
 **Equipo:** Grupo 2 — Análisis y Diseño de Sistemas 2

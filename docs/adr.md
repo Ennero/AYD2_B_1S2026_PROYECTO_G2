@@ -11,9 +11,9 @@ El es porceso documentado que explica el _porque_ detrás de una elección de di
 - **Decisión:** Se adopta un patrón de diseño de **Monolíto Modular** encapsulado en **contenedores Docker**, descartando una arquitectura pura de Microservicios.
 
 - **Justificación:**
-  - **Atiende a RES-03 (Tiempo de Entrega) y RES-04 (Tecnología Madura):** Una arquitectura orientada a miscroservicios requiere una configuración compleja de red, descubrimiento de servicios y gestión de bases de datos distribuidas que es inviable completar en 4 semanas. El molito modular utiliza tecnologías maduras que garantizan la entrega a tiempo.
+  - **Atiende a RES-03 (Tiempo de Entrega) y RES-04 (Tecnología Madura):** Una arquitectura orientada a microservicios requiere una configuración compleja de red, descubrimiento de servicios y gestión de bases de datos distribuidas que es inviable completar en 4 semanas. El molito modular utiliza tecnologías maduras que garantizan la entrega a tiempo.
 
-  - **Atiende a EAC-04 (Modificabilidad):** Aunque es un único entregable (monolito), el código se estructurará en módulos lógicos estrictamente separados (Ej. Gestión Comercial, Operaciones, Facturación). Esto permite que, en el futuro, el módulo de Aduanas se agregue sin alterar el "core" logísitico.
+  - **Atiende a EAC-04 (Modificabilidad):** Aunque es un único entregable (monolíto), el código se estructurará en módulos lógicos estrictamente separados (Ej. Gestión Comercial, Operaciones, Facturación). Esto permite que, en el futuro, el módulo de Aduanas se agregue sin alterar el "core" logísitico.
 
   - **Atiende a RES-01 (Infraestructura Local), RES-02 (Cloud-Ready) y EAC-06 (Portabilidad):** Al contenerizar la aplicación con Docker, la solución puede ejectuarse de inmediate en los servidores _on-premise_ actuales. Al mismo tiempo, el uso de contenedores garantiza que el salto a la nube está transparente, cumpliendo la portabilidad exigida con un esfuerzo menor a una semana.
 
