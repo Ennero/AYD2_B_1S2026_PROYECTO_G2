@@ -47,7 +47,6 @@
       - [Daily Scrum 1](#daily-scrum-1-4)
       - [Daily Scrum 2](#daily-scrum-2-4)
       - [Sprint Retrospective](#sprint-retrospective-4)
-  - [Métricas del Proyecto](#métricas-del-proyecto)
   - [Herramientas Utilizadas](#herramientas-utilizadas)
 
 ---
@@ -395,21 +394,6 @@ El equipo está trabajando en paralelo en la documentación arquitectónica y lo
 
 ---
 
-## Métricas del Proyecto
-
-> _Se irán completando conforme avance el proyecto._
-
-| Sprint | Story Points Comprometidos | Story Points Completados | Velocidad |
-|--------|---------------------------|--------------------------|-----------|
-| Sprint 1 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 2 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 3 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 4 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 5 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 6 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-
----
-
 ## Herramientas Utilizadas
 
 - **GitLab / GitHub** — Control de versiones y CI/CD
@@ -420,5 +404,5 @@ El equipo está trabajando en paralelo en la documentación arquitectónica y lo
 
 ---
 
-**Fecha de última actualización:** 25 de febrero de 2026
+**Fecha de última actualización:** 4 de marzo de 2026
 **Equipo:** Grupo 2 — Análisis y Diseño de Sistemas 2
