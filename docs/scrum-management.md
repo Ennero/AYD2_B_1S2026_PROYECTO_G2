@@ -47,11 +47,7 @@
       - [Daily Scrum 1](#daily-scrum-1-4)
       - [Daily Scrum 2](#daily-scrum-2-4)
       - [Sprint Retrospective](#sprint-retrospective-4)
-  - [Métricas del Proyecto](#métricas-del-proyecto)
   - [Herramientas Utilizadas](#herramientas-utilizadas)
-  - [Tableros Kanban](#tableros-kanban)
-    - [Sprint 1 — Tablero Fase 1 AYD2](#sprint-1--tablero-fase-1-ayd2)
-    - [Sprint 2 — Tablero Fase 1 Sprint 2](#sprint-2--tablero-fase-1-sprint-2)
 
 ---
 
@@ -887,21 +883,6 @@ El segundo sprint mostró una mejora respecto al anterior, con el equipo complet
 
 ---
 
-## Métricas del Proyecto
-
-> _Se irán completando conforme avance el proyecto._
-
-| Sprint | Story Points Comprometidos | Story Points Completados | Velocidad |
-|--------|---------------------------|--------------------------|-----------|
-| Sprint 1 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 2 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 3 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 4 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 5 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-| Sprint 6 | _(pendiente)_ | _(pendiente)_ | _(pendiente)_ |
-
----
-
 ## Herramientas Utilizadas
 
 - **GitLab / GitHub** — Control de versiones y CI/CD
@@ -909,24 +890,6 @@ El segundo sprint mostró una mejora respecto al anterior, con el equipo complet
 - **Google Meet** — Ceremonias Scrum y comunicación del equipo
 - **Google Drive** — Almacenamiento de grabaciones y documentos
 - **Trello** — Gestión de tareas y tablero Kanban
-
----
-
-## Tableros Kanban
-
-### Sprint 1 — Tablero Fase 1 AYD2
-
-**Enlace:** [Tablero Fase1 AYD2](https://trello.com/invite/b/69a399719ef9efc2cf06a5a4/ATTIae2a340a8541d076fb4dbc72329a04fbEDF95D39/tablero-fase1-sprint2)
-
-![Tablero Kanban Sprint 1](imgs/kanban/kanban1.jpeg)
-
----
-
-### Sprint 2 — Tablero Fase 1 Sprint 2
-
-**Enlace:** [Tablero Fase1 Sprint2](https://trello.com/invite/b/69a399719ef9efc2cf06a5a4/ATTIae2a340a8541d076fb4dbc72329a04fbEDF95D39/tablero-fase1-sprint2)
-
-![Tablero Kanban Sprint 2](imgs/kanban/kanban2.jpeg)
 
 ---
 
