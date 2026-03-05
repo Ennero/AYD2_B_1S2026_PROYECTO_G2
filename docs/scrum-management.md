@@ -918,7 +918,7 @@ El segundo sprint mostró una mejora respecto al anterior, con el equipo complet
 
 **Enlace:** [Tablero Fase1 AYD2](https://trello.com/invite/b/69a399719ef9efc2cf06a5a4/ATTIae2a340a8541d076fb4dbc72329a04fbEDF95D39/tablero-fase1-sprint2)
 
-![Tablero Kanban Sprint 1](imgs/kanban/tablero-fase1-sprint1.png)
+![Tablero Kanban Sprint 1](imgs/kanban/kanban1.jpeg)
 
 ---
 
@@ -926,7 +926,7 @@ El segundo sprint mostró una mejora respecto al anterior, con el equipo complet
 
 **Enlace:** [Tablero Fase1 Sprint2](https://trello.com/invite/b/69a399719ef9efc2cf06a5a4/ATTIae2a340a8541d076fb4dbc72329a04fbEDF95D39/tablero-fase1-sprint2)
 
-![Tablero Kanban Sprint 2](imgs/kanban/tablero-fase1-sprint2.png)
+![Tablero Kanban Sprint 2](imgs/kanban/kanban2.jpeg)
 
 ---
 
