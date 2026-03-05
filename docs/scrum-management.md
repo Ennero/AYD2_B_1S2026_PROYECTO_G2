@@ -49,6 +49,9 @@
       - [Sprint Retrospective](#sprint-retrospective-4)
   - [Métricas del Proyecto](#métricas-del-proyecto)
   - [Herramientas Utilizadas](#herramientas-utilizadas)
+  - [Tableros Kanban](#tableros-kanban)
+    - [Sprint 1 — Tablero Fase 1 AYD2](#sprint-1--tablero-fase-1-ayd2)
+    - [Sprint 2 — Tablero Fase 1 Sprint 2](#sprint-2--tablero-fase-1-sprint-2)
 
 ---
 
@@ -120,7 +123,7 @@
 
 #### Daily Scrum 1 — 22 de febrero de 2026
 
-**Hora:** _(pendiente)_
+**Hora:** 22:00
 
 **Participantes:**
 
@@ -217,7 +220,7 @@ El equipo avanzó en paralelo en la documentación arquitectónica y los primero
 
 #### Daily Scrum 2 — 24 de febrero de 2026
 
-**Hora:** _(pendiente)_
+**Hora:** 22:00
 
 **Participantes:**
 
@@ -314,7 +317,7 @@ El equipo se encontraba en la recta final de la documentación inicial. Enner co
 
 #### Sprint Retrospective — 26 de febrero de 2026
 
-**Hora:** _(pendiente)_
+**Hora:** 22:00
 
 **Participantes:**
 
@@ -443,7 +446,7 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 
 #### Daily Scrum 1
 
-**Hora:** _(pendiente)_
+**Hora:** 22:00
 
 **Participantes:**
 
@@ -539,7 +542,7 @@ El equipo inició el Sprint 2 con el foco puesto en los mockups y la preparació
 
 #### Daily Scrum 2
 
-**Hora:** _(pendiente)_
+**Hora:** 22:00
 
 **Participantes:**
 
@@ -635,7 +638,7 @@ Al cierre del Sprint 2, la mayoría del equipo había concluido sus tareas. Enne
 
 #### Sprint Retrospective
 
-**Hora:** _(pendiente)_
+**Hora:** 07:00
 
 **Participantes:**
 
@@ -906,6 +909,24 @@ El segundo sprint mostró una mejora respecto al anterior, con el equipo complet
 - **Google Meet** — Ceremonias Scrum y comunicación del equipo
 - **Google Drive** — Almacenamiento de grabaciones y documentos
 - **Trello** — Gestión de tareas y tablero Kanban
+
+---
+
+## Tableros Kanban
+
+### Sprint 1 — Tablero Fase 1 AYD2
+
+**Enlace:** [Tablero Fase1 AYD2](https://trello.com/invite/b/69a399719ef9efc2cf06a5a4/ATTIae2a340a8541d076fb4dbc72329a04fbEDF95D39/tablero-fase1-sprint2)
+
+![Tablero Kanban Sprint 1](imgs/kanban/tablero-fase1-sprint1.png)
+
+---
+
+### Sprint 2 — Tablero Fase 1 Sprint 2
+
+**Enlace:** [Tablero Fase1 Sprint2](https://trello.com/invite/b/69a399719ef9efc2cf06a5a4/ATTIae2a340a8541d076fb4dbc72329a04fbEDF95D39/tablero-fase1-sprint2)
+
+![Tablero Kanban Sprint 2](imgs/kanban/tablero-fase1-sprint2.png)
 
 ---
 
