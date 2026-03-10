@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrans - Portal de Clientes Corporativos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'logi-dark': '#095556',
+                        'logi-light': '#66a592',
+                        'logi-bg': '#f9fafb',
+                        'logi-tan': '#e1cbb8'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-logi-bg font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Top Navbar (Estilo Wireframe Cliente) -->
+    <header class="bg-logi-dark text-white px-8 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+        <div class="flex items-center gap-12">
+            <h1 class="text-3xl font-black tracking-wider">LOGITRANS</h1>
+            
+            <nav class="hidden md:flex space-x-6 text-sm">
+                <button onclick="showView('dashboard-view', this)" class="nav-btn text-white font-bold border-b-2 border-white pb-1 transition-all">Inicio</button>
+                <button onclick="showView('contracts-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Contratos</button>
+                <button onclick="showView('account-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Estado de Cuenta</button>
+                <button onclick="showView('profile-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Mis Datos</button>
+            </nav>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+                <p class="font-bold text-teal-100">Cliente</p>
+                <p class="text-xs">logistica@cementosprogreso.com</p>
+            </div>
+            <button class="bg-logi-light hover:bg-teal-500 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                SALIR
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 w-full max-w-6xl mx-auto p-6 relative">
+
+        <!-- ========================================== -->
+        <!-- VISTA 1: DASHBOARD / INICIO                -->
+        <!-- ========================================== -->
+        <div id="dashboard-view" class="view-section animate-fade-in block">
+            
+            <div class="flex justify-between items-center mb-8 mt-4">
+                <h2 class="text-3xl font-black text-gray-900 tracking-tight uppercase">BIENVENIDO CEMENTOS PROGRESO</h2>
+                <button onclick="showView('new-order-view')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 flex items-center">
+                    <i class="fas fa-plus-circle mr-2"></i> Nuevo Servicio
+                </button>
+            </div>
+
+            <!-- Panel Estilo Wireframe (Fondo Tan) -->
+            <div class="bg-[#d4bca9] rounded-3xl p-8 shadow-inner border border-[#c4b1a0]">
+                
+                <!-- Pestañas Internas (Visuales) -->
+                <div class="flex gap-2 mb-8">
+                    <div class="bg-gray-100 bg-opacity-80 text-gray-800 font-bold py-2 px-6 rounded-t-lg shadow-sm">RESUMEN</div>
+                    <div class="bg-gray-300 bg-opacity-50 text-gray-600 font-bold py-2 px-6 rounded-t-lg">ÓRDENES RECIENTES</div>
+                    <div class="bg-gray-300 bg-opacity-50 text-gray-600 font-bold py-2 px-6 rounded-t-lg">ALERTAS</div>
+                </div>
+
+                <!-- Tarjetas KPI -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- Órdenes Activas -->
+                    <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center transform hover:scale-105 transition-transform cursor-pointer">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4 bg-gray-200 px-4 py-1 rounded w-full">Órdenes Activas</h3>
+                        <div class="w-24 h-24 bg-gradient-to-tr from-pink-500 to-orange-400 rounded-full flex items-center justify-center text-white text-5xl font-black shadow-inner">
+                            1
+                        </div>
+                    </div>
+
+                    <!-- Límite de Crédito -->
+                    <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4 bg-gray-200 px-4 py-1 rounded w-full">Límite Crédito</h3>
+                        <i class="fas fa-tachometer-alt text-6xl text-logi-dark mb-2"></i>
+                        <div class="flex justify-between w-full px-4 text-sm font-bold text-gray-500 mt-2">
+                            <span>Consumido<br><span class="text-red-500">Q10,000</span></span>
+                            <span>Total<br><span class="text-green-600">Q150,000</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Saldo Pendiente -->
+                    <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center cursor-pointer hover:shadow-lg transition-shadow" onclick="showView('account-view', document.querySelectorAll('.nav-btn')[2])">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4 bg-gray-200 px-4 py-1 rounded w-full">Saldo Pendiente</h3>
+                        <div class="text-5xl font-black text-gray-800 mb-2">Q10,000</div>
+                        <i class="fas fa-chart-bar text-4xl text-logi-light"></i>
+                        <p class="text-xs text-gray-500 mt-2 font-bold">Ver Estado de Cuenta <i class="fas fa-arrow-right"></i></p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 2: GENERAR ORDEN DE SERVICIO (WIZARD)-->
+        <!-- ========================================== -->
+        <div id="new-order-view" class="view-section hidden animate-fade-in">
+            <button onclick="showView('dashboard-view', document.querySelectorAll('.nav-btn')[0])" class="mb-6 text-logi-dark font-bold flex items-center hover:text-teal-600 transition-colors w-fit">
+                <i class="fas fa-arrow-left mr-2"></i> Volver al Inicio
+            </button>
+
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8">Generar Orden de Servicio</h2>
+
+            <div class="bg-white rounded-3xl shadow-xl p-10 border border-gray-100">
+                
+                <!-- Stepper -->
+                <div class="flex gap-4 mb-10 border-b border-gray-200 pb-6">
+                    <div class="flex-1 bg-logi-dark text-white text-center py-2 rounded-lg font-bold shadow">1. Datos Carga</div>
+                    <div class="flex-1 border-2 border-gray-200 text-gray-500 text-center py-2 rounded-lg font-bold">2. Confirmación</div>
+                </div>
+
+                <h3 class="text-2xl font-serif font-bold text-gray-900 mb-8">1. Detalles de la Solicitud</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Cliente (Contrato Vigente)</label>
+                        <select class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-white text-gray-700 font-medium">
+                            <option>CONT-2026-092 (Vigente)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Tipo de Mercancía</label>
+                        <select id="cargo_type" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-white text-gray-700 font-medium">
+                            <option value="">Seleccione Tipo de Mercancía</option>
+                            <option value="1">Material de Construcción</option>
+                            <option value="2">Carga General</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Origen</label>
+                        <input type="text" id="pickup_address" placeholder="Ej. Planta 3 Sanarate" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Destino</label>
+                        <input type="text" id="delivery_address" placeholder="Ej. Bodega Central Xela" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Peso Estimado (Toneladas)</label>
+                        <input type="number" id="weight" placeholder="Ej. 32" class="w-full md:w-1/2 border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        <p class="text-xs text-gray-500 mt-2">*El peso real será validado en la báscula de patio previo al despacho.</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <button onclick="showView('dashboard-view')" class="border border-gray-300 text-gray-600 font-bold py-3 px-8 rounded-lg hover:bg-gray-50 transition-colors">Atrás</button>
+                    <button onclick="submitOrder()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1">Siguiente (Confirmar)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 3: ESTADO DE CUENTA Y FACTURAS       -->
+        <!-- ========================================== -->
+        <div id="account-view" class="view-section hidden animate-fade-in">
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8">Estado de Cuenta y Facturas</h2>
+
+            <!-- Tarjetas Financieras -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-logi-tan rounded-2xl p-6 shadow text-center border border-[#d4bca9]">
+                    <p class="text-sm font-bold text-gray-600 mb-2 uppercase">Límite de Crédito</p>
+                    <p class="text-3xl font-black text-gray-800">Q 150,000.00</p>
+                </div>
+                <div class="bg-logi-tan rounded-2xl p-6 shadow text-center border border-[#d4bca9]">
+                    <p class="text-sm font-bold text-gray-600 mb-2 uppercase">Total Adeudado</p>
+                    <p class="text-3xl font-black text-gray-800">Q 10,000.00</p>
+                </div>
+                <div class="bg-logi-tan rounded-2xl p-6 shadow text-center border border-[#d4bca9]">
+                    <p class="text-sm font-bold text-gray-600 mb-2 uppercase">Crédito Disponible</p>
+                    <p class="text-3xl font-black text-green-700">Q 140,000.00</p>
+                </div>
+            </div>
+
+            <!-- Reporte Vencimientos -->
+            <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100 mb-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Reporte de Vencimientos (Aging Report)</h3>
+                <div class="flex gap-4 h-12">
+                    <div class="bg-[#98cba4] w-2/3 rounded-lg flex items-center justify-center font-bold text-logi-dark shadow-inner">Al día (Q10,000)</div>
+                    <div class="bg-[#e1cbb8] w-1/6 rounded-lg flex items-center justify-center font-bold text-gray-700 shadow-inner opacity-50">Vencido a 30 días</div>
+                    <div class="bg-[#d9534f] w-1/6 rounded-lg flex items-center justify-center font-bold text-white shadow-inner opacity-50">Crítico</div>
+                </div>
+            </div>
+
+            <!-- Facturas Pendientes (Simulando la tabla de facturas) -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800">Facturas Pendientes de Pago</h3>
+                    <div class="flex gap-4">
+                        <input type="text" placeholder="Buscar factura..." class="border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-logi-dark">
+                    </div>
+                </div>
+
+                <div class="bg-logi-tan bg-opacity-30 rounded-xl p-4 mb-4 flex justify-between items-center border border-logi-tan">
+                    <div>
+                        <p class="font-bold text-gray-800 text-lg">FEL-2026-00101</p>
+                        <p class="text-sm text-gray-600">Fecha de Emisión: 14 Feb 2026 | Flete Guate-Xela</p>
+                    </div>
+                    <div class="text-right flex items-center gap-6">
+                        <p class="text-2xl font-black text-gray-900">Q 10,000.00</p>
+                        <div class="flex gap-2">
+                            <button class="bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded shadow flex items-center justify-center transition-colors" title="Descargar PDF">
+                                <i class="fas fa-file-pdf"></i>
+                            </button>
+                            <button class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                                Registrar Pago
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 4: MIS CONTRATOS                     -->
+        <!-- ========================================== -->
+        <div id="contracts-view" class="view-section hidden animate-fade-in text-center">
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-12">Mis Contratos</h2>
+            
+            <div class="flex flex-col md:flex-row justify-center gap-12">
+                <!-- Contrato Vigente -->
+                <div class="bg-white border-2 border-logi-dark rounded-3xl p-10 shadow-xl max-w-sm w-full relative transform hover:-translate-y-2 transition-transform cursor-pointer">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-logi-dark text-white font-bold px-6 py-1 rounded-full shadow">
+                        VIGENTE
+                    </div>
+                    <i class="fas fa-file-contract text-7xl text-logi-light mb-6"></i>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Contrato CONT-092</h3>
+                    <p class="text-gray-600 mb-6">Condiciones operativas y financieras acordadas para el año 2026.</p>
+                    <button class="w-full border-2 border-logi-dark text-logi-dark font-bold py-2 rounded-lg hover:bg-teal-50 transition-colors">
+                        Ver Detalles
+                    </button>
+                </div>
+
+                <!-- Contrato Vencido -->
+                <div class="bg-gray-50 border-2 border-gray-300 rounded-3xl p-10 shadow-md max-w-sm w-full relative opacity-70">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gray-400 text-white font-bold px-6 py-1 rounded-full shadow">
+                        VENCIDO
+                    </div>
+                    <i class="fas fa-file-excel text-7xl text-gray-400 mb-6"></i>
+                    <h3 class="text-2xl font-bold text-gray-600 mb-2">Contrato CONT-045</h3>
+                    <p class="text-gray-500 mb-6">Acuerdos del periodo 2025. Finalizado y archivado.</p>
+                    <button class="w-full border-2 border-gray-300 text-gray-500 font-bold py-2 rounded-lg cursor-not-allowed">
+                        Solo Lectura
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 5: MIS DATOS (PERFIL)                -->
+        <!-- ========================================== -->
+        <div id="profile-view" class="view-section hidden animate-fade-in">
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8 text-center uppercase">MI PERFIL</h2>
+
+            <div class="bg-white rounded-3xl shadow-xl p-10 max-w-3xl mx-auto border border-gray-100">
+                <div class="flex justify-center mb-8">
+                    <div class="w-32 h-32 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-6xl shadow-inner border-4 border-white">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-logi-dark mb-4 border-b border-gray-200 pb-2">Datos Generales <i class="fas fa-edit ml-2 text-sm cursor-pointer"></i></h3>
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Nombre Comercial</label>
+                        <p class="font-bold text-gray-800 text-lg">Cementos Progreso</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Teléfono Principal</label>
+                        <p class="font-bold text-gray-800 text-lg">2222-3333</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-logi-dark mb-4 border-b border-gray-200 pb-2">Datos Fiscales (Solo Lectura)</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Razón Social</label>
+                        <p class="font-bold text-gray-800">Cementos Progreso S.A.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">NIT</label>
+                        <p class="font-bold text-gray-800">548973-1</p>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Dirección Fiscal</label>
+                        <p class="font-bold text-gray-800">15 Avenida 18-01 Zona 10, Ciudad de Guatemala</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Éxito Creación Orden -->
+    <div id="success-modal" class="fixed inset-0 bg-logi-dark bg-opacity-90 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-10 max-w-md w-full text-center shadow-2xl transform scale-95 animate-fade-in border-t-8 border-green-500">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-check-circle text-5xl text-green-600"></i>
+            </div>
+            <h3 class="text-3xl font-black text-logi-dark mb-3">Orden Registrada</h3>
+            <p class="text-gray-600 mb-8 text-lg">Su solicitud ha sido enviada al departamento de logística para la asignación de recursos. El ID de su orden es <strong>ORD-034</strong>.</p>
+            <button onclick="closeModalAndReturn()" class="w-full bg-logi-dark text-white font-bold py-4 rounded-xl hover:bg-teal-800 transition-colors shadow-lg">
+                Volver al Tablero
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        function showView(viewId, navElement) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            // Actualizar Nav si se pasó un elemento
+            if(navElement) {
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('text-white', 'border-b-2', 'border-white');
+                    btn.classList.add('text-teal-300');
+                });
+                navElement.classList.remove('text-teal-300');
+                navElement.classList.add('text-white', 'border-b-2', 'border-white');
+            }
+        }
+
+        function submitOrder() {
+            // Validación básica
+            const cargo = document.getElementById('cargo_type').value;
+            const pickup = document.getElementById('pickup_address').value;
+            const weight = document.getElementById('weight').value;
+
+            if(!cargo || !pickup || !weight) {
+                alert("Por favor llene todos los campos requeridos para generar la orden.");
+                return;
+            }
+
+            // Simulación POST /api/cliente/orders
+            console.log("POST: Generando orden de servicio...", {
+                CARGO_TYPE_ID: cargo,
+                PICKUP_ADDRESS: pickup,
+                DECLARED_WEIGHT_TON: weight
+            });
+
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function closeModalAndReturn() {
+            document.getElementById('success-modal').classList.add('hidden');
+            showView('dashboard-view', document.querySelectorAll('.nav-btn')[0]);
+        }
+    </script>
+</body>
+</html>

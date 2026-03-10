@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrans - Panel Operativo (Comercial)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'logi-dark': '#095556',
+                        'logi-light': '#66a592',
+                        'logi-bg': '#f9fafb',
+                        'logi-tan': '#e1cbb8'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-logi-bg font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Top Navbar -->
+    <header class="bg-logi-dark text-white px-8 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+        <div class="flex items-center gap-8">
+            <h1 class="text-3xl font-black tracking-wider">LOGITRANS</h1>
+            
+            <nav class="hidden md:flex space-x-6 ml-8">
+                <button onclick="showView('welcome-view')" id="nav-welcome" class="text-white font-bold border-b-2 border-white pb-1 transition-all">
+                    Inicio
+                </button>
+                <button onclick="showView('register-view')" id="nav-register" class="text-teal-300 hover:text-white font-medium pb-1 transition-all">
+                    Registrar Cliente
+                </button>
+                <button onclick="showView('contract-view')" id="nav-contract" class="text-teal-300 hover:text-white font-medium pb-1 transition-all">
+                    Formalizar Contrato
+                </button>
+            </nav>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+                <p class="font-bold text-teal-100">Agente Operativo</p>
+                <p class="text-sm">operativo@logitrans.com</p>
+            </div>
+            <button class="bg-logi-light hover:bg-teal-500 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                SALIR
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 w-full max-w-6xl mx-auto p-6 relative flex flex-col justify-center">
+
+        <!-- ========================================== -->
+        <!-- VISTA 1: INICIO (BIENVENIDA)               -->
+        <!-- ========================================== -->
+        <div id="welcome-view" class="view-section animate-fade-in flex flex-col items-center justify-center py-10">
+            <div class="bg-white p-12 rounded-3xl shadow-xl text-center max-w-4xl w-full border-t-8 border-logi-dark">
+                <div class="w-24 h-24 bg-teal-50 text-logi-dark rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner border border-teal-100">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                
+                <h2 class="text-4xl font-extrabold text-logi-dark mb-4">¡Bienvenido al Área Comercial!</h2>
+                <p class="text-gray-600 text-lg mb-10">Gestiona la incorporación de nuevos clientes y formaliza las reglas operativas y financieras mediante contratos digitales.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <button onclick="showView('register-view')" class="bg-white border-2 border-gray-200 hover:border-logi-light rounded-2xl p-8 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
+                        <i class="fas fa-user-plus text-5xl text-logi-light mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-2xl font-black text-gray-800">1. Nuevo Cliente</h3>
+                        <p class="text-gray-500 mt-2">Registra datos fiscales, de contacto y perfil de riesgo.</p>
+                    </button>
+
+                    <button onclick="showView('contract-view')" class="bg-white border-2 border-gray-200 hover:border-logi-dark rounded-2xl p-8 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
+                        <i class="fas fa-file-signature text-5xl text-logi-dark mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-2xl font-black text-gray-800">2. Crear Contrato</h3>
+                        <p class="text-gray-500 mt-2">Define crédito, rutas, tipos de carga y descuentos.</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 2: REGISTRAR CLIENTE NUEVO           -->
+        <!-- ========================================== -->
+        <div id="register-view" class="view-section hidden animate-fade-in py-8">
+            <h2 class="text-4xl font-black text-gray-900 mb-8 tracking-tight">Registrar Cliente Nuevo</h2>
+
+            <div class="bg-white rounded-3xl shadow-xl p-10 border border-gray-100">
+                
+                <!-- 1. Datos Generales -->
+                <div class="mb-10">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center"><span class="bg-logi-tan text-logi-dark w-8 h-8 rounded-full flex items-center justify-center mr-3 text-lg">1</span> Datos Generales</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-11">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="font-bold text-gray-700 w-32 uppercase tracking-wide text-sm">NOMBRE:</label>
+                            <input type="text" id="contact_name" placeholder="Henry Contreras" class="flex-1 border border-logi-tan rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-logi-light">
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="font-bold text-gray-700 w-32 uppercase tracking-wide text-sm">TELÉFONO:</label>
+                            <input type="text" id="contact_phone" placeholder="Ej. 5555-4444" class="flex-1 border border-logi-tan rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-logi-light">
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 md:col-span-2">
+                            <label class="font-bold text-gray-700 w-32 uppercase tracking-wide text-sm">CORREO:</label>
+                            <input type="email" id="contact_email" placeholder="ejemplo@gmail.com" class="w-full sm:w-1/2 border border-logi-tan rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-logi-light">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Datos Fiscales -->
+                <div class="mb-10 border-t border-gray-100 pt-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center"><span class="bg-logi-tan text-logi-dark w-8 h-8 rounded-full flex items-center justify-center mr-3 text-lg">2</span> Datos Fiscales</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-11">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="font-bold text-gray-700 w-36 uppercase tracking-wide text-sm">RAZÓN SOCIAL:</label>
+                            <input type="text" id="legal_name" placeholder="Input text: Ej. Hola" class="flex-1 border border-logi-tan rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-logi-light">
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="font-bold text-gray-700 w-32 uppercase tracking-wide text-sm">DIRECCIÓN:</label>
+                            <input type="text" id="tax_address" placeholder="Input text: Ej. Hola" class="flex-1 border border-logi-tan rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-logi-light">
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="font-bold text-gray-700 w-36 uppercase tracking-wide text-sm">NIT:</label>
+                            <input type="text" id="nit" placeholder="2323232323" class="flex-1 border border-logi-tan rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-logi-light">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Perfil de Riesgo -->
+                <div class="mb-10 border-t border-gray-100 pt-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center"><span class="bg-logi-tan text-logi-dark w-8 h-8 rounded-full flex items-center justify-center mr-3 text-lg">3</span> Perfil de Riesgo</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8 pl-11">
+                        
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <label class="font-bold text-gray-700 uppercase tracking-wide text-sm">Capacidad de Pago:</label>
+                            <select id="payment_risk" class="border border-logi-tan bg-white rounded-lg px-4 py-1.5 focus:outline-none cursor-pointer">
+                                <option value="BAJO">Bajo</option>
+                                <option value="MEDIO" selected>Medio</option>
+                                <option value="ALTO">Alto</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <label class="font-bold text-gray-700 uppercase tracking-wide text-sm">Riesgo de Mercancía:</label>
+                            <select id="cargo_risk" class="border border-logi-tan bg-white rounded-lg px-4 py-1.5 focus:outline-none cursor-pointer">
+                                <option value="BAJO">Bajo</option>
+                                <option value="MEDIO" selected>Medio</option>
+                                <option value="ALTO">Alto</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <label class="font-bold text-gray-700 uppercase tracking-wide text-sm">Riesgo en Aduanas:</label>
+                            <select id="customs_risk" class="border border-logi-tan bg-white rounded-lg px-4 py-1.5 focus:outline-none cursor-pointer">
+                                <option value="BAJO">Bajo</option>
+                                <option value="MEDIO" selected>Medio</option>
+                                <option value="ALTO">Alto</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <label class="font-bold text-gray-700 uppercase tracking-wide text-sm">Lavado de Dinero:</label>
+                            <select id="aml_risk" class="border border-logi-tan bg-white rounded-lg px-4 py-1.5 focus:outline-none cursor-pointer">
+                                <option value="BAJO">Bajo</option>
+                                <option value="MEDIO" selected>Medio</option>
+                                <option value="ALTO">Alto</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center mt-12">
+                    <button onclick="registerClient()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex items-center">
+                        <i class="fas fa-envelope mr-3"></i> Registrar y Enviar Credenciales
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 3: FORMALIZACIÓN DE CONTRATO         -->
+        <!-- ========================================== -->
+        <div id="contract-view" class="view-section hidden animate-fade-in py-8">
+            <h2 class="text-4xl font-black text-gray-900 mb-8 tracking-tight">Formalización de Contrato</h2>
+
+            <div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+                
+                <!-- Buscador Cliente -->
+                <div class="bg-logi-tan p-8 rounded-2xl mb-8 shadow-inner border border-[#d4bca9]">
+                    <label class="block text-xl font-bold text-gray-900 mb-3">1. Buscar Cliente Registrado</label>
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-3.5 text-gray-400 text-lg"></i>
+                        <input type="text" id="client_search" placeholder="Input text: Ej. Hola (Buscar Razón Social o NIT)" class="w-full pl-12 pr-4 py-3 rounded-xl border-none shadow-sm focus:outline-none focus:ring-2 focus:ring-logi-dark text-gray-800 text-lg">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 px-4 mb-8">
+                    <!-- Columna Izquierda -->
+                    <div class="space-y-8">
+                        <div>
+                            <label class="block text-xl font-bold text-gray-900 mb-3">Límite de Crédito</label>
+                            <div class="relative">
+                                <input type="number" id="credit_limit" placeholder="10000" class="w-full border-2 border-logi-tan rounded-xl pl-4 pr-10 py-3 focus:outline-none focus:border-logi-dark text-lg font-bold text-gray-800">
+                                <span class="absolute right-4 top-3 text-gray-500 font-bold text-lg">Q</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xl font-bold text-gray-900 mb-3">Plazo de Pago</label>
+                            <div class="flex gap-4" id="payment-terms-group">
+                                <button type="button" onclick="selectPaymentTerm(this, 15)" class="payment-term-btn flex-1 border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50">15 Días</button>
+                                <button type="button" onclick="selectPaymentTerm(this, 30)" class="payment-term-btn flex-1 border-2 border-logi-dark bg-logi-dark text-white font-bold py-3 rounded-xl shadow-md transition-colors">30 Días</button>
+                                <button type="button" onclick="selectPaymentTerm(this, 45)" class="payment-term-btn flex-1 border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50">45 Días</button>
+                            </div>
+                            <input type="hidden" id="payment_term_days" value="30">
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha -->
+                    <div class="space-y-8 border-t md:border-t-0 md:border-l border-gray-200 pt-8 md:pt-0 md:pl-12">
+                        <div>
+                            <label class="block text-xl font-bold text-gray-900 mb-3">Rutas Autorizadas</label>
+                            <input type="text" id="routes" placeholder="Rutas" class="w-full border-2 border-logi-tan rounded-xl px-4 py-3 focus:outline-none focus:border-logi-dark text-lg text-gray-800">
+                        </div>
+
+                        <div>
+                            <label class="block text-xl font-bold text-gray-900 mb-3">Tipos de Carga Permitidos</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-teal-50 shadow-inner">Carga General</button>
+                                <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50">Perecederos</button>
+                                <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-teal-50 shadow-inner">Construcción</button>
+                                <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50">Peligrosa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner Descuento -->
+                <div class="bg-logi-dark rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 mb-8 shadow-lg">
+                    <label class="text-xl font-bold text-white whitespace-nowrap">Aplicar Descuento</label>
+                    <div class="relative w-full md:w-48">
+                        <input type="number" id="discount_pct" placeholder="Porcentaje" class="w-full rounded-lg px-4 py-3 focus:outline-none text-gray-800 font-bold text-center">
+                        <span class="absolute right-4 top-3 text-gray-400 font-bold">%</span>
+                    </div>
+                    <input type="text" id="discount_notes" placeholder="Justificación" class="w-full rounded-lg px-4 py-3 focus:outline-none text-gray-800 flex-1">
+                </div>
+
+                <div class="flex justify-center">
+                    <button onclick="generateContract()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-4 px-12 rounded-xl shadow-xl transition-transform transform hover:-translate-y-1 text-lg flex items-center w-full md:w-auto justify-center">
+                        Generar y Enviar Propuesta al Cliente <i class="fas fa-paper-plane ml-3"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modales de Exito -->
+    <!-- Modal Credenciales -->
+    <div id="modal-client" class="fixed inset-0 bg-logi-dark bg-opacity-90 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-10 max-w-md w-full text-center shadow-2xl transform scale-95 animate-fade-in border-t-8 border-green-500">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-user-check text-5xl text-green-600"></i>
+            </div>
+            <h3 class="text-3xl font-black text-logi-dark mb-3">Cliente Registrado</h3>
+            <p class="text-gray-600 mb-8 text-lg">El cliente ha sido guardado exitosamente. Se ha enviado un correo automático con sus credenciales de acceso al portal.</p>
+            <button onclick="closeModal('modal-client')" class="w-full bg-logi-dark text-white font-bold py-4 rounded-xl hover:bg-teal-800 transition-colors shadow-lg">
+                Aceptar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Contrato -->
+    <div id="modal-contract" class="fixed inset-0 bg-logi-dark bg-opacity-90 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-10 max-w-md w-full text-center shadow-2xl transform scale-95 animate-fade-in border-t-8 border-logi-light">
+            <div class="w-24 h-24 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-file-contract text-5xl text-teal-600"></i>
+            </div>
+            <h3 class="text-3xl font-black text-logi-dark mb-3">Contrato Generado</h3>
+            <p class="text-gray-600 mb-8 text-lg">El contrato digital está en estado <strong>PENDIENTE</strong>. El cliente debe ingresar a su portal para revisarlo y aceptarlo.</p>
+            <button onclick="closeModal('modal-contract', 'welcome-view')" class="w-full bg-logi-dark text-white font-bold py-4 rounded-xl hover:bg-teal-800 transition-colors shadow-lg">
+                Volver al Inicio
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        // Navegación
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            const navs = ['nav-welcome', 'nav-register', 'nav-contract'];
+            navs.forEach(nav => {
+                const el = document.getElementById(nav);
+                if(el) {
+                    el.className = "text-teal-300 hover:text-white font-medium pb-1 transition-all";
+                }
+            });
+            
+            const activeNavId = viewId === 'welcome-view' ? 'nav-welcome' : (viewId === 'register-view' ? 'nav-register' : 'nav-contract');
+            const activeEl = document.getElementById(activeNavId);
+            if(activeEl) {
+                activeEl.className = "text-white font-bold border-b-2 border-white pb-1 transition-all";
+            }
+        }
+
+        // --- LÓGICA DE INTERFAZ ---
+
+        // Selector de Plazos de Pago (Radio button logic)
+        function selectPaymentTerm(btn, days) {
+            // Reset all
+            document.querySelectorAll('.payment-term-btn').forEach(el => {
+                el.className = "payment-term-btn flex-1 border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50";
+            });
+            // Set active
+            btn.className = "payment-term-btn flex-1 border-2 border-logi-dark bg-logi-dark text-white font-bold py-3 rounded-xl shadow-md transition-colors";
+            document.getElementById('payment_term_days').value = days;
+        }
+
+        // Toggle Tipos de Carga (Checkbox logic)
+        function toggleCargoType(btn) {
+            const isActive = btn.classList.contains('bg-teal-50');
+            if (isActive) {
+                btn.classList.remove('bg-teal-50', 'shadow-inner');
+                btn.classList.add('bg-white', 'hover:bg-teal-50');
+            } else {
+                btn.classList.add('bg-teal-50', 'shadow-inner');
+                btn.classList.remove('bg-white', 'hover:bg-teal-50');
+            }
+        }
+
+
+        // --- SIMULACIÓN DE APIS ---
+
+        function registerClient() {
+            const name = document.getElementById('contact_name').value;
+            const nit = document.getElementById('nit').value;
+            
+            if(!nit) { alert("Por favor ingrese el NIT del cliente."); return; }
+
+            // POST /api/operativo/clients
+            console.log("Simulando POST a DB:", {
+                CONTACT_NAME: name,
+                NIT: nit,
+                PAYMENT_RISK: document.getElementById('payment_risk').value
+                // ... demas campos
+            });
+
+            document.getElementById('modal-client').classList.remove('hidden');
+        }
+
+        function generateContract() {
+            const client = document.getElementById('client_search').value;
+            const limit = document.getElementById('credit_limit').value;
+            
+            if(!client || !limit) { alert("Por favor seleccione un cliente y asigne un límite de crédito."); return; }
+
+            // POST /api/operativo/contracts
+            console.log("Simulando POST a DB:", {
+                CREDIT_LIMIT: limit,
+                PAYMENT_TERM_DAYS: document.getElementById('payment_term_days').value,
+                DISCOUNT_PERCENTAGE: document.getElementById('discount_pct').value,
+                STATUS: 'PENDIENTE'
+            });
+
+            document.getElementById('modal-contract').classList.remove('hidden');
+        }
+
+        function closeModal(modalId, returnView) {
+            document.getElementById(modalId).classList.add('hidden');
+            if(returnView) showView(returnView);
+        }
+    </script>
+</body>
+</html>

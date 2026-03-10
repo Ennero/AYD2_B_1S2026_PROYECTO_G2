@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrans - Dashboard Gerencial (BI)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'logi-dark': '#095556',
+                        'logi-light': '#66a592',
+                        'logi-bg': '#f9fafb',
+                        'logi-gray': '#dcdde1'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Gráfico de pastel simulado con CSS */
+        .pie-chart {
+            background: conic-gradient(
+                #ef4444 0% 35%, 
+                #10b981 35% 75%, 
+                #6366f1 75% 100%
+            );
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-logi-bg font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Top Navbar -->
+    <header class="bg-logi-dark text-white px-8 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+        <div class="flex items-center gap-8">
+            <h1 class="text-3xl font-black tracking-wider">LOGITRANS</h1>
+            
+            <nav class="hidden lg:flex space-x-6 ml-8">
+                <button onclick="showView('welcome-view')" id="nav-welcome" class="text-white font-bold border-b-2 border-white pb-1 transition-all">
+                    Inicio
+                </button>
+                <button onclick="showView('kpis-view')" id="nav-kpis" class="text-teal-300 hover:text-white font-medium pb-1 transition-all">
+                    Operaciones y KPIs
+                </button>
+                <button onclick="showView('profit-view')" id="nav-profit" class="text-teal-300 hover:text-white font-medium pb-1 transition-all">
+                    Rentabilidad
+                </button>
+                <button onclick="showView('alerts-view')" id="nav-alerts" class="text-teal-300 hover:text-white font-medium pb-1 transition-all">
+                    Alertas y Proyecciones
+                </button>
+            </nav>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+                <p class="font-bold text-teal-100">Gerencia Operativa</p>
+                <p class="text-sm">admin@logitrans.com</p>
+            </div>
+            <button class="bg-logi-light hover:bg-teal-500 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                Salir
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 w-full max-w-7xl mx-auto p-6 relative flex flex-col">
+
+        <!-- Header de Vistas -->
+        <div id="global-header" class="hidden flex justify-between items-end mb-8 border-b-2 border-gray-200 pb-4 mt-4 animate-fade-in">
+            <div>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Dashboard Gerencial</h2>
+                <p id="view-subtitle" class="text-gray-500 text-lg mt-1 font-medium">Resumen de operaciones y KPIs logísticos</p>
+            </div>
+            <div class="flex gap-4 items-center">
+                <input type="text" value="Hoy: 03 Mar 2026" disabled class="border border-gray-300 rounded px-4 py-2 text-gray-600 bg-white font-medium shadow-sm w-40 text-center">
+                <button class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                    Exporta PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 1: INICIO (BIENVENIDA)               -->
+        <!-- ========================================== -->
+        <div id="welcome-view" class="view-section animate-fade-in flex flex-col items-center justify-center py-12 flex-1">
+            <div class="bg-white p-12 rounded-3xl shadow-xl text-center max-w-4xl w-full border-t-8 border-logi-dark">
+                <div class="w-24 h-24 bg-teal-50 text-logi-dark rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner border border-teal-100">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                
+                <h2 class="text-4xl font-extrabold text-logi-dark mb-4">Motor de Inteligencia de Negocio</h2>
+                <p class="text-gray-600 text-lg mb-10">Central de monitoreo. Visualiza el rendimiento operativo, analiza la rentabilidad financiera por ruta y planifica la expansión regional.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <button onclick="showView('kpis-view')" class="bg-white border border-gray-200 hover:border-logi-light rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
+                        <i class="fas fa-truck text-4xl text-logi-light mb-3 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-lg font-bold text-gray-800">Operaciones</h3>
+                        <p class="text-gray-500 text-sm mt-1">Corte diario y sedes</p>
+                    </button>
+
+                    <button onclick="showView('profit-view')" class="bg-white border border-gray-200 hover:border-logi-dark rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
+                        <i class="fas fa-file-invoice-dollar text-4xl text-logi-dark mb-3 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-lg font-bold text-gray-800">Rentabilidad</h3>
+                        <p class="text-gray-500 text-sm mt-1">Ingresos vs Gastos</p>
+                    </button>
+
+                    <button onclick="showView('alerts-view')" class="bg-white border border-gray-200 hover:border-red-400 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
+                        <i class="fas fa-exclamation-triangle text-4xl text-red-400 mb-3 group-hover:scale-110 transition-transform"></i>
+                        <h3 class="text-lg font-bold text-gray-800">Alertas</h3>
+                        <p class="text-gray-500 text-sm mt-1">Desviaciones y Crecimiento</p>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 2: OPERACIONES Y KPIS LOGÍSTICOS     -->
+        <!-- ========================================== -->
+        <div id="kpis-view" class="view-section hidden animate-fade-in">
+            
+            <!-- Tarjetas Superiores -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-logi-gray rounded-xl p-6 shadow-sm">
+                    <h4 class="font-bold text-gray-800 mb-4">Servicios Completados</h4>
+                    <p class="text-4xl font-black text-gray-900">142</p>
+                </div>
+                <div class="bg-logi-gray rounded-xl p-6 shadow-sm">
+                    <h4 class="font-bold text-gray-800 mb-4">Facturación del Día</h4>
+                    <p class="text-3xl font-black text-gray-900 mb-1">Q 184,500</p>
+                    <p class="text-sm font-bold text-green-700">+5% vs promedio</p>
+                </div>
+                <div class="bg-logi-gray rounded-xl p-6 shadow-sm border border-red-300">
+                    <h4 class="font-bold text-gray-800 mb-4">Incidentes Activos</h4>
+                    <div class="flex items-end gap-3">
+                        <p class="text-4xl font-black text-gray-900">3</p>
+                        <p class="text-sm font-bold text-red-600 mb-1">Requiere atención</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+                <!-- Gráfico de Pastel Simulado -->
+                <div class="flex flex-col md:flex-row items-center justify-center gap-12 mb-12">
+                    <div class="w-full md:w-1/2 flex flex-col items-center">
+                        <h3 class="text-3xl font-black text-gray-900 mb-6 w-full text-center md:text-left">Operaciones por sedes</h3>
+                        <!-- Contenedor del Donut Chart -->
+                        <div class="relative w-64 h-64">
+                            <div class="absolute inset-0 pie-chart"></div>
+                            <!-- Círculo interior para hacerlo Donut -->
+                            <div class="absolute inset-4 bg-white rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full md:w-1/2 space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-red-500"></div>
+                            <p class="text-4xl font-black text-gray-900">Guatemala</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-green-500"></div>
+                            <p class="text-4xl font-black text-gray-900">Quetzaltenango</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-500"></div>
+                            <p class="text-4xl font-black text-gray-900">Puerto Barrios</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Despachos -->
+                <div>
+                    <div class="flex justify-between items-end mb-4 border-b pb-2">
+                        <h3 class="text-xl font-bold text-gray-900">Últimos Despachos</h3>
+                        <a href="#" class="text-logi-dark font-bold hover:underline">Ver todos</a>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-4 p-3 font-bold text-gray-800 text-lg">
+                        <div>Orden</div>
+                        <div>Cliente</div>
+                        <div>Ruta</div>
+                        <div class="text-right">Estado</div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="grid grid-cols-4 gap-4 p-3 items-center hover:bg-gray-50 rounded">
+                            <div class="font-bold text-gray-900">ORD-8902</div>
+                            <div class="font-bold text-gray-700">Industrias Unidas</div>
+                            <div class="font-bold text-gray-700 text-sm">Guate <i class="fas fa-arrow-right mx-1"></i> Pto. Barrios</div>
+                            <div class="text-right font-bold text-gray-900">Entregada</div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 p-3 items-center hover:bg-gray-50 rounded">
+                            <div class="font-bold text-gray-900">ORD-8903</div>
+                            <div class="font-bold text-gray-700">Distribuidora Central</div>
+                            <div class="font-bold text-gray-700 text-sm">Guate <i class="fas fa-arrow-right mx-1"></i> Xela</div>
+                            <div class="text-right font-bold text-gray-900">En aduana</div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 p-3 items-center hover:bg-gray-50 rounded">
+                            <div class="font-bold text-gray-900">ORD-8904</div>
+                            <div class="font-bold text-gray-700">Exportadora del Sur</div>
+                            <div class="font-bold text-gray-700 text-sm">Xela <i class="fas fa-arrow-right mx-1"></i> Guate</div>
+                            <div class="text-right font-bold text-gray-900">En Tránsito</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 3: RENTABILIDAD Y CUMPLIMIENTO       -->
+        <!-- ========================================== -->
+        <div id="profit-view" class="view-section hidden animate-fade-in">
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+                <h3 class="text-3xl font-black text-gray-900 mb-6">Análisis de Rentabilidad</h3>
+                
+                <div class="flex flex-col md:flex-row gap-8 mb-10">
+                    <div class="w-full md:w-1/2 bg-logi-gray p-6 rounded-xl">
+                        <p class="text-xl font-bold text-gray-900 mb-2">Margen Promedio</p>
+                        <p class="text-5xl font-black text-gray-900">28.4%</p>
+                    </div>
+                    <div class="w-full md:w-1/2 bg-logi-gray p-6 rounded-xl">
+                        <p class="text-xl font-bold text-gray-900 mb-2">Gasto Operativo Crítico</p>
+                        <p class="text-2xl font-black text-gray-900 mt-2">Combustible (45% del gasto)</p>
+                    </div>
+                </div>
+
+                <h4 class="text-2xl font-black text-gray-900 mb-4">Ingresos vs Gastos por Cliente</h4>
+                
+                <!-- Leyenda -->
+                <div class="flex justify-center gap-6 mb-6">
+                    <div class="flex items-center gap-2"><div class="w-8 h-3 bg-logi-dark rounded"></div><span class="font-bold text-sm">Ingresos</span></div>
+                    <div class="flex items-center gap-2"><div class="w-8 h-3 bg-gray-200 rounded"></div><span class="font-bold text-sm">Gastos</span></div>
+                </div>
+
+                <!-- Gráfico de Barras Simulado CSS -->
+                <div class="relative h-64 border-l border-b border-gray-300 flex items-end justify-around px-8 pb-0 pt-4">
+                    <!-- Eje Y -->
+                    <div class="absolute left-0 top-0 bottom-0 -ml-12 flex flex-col justify-between text-xs text-gray-500 font-bold py-2">
+                        <span>120k</span><span>80k</span><span>40k</span><span>0</span>
+                    </div>
+                    <!-- Barras Cliente 1 -->
+                    <div class="flex items-end gap-1 h-full w-24 group relative">
+                        <div class="w-1/2 bg-logi-dark rounded-t-sm h-[100%] transition-all hover:opacity-80"></div>
+                        <div class="w-1/2 bg-gray-200 rounded-t-sm h-[65%] transition-all hover:opacity-80"></div>
+                        <div class="absolute -bottom-8 w-full text-center text-xs font-bold text-gray-600">Progreso</div>
+                    </div>
+                    <!-- Barras Cliente 2 -->
+                    <div class="flex items-end gap-1 h-full w-24 group relative">
+                        <div class="w-1/2 bg-logi-dark rounded-t-sm h-[80%] transition-all hover:opacity-80"></div>
+                        <div class="w-1/2 bg-gray-200 rounded-t-sm h-[50%] transition-all hover:opacity-80"></div>
+                        <div class="absolute -bottom-8 w-full text-center text-xs font-bold text-gray-600">Industrias</div>
+                    </div>
+                    <!-- Barras Cliente 3 -->
+                    <div class="flex items-end gap-1 h-full w-24 group relative">
+                        <div class="w-1/2 bg-logi-dark rounded-t-sm h-[65%] transition-all hover:opacity-80"></div>
+                        <div class="w-1/2 bg-gray-200 rounded-t-sm h-[55%] transition-all hover:opacity-80"></div>
+                        <div class="absolute -bottom-8 w-full text-center text-xs font-bold text-gray-600">Aceros</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico Lineal (Promesa vs Real) y Cuellos de botella -->
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100 mb-8">
+                <h3 class="text-3xl font-black text-gray-900 mb-6">Real vs Promesa (Horas)</h3>
+                <div class="h-40 w-full mb-10 border-l border-b border-gray-300 relative">
+                    <!-- SVG Simulado para el gráfico lineal -->
+                    <svg viewBox="0 0 100 30" class="w-full h-full overflow-visible preserve-3d" preserveAspectRatio="none">
+                        <polyline points="0,30 20,10 40,20 60,5 100,28" fill="none" stroke="#095556" stroke-width="0.5" />
+                    </svg>
+                </div>
+
+                <h3 class="text-3xl font-black text-gray-900 mb-6">Cuellos de Botella</h3>
+                <div class="grid grid-cols-3 gap-4 font-black text-lg text-gray-900 mb-4">
+                    <div>Punto de Control</div>
+                    <div class="text-center">Desviación</div>
+                    <div>Acción Sugerida</div>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <div class="font-bold text-gray-800">Aduana Pto. Barrios</div>
+                        <div class="text-center font-black text-red-600 text-lg">+4.5 hrs</div>
+                        <div class="font-bold text-gray-800">Revisar tramitador</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 items-center">
+                        <div class="font-bold text-gray-800">Ruta CA-9 Norte</div>
+                        <div class="text-center font-black text-yellow-600 text-lg">+1.2 hrs</div>
+                        <div class="font-bold text-gray-800">Cambiar ruta alterna</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 4: ALERTAS Y PROYECCIONES            -->
+        <!-- ========================================== -->
+        <div id="alerts-view" class="view-section hidden animate-fade-in">
+            <h2 class="text-4xl font-black text-gray-900 mb-8 tracking-tight">Alertas y Planificación Regional</h2>
+
+            <div class="bg-white rounded-3xl shadow-xl p-8 border-2 border-red-400 mb-8 relative overflow-hidden">
+                <h3 class="text-2xl font-black text-gray-900 mb-6">Alertas de Desviaciones</h3>
+                
+                <div class="bg-red-50 border border-red-200 p-5 rounded-lg mb-4">
+                    <h4 class="font-black text-red-700 text-lg">Exceso Consumo Combustible</h4>
+                    <p class="text-gray-800 font-bold mt-1">Unidad C-102 en Ruta a Xela superó el promedio en un 15%.</p>
+                </div>
+                
+                <div class="bg-orange-50 border border-orange-200 p-5 rounded-lg">
+                    <h4 class="font-black text-orange-700 text-lg">Baja repentina de volumen</h4>
+                    <p class="text-gray-800 font-bold mt-1">Distribuidora Central (Bajó 30% sus solicitudes este mes).</p>
+                </div>
+            </div>
+
+            <!-- Proyección Expansión -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 border border-blue-200">
+                <h3 class="text-2xl font-black text-gray-900 mb-2">Proyección Expansión (El Salvador / Honduras)</h3>
+                <p class="text-gray-500 font-medium mb-6">Requerimiento para absorber aumento del 200% de transacciones.</p>
+
+                <div class="flex flex-col md:flex-row gap-6 mb-8">
+                    <div class="flex-1 bg-gray-100 p-6 rounded-xl text-center">
+                        <p class="text-5xl font-black text-logi-light mb-2">+12</p>
+                        <p class="font-bold text-gray-700 text-sm">Camiones Extra</p>
+                    </div>
+                    <div class="flex-1 bg-gray-100 p-6 rounded-xl text-center">
+                        <p class="text-5xl font-black text-logi-light mb-2">+15</p>
+                        <p class="font-bold text-gray-700 text-sm">Pilotos Extra</p>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Área Simulado (Expansión) -->
+                <div class="relative h-48 border-l border-b border-gray-300 px-4 pt-4">
+                    <!-- Eje Y -->
+                    <div class="absolute left-0 top-0 bottom-0 -ml-8 flex flex-col justify-between text-xs text-gray-500 font-bold py-2">
+                        <span>600</span><span>400</span><span>200</span>
+                    </div>
+                    <!-- Area Chart SVG -->
+                    <svg viewBox="0 0 100 30" class="w-full h-full overflow-visible" preserveAspectRatio="none">
+                        <polygon points="0,30 0,28 20,25 40,22 60,15 80,10 100,5 100,30" fill="#a7f3d0" opacity="0.5" />
+                        <polyline points="0,28 20,25 40,22 60,15 80,10 100,5" fill="none" stroke="#10b981" stroke-width="1" />
+                        <!-- Puntos -->
+                        <circle cx="0" cy="28" r="1" fill="#10b981" />
+                        <circle cx="20" cy="25" r="1" fill="#10b981" />
+                        <circle cx="40" cy="22" r="1" fill="#10b981" />
+                        <circle cx="60" cy="15" r="1" fill="#10b981" />
+                        <circle cx="80" cy="10" r="1" fill="#10b981" />
+                        <circle cx="100" cy="5" r="1" fill="#10b981" />
+                    </svg>
+                    <!-- Eje X -->
+                    <div class="absolute bottom-0 left-0 w-full -mb-6 flex justify-between text-xs font-bold text-gray-600 px-4">
+                        <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function showView(viewId) {
+            // Ocultar vistas
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            // Gestionar Cabecera Global
+            const globalHeader = document.getElementById('global-header');
+            const viewSubtitle = document.getElementById('view-subtitle');
+            
+            if(viewId === 'welcome-view') {
+                globalHeader.classList.add('hidden');
+            } else {
+                globalHeader.classList.remove('hidden');
+                // Cambiar subtítulo según la vista
+                if(viewId === 'kpis-view') viewSubtitle.innerText = "Resumen de operaciones y KPIs logísticos";
+                if(viewId === 'profit-view') viewSubtitle.innerText = "Medición de Cumplimiento (KPIs)";
+                if(viewId === 'alerts-view') viewSubtitle.innerText = "Alertas y Proyecciones de Escalamiento";
+            }
+
+            // Gestionar estilos del menú superior
+            const navs = ['nav-welcome', 'nav-kpis', 'nav-profit', 'nav-alerts'];
+            navs.forEach(nav => {
+                const el = document.getElementById(nav);
+                if(el) {
+                    el.className = "text-teal-300 hover:text-white font-medium pb-1 transition-all";
+                }
+            });
+            
+            const activeNavId = viewId === 'welcome-view' ? 'nav-welcome' : 
+                               (viewId === 'kpis-view' ? 'nav-kpis' : 
+                               (viewId === 'profit-view' ? 'nav-profit' : 'nav-alerts'));
+            const activeEl = document.getElementById(activeNavId);
+            if(activeEl) {
+                activeEl.className = "text-white font-bold border-b-2 border-white pb-1 transition-all";
+            }
+        }
+    </script>
+</body>
+</html>
