@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrans - Panel Logístico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'logi-dark': '#095556',
+                        'logi-light': '#66a592',
+                        'logi-bg': '#f9fafb',
+                        'logi-card': '#0e5e5f',
+                        'logi-tan': '#e1cbb8',
+                        'logi-badge-warn': '#eab308',
+                        'logi-badge-ok': '#98cba4'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-logi-bg font-sans text-gray-800 h-screen overflow-hidden flex flex-col">
+
+    <!-- Top Navbar -->
+    <header class="bg-logi-dark text-white px-8 py-4 flex justify-between items-center shadow-lg z-50">
+        <div class="flex items-center gap-8">
+            <h1 class="text-3xl font-black tracking-wider">LOGITRANS</h1>
+            
+            <nav class="hidden md:flex space-x-6 ml-8">
+                <button onclick="showView('welcome-view')" id="nav-welcome" class="text-white font-bold border-b-2 border-white pb-1 transition-all">
+                    Inicio
+                </button>
+                <button onclick="showView('dashboard-view')" id="nav-dashboard" class="text-teal-300 hover:text-white font-medium pb-1 transition-all">
+                    Asignación de Rutas
+                </button>
+            </nav>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+                <p class="font-bold text-teal-100">Agente Logístico</p>
+                <p class="text-sm">logistico@logitrans.com</p>
+            </div>
+            <button class="bg-logi-light hover:bg-teal-500 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                Salir
+            </button>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 overflow-y-auto relative w-full bg-[#fdfdfd]">
+        
+        <!-- ========================================== -->
+        <!-- VISTA 1: INICIO (BIENVENIDA)               -->
+        <!-- ========================================== -->
+        <div id="welcome-view" class="view-section flex flex-col items-center justify-center min-h-[85vh] p-8 animate-fade-in">
+            <div class="bg-white p-12 rounded-3xl shadow-2xl text-center max-w-4xl w-full border-t-8 border-logi-dark relative overflow-hidden">
+                
+                <div class="w-24 h-24 bg-teal-50 text-logi-dark rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner border border-teal-100">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                
+                <h2 class="text-4xl font-extrabold text-logi-dark mb-4">¡Bienvenido, Jose Carlos!</h2>
+                <p class="text-gray-600 text-lg mb-10">Central de operaciones LogiTrans. Aquí coordinas la asignación de unidades y pilotos para los nuevos servicios solicitados.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-10">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-8 shadow-sm">
+                        <i class="fas fa-clipboard-list text-4xl text-yellow-500 mb-4"></i>
+                        <h3 class="text-5xl font-black text-yellow-700 mb-2">2</h3>
+                        <p class="text-sm font-bold text-yellow-800 uppercase tracking-wide">Órdenes Pendientes</p>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-8 shadow-sm">
+                        <i class="fas fa-truck text-4xl text-green-500 mb-4"></i>
+                        <h3 class="text-5xl font-black text-green-700 mb-2">5</h3>
+                        <p class="text-sm font-bold text-green-800 uppercase tracking-wide">Vehículos Disponibles</p>
+                    </div>
+                </div>
+
+                <button onclick="showView('dashboard-view')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex items-center mx-auto">
+                    Ir a Órdenes de Servicio <i class="fas fa-arrow-right ml-3"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 2: DASHBOARD (ÓRDENES DE SERVICIO)   -->
+        <!-- ========================================== -->
+        <div id="dashboard-view" class="view-section hidden p-8 max-w-7xl mx-auto w-full animate-fade-in">
+            <h2 class="text-4xl font-serif text-center text-gray-900 mb-8 mt-2">Órdenes de Servicios Nuevas</h2>
+
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Panel Lateral: Filtros -->
+                <aside class="w-full lg:w-1/4 bg-[#8eb899] p-6 rounded-2xl shadow-md h-fit">
+                    <h3 class="text-2xl font-bold text-logi-dark mb-6">Buscar</h3>
+                    
+                    <div class="space-y-5">
+                        <div class="flex gap-3">
+                            <div class="w-1/2">
+                                <label class="block text-sm font-bold text-logi-dark mb-1">Fecha de Inicio</label>
+                                <input type="date" class="w-full p-2.5 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark text-gray-700 border-none">
+                            </div>
+                            <div class="w-1/2">
+                                <label class="block text-sm font-bold text-logi-dark mb-1">Fecha de Fin</label>
+                                <input type="date" class="w-full p-2.5 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark text-gray-700 border-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Cliente</label>
+                            <input type="text" placeholder="Ej. Hola" class="w-full p-2.5 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark border-none">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Origen</label>
+                            <input type="text" placeholder="Ej. Hola" class="w-full p-2.5 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark border-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Destino</label>
+                            <input type="text" placeholder="Ej. Hola" class="w-full p-2.5 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark border-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Tipo de Mercancía</label>
+                            <select class="w-full p-2.5 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark text-gray-600 border-none">
+                                <option>Input text: Ej. Hola</option>
+                                <option>Carga Pesada</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-4 text-sm font-bold text-logi-dark space-y-3">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="sort" class="accent-logi-dark w-4 h-4"> MENOR A MAYOR PESO</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="sort" class="accent-logi-dark w-4 h-4" checked> MAYOR A MENOR PESO</label>
+                        </div>
+
+                        <button class="w-full bg-logi-tan hover:bg-[#d4bca9] text-logi-dark font-black py-3.5 rounded-xl shadow-md mt-6 transition-transform transform hover:-translate-y-1 tracking-wider">
+                            FILTRAR
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Área Principal: Tarjetas de Órdenes -->
+                <section class="w-full lg:w-3/4 flex flex-col gap-6">
+
+                    <!-- Tarjeta 1: Pendiente -->
+                    <div class="relative bg-logi-card rounded-2xl shadow-lg mt-4 border-2 border-yellow-500 transition-all hover:shadow-xl" id="order-card-34">
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-logi-badge-warn text-yellow-900 font-bold px-8 py-1.5 rounded-full text-sm shadow-md">
+                            Pendiente
+                        </div>
+                        <div class="flex flex-col md:flex-row items-center p-4 pt-6">
+                            
+                            <!-- Cliente -->
+                            <div class="w-full md:w-1/3 flex flex-col items-center border-b md:border-b-0 md:border-r border-teal-700 pb-4 md:pb-0 md:pr-4">
+                                <div class="bg-blue-400 text-white rounded-full w-14 h-14 flex items-center justify-center text-2xl mb-2 border-2 border-white shadow-sm relative -top-6">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex items-center justify-between w-full text-white mb-2 -mt-4 px-2">
+                                    <span class="font-bold">ID: 34</span>
+                                </div>
+                                <div class="w-full bg-logi-tan text-logi-dark font-black py-2.5 px-4 rounded-lg text-center shadow-inner">
+                                    Cementos Progreso
+                                </div>
+                            </div>
+                            
+                            <!-- Datos Ruta -->
+                            <div class="w-full md:w-2/3 flex justify-between items-center text-white px-6 pt-4 md:pt-0 text-center">
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">FECHA</p>
+                                    <p class="font-semibold text-base">01/4/2026</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">ORIGEN</p>
+                                    <p class="font-semibold text-base">Colombia</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">DESTINO</p>
+                                    <p class="font-semibold text-base">Cuba</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">TIPO</p>
+                                    <p class="font-semibold text-xs">Gasolina</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">PESO</p>
+                                    <p class="font-semibold text-base">34K</p>
+                                </div>
+                                <div>
+                                    <button onclick="openAssignModal('34')" class="bg-logi-tan hover:bg-[#cbb5a0] text-logi-dark font-bold w-12 h-10 rounded-lg shadow-md transition-colors flex items-center justify-center group">
+                                        <i class="fas fa-ellipsis-h group-hover:hidden"></i>
+                                        <i class="fas fa-hand-pointer hidden group-hover:block"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 2: Asignado -->
+                    <div class="relative bg-logi-card rounded-2xl shadow-lg mt-4 border border-teal-600 opacity-90">
+                        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-logi-badge-ok text-logi-dark font-bold px-8 py-1.5 rounded-full text-sm shadow-md">
+                            Asignado
+                        </div>
+                        <div class="flex flex-col md:flex-row items-center p-4 pt-6">
+                            <div class="w-full md:w-1/3 flex flex-col items-center border-b md:border-b-0 md:border-r border-teal-700 pb-4 md:pb-0 md:pr-4">
+                                <div class="bg-blue-400 text-white rounded-full w-14 h-14 flex items-center justify-center text-2xl mb-2 border-2 border-white shadow-sm relative -top-6">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex items-center justify-between w-full text-white mb-2 -mt-4 px-2">
+                                    <span class="font-bold">ID: 4</span>
+                                </div>
+                                <div class="w-full bg-logi-tan text-logi-dark font-black py-2.5 px-4 rounded-lg text-center shadow-inner">
+                                    Cementos Progreso
+                                </div>
+                            </div>
+                            
+                            <div class="w-full md:w-2/3 flex justify-between items-center text-white px-6 pt-4 md:pt-0 text-center">
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">FECHA</p>
+                                    <p class="font-semibold text-base">01/4/2026</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">ORIGEN</p>
+                                    <p class="font-semibold text-base">Guatemala</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">DESTINO</p>
+                                    <p class="font-semibold text-base">Xela</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">TIPO</p>
+                                    <p class="font-semibold text-xs">Petróleo</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">PESO</p>
+                                    <p class="font-semibold text-base">32K</p>
+                                </div>
+                                <div>
+                                    <!-- Botón deshabilitado porque ya está asignado -->
+                                    <button disabled class="bg-gray-500 text-gray-300 font-bold w-12 h-10 rounded-lg shadow-inner cursor-not-allowed">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- MODAL: DETALLES Y ASIGNACIÓN               -->
+    <!-- ========================================== -->
+    <div id="assign-modal" class="fixed inset-0 bg-logi-dark bg-opacity-80 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+        
+        <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-fade-in relative border-4 border-logi-dark">
+            
+            <!-- Encabezado Modal -->
+            <div class="text-center pt-8 pb-4">
+                <h2 class="text-4xl font-black tracking-tight text-gray-900">Detalles de la orden</h2>
+                <p class="text-gray-600 text-lg mt-2">ID: <span id="modal-order-id" class="font-bold">34</span></p>
+            </div>
+
+            <!-- Info de Ruta (Grid) -->
+            <div class="px-8 pb-4">
+                <div class="grid grid-cols-3 text-center gap-4 border-b border-gray-200 pb-6">
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">FECHA</p>
+                        <p class="font-semibold text-gray-800">01/4/2026</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">ORIGEN</p>
+                        <p class="font-semibold text-gray-800">COLOMBIA</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">DESTINO</p>
+                        <p class="font-semibold text-gray-800">CUBA</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 text-center gap-4 py-4 border-b border-gray-200">
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">PESO</p>
+                        <p class="font-semibold text-gray-800">34K</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">TIPO</p>
+                        <p class="font-semibold text-gray-800">GASOLINA</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Cliente -->
+            <div class="px-8 py-2">
+                <h3 class="text-2xl font-black text-center text-gray-900 mb-6 uppercase tracking-widest">INFORMACIÓN CLIENTE</h3>
+                
+                <div class="grid grid-cols-2 gap-y-6 text-center">
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">NOMBRE</p>
+                        <p class="text-gray-800">Jorge Abigail</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">Razón Social</p>
+                        <p class="text-gray-800">Ubico Merida</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">Dirección</p>
+                        <p class="text-gray-800 text-sm">2da calle 34-23, el gallito</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-gray-500 uppercase">TELÉFONO</p>
+                        <p class="text-gray-800">3223-3233</p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-sm font-bold text-gray-500 uppercase">EMAIL</p>
+                        <p class="text-gray-800">ejemplo@gmail.com</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asignación Formulario -->
+            <div class="bg-gray-50 px-8 py-6 border-t border-gray-200 mt-4">
+                <label class="block text-lg font-bold text-gray-900 mb-2">Piloto y Vehículo</label>
+                <div class="relative">
+                    <select id="select-binomio" class="w-full p-4 rounded-xl border-2 border-logi-tan bg-white focus:outline-none focus:border-logi-dark text-gray-700 appearance-none text-lg cursor-pointer">
+                        <option value="">Seleccione Binomio Disponible...</option>
+                        <option value="uuid-1">Pablo | Placa: HT44343 (Camión Pesado)</option>
+                        <option value="uuid-2">Carlos | Placa: JO34383 (Cabezal)</option>
+                    </select>
+                    <i class="fas fa-chevron-down absolute right-4 top-5 text-gray-400"></i>
+                </div>
+
+                <!-- Botonera Modal -->
+                <div class="flex justify-between items-center gap-4 mt-6">
+                    <button onclick="closeModal('assign-modal')" class="bg-red-600 hover:bg-red-700 text-white font-bold w-14 h-14 rounded-xl shadow-lg transition-transform transform hover:scale-105 flex items-center justify-center text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button onclick="confirmAssignment()" class="flex-1 bg-logi-dark hover:bg-teal-900 text-white font-bold py-4 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 text-lg">
+                        Asignar Piloto y Vehículo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Exito (Toast/Alerta) -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[110] hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-10 max-w-sm w-full text-center shadow-2xl transform scale-95 animate-fade-in">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-check text-5xl text-green-600"></i>
+            </div>
+            <h3 class="text-3xl font-black text-logi-dark mb-3">¡Asignación Exitosa!</h3>
+            <p class="text-gray-600 mb-8 text-lg">El Piloto ha sido notificado en su aplicación y el Encargado de Patio ya ve la unidad lista para pesaje.</p>
+            <button onclick="closeSuccessAndRefresh()" class="w-full bg-logi-dark text-white font-bold py-4 rounded-xl hover:bg-teal-800 transition-colors shadow-lg">
+                Continuar
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .animate-fade-in { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        let currentOrderId = null;
+
+        // Navegación principal
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            const navWelcome = document.getElementById('nav-welcome');
+            const navDash = document.getElementById('nav-dashboard');
+            
+            if(viewId === 'welcome-view') {
+                navWelcome.className = "text-white font-bold border-b-2 border-white pb-1 transition-all";
+                navDash.className = "text-teal-300 hover:text-white font-medium pb-1 transition-all";
+            } else {
+                navWelcome.className = "text-teal-300 hover:text-white font-medium pb-1 transition-all";
+                navDash.className = "text-white font-bold border-b-2 border-white pb-1 transition-all";
+            }
+        }
+
+        // Abrir Modal de Asignación
+        function openAssignModal(id) {
+            currentOrderId = id;
+            document.getElementById('modal-order-id').innerText = id;
+            // Aquí harías el GET /api/logistica/resources para llenar el <select>
+            document.getElementById('assign-modal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Confirmar la asignación (Llamada PATCH)
+        function confirmAssignment() {
+            const select = document.getElementById('select-binomio');
+            if(select.value === "") {
+                alert("Por favor seleccione un piloto y vehículo disponible.");
+                return;
+            }
+
+            // Simulación PATCH /api/logistica/orders/{ORDER_ID}/assign
+            console.log(`PATCH a la DB: Asignando UNIT_ID: ${select.value} a ORDER_ID: ${currentOrderId}`);
+            
+            // Cerrar el modal actual y abrir el de éxito
+            closeModal('assign-modal');
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        // Refrescar Dashboard después del éxito
+        function closeSuccessAndRefresh() {
+            closeModal('success-modal');
+            
+            // Cambiar visualmente la tarjeta de Pendiente a Asignado
+            const card = document.getElementById(`order-card-${currentOrderId}`);
+            if(card) {
+                // Cambiar el borde
+                card.classList.remove('border-2', 'border-yellow-500');
+                card.classList.add('border', 'border-teal-600', 'opacity-90');
+                
+                // Cambiar la etiqueta superior
+                const badge = card.querySelector('.absolute');
+                badge.classList.remove('bg-logi-badge-warn', 'text-yellow-900');
+                badge.classList.add('bg-logi-badge-ok', 'text-logi-dark');
+                badge.innerText = "Asignado";
+
+                // Deshabilitar el botón
+                const btnContainer = card.querySelector('div > button').parentElement;
+                btnContainer.innerHTML = `
+                    <button disabled class="bg-gray-500 text-gray-300 font-bold w-12 h-10 rounded-lg shadow-inner cursor-not-allowed">
+                        <i class="fas fa-check"></i>
+                    </button>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
