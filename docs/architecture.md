@@ -179,7 +179,7 @@ Cada módulo expone su propia lógica de negocio como un conjunto de servicios R
 | **Servicio de Órdenes** | Creación de órdenes, validación de crédito, asignación de recursos, flujo de estados de la orden (Creada → Asignada → Despachada → En Tránsito → Entregada). |
 | **Servicio de Facturación** | Generación del DTE, integración con Certificador FEL, emisión de PDF, conciliación de pagos. |
 | **Servicio de BI** | Consultas agregadas, cálculo de KPIs, generación de alertas, motor de proyección. |
-| **Servicio de Autenticación** | Gestión de usuarios, roles, contraseñas y sesiones. Fuerza cambio de contraseña en el primer inicio de sesión. |
+| **Servicio de Autenticación** | Gestión de usuarios, roles, contraseñas, recuperación de acceso y sesiones. |
 
 ### Capa de Integración (Adapters)
 

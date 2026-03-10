@@ -1,0 +1,336 @@
+# Base de Datos Simplificada LogiTrans
+
+## Qué cambió
+
+Esta versión reduce de forma fuerte el modelo anterior y se apega al statement del MVP.
+
+Se eliminaron estas piezas para bajar complejidad:
+
+- auditoría técnica y bitácoras de cambios internos,
+- `created_at`, `updated_at`, `granted_at` y campos técnicos parecidos,
+- geolocalización,
+- integración bancaria real,
+- certificación FEL separada y compleja,
+- historial técnico de estados,
+- tablas separadas para piloto, vehículo, documentos y emparejamiento,
+- catálogo de bancos y catálogo de archivos genérico.
+
+Se mantuvo únicamente lo que sí impacta el MVP y el statement, incluyendo:
+
+- clientes y contratos,
+- rutas autorizadas,
+- tarifas por tipo de vehículo,
+- unidades de transporte con piloto integrado,
+- órdenes con despacho, entrega y evidencia,
+- bitácora de ruta para sección B,
+- facturación simulada,
+- pagos simulados por tarjeta o transferencia,
+- vistas para saldo del cliente, corte diario y rentabilidad.
+
+## Archivos
+
+- `logitrans_postgresql.sql`: script listo para PostgreSQL.
+- `logitrans_dbdiagram.dbml`: versión para dbdiagram.io.
+
+## Tablas del modelo
+
+## `CLIENTS`
+
+Guarda la empresa cliente y sus datos comerciales básicos.
+
+| Campo | Motivo |
+|---|---|
+| `CLIENT_ID` | Identificador principal del cliente. |
+| `CLIENT_CODE` | Código corto de negocio para búsqueda y referencia. |
+| `LEGAL_NAME` | Razón social usada en contrato y factura. |
+| `COMMERCIAL_NAME` | Nombre comercial para operación diaria. |
+| `NIT` | Dato fiscal obligatorio para la factura. |
+| `TAX_ADDRESS` | Dirección fiscal del cliente. |
+| `CONTACT_NAME` | Contacto principal del cliente en el MVP. |
+| `CONTACT_EMAIL` | Correo del contacto principal. |
+| `CONTACT_PHONE` | Teléfono del contacto principal. |
+| `CREDIT_LIMIT` | Límite de crédito para bloquear nuevas órdenes cuando se exceda. |
+| `PAYMENT_RISK` | Riesgo por capacidad de pago. |
+| `CUSTOMS_RISK` | Riesgo relacionado con aduanas. |
+| `CARGO_RISK` | Riesgo relacionado con la mercancía. |
+| `AML_RISK` | Riesgo de lavado de dinero. |
+| `IS_BLOCKED` | Bloqueo manual o administrativo del cliente. |
+| `BLOCK_REASON` | Justificación del bloqueo manual. |
+
+## `USERS`
+
+Guarda las cuentas de acceso del sistema para clientes y personal interno.
+
+| Campo | Motivo |
+|---|---|
+| `USER_ID` | Identificador de la cuenta. |
+| `CLIENT_ID` | Solo aplica cuando el usuario es de tipo cliente. |
+| `ROLE` | Rol funcional del usuario dentro del sistema. |
+| `FULL_NAME` | Nombre completo del usuario. |
+| `EMAIL` | Credencial de acceso. |
+| `PASSWORD_HASH` | Contraseña protegida. |
+| `PHONE` | Medio de contacto. |
+| `IS_ACTIVE` | Permite desactivar la cuenta sin borrarla. |
+
+## `PASSWORD_RECOVERY_TOKENS`
+
+Tabla mínima para recuperación de contraseña, porque el statement sí habla de recuperación de credenciales.
+
+| Campo | Motivo |
+|---|---|
+| `TOKEN_ID` | Identificador del token. |
+| `USER_ID` | Usuario que solicitó la recuperación. |
+| `TOKEN_HASH` | Token almacenado de forma segura. |
+| `EXPIRES_AT` | Fecha de expiración. |
+| `USED_AT` | Marca si ya fue utilizado. |
+
+## `CLIENT_CARDS`
+
+Tarjetas simuladas del cliente para pagos internos del MVP.
+
+| Campo | Motivo |
+|---|---|
+| `CARD_ID` | Identificador de la tarjeta simulada. |
+| `CLIENT_ID` | Cliente dueño de la tarjeta. |
+| `CARD_ALIAS` | Alias fácil de reconocer por el cliente. |
+| `CARD_BRAND` | Marca de la tarjeta. |
+| `LAST_FOUR` | Últimos cuatro dígitos para mostrarla sin guardar el número completo. |
+| `EXPIRATION_MONTH` | Mes de expiración. |
+| `EXPIRATION_YEAR` | Año de expiración. |
+| `IS_ACTIVE` | Indica si la tarjeta está habilitada para simular pagos. |
+
+## `BRANCHES`
+
+Sedes operativas de LogiTrans.
+
+| Campo | Motivo |
+|---|---|
+| `BRANCH_ID` | Identificador interno de la sede. |
+| `BRANCH_CODE` | Código corto de la sede. |
+| `BRANCH_NAME` | Nombre descriptivo de la sede. |
+| `CITY` | Ciudad donde opera la sede. |
+| `COUNTRY` | País de la sede. |
+| `IS_ACTIVE` | Activa o desactiva la sede. |
+
+## `ROUTES`
+
+Rutas maestras del negocio.
+
+| Campo | Motivo |
+|---|---|
+| `ROUTE_ID` | Identificador interno de la ruta. |
+| `ROUTE_CODE` | Código corto de la ruta. |
+| `ORIGIN` | Origen textual de la ruta. |
+| `DESTINATION` | Destino textual de la ruta. |
+| `DISTANCE_KM` | Distancia usada en cotización y facturación. |
+| `ESTIMATED_HOURS` | Tiempo base esperado para la ruta. |
+| `IS_INTERNATIONAL` | Marca si es ruta internacional. |
+| `IS_ACTIVE` | Permite activar o desactivar la ruta. |
+
+## `VEHICLE_TYPES`
+
+Une en una sola tabla la capacidad y tarifa base por tipo de unidad.
+
+| Campo | Motivo |
+|---|---|
+| `VEHICLE_TYPE_ID` | Identificador del tipo. |
+| `TYPE_CODE` | Código corto del tipo de vehículo. |
+| `TYPE_NAME` | Nombre del tipo de vehículo. |
+| `MIN_CAPACITY_TON` | Capacidad mínima definida para el tipo. |
+| `MAX_CAPACITY_TON` | Capacidad máxima definida para el tipo. |
+| `RATE_PER_KM` | Tarifa base por kilómetro. |
+
+## `CARGO_TYPES`
+
+Tipos de carga que sí tienen sentido en el statement del MVP.
+
+| Campo | Motivo |
+|---|---|
+| `CARGO_TYPE_ID` | Identificador del tipo de carga. |
+| `CARGO_NAME` | Nombre del tipo de carga. |
+| `REQUIRES_REFRIGERATION` | Permite validar si la unidad debe tener refrigeración. |
+
+## `CONTRACTS`
+
+Contrato comercial del cliente.
+
+| Campo | Motivo |
+|---|---|
+| `CONTRACT_ID` | Identificador del contrato. |
+| `CONTRACT_NUMBER` | Número visible del contrato. |
+| `CLIENT_ID` | Cliente al que pertenece. |
+| `STATUS` | Estado actual del contrato. |
+| `START_DATE` | Inicio de vigencia. |
+| `END_DATE` | Fin de vigencia. |
+| `ACCEPTED_AT` | Momento en que fue aceptado. |
+| `CREDIT_LIMIT` | Límite de crédito pactado para ese contrato. |
+| `PAYMENT_TERM_DAYS` | Plazo de pago pactado. |
+| `SIGNED_CONTRACT_PATH` | Ruta del archivo firmado. |
+| `NOTES` | Observaciones contractuales. |
+
+## `CONTRACT_ROUTES`
+
+Rutas autorizadas dentro de un contrato.
+
+| Campo | Motivo |
+|---|---|
+| `CONTRACT_ROUTE_ID` | Identificador técnico del vínculo. |
+| `CONTRACT_ID` | Contrato que autoriza la ruta. |
+| `ROUTE_ID` | Ruta autorizada. |
+| `PROMISED_DELIVERY_HOURS` | Tiempo prometido al cliente para esa ruta. |
+
+## `CONTRACT_CARGO_TYPES`
+
+Tipos de carga permitidos por contrato.
+
+| Campo | Motivo |
+|---|---|
+| `CONTRACT_ID` | Contrato que autoriza. |
+| `CARGO_TYPE_ID` | Tipo de carga permitido. |
+
+## `CONTRACT_RATES`
+
+Tarifa final acordada por contrato y tipo de vehículo.
+
+| Campo | Motivo |
+|---|---|
+| `CONTRACT_RATE_ID` | Identificador del acuerdo tarifario. |
+| `CONTRACT_ID` | Contrato al que pertenece. |
+| `VEHICLE_TYPE_ID` | Tipo de vehículo al que aplica. |
+| `BASE_RATE_PER_KM` | Tarifa base tomada como referencia. |
+| `DISCOUNT_PERCENTAGE` | Descuento acordado. |
+| `FINAL_RATE_PER_KM` | Tarifa final con la que realmente se cobrará. |
+
+## `TRANSPORT_UNITS`
+
+Entidad simplificada que junta vehículo y piloto en una sola unidad operativa.
+
+| Campo | Motivo |
+|---|---|
+| `UNIT_ID` | Identificador de la unidad de transporte. |
+| `BRANCH_ID` | Sede a la que pertenece. |
+| `VEHICLE_TYPE_ID` | Tipo de vehículo de la unidad. |
+| `PILOT_USER_ID` | Usuario piloto asociado a la unidad. |
+| `PLATE_NUMBER` | Placa del vehículo. |
+| `VEHICLE_MODEL` | Modelo descriptivo del vehículo. |
+| `CAPACITY_TON` | Capacidad real de la unidad. |
+| `HAS_REFRIGERATION` | Permite validar cargas refrigeradas. |
+| `PILOT_LICENSE_NUMBER` | Número de licencia del piloto. |
+| `PILOT_LICENSE_EXPIRATION` | Vigencia de la licencia del piloto. |
+| `VEHICLE_DOCUMENT_EXPIRATION` | Vigencia del documento del vehículo. |
+| `IS_ACTIVE` | Activa o desactiva la unidad. |
+
+## `ORDERS`
+
+Tabla central del flujo operativo. Aquí se dejó concentrado casi todo lo que ocurre una vez que la orden existe, precisamente para reducir tablas.
+
+| Campo | Motivo |
+|---|---|
+| `ORDER_ID` | Identificador interno de la orden. |
+| `ORDER_NUMBER` | Número visible de la orden. |
+| `CONTRACT_ID` | Contrato que respalda la orden. |
+| `REQUESTED_BY_USER_ID` | Usuario cliente que la solicitó. |
+| `BRANCH_ID` | Sede que atenderá la orden. |
+| `CONTRACT_ROUTE_ID` | Ruta autorizada utilizada. |
+| `CONTRACT_RATE_ID` | Tarifa contractual utilizada. |
+| `CARGO_TYPE_ID` | Tipo de carga de la orden. |
+| `UNIT_ID` | Unidad asignada. |
+| `STATUS` | Estado operativo actual. |
+| `CARGO_DESCRIPTION` | Descripción textual de la mercancía. |
+| `DECLARED_WEIGHT_TON` | Peso declarado al crear la orden. |
+| `LOADED_WEIGHT_TON` | Peso real capturado en patio. |
+| `PICKUP_ADDRESS` | Dirección exacta de origen. |
+| `DELIVERY_ADDRESS` | Dirección exacta de entrega. |
+| `REQUESTED_AT` | Fecha y hora de creación. |
+| `SCHEDULED_PICKUP_AT` | Programación de salida. |
+| `PROMISED_DELIVERY_AT` | Fecha y hora prometida al cliente. |
+| `DISPATCHED_AT` | Momento de despacho. |
+| `DELIVERED_AT` | Momento de entrega. |
+| `STOWAGE_CONFIRMED` | Confirmación de estiba. |
+| `IS_SEALED` | Confirmación de sellado. |
+| `RECEIVER_NAME` | Nombre de quien recibió la carga. |
+| `RECEIVER_SIGNATURE_PATH` | Ruta del archivo con firma del receptor. |
+| `DELIVERY_EVIDENCE_PATH` | Ruta del archivo con evidencia de entrega. |
+| `DISTANCE_KM` | Distancia usada para cálculo del servicio. |
+| `BASE_RATE_PER_KM` | Tarifa base usada en la orden. |
+| `DISCOUNT_PERCENTAGE` | Descuento aplicado. |
+| `FINAL_RATE_PER_KM` | Tarifa final aplicada. |
+| `SUBTOTAL_AMOUNT` | Subtotal antes de IVA. |
+| `TAX_AMOUNT` | IVA del servicio. |
+| `TOTAL_AMOUNT` | Total estimado o cobrado. |
+| `FUEL_COST` | Costo de combustible para rentabilidad. |
+| `VIATICS_COST` | Costo de viáticos para rentabilidad. |
+| `MAINTENANCE_COST` | Costo de mantenimiento para rentabilidad. |
+| `NOTES` | Observaciones libres. |
+
+## `ORDER_ROUTE_LOGS`
+
+Se dejó porque sección B sí exige bitácora de ruta. No es historial técnico del sistema; es parte funcional del negocio.
+
+| Campo | Motivo |
+|---|---|
+| `LOG_ID` | Identificador del evento. |
+| `ORDER_ID` | Orden asociada. |
+| `EVENT_TYPE` | Tipo de evento reportado en ruta. |
+| `EVENT_TIME` | Fecha y hora del evento. |
+| `DESCRIPTION` | Descripción del acontecimiento. |
+
+## `INVOICES`
+
+Factura electrónica simplificada y simulada.
+
+| Campo | Motivo |
+|---|---|
+| `INVOICE_ID` | Identificador interno de la factura. |
+| `INVOICE_NUMBER` | Número visible de la factura. |
+| `ORDER_ID` | Orden que originó la factura. |
+| `STATUS` | Estado de la factura. |
+| `ISSUE_DATE` | Fecha de emisión. |
+| `DUE_DATE` | Fecha de vencimiento. |
+| `SENT_AT` | Fecha y hora exacta en que se disparó el correo de envío de la factura. |
+| `CLIENT_NAME` | Nombre del cliente capturado en la factura. |
+| `CLIENT_NIT` | NIT usado en la factura. |
+| `CLIENT_ADDRESS` | Dirección fiscal usada en la factura. |
+| `SERVICE_DESCRIPTION` | Descripción del servicio. |
+| `SUBTOTAL_AMOUNT` | Subtotal del documento. |
+| `TAX_AMOUNT` | IVA del documento. |
+| `TOTAL_AMOUNT` | Total del documento. |
+| `FEL_UUID` | Identificador simulado de certificación FEL, almacenado como texto único. |
+| `PDF_PATH` | Ruta del PDF generado. |
+
+## `PAYMENTS`
+
+Pago simulado del MVP. Solo existen tarjeta y transferencia.
+
+| Campo | Motivo |
+|---|---|
+| `PAYMENT_ID` | Identificador del pago. |
+| `INVOICE_ID` | Factura a pagar. |
+| `METHOD` | Método de pago: tarjeta o transferencia. |
+| `STATUS` | Estado del pago: pendiente, aprobado o rechazado. |
+| `CARD_ID` | Tarjeta elegida, si el pago fue con tarjeta. |
+| `TRANSFER_RECEIPT_PATH` | PDF del comprobante, si fue transferencia. |
+| `AMOUNT` | Monto pagado. |
+| `PAYMENT_DATE` | Fecha y hora del pago. |
+| `REVIEWED_BY_USER_ID` | Usuario que revisó y aprobó el pago si aplicó. |
+
+## Reglas inteligentes que sí se dejaron
+
+- La capacidad real de la unidad debe coincidir con el rango del tipo de vehículo.
+- Una orden no puede asignarse a una unidad que no soporte el peso.
+- Si la carga requiere refrigeración, la unidad debe tenerla.
+- El monto del pago debe ser exactamente igual al total de la factura.
+- Si un pago queda aprobado, la factura pasa a `PAGADA`.
+- Un cliente no puede tener más de un contrato pendiente o vigente a la vez.
+
+## Vistas incluidas
+
+- `V_CLIENT_BALANCES`: saldo, crédito disponible y bandera de bloqueo.
+- `V_DAILY_OPERATIONS`: corte diario por sede.
+- `V_CONTRACT_PROFITABILITY`: ingreso menos costos por contrato.
+
+## Cómo cargarlo
+
+1. Crear una base vacía en PostgreSQL.
+2. Ejecutar `db/logitrans_postgresql.sql`.
+3. Importar `db/logitrans_dbdiagram.dbml` en dbdiagram.io.
