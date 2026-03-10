@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrans - Encargado de Patio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'logi-dark': '#095556',
+                        'logi-light': '#66a592',
+                        'logi-bg': '#f3f4f6',
+                        'logi-card': '#0e5e5f',
+                        'logi-badge': '#b4d3b2',
+                        'logi-badge-warn': '#eab308'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-logi-bg font-sans text-gray-800 h-screen overflow-hidden flex">
+
+    <!-- Sidebar Navegación -->
+    <aside class="w-64 bg-logi-dark text-white flex flex-col shadow-xl z-20 transition-all duration-300">
+        <div class="p-6 flex items-center justify-center border-b border-teal-700">
+            <h1 class="text-3xl font-black tracking-wider">LOGITRANS</h1>
+        </div>
+        <div class="p-4 text-sm border-b border-teal-700 text-teal-100">
+            <p class="font-bold text-white"><i class="fas fa-user-circle mr-2"></i>Marcos Bukele</p>
+            <p class="text-xs mt-1">Encargado de Patio</p>
+            <p class="text-xs truncate mt-1 text-teal-300">patio@logitrans.com.gt</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="showView('welcome-view')" id="btn-welcome" class="nav-btn w-full flex items-center p-3 rounded-lg bg-teal-700 text-white font-medium transition-colors">
+                <i class="fas fa-home w-6 text-center mr-2"></i> Inicio
+            </button>
+            <button onclick="showView('formalize-view')" id="btn-formalize" class="nav-btn w-full flex items-center p-3 rounded-lg hover:bg-teal-700 text-teal-100 hover:text-white font-medium transition-colors">
+                <i class="fas fa-clipboard-check w-6 text-center mr-2"></i> Formalizar Cargas
+            </button>
+        </nav>
+        <div class="p-4">
+            <button class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded transition-colors flex items-center justify-center">
+                <i class="fas fa-sign-out-alt mr-2"></i> SALIR
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col h-full relative overflow-y-auto">
+        <!-- Header Móvil (visible solo en pantallas pequeñas) -->
+        <header class="md:hidden bg-logi-dark text-white p-4 shadow-md flex justify-between items-center">
+            <h1 class="text-xl font-black">LOGITRANS</h1>
+            <i class="fas fa-bars text-2xl"></i>
+        </header>
+
+        <div class="p-8 w-full max-w-7xl mx-auto">
+
+            <!-- VISTA 1: INICIO (BIENVENIDA) -->
+            <div id="welcome-view" class="view-section flex flex-col items-center justify-center h-[70vh] animate-fade-in">
+                <div class="bg-white p-10 rounded-2xl shadow-xl text-center max-w-2xl border-t-8 border-logi-light">
+                    <i class="fas fa-truck-loading text-6xl text-logi-dark mb-6"></i>
+                    <h2 class="text-4xl font-extrabold text-logi-dark mb-4">¡Bienvenido, Marcos Bukele!</h2>
+                    <p class="text-gray-600 text-lg mb-8">Estás en el panel de control de operaciones de patio. Selecciona una opción en el menú lateral para comenzar a validar los despachos de hoy.</p>
+                    <button onclick="showView('formalize-view')" class="bg-logi-light hover:bg-teal-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                        Ir a Formalizar Cargas <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VISTA 2: FORMALIZAR CARGAS -->
+            <div id="formalize-view" class="view-section hidden animate-fade-in">
+                <h2 class="text-3xl font-extrabold text-logi-dark mb-8 text-center border-b-2 border-gray-200 pb-4">Cargas a Formalizar</h2>
+                
+                <!-- Filtros -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-8 flex flex-wrap gap-4 items-end justify-between">
+                    <div class="flex flex-wrap gap-4 flex-1">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Piloto</label>
+                            <input type="text" placeholder="Ej. Pablo" class="border border-gray-300 rounded px-3 py-2 w-full max-w-[150px] focus:outline-none focus:border-logi-light">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Número de Placa</label>
+                            <input type="text" placeholder="Ej. Hola" class="border border-gray-300 rounded px-3 py-2 w-full max-w-[150px] focus:outline-none focus:border-logi-light">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Fecha Inicio</label>
+                            <input type="date" class="border border-gray-300 rounded px-3 py-2 w-full max-w-[150px] text-gray-500 focus:outline-none focus:border-logi-light">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Fecha Fin</label>
+                            <input type="date" class="border border-gray-300 rounded px-3 py-2 w-full max-w-[150px] text-gray-500 focus:outline-none focus:border-logi-light">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="text-sm">
+                            <label class="flex items-center gap-2 cursor-pointer mb-1"><input type="radio" name="order" class="accent-logi-dark"> Orden Ascendente</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="order" class="accent-logi-dark" checked> Orden Descendente</label>
+                        </div>
+                        <button class="bg-logi-dark hover:bg-teal-900 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-colors">
+                            <i class="fas fa-search text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Cargas -->
+                <div class="space-y-6">
+                    
+                    <!-- Tarjeta 1 (Ya formalizada, de solo lectura) -->
+                    <div class="relative bg-logi-card rounded-2xl shadow-lg p-1 pt-6">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-logi-badge text-logi-dark font-bold px-6 py-1 rounded-full text-sm shadow">
+                            Formalizado
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between p-4 text-white">
+                            <div class="flex items-center gap-6">
+                                <div class="bg-[#d5c3b3] text-logi-dark font-black px-4 py-3 rounded text-xl shadow-inner min-w-[120px] text-center">
+                                    HT44343
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">PILOTO</p>
+                                    <p class="font-bold">Pablo</p>
+                                    <p class="text-xs text-teal-100">Yaris - 2003</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">FECHA</p>
+                                    <p class="font-bold">01/4/2026</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">ORIGEN</p>
+                                    <p class="font-bold">Guatemala</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">DESTINO</p>
+                                    <p class="font-bold">Pto. Barrios</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-6 border-l-2 border-dashed border-teal-600 pl-6 ml-2">
+                                <div class="flex flex-col gap-2 text-sm">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span>ID de Orden:</span>
+                                        <input type="text" value="85" disabled class="w-16 px-2 py-1 rounded bg-white text-gray-800 text-center font-bold">
+                                    </div>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span>Peso en Báscula:</span>
+                                        <input type="text" value="43" disabled class="w-16 px-2 py-1 rounded bg-white text-gray-800 text-center font-bold">
+                                        <span>KG</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 font-bold">
+                                    <span>Estiba Válida:</span>
+                                    <i class="fas fa-check-circle text-logi-badge text-xl"></i>
+                                </div>
+                                <button disabled class="bg-[#d5c3b3] text-gray-500 font-bold py-2 px-4 rounded shadow opacity-70 cursor-not-allowed">
+                                    Listo para Despacho
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 2 (Pendiente de formalizar) -->
+                    <div class="relative bg-logi-card rounded-2xl shadow-lg p-1 pt-6 border-2 border-logi-badge-warn">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-logi-badge-warn text-yellow-900 font-bold px-6 py-1 rounded-full text-sm shadow">
+                            Pendiente
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between p-4 text-white">
+                            <div class="flex items-center gap-6">
+                                <div class="bg-[#d5c3b3] text-logi-dark font-black px-4 py-3 rounded text-xl shadow-inner min-w-[120px] text-center">
+                                    JO34383
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">PILOTO</p>
+                                    <p class="font-bold">Carlos</p>
+                                    <p class="text-xs text-teal-100">Camión Ligero</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">FECHA</p>
+                                    <p class="font-bold">01/4/2026</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">ORIGEN</p>
+                                    <p class="font-bold">Xela</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-bold tracking-widest text-teal-200">DESTINO</p>
+                                    <p class="font-bold">Guatemala</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-6 border-l-2 border-dashed border-teal-600 pl-6 ml-2">
+                                <div class="flex flex-col gap-2 text-sm">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span>ID de Orden:</span>
+                                        <input type="text" value="34" disabled class="w-16 px-2 py-1 rounded bg-gray-200 text-gray-800 text-center font-bold">
+                                    </div>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span>Peso en Báscula:</span>
+                                        <input type="number" id="peso-input" placeholder="0" class="w-16 px-2 py-1 rounded bg-white text-gray-800 text-center font-bold outline-none focus:ring-2 focus:ring-logi-light">
+                                        <span>KG</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 font-bold cursor-pointer" onclick="toggleEstiba(this)">
+                                    <span>Estiba Válida:</span>
+                                    <div class="w-5 h-5 bg-white rounded-full border-2 border-gray-300 flex items-center justify-center transition-colors check-container">
+                                        <i class="fas fa-check text-logi-dark opacity-0 text-xs transition-opacity"></i>
+                                    </div>
+                                    <input type="checkbox" id="estiba-check" class="hidden">
+                                </div>
+                                <button onclick="formalizarCarga()" class="bg-[#d5c3b3] hover:bg-[#c4b1a0] text-logi-dark font-bold py-2 px-4 rounded shadow transition-colors transform hover:-translate-y-0.5">
+                                    Listo para Despacho
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal de Éxito -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-4xl text-green-500"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">¡Despacho Autorizado!</h3>
+            <p class="text-gray-600 mb-6">El camión ha sido marcado como "Listo para Despacho" exitosamente. La orden pasará a estado En Tránsito cuando el piloto inicie el viaje.</p>
+            <button onclick="document.getElementById('success-modal').classList.add('hidden')" class="w-full bg-logi-dark text-white font-bold py-3 rounded-lg hover:bg-teal-800 transition-colors">
+                Continuar
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        // Lógica de Navegación del Menú
+        function showView(viewId) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.add('hidden');
+            });
+            // Mostrar la seleccionada
+            document.getElementById(viewId).classList.remove('hidden');
+
+            // Actualizar estilos del menú
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-teal-700', 'text-white');
+                btn.classList.add('text-teal-100');
+            });
+            
+            // Resaltar botón activo
+            let activeBtnId = viewId === 'welcome-view' ? 'btn-welcome' : 'btn-formalize';
+            let activeBtn = document.getElementById(activeBtnId);
+            activeBtn.classList.remove('text-teal-100');
+            activeBtn.classList.add('bg-teal-700', 'text-white');
+        }
+
+        // Lógica para el checkbox personalizado de Estiba
+        function toggleEstiba(element) {
+            const container = element.querySelector('.check-container');
+            const icon = element.querySelector('i');
+            const checkbox = document.getElementById('estiba-check');
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if(checkbox.checked) {
+                container.classList.remove('bg-white', 'border-gray-300');
+                container.classList.add('bg-logi-badge', 'border-logi-badge');
+                icon.classList.remove('opacity-0');
+            } else {
+                container.classList.add('bg-white', 'border-gray-300');
+                container.classList.remove('bg-logi-badge', 'border-logi-badge');
+                icon.classList.add('opacity-0');
+            }
+        }
+
+        // Simular llamada al Endpoint de Formalizar (PATCH /api/patio/orders/:id/formalize)
+        function formalizarCarga() {
+            const peso = document.getElementById('peso-input').value;
+            const estiba = document.getElementById('estiba-check').checked;
+
+            if(!peso || peso <= 0) {
+                alert("Por favor ingrese el peso validado en báscula.");
+                return;
+            }
+            if(!estiba) {
+                alert("Debe confirmar que las condiciones de estiba son válidas antes de despachar.");
+                return;
+            }
+
+            // Aquí se haría el fetch() al backend
+            console.log("Enviando a API: PATCH /api/patio/orders/34/formalize", {
+                loadedWeightTon: parseFloat(peso),
+                stowageConfirmed: true
+            });
+
+            // Mostrar modal de éxito simulando respuesta 200 OK
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

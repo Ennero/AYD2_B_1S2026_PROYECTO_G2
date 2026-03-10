@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrans - Certificador FEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'logi-dark': '#095556',
+                        'logi-light': '#66a592',
+                        'logi-bg': '#f9fafb',
+                        'sat-blue': '#1e3a8a',
+                        'sat-light': '#dbeafe'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-logi-bg font-sans text-gray-800 h-screen overflow-hidden flex">
+
+    <!-- Sidebar Navegación -->
+    <aside class="w-64 bg-logi-dark text-white flex flex-col shadow-2xl z-20">
+        <div class="p-6 pb-2 border-b border-teal-700">
+            <h1 class="text-3xl font-black tracking-wider mb-2">LOGITRANS</h1>
+            <p class="text-sm text-teal-200">Rol: Certificador FEL</p>
+        </div>
+        
+        <nav class="flex-1 p-4 mt-4 space-y-2">
+            <button onclick="showView('welcome-view')" id="nav-welcome" class="w-full flex items-center p-3 rounded-lg bg-teal-700 text-white font-bold transition-colors">
+                <i class="fas fa-home w-6 text-center mr-2"></i> Inicio
+            </button>
+            <button onclick="showView('dashboard-view')" id="nav-dashboard" class="w-full flex items-center p-3 rounded-lg hover:bg-teal-700 text-teal-100 hover:text-white font-medium transition-colors">
+                <i class="fas fa-inbox w-6 text-center mr-2"></i> Bandeja DTEs
+            </button>
+        </nav>
+        
+        <div class="p-6 border-t border-teal-700">
+            <button class="w-full text-left text-white font-bold hover:text-teal-200 transition-colors flex items-center">
+                <i class="fas fa-chevron-right mr-2"></i> Salir
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 flex flex-col h-full relative overflow-y-auto bg-[#fdfdfd]">
+        
+        <!-- ========================================== -->
+        <!-- VISTA 1: INICIO (BIENVENIDA)               -->
+        <!-- ========================================== -->
+        <div id="welcome-view" class="view-section flex flex-col items-center justify-center min-h-screen p-8 animate-fade-in">
+            <div class="bg-white p-12 rounded-2xl shadow-xl text-center max-w-3xl w-full border-t-8 border-sat-blue relative">
+                
+                <div class="w-24 h-24 bg-sat-light text-sat-blue rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner border border-blue-200">
+                    <i class="fas fa-university"></i>
+                </div>
+                
+                <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Portal Certificador FEL (Simulador)</h2>
+                <h3 class="text-xl text-sat-blue font-semibold mb-6">Agencia de Administración Tributaria</h3>
+                
+                <p class="text-gray-600 text-lg mb-8 leading-relaxed">
+                    Bienvenido al entorno de simulación de certificación. En este portal usted podrá aprobar y firmar digitalmente los Documentos Tributarios Electrónicos (DTEs) en estado de "Borrador", o rechazarlos en caso de inconsistencias fiscales.
+                </p>
+                
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-6 mb-8 flex justify-center gap-12">
+                    <div class="text-center">
+                        <h4 class="text-4xl font-black text-sat-blue">3</h4>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Pendientes</p>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="text-4xl font-black text-green-600">142</h4>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Certificadas Hoy</p>
+                    </div>
+                </div>
+
+                <button onclick="showView('dashboard-view')" class="bg-sat-blue hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex items-center mx-auto">
+                    Ir a Bandeja de Aprobación <i class="fas fa-arrow-right ml-3"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 2: BANDEJA DE APROBACIÓN (DASHBOARD) -->
+        <!-- ========================================== -->
+        <div id="dashboard-view" class="view-section hidden p-10 max-w-6xl mx-auto w-full animate-fade-in">
+            
+            <h2 class="text-3xl font-serif font-bold text-gray-900 mb-8 border-b-2 border-gray-200 pb-4">Portal Certificador FEL - Bandeja de Aprobación</h2>
+
+            <!-- Banner Informativo -->
+            <div class="border border-teal-600 rounded-xl p-6 mb-8 flex items-center gap-6 bg-white shadow-sm">
+                <i class="fas fa-shield-alt text-5xl text-teal-700 opacity-80 pl-4"></i>
+                <div class="text-center flex-1">
+                    <p class="text-teal-800 font-semibold text-lg">Portal Certificador FEL (Simulador)</p>
+                    <p class="text-teal-600 text-sm">Bandeja de Aprobación de Documentos Tributarios Electrónicos</p>
+                </div>
+            </div>
+
+            <!-- Tabla de Datos -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                <!-- Headers de la tabla -->
+                <div class="bg-gray-50 grid grid-cols-6 gap-4 p-4 text-center border-b border-gray-200">
+                    <div class="font-extrabold text-gray-800">DTE</div>
+                    <div class="font-extrabold text-gray-800">Emisor</div>
+                    <div class="font-extrabold text-gray-800">Receptor (NIT)</div>
+                    <div class="font-extrabold text-gray-800">Monto</div>
+                    <div class="font-extrabold text-gray-800">Fecha</div>
+                    <div class="font-extrabold text-gray-800">Acciones</div>
+                </div>
+
+                <!-- Fila 1 -->
+                <div class="grid grid-cols-6 gap-4 p-4 items-center text-center border-b border-gray-200 hover:bg-gray-50 transition-colors" id="row-001">
+                    <div class="text-gray-600 text-sm">DTE-001</div>
+                    <div class="font-serif text-gray-800">LogiTrans</div>
+                    <div class="text-gray-800 tracking-wide">548973-1</div>
+                    <div class="font-bold text-lg text-gray-900">Q 10,000.00</div>
+                    <div class="text-gray-600 text-sm">12/05/2026</div>
+                    <div class="flex flex-col gap-2 px-2">
+                        <button onclick="certifyInvoice('001')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-1.5 px-2 rounded text-xs shadow transition-colors">
+                            Certificar
+                        </button>
+                        <button onclick="rejectInvoice('001')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-2 rounded text-xs shadow transition-colors">
+                            Rechazar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fila 2 -->
+                <div class="grid grid-cols-6 gap-4 p-4 items-center text-center border-b border-gray-200 hover:bg-gray-50 transition-colors" id="row-002">
+                    <div class="text-gray-600 text-sm">DTE-002</div>
+                    <div class="font-serif text-gray-800">LogiTrans</div>
+                    <div class="text-gray-800 tracking-wide">992834-K</div>
+                    <div class="font-bold text-lg text-gray-900">Q 15,400.50</div>
+                    <div class="text-gray-600 text-sm">12/05/2026</div>
+                    <div class="flex flex-col gap-2 px-2">
+                        <button onclick="certifyInvoice('002')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-1.5 px-2 rounded text-xs shadow transition-colors">
+                            Certificar
+                        </button>
+                        <button onclick="rejectInvoice('002')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-2 rounded text-xs shadow transition-colors">
+                            Rechazar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Espacio vacío simulado -->
+                <div class="h-40 bg-white"></div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="flex justify-between items-center mt-6">
+                <div class="flex gap-2">
+                    <button class="bg-[#d5c3b3] text-logi-dark font-bold w-10 h-10 rounded shadow-sm opacity-50 cursor-not-allowed">1</button>
+                    <button class="bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 font-bold w-10 h-10 rounded shadow-sm">2</button>
+                    <button class="bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 font-bold w-10 h-10 rounded shadow-sm">3</button>
+                </div>
+                <div class="flex gap-2">
+                    <button class="bg-[#d5c3b3] text-logi-dark font-bold w-10 h-10 rounded shadow-sm opacity-50 cursor-not-allowed">&lt;</button>
+                    <button class="bg-[#d5c3b3] hover:bg-[#c4b1a0] text-logi-dark font-bold w-10 h-10 rounded shadow-sm transition-colors">&gt;</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ========================================== -->
+    <!-- MODALES DE ACCIÓN                          -->
+    <!-- ========================================== -->
+
+    <!-- Modal Éxito (Certificación) -->
+    <div id="certify-modal" class="fixed inset-0 bg-logi-dark bg-opacity-80 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl animate-fade-in border-t-8 border-green-500">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check-double text-4xl text-green-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">¡Factura Certificada!</h3>
+            <p class="text-gray-600 mb-4">El DTE ha sido firmado exitosamente. El UUID de autorización SAT generado es:</p>
+            
+            <div class="bg-gray-100 p-3 rounded text-sm font-mono text-gray-800 break-all mb-6 border border-gray-300">
+                <span id="generated-uuid">987E4C32-A1B2-4C3D-8E5F-1234567890AB</span>
+            </div>
+
+            <button onclick="closeModal('certify-modal')" class="w-full bg-logi-dark text-white font-bold py-3 rounded hover:bg-teal-800 transition-colors">
+                Aceptar y Continuar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Rechazo -->
+    <div id="reject-modal" class="fixed inset-0 bg-logi-dark bg-opacity-80 z-50 hidden flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl animate-fade-in border-t-8 border-red-500">
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-times-circle text-4xl text-red-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Rechazar Factura</h3>
+            <p class="text-gray-600 mb-6">¿Está seguro que desea rechazar este DTE? El Agente Financiero será notificado para realizar las correcciones.</p>
+            
+            <div class="flex gap-4">
+                <button onclick="closeModal('reject-modal')" class="w-1/2 bg-gray-200 text-gray-800 font-bold py-3 rounded hover:bg-gray-300 transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="confirmReject()" class="w-1/2 bg-red-600 text-white font-bold py-3 rounded hover:bg-red-700 transition-colors">
+                    Sí, Rechazar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        let currentRow = '';
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            const navWelcome = document.getElementById('nav-welcome');
+            const navDash = document.getElementById('nav-dashboard');
+            
+            if(viewId === 'welcome-view') {
+                navWelcome.classList.replace('bg-transparent', 'bg-teal-700');
+                navWelcome.classList.replace('text-teal-100', 'text-white');
+                navDash.classList.replace('bg-teal-700', 'bg-transparent');
+                navDash.classList.replace('text-white', 'text-teal-100');
+            } else {
+                navDash.classList.replace('bg-transparent', 'bg-teal-700');
+                navDash.classList.replace('text-teal-100', 'text-white');
+                navWelcome.classList.replace('bg-teal-700', 'bg-transparent');
+                navWelcome.classList.replace('text-white', 'text-teal-100');
+            }
+        }
+
+        // Simulación: PATCH /api/certificador/invoices/{ID}/certify
+        function certifyInvoice(id) {
+            currentRow = id;
+            console.log(`PATCH /api/certificador/invoices/${id}/certify -> STATUS: CERTIFICADA`);
+            
+            // Generar UUID random para simular a la SAT
+            const randomUUID = crypto.randomUUID().toUpperCase();
+            document.getElementById('generated-uuid').innerText = randomUUID;
+            
+            document.getElementById('certify-modal').classList.remove('hidden');
+            
+            // Ocultar la fila de la tabla simulando que ya se procesó
+            document.getElementById(`row-${id}`).style.display = 'none';
+        }
+
+        // Abrir modal de rechazo
+        function rejectInvoice(id) {
+            currentRow = id;
+            document.getElementById('reject-modal').classList.remove('hidden');
+        }
+
+        // Simulación: PATCH /api/certificador/invoices/{ID}/reject
+        function confirmReject() {
+            console.log(`PATCH /api/certificador/invoices/${currentRow}/reject -> STATUS: RECHAZADA`);
+            document.getElementById('reject-modal').classList.add('hidden');
+            // Ocultar la fila
+            document.getElementById(`row-${currentRow}`).style.display = 'none';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

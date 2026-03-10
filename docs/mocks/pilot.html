@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrans - Portal de Pilotos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'logi-dark': '#095556',
+                        'logi-light': '#66a592',
+                        'logi-bg': '#f3f4f6',
+                        'logi-card': '#0e5e5f',
+                        'logi-badge-ok': '#98cba4',
+                        'logi-badge-warn': '#eab308',
+                        'logi-tan': '#e1cbb8'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white font-sans text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Top Navbar (Desktop View) -->
+    <header class="bg-logi-dark text-white px-8 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+        <div class="flex items-center gap-8">
+            <h1 class="text-3xl font-black tracking-wider">LOGITRANS</h1>
+            <div class="bg-white text-gray-800 px-4 py-2 rounded-full font-bold flex items-center shadow-inner">
+                <span class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></span> En línea
+            </div>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="text-right hidden md:block">
+                <p class="font-bold text-teal-100">Piloto</p>
+                <p class="text-sm">piloto@transportista.com</p>
+            </div>
+            <button class="bg-logi-light hover:bg-teal-500 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                Salir
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 w-full max-w-7xl mx-auto p-6 relative">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: DASHBOARD (MIS VIAJES)             -->
+        <!-- ========================================== -->
+        <div id="view-dashboard" class="animate-fade-in block">
+            <h2 class="text-4xl font-extrabold text-center mt-4 mb-8">¡Bienvenido Henry Mendizabal!</h2>
+            
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Left Sidebar: Filters -->
+                <aside class="w-full lg:w-1/4 bg-[#8eb899] p-6 rounded-xl shadow-md h-fit">
+                    <h3 class="text-2xl font-bold text-logi-dark mb-6">Buscar</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex gap-2">
+                            <div class="w-1/2">
+                                <label class="block text-sm font-bold text-logi-dark mb-1">Fecha de Inicio</label>
+                                <input type="date" class="w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                            </div>
+                            <div class="w-1/2">
+                                <label class="block text-sm font-bold text-logi-dark mb-1">Fecha de Fin</label>
+                                <input type="date" class="w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Cliente</label>
+                            <input type="text" placeholder="Ej. Progreso" class="w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Origen</label>
+                            <input type="text" placeholder="Ej. Ciudad" class="w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Destino</label>
+                            <input type="text" placeholder="Ej. Puerto" class="w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Tipo de Mercancía</label>
+                            <select class="w-full p-2 rounded focus:outline-none focus:ring-2 focus:ring-logi-dark text-gray-600">
+                                <option>Seleccione...</option>
+                                <option>General</option>
+                                <option>Peligrosa</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-4 text-sm font-bold text-logi-dark space-y-2">
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="sort" class="accent-logi-dark"> MENOR A MAYOR PESO</label>
+                            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="sort" class="accent-logi-dark"> MAYOR A MENOR PESO</label>
+                        </div>
+
+                        <button class="w-full bg-logi-tan hover:bg-[#d4bca9] text-logi-dark font-black py-3 rounded shadow-md mt-4 transition-transform transform hover:-translate-y-1">
+                            FILTRAR
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Right Content: Order List -->
+                <section class="w-full lg:w-3/4 flex flex-col gap-8">
+                    <h3 class="text-3xl text-center font-serif text-gray-800">Mis viajes</h3>
+
+                    <!-- Card 1: En Transito -->
+                    <div class="relative bg-logi-card rounded-2xl shadow-lg mt-4">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-logi-badge-ok text-logi-dark font-bold px-6 py-1 rounded-full text-sm shadow border border-logi-dark">
+                            En Transito
+                        </div>
+                        <div class="flex flex-col md:flex-row items-center p-4">
+                            <!-- Left: Client Info -->
+                            <div class="w-full md:w-1/3 flex flex-col items-center border-b md:border-b-0 md:border-r border-teal-700 pb-4 md:pb-0 md:pr-4">
+                                <div class="bg-blue-400 text-white rounded-full w-16 h-16 flex items-center justify-center text-3xl mb-2 border-4 border-white shadow-md relative -top-8">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex items-center justify-between w-full text-white mb-2 -mt-4 px-2">
+                                    <span class="font-bold">ID: 4</span>
+                                </div>
+                                <div class="w-full bg-logi-tan text-logi-dark font-black py-2 px-4 rounded text-center shadow-inner">
+                                    Cementos Progreso
+                                </div>
+                            </div>
+                            
+                            <!-- Middle: Route Info -->
+                            <div class="w-full md:w-2/3 flex justify-between items-center text-white px-6 pt-4 md:pt-0 text-center">
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">FECHA</p>
+                                    <p class="font-semibold text-lg">01/4/2026</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">ORIGEN</p>
+                                    <p class="font-semibold text-lg">Guate</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">DESTINO</p>
+                                    <p class="font-semibold text-lg">Barrios</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">TIPO</p>
+                                    <p class="font-semibold text-sm">Construcción</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">PESO</p>
+                                    <p class="font-semibold text-lg">32K</p>
+                                </div>
+                                <div>
+                                    <button onclick="openTrip('4', 'En Transito')" class="bg-yellow-500 hover:bg-yellow-400 text-yellow-900 font-bold py-2 px-3 rounded text-sm shadow-md transition-colors">
+                                        Actualizar<br>Bitácora
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Pendiente -->
+                    <div class="relative bg-logi-card rounded-2xl shadow-lg mt-4">
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-logi-badge-warn text-yellow-900 font-bold px-6 py-1 rounded-full text-sm shadow border border-yellow-700">
+                            Pendiente
+                        </div>
+                        <div class="flex flex-col md:flex-row items-center p-4">
+                            <div class="w-full md:w-1/3 flex flex-col items-center border-b md:border-b-0 md:border-r border-teal-700 pb-4 md:pb-0 md:pr-4">
+                                <div class="bg-blue-400 text-white rounded-full w-16 h-16 flex items-center justify-center text-3xl mb-2 border-4 border-white shadow-md relative -top-8">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex items-center justify-between w-full text-white mb-2 -mt-4 px-2">
+                                    <span class="font-bold">ID: 7</span>
+                                </div>
+                                <div class="w-full bg-logi-tan text-logi-dark font-black py-2 px-4 rounded text-center shadow-inner">
+                                    Madereras S.A.
+                                </div>
+                            </div>
+                            
+                            <div class="w-full md:w-2/3 flex justify-between items-center text-white px-6 pt-4 md:pt-0 text-center">
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">FECHA</p>
+                                    <p class="font-semibold text-lg">02/4/2026</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">ORIGEN</p>
+                                    <p class="font-semibold text-lg">Xela</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">DESTINO</p>
+                                    <p class="font-semibold text-lg">Guate</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">TIPO</p>
+                                    <p class="font-semibold text-sm">General</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-teal-200 tracking-widest font-bold">PESO</p>
+                                    <p class="font-semibold text-lg">15K</p>
+                                </div>
+                                <div>
+                                    <button onclick="openTrip('7', 'Pendiente')" class="bg-logi-light hover:bg-teal-400 text-white font-bold py-2 px-3 rounded text-sm shadow-md transition-colors">
+                                        Empezar<br>Viaje
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </section>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: TRIP DETAILS & EVIDENCE (BITACORA) -->
+        <!-- ========================================== -->
+        <div id="view-trip" class="hidden animate-fade-in max-w-5xl mx-auto">
+            
+            <button onclick="goBack()" class="mb-6 text-logi-dark font-bold flex items-center hover:text-teal-600 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Volver al Dashboard
+            </button>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-1">Monitoreo de Ruta</h2>
+            <p class="text-gray-500 mb-6">Orden: OS-2026-<span id="trip-id-display">001</span></p>
+
+            <!-- Resumen Viaje -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap justify-between items-center text-center md:text-left">
+                <div class="w-full md:w-auto mb-4 md:mb-0">
+                    <p class="text-sm text-gray-500">Origen</p>
+                    <p class="font-bold text-lg text-gray-800">Guatemala City, Guatemala</p>
+                </div>
+                <div class="w-full md:w-auto mb-4 md:mb-0">
+                    <p class="text-sm text-gray-500">Destino</p>
+                    <p class="font-bold text-lg text-gray-800">Puerto Barrios, Izabal</p>
+                </div>
+                <div class="w-full md:w-auto mb-4 md:mb-0">
+                    <p class="text-sm text-gray-500">Piloto Asignado</p>
+                    <p class="font-bold text-lg text-gray-800">Henry Mendizabal</p>
+                </div>
+                <div class="w-full md:w-auto">
+                    <p class="text-sm text-gray-500">Tiempo Estimado</p>
+                    <p class="font-bold text-lg text-gray-800">6 horas</p>
+                </div>
+            </div>
+
+            <!-- Start / Finish Banner -->
+            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex justify-between items-center mb-6 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-location-arrow text-yellow-600 text-xl"></i>
+                    <div>
+                        <p class="font-bold text-yellow-800" id="trip-status-title">Viaje en curso</p>
+                        <p class="text-sm text-yellow-700">Registre los eventos del trayecto en la bitácora o finalice al llegar.</p>
+                    </div>
+                </div>
+                <button id="btn-action-trip" onclick="showDeliverySection()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition-colors">
+                    Finalizar Viaje
+                </button>
+            </div>
+
+            <!-- Bitácora -->
+            <div class="bg-[#a3c9ae] p-6 rounded-xl shadow-md mb-6 relative">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-logi-dark">Bitácora de Eventos</h3>
+                    <button onclick="addLogEvent()" class="bg-logi-dark text-white font-bold py-2 px-4 rounded shadow text-sm hover:bg-teal-800 transition-colors">
+                        + Registrar Evento
+                    </button>
+                </div>
+
+                <!-- Timeline -->
+                <div class="relative border-l-2 border-logi-dark ml-4 space-y-6" id="timeline-container">
+                    
+                    <div class="relative pl-6">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 bg-gray-200 rounded-full border-2 border-logi-dark"></div>
+                        <div class="bg-white p-4 rounded shadow-sm">
+                            <h4 class="font-bold text-gray-800">Creación</h4>
+                            <p class="text-sm text-gray-500">01/04/26, 08:00</p>
+                            <p class="text-gray-700 mt-1">Orden de servicio Creada</p>
+                        </div>
+                    </div>
+
+                    <div class="relative pl-6">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 bg-gray-200 rounded-full border-2 border-logi-dark"></div>
+                        <div class="bg-white p-4 rounded shadow-sm">
+                            <h4 class="font-bold text-gray-800">Salida de Predio</h4>
+                            <p class="text-sm text-gray-500">01/04/26, 09:30</p>
+                            <p class="text-gray-700 mt-1">Pesaje completado y unidad despachada por encargado de patio.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección Oculta: Evidencia Digital (Se muestra al darle Finalizar) -->
+            <div id="delivery-section" class="hidden animate-fade-in mb-10">
+                <!-- Datos Receptor -->
+                <div class="bg-logi-tan p-6 rounded-t-xl border-b border-[#c4b1a0]">
+                    <h3 class="font-bold text-logi-dark mb-4 text-lg">Datos del Receptor</h3>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="w-full md:w-1/3">
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Nombre Completo del Receptor *</label>
+                            <input type="text" placeholder="Ej. Juan Pérez" class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark mb-4">
+                            
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Hora de Recepción</label>
+                            <input type="time" class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
+                        <div class="w-full md:w-2/3">
+                            <label class="block text-sm font-bold text-logi-dark mb-1">Observaciones (Opcional)</label>
+                            <textarea rows="4" placeholder="Alguna novedad en la entrega..." class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Evidencia Archivos -->
+                <div class="bg-[#a3c9ae] p-6 rounded-b-xl shadow-md">
+                    <h3 class="font-bold text-logi-dark mb-4 text-lg">Evidencia Digital</h3>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        
+                        <!-- Caja Firma -->
+                        <div class="w-full md:w-1/2 bg-white border-2 border-dashed border-gray-300 rounded p-6 text-center flex flex-col items-center justify-center">
+                            <div class="bg-blue-50 text-blue-500 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                                <i class="fas fa-file-signature text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm">Firma Digital del Receptor *</h4>
+                            <p class="text-xs text-gray-500 mb-4 mt-1">Capture la firma en la pantalla del dispositivo</p>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded text-sm transition-colors">
+                                Capturar Firma
+                            </button>
+                        </div>
+
+                        <!-- Caja Foto -->
+                        <div class="w-full md:w-1/2 bg-white border-2 border-dashed border-gray-300 rounded p-6 text-center flex flex-col items-center justify-center">
+                            <div class="bg-purple-50 text-purple-500 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                                <i class="fas fa-camera text-xl"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 text-sm">Evidencia Fotográfica (Opcional)</h4>
+                            <p class="text-xs text-gray-500 mb-4 mt-1">Tome fotografías de la mercancía entregada</p>
+                            <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded text-sm transition-colors">
+                                <i class="fas fa-upload mr-2"></i> Tomar/Subir Fotos
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <!-- Botonera Final -->
+                    <div class="mt-8 flex justify-end gap-4 border-t border-gray-300 pt-6">
+                        <button onclick="goBack()" class="bg-white border border-gray-300 text-gray-700 font-bold py-3 px-6 rounded shadow-sm hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
+                        <button onclick="finishProcess()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-8 rounded shadow-lg transition-colors flex items-center">
+                            Confirmar Entrega <i class="fas fa-check-circle ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal Exito -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-10 max-w-md w-full text-center shadow-2xl transform scale-95 animate-fade-in">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-flag-checkered text-5xl text-green-600"></i>
+            </div>
+            <h3 class="text-3xl font-black text-logi-dark mb-3">¡Misión Cumplida!</h3>
+            <p class="text-gray-600 mb-8 text-lg">La orden ha sido marcada como <strong>ENTREGADA</strong> y la bitácora ha sido cerrada. Finanzas ha sido notificado para facturar.</p>
+            <button onclick="closeModalAndReturn()" class="w-full bg-logi-dark text-white font-bold py-3 rounded-lg hover:bg-teal-800 transition-colors shadow-lg">
+                Volver al Menú
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+
+    <script>
+        function openTrip(id, status) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-trip').classList.remove('hidden');
+            document.getElementById('trip-id-display').innerText = id;
+            
+            const btn = document.getElementById('btn-action-trip');
+            const title = document.getElementById('trip-status-title');
+            
+            if(status === 'Pendiente') {
+                title.innerText = "Listo para Iniciar";
+                btn.innerText = "Empezar Viaje (Cambiar a Tránsito)";
+                btn.className = "bg-logi-dark hover:bg-teal-800 text-white font-bold py-2 px-6 rounded shadow transition-colors";
+                btn.setAttribute("onclick", "startTrip()");
+                document.getElementById('delivery-section').classList.add('hidden');
+            } else {
+                title.innerText = "Viaje en Curso";
+                btn.innerText = "Llegué a Destino (Finalizar)";
+                btn.className = "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition-colors";
+                btn.setAttribute("onclick", "showDeliverySection()");
+                document.getElementById('delivery-section').classList.add('hidden');
+            }
+        }
+
+        function goBack() {
+            document.getElementById('view-trip').classList.add('hidden');
+            document.getElementById('delivery-section').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+        }
+
+        function startTrip() {
+            // Simulacion llamada Backend: PATCH /api/piloto/orders/{id}/status -> EN_TRANSITO
+            alert("Llamando a BD: UPDATE ORDERS SET STATUS = 'EN_TRANSITO'");
+            const btn = document.getElementById('btn-action-trip');
+            const title = document.getElementById('trip-status-title');
+            title.innerText = "Viaje en Curso";
+            btn.innerText = "Llegué a Destino (Finalizar)";
+            btn.className = "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition-colors";
+            btn.setAttribute("onclick", "showDeliverySection()");
+            addLogEvent("Inició Viaje", "Cambio de estado a En Tránsito. Saliendo hacia destino.");
+        }
+
+        function showDeliverySection() {
+            document.getElementById('delivery-section').classList.remove('hidden');
+            // Hacer scroll suave hacia el formulario
+            setTimeout(() => {
+                document.getElementById('delivery-section').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        function addLogEvent(titleStr = "Nuevo Evento", descStr = "Novedad en ruta registrada por el piloto.") {
+            // Simulacion llamada Backend: POST /api/piloto/orders/{id}/logs
+            const container = document.getElementById('timeline-container');
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            const html = `
+            <div class="relative pl-6 animate-fade-in">
+                <div class="absolute -left-[9px] top-1 w-4 h-4 bg-logi-light rounded-full border-2 border-white shadow"></div>
+                <div class="bg-white p-4 rounded shadow-sm border-l-4 border-logi-light">
+                    <h4 class="font-bold text-logi-dark">${titleStr}</h4>
+                    <p class="text-sm text-gray-500">Hoy, ${time}</p>
+                    <p class="text-gray-700 mt-1">${descStr}</p>
+                </div>
+            </div>`;
+            
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function finishProcess() {
+            // Simulacion llamada Backend: PATCH /api/piloto/orders/{id}/deliver
+            console.log("Enviando JSON DTO a BD con STATUS: ENTREGADA, RECEIVER_NAME: etc...");
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function closeModalAndReturn() {
+            document.getElementById('success-modal').classList.add('hidden');
+            goBack();
+        }
+    </script>
+</body>
+</html>
