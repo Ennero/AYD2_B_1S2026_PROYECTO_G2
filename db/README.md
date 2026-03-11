@@ -292,6 +292,7 @@ Factura electrónica simplificada y simulada.
 | `CLIENT_ID` | Cliente dueño de la factura; permite listar "Mis Facturas" de forma directa. |
 | `STATUS` | Estado de la factura. |
 | `ISSUE_DATE` | Fecha de emisión. |
+| `CERTIFIED_AT` | Fecha y hora real de certificación. Sirve para alimentar el panel del FEL cuando muestra cuántas facturas fueron certificadas hoy. |
 | `DUE_DATE` | Fecha de vencimiento. Si backend no la manda, la base puede derivarla desde el plazo del contrato. |
 | `SENT_AT` | Fecha y hora exacta en que se disparó el correo de envío de la factura. |
 | `CLIENT_NAME` | Nombre del cliente capturado en la factura. |

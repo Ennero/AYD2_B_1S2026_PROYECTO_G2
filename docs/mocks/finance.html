@@ -88,6 +88,11 @@
                         <p class="text-sm font-bold text-gray-600 uppercase">Ingresos de Hoy</p>
                     </div>
                 </div>
+
+                <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold">
+                    <i class="fas fa-plug"></i>
+                    GET /api/finance/dashboard/summary
+                </div>
             </div>
         </div>
 
@@ -263,6 +268,11 @@
         <div id="rates-view" class="view-section hidden p-10 max-w-4xl mx-auto w-full animate-fade-in">
             <h2 class="text-3xl font-serif font-bold text-gray-900 mb-8 border-b-2 border-gray-200 pb-4">Configuración Tarifario Base</h2>
 
+            <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-6">
+                <i class="fas fa-plug"></i>
+                GET /api/finance/rates
+            </div>
+
             <div class="space-y-6">
                 <!-- Tarjeta 1: Ligera -->
                 <div class="bg-logi-tan rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 border border-[#c4b1a0]">
@@ -330,6 +340,74 @@
         </div>
 
     </main>
+
+    <section class="px-10 pb-10 max-w-6xl mx-auto w-full">
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black text-logi-dark">Mapa API del Agente Financiero</h2>
+                    <p class="text-gray-600">Aquí se ve el ciclo completo: resumen de cabecera, facturación, conciliación y configuración tarifaria.</p>
+                </div>
+            </div>
+
+            <div class="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                <strong>No conviene unificar</strong> `/api/finance/invoices` con `/api/finance/invoices/{INVOICE_ID}/send`: uno crea el borrador y el otro cambia el estado de una factura ya certificada y lista para enviar.
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/dashboard/summary</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Inicio financiero</h3>
+                    <p class="text-gray-700">Devuelve `ordersPendingInvoice`, `paymentsPendingReconciliation` y `todayIncome` o, si prefieres, `totalCollected`.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/orders-to-invoice</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Bandeja a facturar</h3>
+                    <p class="text-gray-700">Alimenta la tabla principal con órdenes `ENTREGADA` que todavía no tienen factura. Es la vista de entrada para generar pre-facturas.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/invoices</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Revisión pre-factura</h3>
+                    <p class="text-gray-700">Se usa cuando el agente confirma el borrador. Crea el registro en `INVOICES` con estado `BORRADOR` antes de enviarlo al certificador FEL.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/invoices/{INVOICE_ID}/send</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Enviar factura al cliente</h3>
+                    <p class="text-gray-700">Encaja justo después de la certificación. Marca `STATUS = ENVIADA`, guarda `PDF_PATH` y `SENT_AT` para que luego aparezca en "Mis Facturas" del cliente.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/payments</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Conciliación de pagos</h3>
+                    <p class="text-gray-700">Carga la bandeja de tesorería con pagos `PENDIENTE` y sus referencias bancarias o datos de tarjeta para revisión.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/payments/{PAYMENT_ID}/approve</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Aprobar y aplicar pago</h3>
+                    <p class="text-gray-700">Se ejecuta desde el botón de la tabla. Pasa el pago a `APROBADO`, marca la factura como `PAGADA` y libera el crédito consumido del cliente.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/rates/{VEHICLE_TYPE_ID}</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Tarifario base</h3>
+                    <p class="text-gray-700">Vive en la última vista y modifica `VEHICLE_TYPES.RATE_PER_KM`, que luego impacta cotización, contratos y órdenes nuevas.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/rates</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Carga inicial de tarifas</h3>
+                    <p class="text-gray-700">Llena la vista de configuración con los tipos de vehículo y su tarifa actual antes de permitir cambios.</p>
+                </article>
+            </div>
+        </div>
+    </section>
 
     <!-- Modales de Retroalimentación -->
     

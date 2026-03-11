@@ -276,6 +276,7 @@ Table INVOICES {
   CLIENT_ID uuid [not null]
   STATUS INVOICE_STATUS [not null, default: 'BORRADOR']
   ISSUE_DATE timestamptz [not null]
+  CERTIFIED_AT timestamptz
   DUE_DATE date [not null]
   SENT_AT timestamptz
   CLIENT_NAME varchar(180) [not null]

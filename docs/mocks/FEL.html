@@ -78,6 +78,11 @@
                     </div>
                 </div>
 
+                <div class="inline-flex items-center gap-2 bg-blue-50 text-sat-blue border border-blue-200 rounded-full px-4 py-2 text-sm font-bold mb-8">
+                    <i class="fas fa-plug"></i>
+                    GET /api/certificator/dashboard/summary
+                </div>
+
                 <button onclick="showView('dashboard-view')" class="bg-sat-blue hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex items-center mx-auto">
                     Ir a Bandeja de Aprobación <i class="fas fa-arrow-right ml-3"></i>
                 </button>
@@ -165,6 +170,46 @@
 
         </div>
     </main>
+
+    <section class="px-10 pb-10 max-w-6xl mx-auto w-full">
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-sat-blue text-white flex items-center justify-center text-2xl shadow-lg">
+                    <i class="fas fa-stamp"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black text-sat-blue">Mapa API del Certificador FEL</h2>
+                    <p class="text-gray-600">Este simulador necesita un resumen de cabecera y luego la bandeja operativa de certificación.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
+                <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-sat-blue text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/dashboard/summary</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Inicio FEL</h3>
+                    <p class="text-gray-700">Devuelve `pendingInvoices` y `certifiedToday`. Para este segundo indicador la base ya necesita `CERTIFIED_AT`.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-sat-blue text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/invoices</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Bandeja DTEs</h3>
+                    <p class="text-gray-700">Puebla la tabla principal con facturas en `BORRADOR` para revisión del certificador.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/invoices/{INVOICE_ID}/certify</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Botón "Certificar"</h3>
+                    <p class="text-gray-700">Actualiza la factura a `CERTIFICADA` y devuelve el `FEL_UUID` que luego se muestra en el modal de éxito.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/invoices/{INVOICE_ID}/reject</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Botón "Rechazar"</h3>
+                    <p class="text-gray-700">Marca la factura como `RECHAZADA` para que Finanzas vuelva a corregirla antes de intentar otra certificación.</p>
+                </article>
+            </div>
+        </div>
+    </section>
 
     <!-- ========================================== -->
     <!-- MODALES DE ACCIÓN                          -->

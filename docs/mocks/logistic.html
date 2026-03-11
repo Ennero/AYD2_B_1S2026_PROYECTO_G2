@@ -255,6 +255,38 @@
 
     </main>
 
+    <section class="mx-8 mb-8 bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
+                <i class="fas fa-truck-loading"></i>
+            </div>
+            <div>
+                <h2 class="text-3xl font-black text-logi-dark">Mapa API del Agente Logístico</h2>
+                <p class="text-gray-600">Esta pantalla resuelve la asignación operativa en un solo flujo: consulta órdenes, carga binomios disponibles y confirma ruta, salida y recurso en una misma acción.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/orders</span></div>
+                <h3 class="font-bold text-gray-900 mb-2">Listado principal</h3>
+                <p class="text-gray-700">Carga las tarjetas de órdenes nuevas y se apoya en los filtros laterales por fecha, cliente, origen, destino y estado.</p>
+            </article>
+
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/unit-binomials</span></div>
+                <h3 class="font-bold text-gray-900 mb-2">Catálogo de binomios</h3>
+                <p class="text-gray-700">Se usa al abrir el modal para listar combinaciones piloto + unidad compatibles con la orden y ya filtradas por disponibilidad real.</p>
+            </article>
+
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/orders/{ORDER_ID}/assignment</span></div>
+                <h3 class="font-bold text-gray-900 mb-2">Planeación y asignación unificadas</h3>
+                <p class="text-gray-700">Recibe `routeId`, `scheduledDeparture` y `binomialId` en un solo payload. Deja la orden en `ASIGNADA` y habilita el flujo del encargado de patio.</p>
+            </article>
+        </div>
+    </section>
+
     <!-- ========================================== -->
     <!-- MODAL: DETALLES Y ASIGNACIÓN               -->
     <!-- ========================================== -->
@@ -327,6 +359,19 @@
 
             <!-- Asignación Formulario -->
             <div class="bg-gray-50 px-8 py-6 border-t border-gray-200 mt-4">
+                <label class="block text-lg font-bold text-gray-900 mb-2">Ruta Operativa</label>
+                <div class="relative mb-4">
+                    <select id="select-route" class="w-full p-4 rounded-xl border-2 border-logi-tan bg-white focus:outline-none focus:border-logi-dark text-gray-700 appearance-none text-lg cursor-pointer">
+                        <option value="">Seleccione Ruta Contractual...</option>
+                        <option value="route-gt-sv">Guatemala Ciudad -> San Salvador</option>
+                        <option value="route-gt-puerto">Guatemala Ciudad -> Puerto Quetzal</option>
+                    </select>
+                    <i class="fas fa-route absolute right-4 top-5 text-gray-400"></i>
+                </div>
+
+                <label class="block text-lg font-bold text-gray-900 mb-2">Salida Programada</label>
+                <input id="scheduled-departure" type="datetime-local" class="w-full p-4 rounded-xl border-2 border-logi-tan bg-white focus:outline-none focus:border-logi-dark text-gray-700 text-lg mb-4">
+
                 <label class="block text-lg font-bold text-gray-900 mb-2">Piloto y Vehículo</label>
                 <div class="relative">
                     <select id="select-binomio" class="w-full p-4 rounded-xl border-2 border-logi-tan bg-white focus:outline-none focus:border-logi-dark text-gray-700 appearance-none text-lg cursor-pointer">
@@ -336,6 +381,8 @@
                     </select>
                     <i class="fas fa-chevron-down absolute right-4 top-5 text-gray-400"></i>
                 </div>
+
+                <p class="text-sm text-gray-500 mt-3">Los binomios salen de <span class="font-mono">GET /api/logistic/unit-binomials</span> y las rutas autorizadas ya vienen en el detalle de la orden.</p>
 
                 <!-- Botonera Modal -->
                 <div class="flex justify-between items-center gap-4 mt-6">
@@ -396,7 +443,7 @@
         function openAssignModal(id) {
             currentOrderId = id;
             document.getElementById('modal-order-id').innerText = id;
-            // Aquí harías el GET /api/logistica/resources para llenar el <select>
+            // Aquí harías el GET /api/logistic/unit-binomials?orderId={ORDER_ID} para llenar el <select>
             document.getElementById('assign-modal').classList.remove('hidden');
         }
 
@@ -406,14 +453,24 @@
 
         // Confirmar la asignación (Llamada PATCH)
         function confirmAssignment() {
+            const routeSelect = document.getElementById('select-route');
+            const scheduledDeparture = document.getElementById('scheduled-departure');
             const select = document.getElementById('select-binomio');
+            if(routeSelect.value === "") {
+                alert("Por favor seleccione la ruta operativa autorizada.");
+                return;
+            }
+            if(scheduledDeparture.value === "") {
+                alert("Por favor programe la fecha y hora de salida.");
+                return;
+            }
             if(select.value === "") {
                 alert("Por favor seleccione un piloto y vehículo disponible.");
                 return;
             }
 
-            // Simulación PATCH /api/logistica/orders/{ORDER_ID}/assign
-            console.log(`PATCH a la DB: Asignando UNIT_ID: ${select.value} a ORDER_ID: ${currentOrderId}`);
+            // Simulación PATCH /api/logistic/orders/{ORDER_ID}/assignment
+            console.log(`PATCH a la DB: ORDER_ID ${currentOrderId}, ROUTE_ID ${routeSelect.value}, SALIDA ${scheduledDeparture.value}, BINOMIO ${select.value}`);
             
             // Cerrar el modal actual y abrir el de éxito
             closeModal('assign-modal');

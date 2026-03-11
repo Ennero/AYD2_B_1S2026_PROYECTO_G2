@@ -420,6 +420,62 @@
             </div>
         </div>
 
+        <section class="mt-10 bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black text-logi-dark">Mapa API del Portal Cliente</h2>
+                    <p class="text-gray-600">Este portal concentra más endpoints porque mezcla autogestión comercial, financiera y operativa del cliente.</p>
+                </div>
+            </div>
+
+            <div class="space-y-6 text-sm">
+                <div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Inicio, órdenes y tracking</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/dashboard/summary</span></div><h4 class="font-bold text-gray-900 mb-2">Dashboard principal</h4><p class="text-gray-700">Llena los indicadores de límite, deuda, crédito disponible y órdenes activas del panel de bienvenida.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/orders</span></div><h4 class="font-bold text-gray-900 mb-2">Wizard "Nuevo Servicio"</h4><p class="text-gray-700">Se dispara al confirmar la solicitud. Inserta la orden y valida que el cliente no esté bloqueado por mora o exceso de crédito.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/orders</span></div><h4 class="font-bold text-gray-900 mb-2">Órdenes recientes</h4><p class="text-gray-700">Aunque esta pestaña está resumida en el dashboard, este endpoint debe poblar el histórico de órdenes del cliente con filtros por estado o búsqueda.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/orders/{ORDER_ID}/tracking</span></div><h4 class="font-bold text-gray-900 mb-2">Tracking detallado</h4><p class="text-gray-700">Es el endpoint faltante para abrir el detalle de una orden y mostrar la bitácora que el piloto va registrando.</p></article>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Contratos</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts</span></div><h4 class="font-bold text-gray-900 mb-2">Repositorio de contratos</h4><p class="text-gray-700">Carga las tarjetas de contratos vigentes y vencidos del panel "Reglas y Contratos".</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts/{CONTRACT_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Detalle del contrato</h4><p class="text-gray-700">Se usa al presionar "Ver Detalles" para desplegar crédito, rutas, tipos de carga y tarifario pactado.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts/{CONTRACT_ID}/accept</span></div><h4 class="font-bold text-gray-900 mb-2">Aceptar propuesta</h4><p class="text-gray-700">Convierte un contrato pendiente en vigente y guarda el archivo firmado si el portal permite confirmarlo desde aquí.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts/{CONTRACT_ID}/reject</span></div><h4 class="font-bold text-gray-900 mb-2">Rechazar propuesta</h4><p class="text-gray-700">Cierra el flujo cuando el cliente no acepta la oferta y deja trazabilidad del motivo comercial.</p></article>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Facturas, pagos y tarjetas</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/invoices</span></div><h4 class="font-bold text-gray-900 mb-2">Mis Facturas</h4><p class="text-gray-700">Alimenta la tabla del repositorio documental. Se reutiliza con filtros por `STATUS` o por búsqueda `search=FEL-`.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/account-statement</span></div><h4 class="font-bold text-gray-900 mb-2">Estado de cuenta</h4><p class="text-gray-700">Calcula deuda al día, vencida y crítica para el bloque de aging report sin que el front tenga que hacer cálculos propios.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/payments</span></div><h4 class="font-bold text-gray-900 mb-2">Modal de pago</h4><p class="text-gray-700">Es la acción central del modal. Soporta tarjeta con `CARD_ID` o transferencia con `BANK_REFERENCE` y `TRANSFER_RECEIPT_PATH`.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/cards</span></div><h4 class="font-bold text-gray-900 mb-2">Tarjetas guardadas</h4><p class="text-gray-700">Debe llenar el selector de tarjetas del tab de pago con tarjeta. Sin esto, el `CARD_ID` no tendría origen visible.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/cards</span></div><h4 class="font-bold text-gray-900 mb-2">Registrar nueva tarjeta</h4><p class="text-gray-700">Puede colgarse del flujo "Ingresar Nueva Tarjeta..." del selector para crear un método de pago reutilizable.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-red-600 text-white text-xs font-black px-2 py-1 rounded-full">DELETE</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/cards/{CARD_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Desactivar tarjeta</h4><p class="text-gray-700">No borra físicamente; deja la tarjeta inactiva para mantener historial de pagos previos.</p></article>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Perfil y contactos</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/profile</span></div><h4 class="font-bold text-gray-900 mb-2">Mi perfil empresarial</h4><p class="text-gray-700">Carga razón social, NIT y teléfono principal para la vista de datos del cliente.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/profile/password</span></div><h4 class="font-bold text-gray-900 mb-2">Cambio de contraseña</h4><p class="text-gray-700">Encaja con el botón "Cambiar Clave" del perfil y requiere validar la contraseña actual antes de guardar la nueva.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PUT</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contacts/{USER_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Editar contacto</h4><p class="text-gray-700">Es el endpoint del botón de lápiz en la tarjeta de contacto.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-red-600 text-white text-xs font-black px-2 py-1 rounded-full">DELETE</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contacts/{USER_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Desactivar contacto</h4><p class="text-gray-700">Es el botón de basura de la misma vista. Hace borrado lógico en `USERS.IS_ACTIVE`.</p></article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- ========================================== -->

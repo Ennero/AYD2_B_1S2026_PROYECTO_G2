@@ -40,7 +40,6 @@
                 </button>
             </nav>
         </div>
-        
         <div class="flex items-center gap-6">
             <div class="text-right hidden md:block">
                 <p class="font-bold text-teal-100">Agente Operativo</p>
@@ -223,7 +222,22 @@
                     <div class="space-y-8 border-t md:border-t-0 md:border-l border-gray-200 pt-8 md:pt-0 md:pl-12">
                         <div>
                             <label class="block text-xl font-bold text-gray-900 mb-3">Rutas Autorizadas</label>
-                            <input type="text" id="routes" placeholder="Rutas" class="w-full border-2 border-logi-tan rounded-xl px-4 py-3 focus:outline-none focus:border-logi-dark text-lg text-gray-800">
+                            <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-4">
+                                <i class="fas fa-plug"></i>
+                                GET /api/operative/routes
+                            </div>
+                            <div class="grid grid-cols-1 gap-3">
+                                <button type="button" onclick="toggleRouteSelection(this)" data-route-id="route-gt-sv" class="route-btn border-2 border-logi-light text-left text-logi-dark font-bold py-3 px-4 rounded-xl transition-colors bg-teal-50 shadow-inner">
+                                    Guatemala Ciudad -> San Salvador
+                                </button>
+                                <button type="button" onclick="toggleRouteSelection(this)" data-route-id="route-gt-puerto" class="route-btn border-2 border-logi-light text-left text-logi-dark font-bold py-3 px-4 rounded-xl transition-colors bg-white hover:bg-teal-50">
+                                    Guatemala Ciudad -> Puerto Quetzal
+                                </button>
+                                <button type="button" onclick="toggleRouteSelection(this)" data-route-id="route-escuintla-hn" class="route-btn border-2 border-logi-light text-left text-logi-dark font-bold py-3 px-4 rounded-xl transition-colors bg-white hover:bg-teal-50">
+                                    Escuintla -> Puerto Cortés
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-3">El agente ya no escribe rutas libres; selecciona IDs válidos del catálogo operativo.</p>
                         </div>
 
                         <div>
@@ -257,6 +271,46 @@
         </div>
 
     </main>
+
+    <section class="w-full max-w-6xl mx-auto px-6 pb-8">
+        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-black text-logi-dark">Mapa API del Agente Operativo</h2>
+                    <p class="text-gray-600">Este módulo no solo registra clientes: también arma la propuesta contractual y sus reglas operativas.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/clients</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Vista "Registrar Cliente"</h3>
+                    <p class="text-gray-700">Se dispara desde el botón "Registrar y Enviar Credenciales". Inserta CLIENTS, crea el USER cliente y dispara el correo de acceso inicial.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/clients</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Buscador de cliente</h3>
+                    <p class="text-gray-700">Llena el cuadro "Buscar Cliente Registrado" y permite seleccionar al cliente correcto antes de crear la propuesta comercial.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/contracts</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Contrato unificado</h3>
+                    <p class="text-gray-700">Se usa al presionar "Generar y Enviar Propuesta al Cliente". En un solo payload crea el contrato y adjunta `routeIds`, `cargoTypeIds`, crédito, plazo, descuento, notas y estado `PENDIENTE`.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/routes</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Catálogo de rutas</h3>
+                    <p class="text-gray-700">Alimenta el panel de selección de rutas autorizadas para evitar texto libre y asegurar que el contrato solo use rutas vigentes.</p>
+                </article>
+            </div>
+        </div>
+    </section>
 
     <!-- Modales de Exito -->
     <!-- Modal Credenciales -->
@@ -341,6 +395,17 @@
             }
         }
 
+        function toggleRouteSelection(btn) {
+            const isActive = btn.classList.contains('bg-teal-50');
+            if (isActive) {
+                btn.classList.remove('bg-teal-50', 'shadow-inner');
+                btn.classList.add('bg-white', 'hover:bg-teal-50');
+            } else {
+                btn.classList.add('bg-teal-50', 'shadow-inner');
+                btn.classList.remove('bg-white', 'hover:bg-teal-50');
+            }
+        }
+
 
         // --- SIMULACIÓN DE APIS ---
 
@@ -364,14 +429,19 @@
         function generateContract() {
             const client = document.getElementById('client_search').value;
             const limit = document.getElementById('credit_limit').value;
+            const routeIds = Array.from(document.querySelectorAll('.route-btn.bg-teal-50')).map(btn => btn.dataset.routeId);
+            const cargoTypeIds = Array.from(document.querySelectorAll('.cargo-type-btn.bg-teal-50')).map(btn => btn.innerText.trim());
             
             if(!client || !limit) { alert("Por favor seleccione un cliente y asigne un límite de crédito."); return; }
+            if(routeIds.length === 0) { alert("Por favor seleccione al menos una ruta autorizada."); return; }
 
-            // POST /api/operativo/contracts
+            // POST /api/operative/contracts
             console.log("Simulando POST a DB:", {
                 CREDIT_LIMIT: limit,
                 PAYMENT_TERM_DAYS: document.getElementById('payment_term_days').value,
                 DISCOUNT_PERCENTAGE: document.getElementById('discount_pct').value,
+                ROUTE_IDS: routeIds,
+                CARGO_TYPE_IDS: cargoTypeIds,
                 STATUS: 'PENDIENTE'
             });
 

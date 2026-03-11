@@ -223,6 +223,40 @@
         </div>
     </main>
 
+    <section class="mx-8 mb-8 bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
+                <i class="fas fa-warehouse"></i>
+            </div>
+            <div>
+                <h2 class="text-3xl font-black text-logi-dark">Mapa API del Encargado de Patio</h2>
+                <p class="text-gray-600">Estos endpoints viven en esta vista porque el patio solo consulta órdenes asignadas y formaliza la salida física.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span>
+                    <span class="font-mono text-xs break-all text-logi-dark">/api/patio/orders</span>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Carga inicial de la bandeja</h3>
+                <p class="text-gray-700">Al entrar a "Formalizar Cargas", este endpoint llena las tarjetas con `ORDER_ID`, `ORDER_NUMBER`, `PLATE_NUMBER`, `FULL_NAME`, `ORIGIN`, `DESTINATION` y `STATUS`.</p>
+                <p class="text-gray-500 mt-2">También responde a los filtros por estado, placa y fecha visibles en la parte superior.</p>
+            </article>
+
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span>
+                    <span class="font-mono text-xs break-all text-logi-dark">/api/patio/orders/{ORDER_ID}/formalize</span>
+                </div>
+                <h3 class="font-bold text-gray-900 mb-2">Botón "Listo para Despacho"</h3>
+                <p class="text-gray-700">Se ejecuta cuando el usuario captura `LOADED_WEIGHT_TON`, confirma `STOWAGE_CONFIRMED` y autoriza la salida. Es la acción principal de la segunda tarjeta del mock.</p>
+                <p class="text-gray-500 mt-2">Función: actualiza `ORDERS` a `LISTA_PARA_DESPACHO` y deja la orden lista para que el piloto la arranque.</p>
+            </article>
+        </div>
+    </section>
+
     <!-- Modal de Éxito -->
     <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl transform scale-95 transition-transform">

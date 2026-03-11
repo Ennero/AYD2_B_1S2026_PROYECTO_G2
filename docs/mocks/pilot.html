@@ -445,6 +445,45 @@
                     <p class="text-gray-700 mt-1">${descStr}</p>
                 </div>
             </div>`;
+
+            <section class="mt-10 bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-black text-logi-dark">Mapa API del Portal de Pilotos</h2>
+                        <p class="text-gray-600">El flujo del piloto tiene cuatro momentos: listar viajes, iniciar, registrar bitácora y cerrar con evidencia.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                        <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders</span></div>
+                        <h3 class="font-bold text-gray-900 mb-2">Dashboard "Mis Viajes"</h3>
+                        <p class="text-gray-700">Llena las tarjetas del dashboard con órdenes del piloto autenticado. Aquí aparece el estado `PENDIENTE` o `LISTA_PARA_DESPACHO` y los datos de origen, destino, carga y peso.</p>
+                    </article>
+
+                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                        <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/status</span></div>
+                        <h3 class="font-bold text-gray-900 mb-2">Botón "Empezar Viaje"</h3>
+                        <p class="text-gray-700">Se lanza cuando el viaje pasa de `LISTA_PARA_DESPACHO` a `EN_TRANSITO`. El timestamp de salida se guarda en `DISPATCHED_AT`.</p>
+                    </article>
+
+                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                        <div class="flex items-center gap-2 mb-3"><span class="bg-emerald-600 text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/logs</span></div>
+                        <h3 class="font-bold text-gray-900 mb-2">Botón "+ Registrar Evento"</h3>
+                        <p class="text-gray-700">Cada evento nuevo de la línea de tiempo se inserta en `ORDER_ROUTE_LOGS`. Esta parte alimenta el tracking que luego ve el cliente.</p>
+                    </article>
+
+                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                        <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/deliver</span></div>
+                        <h3 class="font-bold text-gray-900 mb-2">Sección de entrega y evidencia</h3>
+                        <p class="text-gray-700">Este endpoint toma `RECEIVER_NAME`, `RECEIVER_SIGNATURE_PATH`, `DELIVERY_EVIDENCE_PATH`, marca `DELIVERED_AT` y cierra la orden como `ENTREGADA`.</p>
+                        <p class="text-gray-500 mt-2">Es el disparador del flujo de facturación en finanzas.</p>
+                    </article>
+                </div>
+            </section>
             
             container.insertAdjacentHTML('beforeend', html);
         }
