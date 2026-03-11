@@ -53,6 +53,12 @@
         <!-- ========================================== -->
         <div id="view-dashboard" class="animate-fade-in block">
             <h2 class="text-4xl font-extrabold text-center mt-4 mb-8">¡Bienvenido Henry Mendizabal!</h2>
+            <div class="flex justify-center mb-6">
+                <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold">
+                    <i class="fas fa-plug"></i>
+                    GET /api/pilot/orders
+                </div>
+            </div>
             
             <div class="flex flex-col lg:flex-row gap-8">
                 
@@ -225,24 +231,28 @@
 
             <h2 class="text-2xl font-bold text-gray-800 mb-1">Monitoreo de Ruta</h2>
             <p class="text-gray-500 mb-6">Orden: OS-2026-<span id="trip-id-display">001</span></p>
+            <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-6">
+                <i class="fas fa-plug"></i>
+                GET /api/pilot/orders/{ORDER_ID}
+            </div>
 
             <!-- Resumen Viaje -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap justify-between items-center text-center md:text-left">
                 <div class="w-full md:w-auto mb-4 md:mb-0">
                     <p class="text-sm text-gray-500">Origen</p>
-                    <p class="font-bold text-lg text-gray-800">Guatemala City, Guatemala</p>
+                    <p id="trip-origin" class="font-bold text-lg text-gray-800">Guatemala City, Guatemala</p>
                 </div>
                 <div class="w-full md:w-auto mb-4 md:mb-0">
                     <p class="text-sm text-gray-500">Destino</p>
-                    <p class="font-bold text-lg text-gray-800">Puerto Barrios, Izabal</p>
+                    <p id="trip-destination" class="font-bold text-lg text-gray-800">Puerto Barrios, Izabal</p>
                 </div>
                 <div class="w-full md:w-auto mb-4 md:mb-0">
                     <p class="text-sm text-gray-500">Piloto Asignado</p>
-                    <p class="font-bold text-lg text-gray-800">Henry Mendizabal</p>
+                    <p id="trip-pilot-name" class="font-bold text-lg text-gray-800">Henry Mendizabal</p>
                 </div>
                 <div class="w-full md:w-auto">
                     <p class="text-sm text-gray-500">Tiempo Estimado</p>
-                    <p class="font-bold text-lg text-gray-800">6 horas</p>
+                    <p id="trip-estimated-hours" class="font-bold text-lg text-gray-800">6 horas</p>
                 </div>
             </div>
 
@@ -267,6 +277,10 @@
                     <button onclick="addLogEvent()" class="bg-logi-dark text-white font-bold py-2 px-4 rounded shadow text-sm hover:bg-teal-800 transition-colors">
                         + Registrar Evento
                     </button>
+                </div>
+                <div class="mb-5 inline-flex items-center gap-2 bg-white/80 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold">
+                    <i class="fas fa-plug"></i>
+                    POST /api/pilot/orders/{ORDER_ID}/logs
                 </div>
 
                 <!-- Timeline -->
@@ -300,14 +314,14 @@
                     <div class="flex flex-col md:flex-row gap-6">
                         <div class="w-full md:w-1/3">
                             <label class="block text-sm font-bold text-logi-dark mb-1">Nombre Completo del Receptor *</label>
-                            <input type="text" placeholder="Ej. Juan Pérez" class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark mb-4">
+                            <input id="receiver-name" type="text" placeholder="Ej. Juan Pérez" class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark mb-4">
                             
                             <label class="block text-sm font-bold text-logi-dark mb-1">Hora de Recepción</label>
-                            <input type="time" class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                            <input id="receiver-time" type="time" class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark">
                         </div>
                         <div class="w-full md:w-2/3">
                             <label class="block text-sm font-bold text-logi-dark mb-1">Observaciones (Opcional)</label>
-                            <textarea rows="4" placeholder="Alguna novedad en la entrega..." class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark"></textarea>
+                            <textarea id="delivery-notes" rows="4" placeholder="Alguna novedad en la entrega..." class="w-full p-3 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-logi-dark"></textarea>
                         </div>
                     </div>
                 </div>
@@ -315,6 +329,10 @@
                 <!-- Evidencia Archivos -->
                 <div class="bg-[#a3c9ae] p-6 rounded-b-xl shadow-md">
                     <h3 class="font-bold text-logi-dark mb-4 text-lg">Evidencia Digital</h3>
+                    <div class="inline-flex items-center gap-2 bg-white/80 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold mb-5">
+                        <i class="fas fa-plug"></i>
+                        PATCH /api/pilot/orders/{ORDER_ID}/deliver
+                    </div>
                     <div class="flex flex-col md:flex-row gap-6">
                         
                         <!-- Caja Firma -->
@@ -359,6 +377,55 @@
 
     </main>
 
+    <details class="w-full max-w-7xl mx-auto px-6 pb-8 group">
+        <summary class="list-none cursor-pointer bg-white rounded-3xl shadow-xl border border-gray-100 p-6 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-xl shadow-lg">
+                    <i class="fas fa-route"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-logi-dark">Mapa API del Portal de Pilotos</h2>
+                    <p class="text-gray-500 text-sm">Resumen plegable del flujo de viajes, bitácora y entrega.</p>
+                </div>
+            </div>
+            <i class="fas fa-chevron-down text-logi-dark transition-transform group-open:rotate-180"></i>
+        </summary>
+
+        <div class="bg-white rounded-b-3xl shadow-xl border border-t-0 border-gray-100 p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Dashboard Mis Viajes</h3>
+                    <p class="text-gray-700">Lista las órdenes del piloto autenticado con `ORDER_ID`, `ORDER_NUMBER`, `ORIGIN`, `DESTINATION`, `STATUS` y `DECLARED_WEIGHT_TON`.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Detalle del viaje</h3>
+                    <p class="text-gray-700">Carga la vista de monitoreo con la información del servicio y la bitácora actual de `ORDER_ROUTE_LOGS`.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/status</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Empezar viaje</h3>
+                    <p class="text-gray-700">Actualiza `STATUS = EN_TRANSITO` y registra `DISPATCHED_AT` cuando el piloto inicia el trayecto.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-emerald-600 text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/logs</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Registrar bitácora</h3>
+                    <p class="text-gray-700">Inserta un nuevo evento en `ORDER_ROUTE_LOGS` con `EVENT_TYPE`, `EVENT_TIME` y `DESCRIPTION`.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50 md:col-span-2">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/deliver</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Confirmar entrega</h3>
+                    <p class="text-gray-700">Guarda `RECEIVER_NAME`, `RECEIVER_SIGNATURE_PATH`, `DELIVERY_EVIDENCE_PATH`, `DELIVERED_AT` y cambia `STATUS = ENTREGADA` para disparar facturación.</p>
+                </article>
+            </div>
+        </div>
+    </details>
+
     <!-- Modal Exito -->
     <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden flex items-center justify-center">
         <div class="bg-white rounded-2xl p-10 max-w-md w-full text-center shadow-2xl transform scale-95 animate-fade-in">
@@ -382,25 +449,57 @@
     </style>
 
     <script>
+        const tripData = {
+            '4': {
+                ORDER_ID: '4',
+                ORDER_NUMBER: 'ORD-000004',
+                ORIGIN: 'Guatemala City, Guatemala',
+                DESTINATION: 'Puerto Barrios, Izabal',
+                PILOT_NAME: 'Henry Mendizabal',
+                ESTIMATED_HOURS: '6 horas'
+            },
+            '7': {
+                ORDER_ID: '7',
+                ORDER_NUMBER: 'ORD-000007',
+                ORIGIN: 'Quetzaltenango, Guatemala',
+                DESTINATION: 'Ciudad de Guatemala, Guatemala',
+                PILOT_NAME: 'Henry Mendizabal',
+                ESTIMATED_HOURS: '4 horas'
+            }
+        };
+
+        let currentTripId = null;
+
         function openTrip(id, status) {
+            currentTripId = id;
+            const trip = tripData[id];
+            console.log('GET /api/pilot/orders/{ORDER_ID}', {
+                ORDER_ID: id
+            });
+
             document.getElementById('view-dashboard').classList.add('hidden');
             document.getElementById('view-trip').classList.remove('hidden');
             document.getElementById('trip-id-display').innerText = id;
+
+            document.getElementById('trip-origin').innerText = trip.ORIGIN;
+            document.getElementById('trip-destination').innerText = trip.DESTINATION;
+            document.getElementById('trip-pilot-name').innerText = trip.PILOT_NAME;
+            document.getElementById('trip-estimated-hours').innerText = trip.ESTIMATED_HOURS;
             
             const btn = document.getElementById('btn-action-trip');
             const title = document.getElementById('trip-status-title');
             
             if(status === 'Pendiente') {
-                title.innerText = "Listo para Iniciar";
-                btn.innerText = "Empezar Viaje (Cambiar a Tránsito)";
-                btn.className = "bg-logi-dark hover:bg-teal-800 text-white font-bold py-2 px-6 rounded shadow transition-colors";
-                btn.setAttribute("onclick", "startTrip()");
+                title.innerText = 'Listo para Iniciar';
+                btn.innerText = 'Empezar Viaje (Cambiar a Tránsito)';
+                btn.className = 'bg-logi-dark hover:bg-teal-800 text-white font-bold py-2 px-6 rounded shadow transition-colors';
+                btn.setAttribute('onclick', 'startTrip()');
                 document.getElementById('delivery-section').classList.add('hidden');
             } else {
-                title.innerText = "Viaje en Curso";
-                btn.innerText = "Llegué a Destino (Finalizar)";
-                btn.className = "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition-colors";
-                btn.setAttribute("onclick", "showDeliverySection()");
+                title.innerText = 'Viaje en Curso';
+                btn.innerText = 'Llegué a Destino (Finalizar)';
+                btn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition-colors';
+                btn.setAttribute('onclick', 'showDeliverySection()');
                 document.getElementById('delivery-section').classList.add('hidden');
             }
         }
@@ -412,30 +511,36 @@
         }
 
         function startTrip() {
-            // Simulacion llamada Backend: PATCH /api/piloto/orders/{id}/status -> EN_TRANSITO
-            alert("Llamando a BD: UPDATE ORDERS SET STATUS = 'EN_TRANSITO'");
+            console.log('PATCH /api/pilot/orders/{ORDER_ID}/status', {
+                ORDER_ID: currentTripId,
+                STATUS: 'EN_TRANSITO'
+            });
+
             const btn = document.getElementById('btn-action-trip');
             const title = document.getElementById('trip-status-title');
-            title.innerText = "Viaje en Curso";
-            btn.innerText = "Llegué a Destino (Finalizar)";
-            btn.className = "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition-colors";
-            btn.setAttribute("onclick", "showDeliverySection()");
-            addLogEvent("Inició Viaje", "Cambio de estado a En Tránsito. Saliendo hacia destino.");
+            title.innerText = 'Viaje en Curso';
+            btn.innerText = 'Llegué a Destino (Finalizar)';
+            btn.className = 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow transition-colors';
+            btn.setAttribute('onclick', 'showDeliverySection()');
+            addLogEvent('PUNTO_CONTROL', 'Inició Viaje', 'Cambio de estado a EN_TRANSITO. Saliendo hacia destino.');
         }
 
         function showDeliverySection() {
             document.getElementById('delivery-section').classList.remove('hidden');
-            // Hacer scroll suave hacia el formulario
             setTimeout(() => {
                 document.getElementById('delivery-section').scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }
 
-        function addLogEvent(titleStr = "Nuevo Evento", descStr = "Novedad en ruta registrada por el piloto.") {
-            // Simulacion llamada Backend: POST /api/piloto/orders/{id}/logs
+        function addLogEvent(eventType = 'OTRO', titleStr = 'Nuevo Evento', descStr = 'Novedad en ruta registrada por el piloto.') {
+            console.log('POST /api/pilot/orders/{ORDER_ID}/logs', {
+                ORDER_ID: currentTripId,
+                EVENT_TYPE: eventType,
+                DESCRIPTION: descStr
+            });
+
             const container = document.getElementById('timeline-container');
             const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            
             const html = `
             <div class="relative pl-6 animate-fade-in">
                 <div class="absolute -left-[9px] top-1 w-4 h-4 bg-logi-light rounded-full border-2 border-white shadow"></div>
@@ -445,52 +550,28 @@
                     <p class="text-gray-700 mt-1">${descStr}</p>
                 </div>
             </div>`;
-
-            <section class="mt-10 bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
-                        <i class="fas fa-route"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-3xl font-black text-logi-dark">Mapa API del Portal de Pilotos</h2>
-                        <p class="text-gray-600">El flujo del piloto tiene cuatro momentos: listar viajes, iniciar, registrar bitácora y cerrar con evidencia.</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                        <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders</span></div>
-                        <h3 class="font-bold text-gray-900 mb-2">Dashboard "Mis Viajes"</h3>
-                        <p class="text-gray-700">Llena las tarjetas del dashboard con órdenes del piloto autenticado. Aquí aparece el estado `PENDIENTE` o `LISTA_PARA_DESPACHO` y los datos de origen, destino, carga y peso.</p>
-                    </article>
-
-                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                        <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/status</span></div>
-                        <h3 class="font-bold text-gray-900 mb-2">Botón "Empezar Viaje"</h3>
-                        <p class="text-gray-700">Se lanza cuando el viaje pasa de `LISTA_PARA_DESPACHO` a `EN_TRANSITO`. El timestamp de salida se guarda en `DISPATCHED_AT`.</p>
-                    </article>
-
-                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                        <div class="flex items-center gap-2 mb-3"><span class="bg-emerald-600 text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/logs</span></div>
-                        <h3 class="font-bold text-gray-900 mb-2">Botón "+ Registrar Evento"</h3>
-                        <p class="text-gray-700">Cada evento nuevo de la línea de tiempo se inserta en `ORDER_ROUTE_LOGS`. Esta parte alimenta el tracking que luego ve el cliente.</p>
-                    </article>
-
-                    <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                        <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/deliver</span></div>
-                        <h3 class="font-bold text-gray-900 mb-2">Sección de entrega y evidencia</h3>
-                        <p class="text-gray-700">Este endpoint toma `RECEIVER_NAME`, `RECEIVER_SIGNATURE_PATH`, `DELIVERY_EVIDENCE_PATH`, marca `DELIVERED_AT` y cierra la orden como `ENTREGADA`.</p>
-                        <p class="text-gray-500 mt-2">Es el disparador del flujo de facturación en finanzas.</p>
-                    </article>
-                </div>
-            </section>
-            
             container.insertAdjacentHTML('beforeend', html);
         }
 
         function finishProcess() {
-            // Simulacion llamada Backend: PATCH /api/piloto/orders/{id}/deliver
-            console.log("Enviando JSON DTO a BD con STATUS: ENTREGADA, RECEIVER_NAME: etc...");
+            const receiverName = document.getElementById('receiver-name').value;
+            const receiverTime = document.getElementById('receiver-time').value;
+            const deliveryNotes = document.getElementById('delivery-notes').value;
+
+            if(!receiverName || !receiverTime) {
+                alert('Por favor complete RECEIVER_NAME y la hora de recepción.');
+                return;
+            }
+
+            console.log('PATCH /api/pilot/orders/{ORDER_ID}/deliver', {
+                ORDER_ID: currentTripId,
+                STATUS: 'ENTREGADA',
+                RECEIVER_NAME: receiverName,
+                RECEIVER_SIGNATURE_PATH: '/files/signatures/' + currentTripId + '.png',
+                DELIVERY_EVIDENCE_PATH: '/files/evidence/' + currentTripId + '.jpg',
+                NOTES: deliveryNotes
+            });
+
             document.getElementById('success-modal').classList.remove('hidden');
         }
 

@@ -360,18 +360,21 @@
             </div>
         </div>
 
-        <section class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 mb-8">
-            <div class="flex items-center gap-4 mb-6">
-                <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
-                    <i class="fas fa-chart-line"></i>
+        <details class="bg-white rounded-3xl shadow-xl border border-gray-100 mb-8 group">
+            <summary class="list-none cursor-pointer p-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-xl shadow-lg">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-logi-dark">Mapa API del Dashboard BI</h2>
+                        <p class="text-gray-500 text-sm">Cada bloque gerencial consume un endpoint distinto.</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-3xl font-black text-logi-dark">Mapa API del Dashboard BI</h2>
-                    <p class="text-gray-600">Cada vista gerencial se alimenta con un endpoint distinto, no con una sola consulta gigante.</p>
-                </div>
-            </div>
+                <i class="fas fa-chevron-down text-logi-dark transition-transform group-open:rotate-180"></i>
+            </summary>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="px-8 pb-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
                     <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/bi/kpis/daily</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Tarjetas superiores</h3>
@@ -396,7 +399,7 @@
                     <p class="text-gray-700">Llena la tabla de monitoreo rápido con las órdenes más recientes, su cliente, ruta y estado.</p>
                 </article>
             </div>
-        </section>
+        </details>
 
     </main>
 

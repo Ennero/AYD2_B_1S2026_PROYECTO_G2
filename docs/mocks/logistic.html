@@ -255,22 +255,38 @@
 
     </main>
 
-    <section class="mx-8 mb-8 bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
-                <i class="fas fa-truck-loading"></i>
+    <details class="mx-8 mb-8 group">
+        <summary class="list-none cursor-pointer bg-white rounded-3xl shadow-xl border border-gray-100 p-6 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-xl shadow-lg">
+                    <i class="fas fa-truck-loading"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-logi-dark">Mapa API del Agente Logístico</h2>
+                    <p class="text-gray-500 text-sm">Resumen plegable de consulta, detalle y asignación operativa.</p>
+                </div>
             </div>
-            <div>
-                <h2 class="text-3xl font-black text-logi-dark">Mapa API del Agente Logístico</h2>
-                <p class="text-gray-600">Esta pantalla resuelve la asignación operativa en un solo flujo: consulta órdenes, carga binomios disponibles y confirma ruta, salida y recurso en una misma acción.</p>
-            </div>
-        </div>
+            <i class="fas fa-chevron-down text-logi-dark transition-transform group-open:rotate-180"></i>
+        </summary>
 
+        <div class="bg-white rounded-b-3xl shadow-xl border border-t-0 border-gray-100 p-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
                 <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/orders</span></div>
                 <h3 class="font-bold text-gray-900 mb-2">Listado principal</h3>
                 <p class="text-gray-700">Carga las tarjetas de órdenes nuevas y se apoya en los filtros laterales por fecha, cliente, origen, destino y estado.</p>
+            </article>
+
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/orders/{ORDER_ID}</span></div>
+                <h3 class="font-bold text-gray-900 mb-2">Detalle de la orden</h3>
+                <p class="text-gray-700">Llena el modal con `ORDER_NUMBER`, `ORIGIN`, `DESTINATION`, `DECLARED_WEIGHT_TON`, `CARGO_TYPE_ID` y los datos principales del cliente.</p>
+            </article>
+
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/routes</span></div>
+                <h3 class="font-bold text-gray-900 mb-2">Catálogo reutilizado de rutas</h3>
+                <p class="text-gray-700">Logística reutiliza el mismo catálogo del módulo operativo para buscar rutas vigentes y no duplicar mantenimiento.</p>
             </article>
 
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
@@ -285,7 +301,8 @@
                 <p class="text-gray-700">Recibe `routeId`, `scheduledDeparture` y `binomialId` en un solo payload. Deja la orden en `ASIGNADA` y habilita el flujo del encargado de patio.</p>
             </article>
         </div>
-    </section>
+        </div>
+    </details>
 
     <!-- ========================================== -->
     <!-- MODAL: DETALLES Y ASIGNACIÓN               -->
@@ -360,6 +377,10 @@
             <!-- Asignación Formulario -->
             <div class="bg-gray-50 px-8 py-6 border-t border-gray-200 mt-4">
                 <label class="block text-lg font-bold text-gray-900 mb-2">Ruta Operativa</label>
+                <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold mb-3">
+                    <i class="fas fa-plug"></i>
+                    GET /api/operative/routes
+                </div>
                 <div class="relative mb-4">
                     <select id="select-route" class="w-full p-4 rounded-xl border-2 border-logi-tan bg-white focus:outline-none focus:border-logi-dark text-gray-700 appearance-none text-lg cursor-pointer">
                         <option value="">Seleccione Ruta Contractual...</option>
@@ -443,7 +464,15 @@
         function openAssignModal(id) {
             currentOrderId = id;
             document.getElementById('modal-order-id').innerText = id;
-            // Aquí harías el GET /api/logistic/unit-binomials?orderId={ORDER_ID} para llenar el <select>
+            console.log('GET /api/logistic/orders/{ORDER_ID}', {
+                ORDER_ID: id
+            });
+            console.log('GET /api/operative/routes', {
+                IS_ACTIVE: true
+            });
+            console.log('GET /api/logistic/unit-binomials', {
+                ORDER_ID: id
+            });
             document.getElementById('assign-modal').classList.remove('hidden');
         }
 
@@ -470,7 +499,13 @@
             }
 
             // Simulación PATCH /api/logistic/orders/{ORDER_ID}/assignment
-            console.log(`PATCH a la DB: ORDER_ID ${currentOrderId}, ROUTE_ID ${routeSelect.value}, SALIDA ${scheduledDeparture.value}, BINOMIO ${select.value}`);
+            console.log('PATCH /api/logistic/orders/{ORDER_ID}/assignment', {
+                ORDER_ID: currentOrderId,
+                CONTRACT_ROUTE_ID: routeSelect.value,
+                SCHEDULED_PICKUP_AT: scheduledDeparture.value,
+                UNIT_ID: select.value,
+                STATUS: 'ASIGNADA'
+            });
             
             // Cerrar el modal actual y abrir el de éxito
             closeModal('assign-modal');

@@ -59,6 +59,7 @@ Enum INVOICE_STATUS {
 Enum PAYMENT_METHOD {
   TARJETA
   TRANSFERENCIA
+  CHEQUE
 }
 
 Enum PAYMENT_STATUS {
@@ -74,9 +75,9 @@ Table CLIENTS {
   COMMERCIAL_NAME varchar(180)
   NIT varchar(20) [not null, unique]
   TAX_ADDRESS text [not null]
-  CONTACT_NAME varchar(160) [not null]
-  CONTACT_EMAIL varchar(320) [not null]
-  CONTACT_PHONE varchar(30)
+  PRIMARY_CONTACT_NAME varchar(160) [not null]
+  PRIMARY_CONTACT_EMAIL varchar(320) [not null]
+  PRIMARY_CONTACT_PHONE varchar(30)
   CREDIT_LIMIT numeric(14,2) [not null, default: 0]
   PAYMENT_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CUSTOMS_RISK RISK_LEVEL [not null, default: 'MEDIO']
@@ -105,14 +106,31 @@ Table PASSWORD_RECOVERY_TOKENS {
   USED_AT timestamptz
 }
 
+Table CLIENT_CONTACTS {
+  CONTACT_ID uuid [pk]
+  CLIENT_ID uuid [not null]
+  CONTACT_NAME varchar(160) [not null]
+  CONTACT_EMAIL varchar(320) [not null]
+  CONTACT_PHONE varchar(30)
+  POSITION_TITLE varchar(100)
+  IS_PRIMARY boolean [not null, default: false]
+  IS_ACTIVE boolean [not null, default: true]
+
+  Indexes {
+    (CLIENT_ID, CONTACT_EMAIL) [unique]
+  }
+}
+
 Table CLIENT_CARDS {
   CARD_ID uuid [pk]
   CLIENT_ID uuid [not null]
   CARD_ALIAS varchar(80) [not null]
+  CARDHOLDER_NAME varchar(160) [not null]
   CARD_BRAND varchar(30) [not null]
   LAST_FOUR char(4) [not null]
   EXPIRATION_MONTH smallint [not null]
   EXPIRATION_YEAR smallint [not null]
+  IS_DEFAULT boolean [not null, default: false]
   IS_ACTIVE boolean [not null, default: true]
 
   Indexes {
@@ -296,8 +314,10 @@ Table PAYMENTS {
   METHOD PAYMENT_METHOD [not null]
   STATUS PAYMENT_STATUS [not null, default: 'PENDIENTE']
   CARD_ID uuid
+  BANK_NAME varchar(120)
+  BANK_ACCOUNT_NUMBER varchar(50)
   BANK_REFERENCE varchar(80)
-  TRANSFER_RECEIPT_PATH text
+  SUPPORT_DOCUMENT_PATH text
   AMOUNT numeric(14,2) [not null]
   PAYMENT_DATE timestamptz [not null]
   REVIEWED_BY_USER_ID uuid
@@ -305,6 +325,7 @@ Table PAYMENTS {
 
 Ref: USERS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: PASSWORD_RECOVERY_TOKENS.USER_ID > USERS.USER_ID
+Ref: CLIENT_CONTACTS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CLIENT_CARDS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CONTRACTS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CONTRACT_ROUTES.CONTRACT_ID > CONTRACTS.CONTRACT_ID

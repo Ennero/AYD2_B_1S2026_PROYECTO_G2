@@ -172,18 +172,21 @@
     </main>
 
     <section class="px-10 pb-10 max-w-6xl mx-auto w-full">
-        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-            <div class="flex items-center gap-4 mb-6">
-                <div class="w-14 h-14 rounded-2xl bg-sat-blue text-white flex items-center justify-center text-2xl shadow-lg">
-                    <i class="fas fa-stamp"></i>
+        <details class="bg-white rounded-3xl shadow-xl border border-gray-100 group">
+            <summary class="list-none cursor-pointer p-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-sat-blue text-white flex items-center justify-center text-xl shadow-lg">
+                        <i class="fas fa-stamp"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-sat-blue">Mapa API del Certificador FEL</h2>
+                        <p class="text-gray-500 text-sm">Resumen del panel y bandeja operativa de certificación.</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-3xl font-black text-sat-blue">Mapa API del Certificador FEL</h2>
-                    <p class="text-gray-600">Este simulador necesita un resumen de cabecera y luego la bandeja operativa de certificación.</p>
-                </div>
-            </div>
+                <i class="fas fa-chevron-down text-sat-blue transition-transform group-open:rotate-180"></i>
+            </summary>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
+            <div class="px-8 pb-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
                 <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
                     <div class="flex items-center gap-2 mb-3"><span class="bg-sat-blue text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/dashboard/summary</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Inicio FEL</h3>
@@ -208,7 +211,7 @@
                     <p class="text-gray-700">Marca la factura como `RECHAZADA` para que Finanzas vuelva a corregirla antes de intentar otra certificación.</p>
                 </article>
             </div>
-        </div>
+        </details>
     </section>
 
     <!-- ========================================== -->

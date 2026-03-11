@@ -46,9 +46,9 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 | `COMMERCIAL_NAME` | Nombre comercial para operación diaria. |
 | `NIT` | Dato fiscal obligatorio para la factura. Se dejó flexible para soportar formatos reales como `548973-1`, `CF` u otros valores válidos del flujo. |
 | `TAX_ADDRESS` | Dirección fiscal del cliente. |
-| `CONTACT_NAME` | Contacto principal del cliente en el MVP. |
-| `CONTACT_EMAIL` | Correo del contacto principal. |
-| `CONTACT_PHONE` | Teléfono del contacto principal. |
+| `PRIMARY_CONTACT_NAME` | Contacto principal administrativo del cliente. |
+| `PRIMARY_CONTACT_EMAIL` | Correo del contacto principal administrativo. |
+| `PRIMARY_CONTACT_PHONE` | Teléfono del contacto principal administrativo. |
 | `CREDIT_LIMIT` | Límite de crédito para bloquear nuevas órdenes cuando se exceda. Inicia en `0` mientras el cliente aún no tenga condiciones comerciales formales. |
 | `PAYMENT_RISK` | Riesgo por capacidad de pago. |
 | `CUSTOMS_RISK` | Riesgo relacionado con aduanas. |
@@ -60,6 +60,8 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 ## `USERS`
 
 Guarda las cuentas de acceso del sistema para clientes y personal interno.
+
+Aquí ya no viven los contactos operativos del cliente. Los contactos comerciales o logísticos del cliente se manejan aparte en `CLIENT_CONTACTS`.
 
 | Campo | Motivo |
 |---|---|
@@ -84,6 +86,23 @@ Tabla mínima para recuperación de contraseña, porque el statement sí habla d
 | `EXPIRES_AT` | Fecha de expiración. |
 | `USED_AT` | Marca si ya fue utilizado. |
 
+## `CLIENT_CONTACTS`
+
+Guarda los contactos de negocio del cliente sin darles acceso a la plataforma.
+
+Esto evita mezclar contactos comerciales con usuarios autenticables del sistema.
+
+| Campo | Motivo |
+|---|---|
+| `CONTACT_ID` | Identificador del contacto. |
+| `CLIENT_ID` | Cliente al que pertenece el contacto. |
+| `CONTACT_NAME` | Nombre del contacto. |
+| `CONTACT_EMAIL` | Correo del contacto. |
+| `CONTACT_PHONE` | Teléfono del contacto. |
+| `POSITION_TITLE` | Cargo o rol dentro de la empresa cliente. |
+| `IS_PRIMARY` | Marca al contacto principal de negocio del cliente. |
+| `IS_ACTIVE` | Permite desactivar el contacto sin borrarlo. |
+
 ## `CLIENT_CARDS`
 
 Tarjetas simuladas del cliente para pagos internos del MVP.
@@ -93,10 +112,12 @@ Tarjetas simuladas del cliente para pagos internos del MVP.
 | `CARD_ID` | Identificador de la tarjeta simulada. |
 | `CLIENT_ID` | Cliente dueño de la tarjeta. |
 | `CARD_ALIAS` | Alias fácil de reconocer por el cliente. |
+| `CARDHOLDER_NAME` | Nombre del titular mostrado en el medio de pago. |
 | `CARD_BRAND` | Marca de la tarjeta. |
 | `LAST_FOUR` | Últimos cuatro dígitos para mostrarla sin guardar el número completo. |
 | `EXPIRATION_MONTH` | Mes de expiración. |
 | `EXPIRATION_YEAR` | Año de expiración. |
+| `IS_DEFAULT` | Indica si es la tarjeta principal del cliente. |
 | `IS_ACTIVE` | Indica si la tarjeta está habilitada para simular pagos. |
 
 ## `BRANCHES`
@@ -307,7 +328,7 @@ Factura electrónica simplificada y simulada.
 
 ## `PAYMENTS`
 
-Pago simulado del MVP. Solo existen tarjeta y transferencia.
+Pago simulado del MVP. Ahora soporta tarjeta, transferencia y cheque para cubrir el enunciado funcional.
 
 La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemplo si un pago fue rechazado y el cliente vuelve a intentarlo. La restricción real es que solo puede existir un pago aprobado por factura.
 
@@ -315,11 +336,13 @@ La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemp
 |---|---|
 | `PAYMENT_ID` | Identificador del pago. |
 | `INVOICE_ID` | Factura a pagar. |
-| `METHOD` | Método de pago: tarjeta o transferencia. |
+| `METHOD` | Método de pago: tarjeta, transferencia o cheque. |
 | `STATUS` | Estado del pago: pendiente, aprobado o rechazado. |
 | `CARD_ID` | Tarjeta elegida, si el pago fue con tarjeta. |
-| `BANK_REFERENCE` | Referencia bancaria para conciliación rápida cuando el pago es por transferencia. |
-| `TRANSFER_RECEIPT_PATH` | PDF del comprobante, si fue transferencia. |
+| `BANK_NAME` | Banco de origen del pago cuando no es tarjeta. |
+| `BANK_ACCOUNT_NUMBER` | Cuenta de origen usada en transferencia o cheque. |
+| `BANK_REFERENCE` | Referencia o autorización bancaria del pago. |
+| `SUPPORT_DOCUMENT_PATH` | Archivo soporte del pago cuando fue transferencia o cheque. |
 | `AMOUNT` | Monto pagado. |
 | `PAYMENT_DATE` | Fecha y hora del pago. |
 | `REVIEWED_BY_USER_ID` | Usuario que revisó y aprobó el pago si aplicó. |

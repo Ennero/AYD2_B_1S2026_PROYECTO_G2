@@ -223,18 +223,21 @@
         </div>
     </main>
 
-    <section class="mx-8 mb-8 bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-14 h-14 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-2xl shadow-lg">
-                <i class="fas fa-warehouse"></i>
+    <details class="mx-8 mb-8 bg-white rounded-3xl shadow-xl border border-gray-100 group">
+        <summary class="list-none cursor-pointer p-6 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-xl shadow-lg">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-logi-dark">Mapa API del Encargado de Patio</h2>
+                    <p class="text-gray-500 text-sm">Consulta de órdenes asignadas y formalización de salida.</p>
+                </div>
             </div>
-            <div>
-                <h2 class="text-3xl font-black text-logi-dark">Mapa API del Encargado de Patio</h2>
-                <p class="text-gray-600">Estos endpoints viven en esta vista porque el patio solo consulta órdenes asignadas y formaliza la salida física.</p>
-            </div>
-        </div>
+            <i class="fas fa-chevron-down text-logi-dark transition-transform group-open:rotate-180"></i>
+        </summary>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div class="px-8 pb-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
                 <div class="flex items-center gap-2 mb-3">
                     <span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span>
@@ -255,7 +258,7 @@
                 <p class="text-gray-500 mt-2">Función: actualiza `ORDERS` a `LISTA_PARA_DESPACHO` y deja la orden lista para que el piloto la arranque.</p>
             </article>
         </div>
-    </section>
+    </details>
 
     <!-- Modal de Éxito -->
     <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
