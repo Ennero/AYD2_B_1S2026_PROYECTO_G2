@@ -20,18 +20,31 @@
             }
         }
     </script>
+    <style>
+        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tab-active { background-color: #f3f4f6; color: #1f2937; opacity: 1; border-bottom: 2px solid transparent;}
+        .tab-inactive { background-color: #d1d5db; color: #4b5563; opacity: 0.7; border-bottom: 2px solid #9ca3af;}
+        .pay-tab-active { border-bottom: 3px solid #095556; color: #095556; font-weight: 800; }
+        .pay-tab-inactive { border-bottom: 3px solid transparent; color: #6b7280; font-weight: 600; }
+    </style>
 </head>
 <body class="bg-logi-bg font-sans text-gray-800 min-h-screen flex flex-col">
 
-    <!-- Top Navbar (Estilo Wireframe Cliente) -->
+    <!-- Top Navbar -->
     <header class="bg-logi-dark text-white px-8 py-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
-        <div class="flex items-center gap-12">
+        <div class="flex items-center gap-10">
             <h1 class="text-3xl font-black tracking-wider">LOGITRANS</h1>
             
             <nav class="hidden md:flex space-x-6 text-sm">
                 <button onclick="showView('dashboard-view', this)" class="nav-btn text-white font-bold border-b-2 border-white pb-1 transition-all">Inicio</button>
                 <button onclick="showView('contracts-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Contratos</button>
+                <button onclick="showView('invoices-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Facturas</button>
                 <button onclick="showView('account-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Estado de Cuenta</button>
+                <button onclick="showView('contacts-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Contactos</button>
                 <button onclick="showView('profile-view', this)" class="nav-btn text-teal-300 hover:text-white font-medium pb-1 transition-all">Mis Datos</button>
             </nav>
         </div>
@@ -63,27 +76,21 @@
             </div>
 
             <!-- Panel Estilo Wireframe (Fondo Tan) -->
-            <div class="bg-[#d4bca9] rounded-3xl p-8 shadow-inner border border-[#c4b1a0]">
+            <div class="bg-[#d4bca9] rounded-3xl p-8 shadow-inner border border-[#c4b1a0] min-h-[400px]">
                 
-                <!-- Pestañas Internas (Visuales) -->
+                <!-- Pestañas Internas -->
                 <div class="flex gap-2 mb-8">
-                    <div class="bg-gray-100 bg-opacity-80 text-gray-800 font-bold py-2 px-6 rounded-t-lg shadow-sm">RESUMEN</div>
-                    <div class="bg-gray-300 bg-opacity-50 text-gray-600 font-bold py-2 px-6 rounded-t-lg">ÓRDENES RECIENTES</div>
-                    <div class="bg-gray-300 bg-opacity-50 text-gray-600 font-bold py-2 px-6 rounded-t-lg">ALERTAS</div>
+                    <button onclick="switchDashTab('tab-resumen')" id="btn-tab-resumen" class="dash-tab tab-active font-bold py-2 px-6 rounded-t-lg shadow-sm transition-all cursor-pointer">RESUMEN</button>
+                    <button onclick="switchDashTab('tab-ordenes')" id="btn-tab-ordenes" class="dash-tab tab-inactive font-bold py-2 px-6 rounded-t-lg transition-all cursor-pointer">ÓRDENES RECIENTES</button>
+                    <button onclick="switchDashTab('tab-alertas')" id="btn-tab-alertas" class="dash-tab tab-inactive font-bold py-2 px-6 rounded-t-lg transition-all cursor-pointer">ALERTAS</button>
                 </div>
 
-                <!-- Tarjetas KPI -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    
-                    <!-- Órdenes Activas -->
-                    <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center transform hover:scale-105 transition-transform cursor-pointer">
+                <!-- Contenido Pestaña: Resumen -->
+                <div id="tab-resumen" class="dash-content animate-fade-in grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center transform hover:scale-105 transition-transform cursor-pointer" onclick="switchDashTab('tab-ordenes')">
                         <h3 class="text-lg font-bold text-gray-700 mb-4 bg-gray-200 px-4 py-1 rounded w-full">Órdenes Activas</h3>
-                        <div class="w-24 h-24 bg-gradient-to-tr from-pink-500 to-orange-400 rounded-full flex items-center justify-center text-white text-5xl font-black shadow-inner">
-                            1
-                        </div>
+                        <div class="w-24 h-24 bg-gradient-to-tr from-pink-500 to-orange-400 rounded-full flex items-center justify-center text-white text-5xl font-black shadow-inner">2</div>
                     </div>
-
-                    <!-- Límite de Crédito -->
                     <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center">
                         <h3 class="text-lg font-bold text-gray-700 mb-4 bg-gray-200 px-4 py-1 rounded w-full">Límite Crédito</h3>
                         <i class="fas fa-tachometer-alt text-6xl text-logi-dark mb-2"></i>
@@ -92,16 +99,58 @@
                             <span>Total<br><span class="text-green-600">Q150,000</span></span>
                         </div>
                     </div>
-
-                    <!-- Saldo Pendiente -->
-                    <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center cursor-pointer hover:shadow-lg transition-shadow" onclick="showView('account-view', document.querySelectorAll('.nav-btn')[2])">
+                    <div class="bg-white rounded-2xl p-6 shadow-md text-center flex flex-col items-center justify-center cursor-pointer hover:shadow-lg transition-shadow" onclick="showView('account-view', document.querySelectorAll('.nav-btn')[3])">
                         <h3 class="text-lg font-bold text-gray-700 mb-4 bg-gray-200 px-4 py-1 rounded w-full">Saldo Pendiente</h3>
-                        <div class="text-5xl font-black text-gray-800 mb-2">Q10,000</div>
+                        <div class="text-5xl font-black text-gray-800 mb-2">Q10k</div>
                         <i class="fas fa-chart-bar text-4xl text-logi-light"></i>
                         <p class="text-xs text-gray-500 mt-2 font-bold">Ver Estado de Cuenta <i class="fas fa-arrow-right"></i></p>
                     </div>
-
                 </div>
+
+                <!-- Contenido Pestaña: Órdenes Recientes -->
+                <div id="tab-ordenes" class="dash-content hidden animate-fade-in grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 hover:border-logi-dark transition-colors">
+                        <div class="bg-gray-200 text-gray-800 font-bold p-3 rounded-lg mb-6 text-center text-sm shadow-inner">
+                            <p>ID: ORD-2025</p>
+                            <p>DESTINO: Nimajuyú</p>
+                            <p>Estado Actual: En Tránsito</p>
+                        </div>
+                        <div class="flex justify-center">
+                            <i class="fas fa-truck-moving text-7xl text-green-500 relative">
+                                <i class="fas fa-check-circle absolute -bottom-2 -right-2 text-white bg-green-500 rounded-full text-2xl border-2 border-white"></i>
+                            </i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-md p-6 border border-gray-200 hover:border-logi-dark transition-colors">
+                        <div class="bg-gray-200 text-gray-800 font-bold p-3 rounded-lg mb-6 text-center text-sm shadow-inner">
+                            <p>ID: ORD-2026</p>
+                            <p>DESTINO: Sanarate</p>
+                            <p>Estado Actual: Despachado</p>
+                        </div>
+                        <div class="flex justify-center">
+                            <i class="fas fa-truck text-7xl text-yellow-500 relative">
+                                <i class="fas fa-clock absolute -bottom-2 -right-2 text-white bg-yellow-500 rounded-full text-2xl border-2 border-white"></i>
+                            </i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido Pestaña: Alertas -->
+                <div id="tab-alertas" class="dash-content hidden animate-fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-yellow-100 border-l-8 border-yellow-500 p-4 rounded shadow-sm flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 text-3xl"></i>
+                                <div>
+                                    <p class="font-black text-yellow-800 tracking-wide uppercase">Aviso: Factura Pendiente</p>
+                                    <p class="text-sm text-yellow-700 font-medium">La factura FEL-106 requiere pago para liberar crédito.</p>
+                                </div>
+                            </div>
+                            <span class="text-xs text-gray-500 font-bold">08/03/2026</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -110,65 +159,173 @@
         <!-- ========================================== -->
         <div id="new-order-view" class="view-section hidden animate-fade-in">
             <button onclick="showView('dashboard-view', document.querySelectorAll('.nav-btn')[0])" class="mb-6 text-logi-dark font-bold flex items-center hover:text-teal-600 transition-colors w-fit">
-                <i class="fas fa-arrow-left mr-2"></i> Volver al Inicio
+                <i class="fas fa-arrow-left mr-2"></i> Cancelar y Volver
             </button>
 
             <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8">Generar Orden de Servicio</h2>
 
             <div class="bg-white rounded-3xl shadow-xl p-10 border border-gray-100">
-                
                 <!-- Stepper -->
                 <div class="flex gap-4 mb-10 border-b border-gray-200 pb-6">
-                    <div class="flex-1 bg-logi-dark text-white text-center py-2 rounded-lg font-bold shadow">1. Datos Carga</div>
-                    <div class="flex-1 border-2 border-gray-200 text-gray-500 text-center py-2 rounded-lg font-bold">2. Confirmación</div>
+                    <div id="step-1-indicator" class="flex-1 bg-logi-dark text-white text-center py-2 rounded-lg font-bold shadow transition-all">1. Datos Operativos de Carga</div>
+                    <div id="step-2-indicator" class="flex-1 border-2 border-gray-200 text-gray-500 text-center py-2 rounded-lg font-bold transition-all">2. Resumen y Confirmación</div>
                 </div>
 
-                <h3 class="text-2xl font-serif font-bold text-gray-900 mb-8">1. Detalles de la Solicitud</h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Cliente (Contrato Vigente)</label>
-                        <select class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-white text-gray-700 font-medium">
-                            <option>CONT-2026-092 (Vigente)</option>
-                        </select>
+                <!-- PASO 1: Formulario -->
+                <div id="wizard-step-1" class="animate-fade-in">
+                    <h3 class="text-2xl font-serif font-bold text-gray-900 mb-8">Detalles de la Solicitud</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Cliente (Contrato Vigente)</label>
+                            <select class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-gray-50 text-gray-700 font-medium">
+                                <option>CONT-2026-092 (Vigente)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Tipo de Mercancía</label>
+                            <select id="cargo_type" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-white text-gray-700 font-medium">
+                                <option value="">Seleccione Tipo de Mercancía</option>
+                                <option value="Construccion">Material de Construcción</option>
+                                <option value="General">Carga General</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Origen (Planta/Bodega)</label>
+                            <input type="text" id="pickup_address" placeholder="Ej. Planta 3 Sanarate" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Destino (Planta/Bodega)</label>
+                            <input type="text" id="delivery_address" placeholder="Ej. Bodega Central Xela" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Peso Estimado (Toneladas)</label>
+                            <input type="number" id="weight" placeholder="Ej. 32" class="w-full md:w-1/3 border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Tipo de Mercancía</label>
-                        <select id="cargo_type" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-white text-gray-700 font-medium">
-                            <option value="">Seleccione Tipo de Mercancía</option>
-                            <option value="1">Material de Construcción</option>
-                            <option value="2">Carga General</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Origen</label>
-                        <input type="text" id="pickup_address" placeholder="Ej. Planta 3 Sanarate" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Destino</label>
-                        <input type="text" id="delivery_address" placeholder="Ej. Bodega Central Xela" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Peso Estimado (Toneladas)</label>
-                        <input type="number" id="weight" placeholder="Ej. 32" class="w-full md:w-1/2 border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
-                        <p class="text-xs text-gray-500 mt-2">*El peso real será validado en la báscula de patio previo al despacho.</p>
+                    <div class="flex justify-end pt-6 border-t border-gray-200">
+                        <button onclick="nextStepOrder()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 flex items-center">
+                            Siguiente <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center pt-6 border-t border-gray-200">
-                    <button onclick="showView('dashboard-view')" class="border border-gray-300 text-gray-600 font-bold py-3 px-8 rounded-lg hover:bg-gray-50 transition-colors">Atrás</button>
-                    <button onclick="submitOrder()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1">Siguiente (Confirmar)</button>
+                <!-- PASO 2: Confirmación -->
+                <div id="wizard-step-2" class="hidden animate-fade-in">
+                    <h3 class="text-2xl font-serif font-bold text-gray-900 mb-6">Revisión de Tarifario y Confirmación</h3>
+                    <div class="bg-logi-tan bg-opacity-20 rounded-xl p-8 border border-logi-tan mb-8 flex flex-col md:flex-row gap-8">
+                        <div class="flex-1 space-y-4">
+                            <h4 class="font-bold text-logi-dark border-b border-logi-tan pb-2">Resumen de la Ruta</h4>
+                            <p><span class="font-bold text-gray-600">Origen:</span> <span id="sum-origin" class="text-gray-900"></span></p>
+                            <p><span class="font-bold text-gray-600">Destino:</span> <span id="sum-dest" class="text-gray-900"></span></p>
+                        </div>
+                        <div class="flex-1 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                            <h4 class="font-bold text-logi-dark border-b border-gray-200 pb-2 mb-4">Estimación Financiera</h4>
+                            <div class="flex justify-between items-center border-t border-gray-200 pt-4">
+                                <span class="font-bold text-gray-800">Costo Estimado:</span> 
+                                <span class="text-2xl font-black text-logi-dark">Q 3,420.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                        <button onclick="prevStepOrder()" class="border border-gray-300 text-gray-600 font-bold py-3 px-8 rounded-lg hover:bg-gray-50 transition-colors">Atrás</button>
+                        <button onclick="submitOrder()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 flex items-center">
+                            Crear Orden <i class="fas fa-check-circle ml-2"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- ========================================== -->
-        <!-- VISTA 3: ESTADO DE CUENTA Y FACTURAS       -->
+        <!-- VISTA 3: MIS FACTURAS (NUEVA VISTA)        -->
+        <!-- ========================================== -->
+        <div id="invoices-view" class="view-section hidden animate-fade-in">
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8 text-center uppercase">MIS FACTURAS</h2>
+
+            <div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+                <!-- Filtros -->
+                <div class="flex flex-col md:flex-row items-center gap-4 mb-8">
+                    <div class="flex items-center gap-2 w-full md:w-1/2">
+                        <label class="font-bold text-gray-700">NO. FACTURA</label>
+                        <div class="relative flex-1">
+                            <input type="text" placeholder="Ej. FEL-..." class="w-full border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-logi-dark">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="bg-logi-dark hover:bg-teal-900 text-white w-12 h-12 rounded-full shadow flex items-center justify-center transition-colors">
+                            <i class="fas fa-search text-xl"></i>
+                        </button>
+                        <button class="bg-white border border-teal-500 text-teal-600 w-12 h-12 rounded-full shadow-sm flex items-center justify-center hover:bg-teal-50 transition-colors">
+                            <i class="fas fa-filter text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla de Facturas -->
+                <div class="overflow-x-auto">
+                    <div class="min-w-[800px]">
+                        <div class="grid grid-cols-6 gap-4 p-4 text-center font-extrabold text-gray-800 border-b-2 border-gray-200">
+                            <div>No. Factura</div>
+                            <div class="col-span-2">Descripción</div>
+                            <div>No. Autorización</div>
+                            <div>Monto</div>
+                            <div>Acciones</div>
+                        </div>
+
+                        <!-- Row 1 -->
+                        <div class="grid grid-cols-6 gap-4 p-4 items-center text-center border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <div class="font-bold text-gray-700">FEL-2026-01</div>
+                            <div class="col-span-2 text-gray-600">Flete de Puerto Barrios a Xela</div>
+                            <div class="text-sm text-gray-500 font-mono">987E4C32-A1B2</div>
+                            <div class="font-black text-gray-900 text-lg">Q 10,000.00</div>
+                            <div class="flex justify-center gap-2">
+                                <button class="bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded shadow flex items-center justify-center transition-colors" title="Descargar PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </button>
+                                <button onclick="openPaymentModal('FEL-2026-01', '10,000.00')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold px-3 py-1.5 rounded shadow flex items-center text-sm transition-colors">
+                                    Pagar <i class="fas fa-credit-card ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="grid grid-cols-6 gap-4 p-4 items-center text-center border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                            <div class="font-bold text-gray-700">FEL-2026-02</div>
+                            <div class="col-span-2 text-gray-600">Flete Local Capital</div>
+                            <div class="text-sm text-gray-500 font-mono">5F8E2C99-B4A1</div>
+                            <div class="font-black text-gray-900 text-lg">Q 3,500.00</div>
+                            <div class="flex justify-center gap-2">
+                                <button class="bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded shadow flex items-center justify-center transition-colors" title="Descargar PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </button>
+                                <button class="bg-gray-300 text-gray-500 font-bold px-3 py-1.5 rounded shadow flex items-center text-sm cursor-not-allowed" disabled>
+                                    Pagada <i class="fas fa-check ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paginación -->
+                <div class="flex justify-between mt-8">
+                    <div class="flex gap-2">
+                        <button class="bg-logi-tan text-logi-dark font-bold w-10 h-10 rounded shadow">1</button>
+                        <button class="bg-white border border-gray-300 text-gray-600 w-10 h-10 rounded shadow hover:bg-gray-50">2</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-logi-tan text-logi-dark font-bold w-10 h-10 rounded shadow opacity-50">&lt;</button>
+                        <button class="bg-logi-tan text-logi-dark font-bold w-10 h-10 rounded shadow hover:bg-[#d4bca9]">&gt;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 4: ESTADO DE CUENTA                  -->
         <!-- ========================================== -->
         <div id="account-view" class="view-section hidden animate-fade-in">
-            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8">Estado de Cuenta y Facturas</h2>
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8">Estado de Cuenta</h2>
 
-            <!-- Tarjetas Financieras -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-logi-tan rounded-2xl p-6 shadow text-center border border-[#d4bca9]">
                     <p class="text-sm font-bold text-gray-600 mb-2 uppercase">Límite de Crédito</p>
@@ -184,154 +341,194 @@
                 </div>
             </div>
 
-            <!-- Reporte Vencimientos -->
             <div class="bg-white rounded-3xl shadow-md p-8 border border-gray-100 mb-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-6">Reporte de Vencimientos (Aging Report)</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-6">Reporte de Vencimientos</h3>
                 <div class="flex gap-4 h-12">
                     <div class="bg-[#98cba4] w-2/3 rounded-lg flex items-center justify-center font-bold text-logi-dark shadow-inner">Al día (Q10,000)</div>
                     <div class="bg-[#e1cbb8] w-1/6 rounded-lg flex items-center justify-center font-bold text-gray-700 shadow-inner opacity-50">Vencido a 30 días</div>
                     <div class="bg-[#d9534f] w-1/6 rounded-lg flex items-center justify-center font-bold text-white shadow-inner opacity-50">Crítico</div>
                 </div>
             </div>
-
-            <!-- Facturas Pendientes (Simulando la tabla de facturas) -->
-            <div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold text-gray-800">Facturas Pendientes de Pago</h3>
-                    <div class="flex gap-4">
-                        <input type="text" placeholder="Buscar factura..." class="border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-logi-dark">
-                    </div>
-                </div>
-
-                <div class="bg-logi-tan bg-opacity-30 rounded-xl p-4 mb-4 flex justify-between items-center border border-logi-tan">
-                    <div>
-                        <p class="font-bold text-gray-800 text-lg">FEL-2026-00101</p>
-                        <p class="text-sm text-gray-600">Fecha de Emisión: 14 Feb 2026 | Flete Guate-Xela</p>
-                    </div>
-                    <div class="text-right flex items-center gap-6">
-                        <p class="text-2xl font-black text-gray-900">Q 10,000.00</p>
-                        <div class="flex gap-2">
-                            <button class="bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded shadow flex items-center justify-center transition-colors" title="Descargar PDF">
-                                <i class="fas fa-file-pdf"></i>
-                            </button>
-                            <button class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-2 px-6 rounded shadow transition-colors">
-                                Registrar Pago
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            
+            <div class="flex justify-center mt-6">
+                <button onclick="showView('invoices-view', document.querySelectorAll('.nav-btn')[2])" class="bg-logi-dark text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-teal-900 transition-colors">
+                    Ver Facturas para Pagar <i class="fas fa-arrow-right ml-2"></i>
+                </button>
             </div>
         </div>
 
         <!-- ========================================== -->
-        <!-- VISTA 4: MIS CONTRATOS                     -->
+        <!-- VISTA 5: MIS CONTRATOS                     -->
         <!-- ========================================== -->
-        <div id="contracts-view" class="view-section hidden animate-fade-in text-center">
-            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-12">Mis Contratos</h2>
+        <div id="contracts-view" class="view-section hidden animate-fade-in">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Reglas y Contratos</h2>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" placeholder="Buscar Contrato..." class="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-logi-dark">
+                </div>
+            </div>
             
             <div class="flex flex-col md:flex-row justify-center gap-12">
-                <!-- Contrato Vigente -->
-                <div class="bg-white border-2 border-logi-dark rounded-3xl p-10 shadow-xl max-w-sm w-full relative transform hover:-translate-y-2 transition-transform cursor-pointer">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-logi-dark text-white font-bold px-6 py-1 rounded-full shadow">
-                        VIGENTE
-                    </div>
+                <div class="bg-white border-2 border-logi-dark rounded-3xl p-10 shadow-xl max-w-sm w-full text-center relative transform hover:-translate-y-2 transition-transform cursor-pointer">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-logi-dark text-white font-bold px-6 py-1 rounded-full shadow">VIGENTE</div>
                     <i class="fas fa-file-contract text-7xl text-logi-light mb-6"></i>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Contrato CONT-092</h3>
-                    <p class="text-gray-600 mb-6">Condiciones operativas y financieras acordadas para el año 2026.</p>
-                    <button class="w-full border-2 border-logi-dark text-logi-dark font-bold py-2 rounded-lg hover:bg-teal-50 transition-colors">
-                        Ver Detalles
-                    </button>
-                </div>
-
-                <!-- Contrato Vencido -->
-                <div class="bg-gray-50 border-2 border-gray-300 rounded-3xl p-10 shadow-md max-w-sm w-full relative opacity-70">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gray-400 text-white font-bold px-6 py-1 rounded-full shadow">
-                        VENCIDO
-                    </div>
-                    <i class="fas fa-file-excel text-7xl text-gray-400 mb-6"></i>
-                    <h3 class="text-2xl font-bold text-gray-600 mb-2">Contrato CONT-045</h3>
-                    <p class="text-gray-500 mb-6">Acuerdos del periodo 2025. Finalizado y archivado.</p>
-                    <button class="w-full border-2 border-gray-300 text-gray-500 font-bold py-2 rounded-lg cursor-not-allowed">
-                        Solo Lectura
-                    </button>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">CONT-092</h3>
+                    <p class="text-gray-600 mb-6">Condiciones operativas 2026.</p>
+                    <button class="w-full border-2 border-logi-dark text-logi-dark font-bold py-2 rounded-lg hover:bg-teal-50 transition-colors">Ver Detalles</button>
                 </div>
             </div>
         </div>
 
         <!-- ========================================== -->
-        <!-- VISTA 5: MIS DATOS (PERFIL)                -->
+        <!-- VISTA 6: CONTACTOS Y PERFIL (UNIFICADO)    -->
         <!-- ========================================== -->
+        <div id="contacts-view" class="view-section hidden animate-fade-in">
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight uppercase mb-8">Contactos Clave</h2>
+            <div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+                <div class="flex justify-end mb-6">
+                    <button class="bg-logi-light hover:bg-teal-600 text-white font-bold py-2 px-6 rounded-lg shadow flex items-center"><i class="fas fa-plus mr-2"></i> Agregar Contacto</button>
+                </div>
+                <div class="bg-logi-dark text-white rounded-xl flex items-center p-4 shadow-md relative mt-4">
+                    <div class="absolute -top-3 left-4 bg-[#e1cbb8] text-logi-dark font-black px-4 py-1 rounded text-sm shadow">GERENTE LOGÍSTICA</div>
+                    <div class="w-14 h-14 bg-blue-400 rounded-full flex items-center justify-center text-2xl border-2 border-white shadow-inner mr-6 mt-2"><i class="fas fa-user"></i></div>
+                    <div class="flex-1 mt-2">
+                        <p class="font-bold text-lg tracking-wide">Jorge Mendizabal</p>
+                        <p class="text-sm text-teal-200">jorge@cementos.com | 3223-3233</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white w-10 h-10 rounded shadow"><i class="fas fa-pen"></i></button>
+                        <button class="bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded shadow"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="profile-view" class="view-section hidden animate-fade-in">
-            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8 text-center uppercase">MI PERFIL</h2>
-
+            <h2 class="text-4xl font-black text-gray-900 tracking-tight mb-8 text-center uppercase">Mi Perfil Empresarial</h2>
             <div class="bg-white rounded-3xl shadow-xl p-10 max-w-3xl mx-auto border border-gray-100">
-                <div class="flex justify-center mb-8">
-                    <div class="w-32 h-32 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center text-6xl shadow-inner border-4 border-white">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                </div>
-
-                <h3 class="text-xl font-bold text-logi-dark mb-4 border-b border-gray-200 pb-2">Datos Generales <i class="fas fa-edit ml-2 text-sm cursor-pointer"></i></h3>
-                <div class="grid grid-cols-2 gap-6 mb-8">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Nombre Comercial</label>
-                        <p class="font-bold text-gray-800 text-lg">Cementos Progreso</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Teléfono Principal</label>
-                        <p class="font-bold text-gray-800 text-lg">2222-3333</p>
-                    </div>
-                </div>
-
                 <h3 class="text-xl font-bold text-logi-dark mb-4 border-b border-gray-200 pb-2">Datos Fiscales (Solo Lectura)</h3>
-                <div class="grid grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Razón Social</label>
-                        <p class="font-bold text-gray-800">Cementos Progreso S.A.</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase">NIT</label>
-                        <p class="font-bold text-gray-800">548973-1</p>
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-bold text-gray-500 uppercase">Dirección Fiscal</label>
-                        <p class="font-bold text-gray-800">15 Avenida 18-01 Zona 10, Ciudad de Guatemala</p>
-                    </div>
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div><label class="block text-xs font-bold text-gray-500">Razón Social</label><p class="font-black text-gray-800 text-lg">Cementos Progreso S.A.</p></div>
+                    <div><label class="block text-xs font-bold text-gray-500">NIT</label><p class="font-black text-gray-800 text-lg">548973-1</p></div>
+                </div>
+                <h3 class="text-xl font-bold text-logi-dark mb-4 border-b border-gray-200 pb-2">Seguridad</h3>
+                <div class="flex items-center justify-between bg-gray-50 border border-gray-200 p-4 rounded-lg">
+                    <div><p class="font-bold text-gray-800">Contraseña de Acceso</p></div>
+                    <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded transition-colors text-sm">Cambiar Clave</button>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- Modal Éxito Creación Orden -->
-    <div id="success-modal" class="fixed inset-0 bg-logi-dark bg-opacity-90 z-[100] hidden flex items-center justify-center backdrop-blur-sm">
+    <!-- ========================================== -->
+    <!-- MODAL DE PAGOS (NUEVO)                     -->
+    <!-- ========================================== -->
+    <div id="pay-modal" class="fixed inset-0 bg-logi-dark bg-opacity-90 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl relative animate-fade-in overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-logi-dark text-white p-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-black">Registrar Pago</h2>
+                    <p class="text-teal-200 text-sm mt-1">Factura: <strong id="pay-invoice-number">FEL-2026-01</strong> | Monto: <strong id="pay-invoice-amount">Q 10,000.00</strong></p>
+                </div>
+                <button onclick="closeModal('pay-modal')" class="text-white hover:text-red-400 transition-colors text-2xl"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="p-8">
+                <!-- Payment Method Tabs -->
+                <div class="flex gap-4 border-b border-gray-200 mb-6">
+                    <button onclick="switchPayTab('pay-card')" id="btn-pay-card" class="pay-tab-active pb-2 flex items-center gap-2 px-4 transition-all">
+                        <i class="fas fa-credit-card"></i> Tarjeta de Crédito
+                    </button>
+                    <button onclick="switchPayTab('pay-transfer')" id="btn-pay-transfer" class="pay-tab-inactive pb-2 flex items-center gap-2 px-4 transition-all">
+                        <i class="fas fa-university"></i> Depósito/Transferencia
+                    </button>
+                </div>
+
+                <!-- Tab 1: Tarjeta -->
+                <div id="pay-card" class="pay-content animate-fade-in">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Seleccionar Tarjeta Guardada</label>
+                            <select class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-gray-50 text-gray-700">
+                                <option>VISA terminada en 4455 (Principal)</option>
+                                <option>Ingresar Nueva Tarjeta...</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-bold text-gray-700 mb-1">Número de Tarjeta</label>
+                                <div class="relative">
+                                    <i class="fas fa-credit-card absolute left-3 top-3 text-gray-400"></i>
+                                    <input type="text" placeholder="XXXX XXXX XXXX XXXX" class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-logi-dark" disabled value="**** **** **** 4455">
+                                </div>
+                            </div>
+                            <div class="w-1/3">
+                                <label class="block text-sm font-bold text-gray-700 mb-1">CVV</label>
+                                <input type="password" placeholder="123" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                            </div>
+                        </div>
+                        <div class="flex justify-end pt-4">
+                            <button onclick="submitPayment('TARJETA')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-8 rounded-lg shadow-lg flex items-center transition-transform hover:-translate-y-1">
+                                Procesar Pago <i class="fas fa-lock ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Transferencia -->
+                <div id="pay-transfer" class="pay-content hidden animate-fade-in">
+                    <div class="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-lg mb-6 flex items-start gap-3">
+                        <i class="fas fa-info-circle mt-1 text-blue-600"></i>
+                        <p>Deposite el monto exacto a la cuenta <strong>Monetaria BI 001-9999-2</strong> a nombre de LogiTrans S.A. y adjunte el comprobante (PDF o Imagen).</p>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Número de Referencia / Autorización *</label>
+                            <input type="text" id="bank_reference" placeholder="Ej. REF-0998342" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Comprobante de Depósito (PDF) *</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-sm text-gray-600 font-bold">Haz clic para subir el archivo</p>
+                                <p class="text-xs text-gray-500 mt-1">Soporta .PDF, .JPG, .PNG</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-end pt-2">
+                            <button onclick="submitPayment('TRANSFERENCIA')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-8 rounded-lg shadow-lg flex items-center transition-transform hover:-translate-y-1">
+                                Enviar Comprobante <i class="fas fa-paper-plane ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Éxito Global -->
+    <div id="success-modal" class="fixed inset-0 bg-logi-dark bg-opacity-90 z-[110] hidden flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white rounded-3xl p-10 max-w-md w-full text-center shadow-2xl transform scale-95 animate-fade-in border-t-8 border-green-500">
             <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <i class="fas fa-check-circle text-5xl text-green-600"></i>
             </div>
-            <h3 class="text-3xl font-black text-logi-dark mb-3">Orden Registrada</h3>
-            <p class="text-gray-600 mb-8 text-lg">Su solicitud ha sido enviada al departamento de logística para la asignación de recursos. El ID de su orden es <strong>ORD-034</strong>.</p>
-            <button onclick="closeModalAndReturn()" class="w-full bg-logi-dark text-white font-bold py-4 rounded-xl hover:bg-teal-800 transition-colors shadow-lg">
-                Volver al Tablero
+            <h3 class="text-3xl font-black text-logi-dark mb-3" id="success-title">¡Acción Exitosa!</h3>
+            <p class="text-gray-600 mb-8 text-lg" id="success-message">Su operación ha sido procesada correctamente.</p>
+            <button onclick="closeModal('success-modal')" class="w-full bg-logi-dark text-white font-bold py-4 rounded-xl hover:bg-teal-800 transition-colors shadow-lg">
+                Aceptar
             </button>
         </div>
     </div>
 
-    <style>
-        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
-
     <script>
+        // Navegación
         function showView(viewId, navElement) {
-            // Ocultar todas las vistas
             document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             document.getElementById(viewId).classList.remove('hidden');
 
-            // Actualizar Nav si se pasó un elemento
             if(navElement) {
                 document.querySelectorAll('.nav-btn').forEach(btn => {
                     btn.classList.remove('text-white', 'border-b-2', 'border-white');
@@ -342,30 +539,78 @@
             }
         }
 
-        function submitOrder() {
-            // Validación básica
-            const cargo = document.getElementById('cargo_type').value;
-            const pickup = document.getElementById('pickup_address').value;
-            const weight = document.getElementById('weight').value;
-
-            if(!cargo || !pickup || !weight) {
-                alert("Por favor llene todos los campos requeridos para generar la orden.");
-                return;
-            }
-
-            // Simulación POST /api/cliente/orders
-            console.log("POST: Generando orden de servicio...", {
-                CARGO_TYPE_ID: cargo,
-                PICKUP_ADDRESS: pickup,
-                DECLARED_WEIGHT_TON: weight
+        function switchDashTab(tabId) {
+            document.querySelectorAll('.dash-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.dash-tab').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
             });
+            document.getElementById('btn-' + tabId).classList.remove('tab-inactive');
+            document.getElementById('btn-' + tabId).classList.add('tab-active');
+        }
 
+        // Pagos Logic
+        function openPaymentModal(invoice, amount) {
+            document.getElementById('pay-invoice-number').innerText = invoice;
+            document.getElementById('pay-invoice-amount').innerText = "Q " + amount;
+            document.getElementById('pay-modal').classList.remove('hidden');
+        }
+
+        function switchPayTab(tabId) {
+            document.querySelectorAll('.pay-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.getElementById('btn-pay-card').className = "pay-tab-inactive pb-2 flex items-center gap-2 px-4 transition-all";
+            document.getElementById('btn-pay-transfer').className = "pay-tab-inactive pb-2 flex items-center gap-2 px-4 transition-all";
+            
+            document.getElementById('btn-' + tabId).className = "pay-tab-active pb-2 flex items-center gap-2 px-4 transition-all";
+        }
+
+        function submitPayment(method) {
+            console.log(`POST /api/cliente/payments -> Method: ${method}`);
+            closeModal('pay-modal');
+            
+            document.getElementById('success-title').innerText = "Pago Registrado";
+            document.getElementById('success-message').innerText = method === 'TARJETA' 
+                ? "El pago ha sido procesado y el crédito liberado." 
+                : "El comprobante ha sido enviado a Finanzas para su conciliación. El crédito se liberará al ser aprobado.";
+            
             document.getElementById('success-modal').classList.remove('hidden');
         }
 
-        function closeModalAndReturn() {
-            document.getElementById('success-modal').classList.add('hidden');
-            showView('dashboard-view', document.querySelectorAll('.nav-btn')[0]);
+        // Orden Logic
+        function nextStepOrder() {
+            document.getElementById('wizard-step-1').classList.add('hidden');
+            document.getElementById('wizard-step-2').classList.remove('hidden');
+            document.getElementById('step-1-indicator').classList.replace('bg-logi-dark', 'border-2');
+            document.getElementById('step-1-indicator').classList.replace('text-white', 'text-gray-500');
+            document.getElementById('step-2-indicator').classList.replace('border-2', 'bg-logi-dark');
+            document.getElementById('step-2-indicator').classList.replace('text-gray-500', 'text-white');
+            document.getElementById('sum-origin').innerText = document.getElementById('pickup_address').value;
+            document.getElementById('sum-dest').innerText = document.getElementById('delivery_address').value;
+        }
+
+        function prevStepOrder() {
+            document.getElementById('wizard-step-2').classList.add('hidden');
+            document.getElementById('wizard-step-1').classList.remove('hidden');
+            document.getElementById('step-2-indicator').classList.replace('bg-logi-dark', 'border-2');
+            document.getElementById('step-2-indicator').classList.replace('text-white', 'text-gray-500');
+            document.getElementById('step-1-indicator').classList.replace('border-2', 'bg-logi-dark');
+            document.getElementById('step-1-indicator').classList.replace('text-gray-500', 'text-white');
+        }
+
+        function submitOrder() {
+            console.log("POST /api/cliente/orders");
+            document.getElementById('success-title').innerText = "¡Orden Confirmada!";
+            document.getElementById('success-message').innerText = "Su solicitud ha sido enviada a Logística. Puede seguir su estado en la pestaña de Órdenes Recientes.";
+            document.getElementById('success-modal').classList.remove('hidden');
+            prevStepOrder();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
         }
     </script>
 </body>

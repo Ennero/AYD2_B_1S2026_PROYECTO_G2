@@ -41,7 +41,7 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 | Campo | Motivo |
 |---|---|
 | `CLIENT_ID` | Identificador principal del cliente. |
-| `CLIENT_CODE` | Código corto de negocio para búsqueda y referencia. |
+| `CLIENT_CODE` | Código corto de negocio para búsqueda y referencia. Si backend no lo manda, la base puede generarlo. |
 | `LEGAL_NAME` | Razón social usada en contrato y factura. |
 | `COMMERCIAL_NAME` | Nombre comercial para operación diaria. |
 | `NIT` | Dato fiscal obligatorio para la factura. |
@@ -49,7 +49,7 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 | `CONTACT_NAME` | Contacto principal del cliente en el MVP. |
 | `CONTACT_EMAIL` | Correo del contacto principal. |
 | `CONTACT_PHONE` | Teléfono del contacto principal. |
-| `CREDIT_LIMIT` | Límite de crédito para bloquear nuevas órdenes cuando se exceda. |
+| `CREDIT_LIMIT` | Límite de crédito para bloquear nuevas órdenes cuando se exceda. Inicia en `0` mientras el cliente aún no tenga condiciones comerciales formales. |
 | `PAYMENT_RISK` | Riesgo por capacidad de pago. |
 | `CUSTOMS_RISK` | Riesgo relacionado con aduanas. |
 | `CARGO_RISK` | Riesgo relacionado con la mercancía. |
@@ -157,14 +157,15 @@ Contrato comercial del cliente.
 | Campo | Motivo |
 |---|---|
 | `CONTRACT_ID` | Identificador del contrato. |
-| `CONTRACT_NUMBER` | Número visible del contrato. |
+| `CONTRACT_NUMBER` | Número visible del contrato. Si backend no lo manda, la base puede generarlo. |
 | `CLIENT_ID` | Cliente al que pertenece. |
 | `STATUS` | Estado actual del contrato. |
-| `START_DATE` | Inicio de vigencia. |
-| `END_DATE` | Fin de vigencia. |
+| `START_DATE` | Inicio de vigencia. Si backend no lo manda, puede tomar la fecha actual. |
+| `END_DATE` | Fin de vigencia. El modelo permite completar este dato por defecto para no frenar el MVP mientras se formaliza el flujo. |
 | `ACCEPTED_AT` | Momento en que fue aceptado. |
 | `CREDIT_LIMIT` | Límite de crédito pactado para ese contrato. |
 | `PAYMENT_TERM_DAYS` | Plazo de pago pactado. |
+| `DISCOUNT_PERCENTAGE` | Descuento general del contrato, usado para derivar tarifas por tipo de vehículo. |
 | `SIGNED_CONTRACT_PATH` | Ruta del archivo firmado. |
 | `NOTES` | Observaciones contractuales. |
 
@@ -191,6 +192,8 @@ Tipos de carga permitidos por contrato.
 ## `CONTRACT_RATES`
 
 Tarifa final acordada por contrato y tipo de vehículo.
+
+Estas filas pueden poblarse automáticamente a partir del descuento general del contrato y de las tarifas base de `VEHICLE_TYPES`.
 
 | Campo | Motivo |
 |---|---|
@@ -227,16 +230,16 @@ Tabla central del flujo operativo. Aquí se dejó concentrado casi todo lo que o
 | Campo | Motivo |
 |---|---|
 | `ORDER_ID` | Identificador interno de la orden. |
-| `ORDER_NUMBER` | Número visible de la orden. |
+| `ORDER_NUMBER` | Número visible de la orden. Si backend no lo manda, la base puede generarlo. |
 | `CONTRACT_ID` | Contrato que respalda la orden. |
 | `REQUESTED_BY_USER_ID` | Usuario cliente que la solicitó. |
-| `BRANCH_ID` | Sede que atenderá la orden. |
-| `CONTRACT_ROUTE_ID` | Ruta autorizada utilizada. |
-| `CONTRACT_RATE_ID` | Tarifa contractual utilizada. |
+| `BRANCH_ID` | Sede que atenderá la orden. Puede completarse al asignar la unidad. |
+| `CONTRACT_ROUTE_ID` | Ruta autorizada utilizada. Puede completarse después si aún no se definió al registrar la orden. |
+| `CONTRACT_RATE_ID` | Tarifa contractual utilizada. Puede resolverse al asignar la unidad. |
 | `CARGO_TYPE_ID` | Tipo de carga de la orden. |
 | `UNIT_ID` | Unidad asignada. |
 | `STATUS` | Estado operativo actual. |
-| `CARGO_DESCRIPTION` | Descripción textual de la mercancía. |
+| `CARGO_DESCRIPTION` | Descripción textual de la mercancía. Si no se envía, queda un valor temporal para no bloquear la creación. |
 | `DECLARED_WEIGHT_TON` | Peso declarado al crear la orden. |
 | `LOADED_WEIGHT_TON` | Peso real capturado en patio. |
 | `PICKUP_ADDRESS` | Dirección exacta de origen. |
@@ -251,8 +254,8 @@ Tabla central del flujo operativo. Aquí se dejó concentrado casi todo lo que o
 | `RECEIVER_NAME` | Nombre de quien recibió la carga. |
 | `RECEIVER_SIGNATURE_PATH` | Ruta del archivo con firma del receptor. |
 | `DELIVERY_EVIDENCE_PATH` | Ruta del archivo con evidencia de entrega. |
-| `DISTANCE_KM` | Distancia usada para cálculo del servicio. |
-| `BASE_RATE_PER_KM` | Tarifa base usada en la orden. |
+| `DISTANCE_KM` | Distancia usada para cálculo del servicio. Puede inicializarse en `0` hasta que el flujo determine la ruta. |
+| `BASE_RATE_PER_KM` | Tarifa base usada en la orden. Puede completarse al asignar la unidad. |
 | `DISCOUNT_PERCENTAGE` | Descuento aplicado. |
 | `FINAL_RATE_PER_KM` | Tarifa final aplicada. |
 | `SUBTOTAL_AMOUNT` | Subtotal antes de IVA. |
@@ -282,11 +285,12 @@ Factura electrónica simplificada y simulada.
 | Campo | Motivo |
 |---|---|
 | `INVOICE_ID` | Identificador interno de la factura. |
-| `INVOICE_NUMBER` | Número visible de la factura. |
+| `INVOICE_NUMBER` | Número visible de la factura. Si backend no lo manda, la base puede generarlo. |
 | `ORDER_ID` | Orden que originó la factura. |
+| `CLIENT_ID` | Cliente dueño de la factura; permite listar "Mis Facturas" de forma directa. |
 | `STATUS` | Estado de la factura. |
 | `ISSUE_DATE` | Fecha de emisión. |
-| `DUE_DATE` | Fecha de vencimiento. |
+| `DUE_DATE` | Fecha de vencimiento. Si backend no la manda, la base puede derivarla desde el plazo del contrato. |
 | `SENT_AT` | Fecha y hora exacta en que se disparó el correo de envío de la factura. |
 | `CLIENT_NAME` | Nombre del cliente capturado en la factura. |
 | `CLIENT_NIT` | NIT usado en la factura. |
@@ -309,6 +313,7 @@ Pago simulado del MVP. Solo existen tarjeta y transferencia.
 | `METHOD` | Método de pago: tarjeta o transferencia. |
 | `STATUS` | Estado del pago: pendiente, aprobado o rechazado. |
 | `CARD_ID` | Tarjeta elegida, si el pago fue con tarjeta. |
+| `BANK_REFERENCE` | Referencia bancaria para conciliación rápida cuando el pago es por transferencia. |
 | `TRANSFER_RECEIPT_PATH` | PDF del comprobante, si fue transferencia. |
 | `AMOUNT` | Monto pagado. |
 | `PAYMENT_DATE` | Fecha y hora del pago. |
@@ -316,9 +321,13 @@ Pago simulado del MVP. Solo existen tarjeta y transferencia.
 
 ## Reglas inteligentes que sí se dejaron
 
+- Se pueden generar automáticamente `CLIENT_CODE`, `CONTRACT_NUMBER`, `ORDER_NUMBER` e `INVOICE_NUMBER`.
+- Al crear o modificar el descuento general del contrato, la base puede sincronizar las tarifas contractuales por tipo de vehículo.
 - La capacidad real de la unidad debe coincidir con el rango del tipo de vehículo.
 - Una orden no puede asignarse a una unidad que no soporte el peso.
+- Al asignar una unidad, la base puede completar la sede y la tarifa contractual de la orden.
 - Si la carga requiere refrigeración, la unidad debe tenerla.
+- Al crear una factura, la base puede completar datos del cliente y vencimiento desde la orden y el contrato.
 - El monto del pago debe ser exactamente igual al total de la factura.
 - Si un pago queda aprobado, la factura pasa a `PAGADA`.
 - Un cliente no puede tener más de un contrato pendiente o vigente a la vez.

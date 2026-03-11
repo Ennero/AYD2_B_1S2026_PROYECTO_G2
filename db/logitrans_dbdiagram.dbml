@@ -78,7 +78,7 @@ Table CLIENTS {
   CONTACT_NAME varchar(160) [not null]
   CONTACT_EMAIL varchar(320) [not null]
   CONTACT_PHONE varchar(30)
-  CREDIT_LIMIT numeric(14,2) [not null]
+  CREDIT_LIMIT numeric(14,2) [not null, default: 0]
   PAYMENT_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CUSTOMS_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CARGO_RISK RISK_LEVEL [not null, default: 'MEDIO']
@@ -161,11 +161,12 @@ Table CONTRACTS {
   CONTRACT_NUMBER varchar(40) [not null, unique]
   CLIENT_ID uuid [not null]
   STATUS CONTRACT_STATUS [not null, default: 'BORRADOR']
-  START_DATE date [not null]
+  START_DATE date [not null, default: `CURRENT_DATE`]
   END_DATE date [not null]
   ACCEPTED_AT timestamptz
   CREDIT_LIMIT numeric(14,2) [not null]
   PAYMENT_TERM_DAYS smallint [not null]
+  DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
   SIGNED_CONTRACT_PATH text
   NOTES text
 }
@@ -225,13 +226,13 @@ Table ORDERS {
   ORDER_NUMBER varchar(40) [not null, unique]
   CONTRACT_ID uuid [not null]
   REQUESTED_BY_USER_ID uuid [not null]
-  BRANCH_ID smallint [not null]
-  CONTRACT_ROUTE_ID uuid [not null]
-  CONTRACT_RATE_ID uuid [not null]
+  BRANCH_ID smallint
+  CONTRACT_ROUTE_ID uuid
+  CONTRACT_RATE_ID uuid
   CARGO_TYPE_ID smallint [not null]
   UNIT_ID uuid
   STATUS ORDER_STATUS [not null, default: 'REGISTRADA']
-  CARGO_DESCRIPTION text [not null]
+  CARGO_DESCRIPTION text [not null, default: 'PENDIENTE_DETALLE']
   DECLARED_WEIGHT_TON numeric(8,2) [not null]
   LOADED_WEIGHT_TON numeric(8,2)
   PICKUP_ADDRESS text [not null]
@@ -246,13 +247,13 @@ Table ORDERS {
   RECEIVER_NAME varchar(160)
   RECEIVER_SIGNATURE_PATH text
   DELIVERY_EVIDENCE_PATH text
-  DISTANCE_KM numeric(10,2) [not null]
-  BASE_RATE_PER_KM numeric(12,2) [not null]
+  DISTANCE_KM numeric(10,2) [not null, default: 0]
+  BASE_RATE_PER_KM numeric(12,2) [not null, default: 0]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
-  FINAL_RATE_PER_KM numeric(12,2) [not null]
-  SUBTOTAL_AMOUNT numeric(14,2) [not null]
-  TAX_AMOUNT numeric(14,2) [not null]
-  TOTAL_AMOUNT numeric(14,2) [not null]
+  FINAL_RATE_PER_KM numeric(12,2) [not null, default: 0]
+  SUBTOTAL_AMOUNT numeric(14,2) [not null, default: 0]
+  TAX_AMOUNT numeric(14,2) [not null, default: 0]
+  TOTAL_AMOUNT numeric(14,2) [not null, default: 0]
   FUEL_COST numeric(14,2) [not null, default: 0]
   VIATICS_COST numeric(14,2) [not null, default: 0]
   MAINTENANCE_COST numeric(14,2) [not null, default: 0]
@@ -271,6 +272,7 @@ Table INVOICES {
   INVOICE_ID uuid [pk]
   INVOICE_NUMBER varchar(40) [not null, unique]
   ORDER_ID uuid [not null, unique]
+  CLIENT_ID uuid [not null]
   STATUS INVOICE_STATUS [not null, default: 'BORRADOR']
   ISSUE_DATE timestamptz [not null]
   DUE_DATE date [not null]
@@ -292,6 +294,7 @@ Table PAYMENTS {
   METHOD PAYMENT_METHOD [not null]
   STATUS PAYMENT_STATUS [not null, default: 'PENDIENTE']
   CARD_ID uuid
+  BANK_REFERENCE varchar(80)
   TRANSFER_RECEIPT_PATH text
   AMOUNT numeric(14,2) [not null]
   PAYMENT_DATE timestamptz [not null]
@@ -320,6 +323,7 @@ Ref: ORDERS.CARGO_TYPE_ID > CARGO_TYPES.CARGO_TYPE_ID
 Ref: ORDERS.UNIT_ID > TRANSPORT_UNITS.UNIT_ID
 Ref: ORDER_ROUTE_LOGS.ORDER_ID > ORDERS.ORDER_ID
 Ref: INVOICES.ORDER_ID > ORDERS.ORDER_ID
+Ref: INVOICES.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: PAYMENTS.INVOICE_ID > INVOICES.INVOICE_ID
 Ref: PAYMENTS.CARD_ID > CLIENT_CARDS.CARD_ID
 Ref: PAYMENTS.REVIEWED_BY_USER_ID > USERS.USER_ID
