@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* ===========================
+   Tailwind v4 Theme — Static Values
+   @theme inline requires static values,
+   NOT var() references to runtime variables.
+   =========================== */
+@theme inline {
+  /* Colors */
+  --color-primary: #074F57;
+  --color-primary-hover: #077187;
+  --color-primary-active: #077187;
+  --color-secondary: #74A57F;
+  --color-accent: #9ECE9A;
+  --color-surface: #E4C5AF;
+  --color-background: #F7F5F3;
+  --color-text-primary: #1A1A1A;
+  --color-text-muted: #6B6B6B;
+  --color-error: #D94F4F;
+  --color-warning: #E6A817;
+}
+
+/* ===========================
+   Base Styles
+   =========================== */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-hind-madurai), sans-serif;
+  font-size: 1rem;
+  /* 16px */
+  line-height: 1.6;
+}
+
+/* ===========================
+   Typography — Base Heading Styles
+   =========================== */
+h1 {
+  font-family: var(--font-montserrat-alternates);
+  font-size: 3rem;
+  /* 48px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+h2 {
+  font-family: var(--font-lora), serif;
+  font-size: 2rem;
+  /* 32px */
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+h3 {
+  font-family: var(--font-lora), serif;
+  font-size: 1.5rem;
+  /* 24px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+/* Small text utility */
+.text-small {
+  font-size: 0.875rem;
+  /* 14px */
+  line-height: 1.5;
+}
