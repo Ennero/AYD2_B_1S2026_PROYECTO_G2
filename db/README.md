@@ -44,7 +44,7 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 | `CLIENT_CODE` | Código corto de negocio para búsqueda y referencia. Si backend no lo manda, la base puede generarlo. |
 | `LEGAL_NAME` | Razón social usada en contrato y factura. |
 | `COMMERCIAL_NAME` | Nombre comercial para operación diaria. |
-| `NIT` | Dato fiscal obligatorio para la factura. |
+| `NIT` | Dato fiscal obligatorio para la factura. Se dejó flexible para soportar formatos reales como `548973-1`, `CF` u otros valores válidos del flujo. |
 | `TAX_ADDRESS` | Dirección fiscal del cliente. |
 | `CONTACT_NAME` | Contacto principal del cliente en el MVP. |
 | `CONTACT_EMAIL` | Correo del contacto principal. |
@@ -242,6 +242,8 @@ Tabla central del flujo operativo. Aquí se dejó concentrado casi todo lo que o
 | `CARGO_DESCRIPTION` | Descripción textual de la mercancía. Si no se envía, queda un valor temporal para no bloquear la creación. |
 | `DECLARED_WEIGHT_TON` | Peso declarado al crear la orden. |
 | `LOADED_WEIGHT_TON` | Peso real capturado en patio. |
+| `ORIGIN` | Texto operativo corto de origen para listados y tracking. Si no se envía, la base lo toma desde `PICKUP_ADDRESS`. |
+| `DESTINATION` | Texto operativo corto de destino para listados y tracking. Si no se envía, la base lo toma desde `DELIVERY_ADDRESS`. |
 | `PICKUP_ADDRESS` | Dirección exacta de origen. |
 | `DELIVERY_ADDRESS` | Dirección exacta de entrega. |
 | `REQUESTED_AT` | Fecha y hora de creación. |
@@ -293,7 +295,7 @@ Factura electrónica simplificada y simulada.
 | `DUE_DATE` | Fecha de vencimiento. Si backend no la manda, la base puede derivarla desde el plazo del contrato. |
 | `SENT_AT` | Fecha y hora exacta en que se disparó el correo de envío de la factura. |
 | `CLIENT_NAME` | Nombre del cliente capturado en la factura. |
-| `CLIENT_NIT` | NIT usado en la factura. |
+| `CLIENT_NIT` | NIT usado en la factura, con la misma flexibilidad de formato que el cliente maestro. |
 | `CLIENT_ADDRESS` | Dirección fiscal usada en la factura. |
 | `SERVICE_DESCRIPTION` | Descripción del servicio. |
 | `SUBTOTAL_AMOUNT` | Subtotal del documento. |
@@ -305,6 +307,8 @@ Factura electrónica simplificada y simulada.
 ## `PAYMENTS`
 
 Pago simulado del MVP. Solo existen tarjeta y transferencia.
+
+La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemplo si un pago fue rechazado y el cliente vuelve a intentarlo. La restricción real es que solo puede existir un pago aprobado por factura.
 
 | Campo | Motivo |
 |---|---|

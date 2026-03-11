@@ -1,6 +1,5 @@
 Project LogiTrans {
   database_type: 'PostgreSQL'
-  Note: 'Version simplificada y alineada al statement del MVP. Se eliminaron auditoria tecnica, geolocalizacion, bancos externos, certificacion FEL compleja, historial de estados y tablas de emparejamiento piloto-vehiculo.'
 }
 
 Enum USER_ROLE {
@@ -73,7 +72,7 @@ Table CLIENTS {
   CLIENT_CODE varchar(30) [not null, unique]
   LEGAL_NAME varchar(180) [not null]
   COMMERCIAL_NAME varchar(180)
-  NIT varchar(13) [not null, unique]
+  NIT varchar(20) [not null, unique]
   TAX_ADDRESS text [not null]
   CONTACT_NAME varchar(160) [not null]
   CONTACT_EMAIL varchar(320) [not null]
@@ -235,6 +234,8 @@ Table ORDERS {
   CARGO_DESCRIPTION text [not null, default: 'PENDIENTE_DETALLE']
   DECLARED_WEIGHT_TON numeric(8,2) [not null]
   LOADED_WEIGHT_TON numeric(8,2)
+  ORIGIN text
+  DESTINATION text
   PICKUP_ADDRESS text [not null]
   DELIVERY_ADDRESS text [not null]
   REQUESTED_AT timestamptz [not null]
@@ -278,7 +279,7 @@ Table INVOICES {
   DUE_DATE date [not null]
   SENT_AT timestamptz
   CLIENT_NAME varchar(180) [not null]
-  CLIENT_NIT varchar(13) [not null]
+  CLIENT_NIT varchar(20) [not null]
   CLIENT_ADDRESS text [not null]
   SERVICE_DESCRIPTION text [not null]
   SUBTOTAL_AMOUNT numeric(14,2) [not null]
@@ -290,7 +291,7 @@ Table INVOICES {
 
 Table PAYMENTS {
   PAYMENT_ID uuid [pk]
-  INVOICE_ID uuid [not null, unique]
+  INVOICE_ID uuid [not null]
   METHOD PAYMENT_METHOD [not null]
   STATUS PAYMENT_STATUS [not null, default: 'PENDIENTE']
   CARD_ID uuid
