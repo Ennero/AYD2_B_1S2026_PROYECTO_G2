@@ -30,30 +30,30 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "message": "Usuario logueado",
   "data": {
     "userId": "5d3fd0c3-2c18-4f1a-9c5f-53a6f0c5fb4a",
-    "sessionId": "7de0be95-cd56-4209-b6df-9a1d24536c44",
+    "sessionUuid": "7de0be95-cd56-4209-b6df-9a1d24536c44",
     "role": "ENCARGADO_PATIO",
     "fullName": "Pablo Perez",
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
 }</pre></td>
-      <td>Valida <strong>USERS.EMAIL</strong> contra el correo recibido.<br>Compara la clave plana contra <strong>USERS.PASSWORD_HASH</strong>.<br>Inserta una sesion en <strong>USER_SESSIONS</strong> guardando <strong>REFRESH_TOKEN_HASH</strong>, huella del cliente y expiracion del refresh token.</td>
+      <td>Valida <strong>USERS.EMAIL</strong> contra el correo recibido.<br>Compara la clave plana contra <strong>USERS.PASSWORD_HASH</strong>.<br>Inserta una sesion en <strong>USER_SESSIONS</strong> guardando <strong>USER_REMOTE</strong>, <strong>USER_AGENT</strong>, <strong>USER_UUID</strong>, <strong>SESSION_UUID</strong>, <strong>SESSION_TOKEN</strong>, <strong>SESSION_SOURCE</strong> y <strong>EXPIRATION_AT</strong>.</td>
     </tr>
     <tr>
       <td>POST</td>
       <td>/api/auth/refresh</td>
       <td><pre>{
   "cookies": {
-    "refreshToken": "&lt;httpOnly_refresh_token&gt;"
+    "sessionToken": "&lt;httpOnly_session_token&gt;"
   }
 }</pre></td>
       <td><pre>{
   "message": "Sesion renovada correctamente",
   "data": {
-    "sessionId": "7de0be95-cd56-4209-b6df-9a1d24536c44",
+    "sessionUuid": "7de0be95-cd56-4209-b6df-9a1d24536c44",
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
 }</pre></td>
-      <td>Busca la sesion activa en <strong>USER_SESSIONS</strong> por <strong>REFRESH_TOKEN_HASH</strong>.<br>Valida expiracion, actualiza <strong>LAST_USED_AT</strong> y puede rotar el refresh token.</td>
+      <td>Busca la sesion activa en <strong>USER_SESSIONS</strong> por <strong>SESSION_TOKEN</strong>.<br>Valida <strong>EXPIRATION_AT</strong>, incrementa <strong>USAGE_COUNT</strong>, actualiza <strong>LAST_USED_AT</strong> y puede rotar el token si la implementacion lo requiere.</td>
     </tr>
     <tr>
       <td>POST</td>
@@ -63,14 +63,14 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt&gt;"
   },
   "cookies": {
-    "refreshToken": "&lt;httpOnly_refresh_token&gt;"
+    "sessionToken": "&lt;httpOnly_session_token&gt;"
   }
 }</pre></td>
       <td><pre>{
   "message": "Sesion cerrada correctamente",
   "data": {}
 }</pre></td>
-      <td>Revoca la sesion actual haciendo <strong>UPDATE USER_SESSIONS</strong> con <strong>IS_ACTIVE = FALSE</strong> y <strong>REVOKED_AT</strong>.<br>Permite invalidar el refresh token sin borrar historico.</td>
+      <td>Revoca la sesion actual haciendo <strong>UPDATE USER_SESSIONS</strong> con <strong>DELETED_AT</strong>.<br>Permite invalidar el token de sesion sin borrar historico.</td>
     </tr>
     <tr>
       <td>POST</td>

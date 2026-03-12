@@ -85,14 +85,18 @@ Esto aterriza la decisión arquitectónica de manejar sesiones revocables por us
 |---|---|
 | `SESSION_ID` | Identificador de la sesión persistida. |
 | `USER_ID` | Usuario dueño de la sesión. |
-| `REFRESH_TOKEN_HASH` | Hash del refresh token, nunca el token en texto plano. |
+| `USER_REMOTE` | IP de origen usando el tipo nativo `inet` de PostgreSQL. |
 | `USER_AGENT` | Referencia del navegador o cliente que abrió la sesión. |
-| `IP_ADDRESS` | IP de origen para trazabilidad básica. |
-| `ISSUED_AT` | Momento de creación de la sesión. |
-| `EXPIRES_AT` | Fecha de expiración del refresh token. |
+| `USER_UUID` | Identificador único del usuario en formato textual para interoperabilidad con la capa de autenticación. |
+| `SESSION_UUID` | Identificador único de la sesión expuesto a la aplicación. |
+| `SESSION_TOKEN` | Token de sesión persistido para revalidación o renovación. |
+| `SESSION_SOURCE` | Origen desde donde se abrió la sesión, por ejemplo web, mobile o api. |
+| `USAGE_COUNT` | Contador de usos o interacciones asociadas al token de sesión. |
 | `LAST_USED_AT` | Último uso exitoso del refresh token. |
-| `REVOKED_AT` | Momento de revocación de la sesión. |
-| `IS_ACTIVE` | Marca lógica para invalidar una sesión sin borrarla. |
+| `EXPIRATION_AT` | Fecha de expiración de la sesión. |
+| `DELETED_AT` | Marca de borrado lógico o revocación. |
+| `CREATED_AT` | Momento de creación de la sesión. |
+| `UPDATED_AT` | Momento de la última actualización de la sesión. |
 
 ## `PASSWORD_RECOVERY_TOKENS`
 

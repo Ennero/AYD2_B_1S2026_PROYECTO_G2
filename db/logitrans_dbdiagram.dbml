@@ -101,14 +101,18 @@ Table USERS {
 Table USER_SESSIONS {
   SESSION_ID uuid [pk]
   USER_ID uuid [not null]
-  REFRESH_TOKEN_HASH text [not null, unique]
-  USER_AGENT text
-  IP_ADDRESS varchar(45)
-  ISSUED_AT timestamptz [not null]
-  EXPIRES_AT timestamptz [not null]
+  USER_REMOTE inet
+  USER_AGENT varchar(255)
+  USER_UUID varchar(36) [not null]
+  SESSION_UUID varchar(36) [not null, unique]
+  SESSION_TOKEN text [not null, unique]
+  SESSION_SOURCE varchar(80) [not null]
+  USAGE_COUNT integer [not null, default: 0]
   LAST_USED_AT timestamptz
-  REVOKED_AT timestamptz
-  IS_ACTIVE boolean [not null, default: true]
+  EXPIRATION_AT timestamptz [not null]
+  DELETED_AT timestamptz
+  CREATED_AT timestamptz [not null]
+  UPDATED_AT timestamptz [not null]
 }
 
 Table PASSWORD_RECOVERY_TOKENS {
