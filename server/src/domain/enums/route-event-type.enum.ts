@@ -1,0 +1,8 @@
+export enum RouteEventType {
+  SALIDA = 'SALIDA',
+  PUNTO_CONTROL = 'PUNTO_CONTROL',
+  ADUANA = 'ADUANA',
+  INCIDENTE = 'INCIDENTE',
+  LLEGADA = 'LLEGADA',
+  OTRO = 'OTRO',
+}

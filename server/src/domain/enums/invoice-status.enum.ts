@@ -1,0 +1,7 @@
+export enum InvoiceStatus {
+  BORRADOR = 'BORRADOR',
+  CERTIFICADA = 'CERTIFICADA',
+  ENVIADA = 'ENVIADA',
+  PAGADA = 'PAGADA',
+  RECHAZADA = 'RECHAZADA',
+}
