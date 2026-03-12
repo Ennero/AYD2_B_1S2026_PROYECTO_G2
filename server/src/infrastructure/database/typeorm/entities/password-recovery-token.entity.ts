@@ -1,24 +1,24 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity('PASSWORD_RECOVERY_TOKENS')
+@Entity('password_recovery_tokens')
 export class PasswordRecoveryToken {
-  @PrimaryGeneratedColumn('uuid', { name: 'TOKEN_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'token_id' })
   tokenId: string;
 
-  @Column({ name: 'USER_ID', type: 'uuid' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ name: 'TOKEN_HASH', type: 'text', unique: true })
+  @Column({ name: 'token_hash', type: 'text', unique: true })
   tokenHash: string;
 
-  @Column({ name: 'EXPIRES_AT', type: 'timestamptz' })
+  @Column({ name: 'expires_at', type: 'timestamptz' })
   expiresAt: Date;
 
-  @Column({ name: 'USED_AT', type: 'timestamptz', nullable: true })
-  usedAt: Date;
+  @Column({ name: 'used_at', type: 'timestamptz', nullable: true })
+  usedAt: Date | null;
 
   @ManyToOne(() => User, (user) => user.recoveryTokens)
-  @JoinColumn({ name: 'USER_ID' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

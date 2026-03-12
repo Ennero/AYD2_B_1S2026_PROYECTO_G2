@@ -17,37 +17,37 @@ import { TransportUnit } from './transport-unit.entity';
 import { OrderRouteLog } from './order-route-log.entity';
 import { Invoice } from './invoice.entity';
 
-@Entity('ORDERS')
+@Entity('orders')
 export class Order {
-  @PrimaryGeneratedColumn('uuid', { name: 'ORDER_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'order_id' })
   orderId: string;
 
-  @Column({ name: 'ORDER_NUMBER', type: 'varchar', length: 40, unique: true })
+  @Column({ name: 'order_number', type: 'varchar', length: 40, unique: true })
   orderNumber: string;
 
-  @Column({ name: 'CONTRACT_ID', type: 'uuid' })
+  @Column({ name: 'contract_id', type: 'uuid' })
   contractId: string;
 
-  @Column({ name: 'REQUESTED_BY_USER_ID', type: 'uuid' })
+  @Column({ name: 'requested_by_user_id', type: 'uuid' })
   requestedByUserId: string;
 
-  @Column({ name: 'BRANCH_ID', type: 'smallint', nullable: true })
-  branchId: number;
+  @Column({ name: 'branch_id', type: 'smallint', nullable: true })
+  branchId: number | null;
 
-  @Column({ name: 'CONTRACT_ROUTE_ID', type: 'uuid', nullable: true })
-  contractRouteId: string;
+  @Column({ name: 'contract_route_id', type: 'uuid', nullable: true })
+  contractRouteId: string | null;
 
-  @Column({ name: 'CONTRACT_RATE_ID', type: 'uuid', nullable: true })
-  contractRateId: string;
+  @Column({ name: 'contract_rate_id', type: 'uuid', nullable: true })
+  contractRateId: string | null;
 
-  @Column({ name: 'CARGO_TYPE_ID', type: 'smallint' })
+  @Column({ name: 'cargo_type_id', type: 'smallint' })
   cargoTypeId: number;
 
-  @Column({ name: 'UNIT_ID', type: 'uuid', nullable: true })
-  unitId: string;
+  @Column({ name: 'unit_id', type: 'uuid', nullable: true })
+  unitId: string | null;
 
   @Column({
-    name: 'STATUS',
+    name: 'status',
     type: 'enum',
     enum: OrderStatus,
     default: OrderStatus.REGISTRADA,
@@ -55,14 +55,14 @@ export class Order {
   status: OrderStatus;
 
   @Column({
-    name: 'CARGO_DESCRIPTION',
+    name: 'cargo_description',
     type: 'text',
     default: 'PENDIENTE_DETALLE',
   })
   cargoDescription: string;
 
   @Column({
-    name: 'DECLARED_WEIGHT_TON',
+    name: 'declared_weight_ton',
     type: 'numeric',
     precision: 8,
     scale: 2,
@@ -70,63 +70,63 @@ export class Order {
   declaredWeightTon: number;
 
   @Column({
-    name: 'LOADED_WEIGHT_TON',
+    name: 'loaded_weight_ton',
     type: 'numeric',
     precision: 8,
     scale: 2,
     nullable: true,
   })
-  loadedWeightTon: number;
+  loadedWeightTon: number | null;
 
-  @Column({ name: 'ORIGIN', type: 'text', nullable: true })
-  origin: string;
+  @Column({ name: 'origin', type: 'text', nullable: true })
+  origin: string | null;
 
-  @Column({ name: 'DESTINATION', type: 'text', nullable: true })
-  destination: string;
+  @Column({ name: 'destination', type: 'text', nullable: true })
+  destination: string | null;
 
-  @Column({ name: 'PICKUP_ADDRESS', type: 'text' })
+  @Column({ name: 'pickup_address', type: 'text' })
   pickupAddress: string;
 
-  @Column({ name: 'DELIVERY_ADDRESS', type: 'text' })
+  @Column({ name: 'delivery_address', type: 'text' })
   deliveryAddress: string;
 
-  @Column({ name: 'REQUESTED_AT', type: 'timestamptz' })
+  @Column({ name: 'requested_at', type: 'timestamptz' })
   requestedAt: Date;
 
-  @Column({ name: 'SCHEDULED_PICKUP_AT', type: 'timestamptz', nullable: true })
-  scheduledPickupAt: Date;
+  @Column({ name: 'scheduled_pickup_at', type: 'timestamptz', nullable: true })
+  scheduledPickupAt: Date | null;
 
-  @Column({ name: 'PROMISED_DELIVERY_AT', type: 'timestamptz', nullable: true })
-  promisedDeliveryAt: Date;
+  @Column({ name: 'promised_delivery_at', type: 'timestamptz', nullable: true })
+  promisedDeliveryAt: Date | null;
 
-  @Column({ name: 'DISPATCHED_AT', type: 'timestamptz', nullable: true })
-  dispatchedAt: Date;
+  @Column({ name: 'dispatched_at', type: 'timestamptz', nullable: true })
+  dispatchedAt: Date | null;
 
-  @Column({ name: 'DELIVERED_AT', type: 'timestamptz', nullable: true })
-  deliveredAt: Date;
+  @Column({ name: 'delivered_at', type: 'timestamptz', nullable: true })
+  deliveredAt: Date | null;
 
-  @Column({ name: 'STOWAGE_CONFIRMED', type: 'boolean', nullable: true })
-  stowageConfirmed: boolean;
+  @Column({ name: 'stowage_confirmed', type: 'boolean', nullable: true })
+  stowageConfirmed: boolean | null;
 
-  @Column({ name: 'IS_SEALED', type: 'boolean', nullable: true })
-  isSealed: boolean;
+  @Column({ name: 'is_sealed', type: 'boolean', nullable: true })
+  isSealed: boolean | null;
 
   @Column({
-    name: 'RECEIVER_NAME',
+    name: 'receiver_name',
     type: 'varchar',
     length: 160,
     nullable: true,
   })
-  receiverName: string;
+  receiverName: string | null;
 
-  @Column({ name: 'RECEIVER_SIGNATURE_PATH', type: 'text', nullable: true })
-  receiverSignaturePath: string;
+  @Column({ name: 'receiver_signature_path', type: 'text', nullable: true })
+  receiverSignaturePath: string | null;
 
-  @Column({ name: 'DELIVERY_EVIDENCE_PATH', type: 'text', nullable: true })
-  deliveryEvidencePath: string;
+  @Column({ name: 'delivery_evidence_path', type: 'text', nullable: true })
+  deliveryEvidencePath: string | null;
 
   @Column({
-    name: 'DISTANCE_KM',
+    name: 'distance_km',
     type: 'numeric',
     precision: 10,
     scale: 2,
@@ -135,7 +135,7 @@ export class Order {
   distanceKm: number;
 
   @Column({
-    name: 'BASE_RATE_PER_KM',
+    name: 'base_rate_per_km',
     type: 'numeric',
     precision: 12,
     scale: 2,
@@ -144,7 +144,7 @@ export class Order {
   baseRatePerKm: number;
 
   @Column({
-    name: 'DISCOUNT_PERCENTAGE',
+    name: 'discount_percentage',
     type: 'numeric',
     precision: 5,
     scale: 2,
@@ -153,7 +153,7 @@ export class Order {
   discountPercentage: number;
 
   @Column({
-    name: 'FINAL_RATE_PER_KM',
+    name: 'final_rate_per_km',
     type: 'numeric',
     precision: 12,
     scale: 2,
@@ -162,7 +162,7 @@ export class Order {
   finalRatePerKm: number;
 
   @Column({
-    name: 'SUBTOTAL_AMOUNT',
+    name: 'subtotal_amount',
     type: 'numeric',
     precision: 14,
     scale: 2,
@@ -171,7 +171,7 @@ export class Order {
   subtotalAmount: number;
 
   @Column({
-    name: 'TAX_AMOUNT',
+    name: 'tax_amount',
     type: 'numeric',
     precision: 14,
     scale: 2,
@@ -180,7 +180,7 @@ export class Order {
   taxAmount: number;
 
   @Column({
-    name: 'TOTAL_AMOUNT',
+    name: 'total_amount',
     type: 'numeric',
     precision: 14,
     scale: 2,
@@ -189,7 +189,7 @@ export class Order {
   totalAmount: number;
 
   @Column({
-    name: 'FUEL_COST',
+    name: 'fuel_cost',
     type: 'numeric',
     precision: 14,
     scale: 2,
@@ -198,7 +198,7 @@ export class Order {
   fuelCost: number;
 
   @Column({
-    name: 'VIATICS_COST',
+    name: 'viatics_cost',
     type: 'numeric',
     precision: 14,
     scale: 2,
@@ -207,7 +207,7 @@ export class Order {
   viaticsCost: number;
 
   @Column({
-    name: 'MAINTENANCE_COST',
+    name: 'maintenance_cost',
     type: 'numeric',
     precision: 14,
     scale: 2,
@@ -215,35 +215,35 @@ export class Order {
   })
   maintenanceCost: number;
 
-  @Column({ name: 'NOTES', type: 'text', nullable: true })
-  notes: string;
+  @Column({ name: 'notes', type: 'text', nullable: true })
+  notes: string | null;
 
   @ManyToOne(() => Contract, (contract) => contract.orders)
-  @JoinColumn({ name: 'CONTRACT_ID' })
+  @JoinColumn({ name: 'contract_id' })
   contract: Contract;
 
   @ManyToOne(() => User, (user) => user.ordersRequested)
-  @JoinColumn({ name: 'REQUESTED_BY_USER_ID' })
+  @JoinColumn({ name: 'requested_by_user_id' })
   requestedByUser: User;
 
   @ManyToOne(() => Branch, (branch) => branch.orders)
-  @JoinColumn({ name: 'BRANCH_ID' })
+  @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 
   @ManyToOne(() => ContractRoute, (route) => route.orders)
-  @JoinColumn({ name: 'CONTRACT_ROUTE_ID' })
+  @JoinColumn({ name: 'contract_route_id' })
   contractRoute: ContractRoute;
 
   @ManyToOne(() => ContractRate, (rate) => rate.orders)
-  @JoinColumn({ name: 'CONTRACT_RATE_ID' })
+  @JoinColumn({ name: 'contract_rate_id' })
   contractRate: ContractRate;
 
   @ManyToOne(() => CargoType, (type) => type.orders)
-  @JoinColumn({ name: 'CARGO_TYPE_ID' })
+  @JoinColumn({ name: 'cargo_type_id' })
   cargoType: CargoType;
 
   @ManyToOne(() => TransportUnit, (unit) => unit.orders)
-  @JoinColumn({ name: 'UNIT_ID' })
+  @JoinColumn({ name: 'unit_id' })
   unit: TransportUnit;
 
   @OneToMany(() => OrderRouteLog, (log) => log.order)

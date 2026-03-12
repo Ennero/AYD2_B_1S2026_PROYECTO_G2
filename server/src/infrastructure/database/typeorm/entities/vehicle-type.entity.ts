@@ -1,23 +1,23 @@
-import { Entity, PrimaryColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ContractRate } from './contract-rate.entity';
 import { TransportUnit } from './transport-unit.entity';
 
-@Entity('VEHICLE_TYPES')
+@Entity('vehicle_types')
 export class VehicleType {
-  @PrimaryColumn('smallint', { name: 'VEHICLE_TYPE_ID' })
+  @PrimaryGeneratedColumn({ type: 'smallint', name: 'vehicle_type_id' })
   vehicleTypeId: number;
 
-  @Column({ name: 'TYPE_CODE', type: 'varchar', length: 20, unique: true })
+  @Column({ name: 'type_code', type: 'varchar', length: 20, unique: true })
   typeCode: string;
 
-  @Column({ name: 'TYPE_NAME', type: 'varchar', length: 100, unique: true })
+  @Column({ name: 'type_name', type: 'varchar', length: 100, unique: true })
   typeName: string;
 
-  @Column({ name: 'MIN_CAPACITY_TON', type: 'numeric', precision: 6, scale: 2 })
+  @Column({ name: 'min_capacity_ton', type: 'numeric', precision: 6, scale: 2 })
   minCapacityTon: number;
 
   @Column({
-    name: 'MAX_CAPACITY_TON',
+    name: 'max_capacity_ton',
     type: 'numeric',
     precision: 6,
     scale: 2,
@@ -25,7 +25,7 @@ export class VehicleType {
   })
   maxCapacityTon: number;
 
-  @Column({ name: 'RATE_PER_KM', type: 'numeric', precision: 12, scale: 2 })
+  @Column({ name: 'rate_per_km', type: 'numeric', precision: 12, scale: 2 })
   ratePerKm: number;
 
   @OneToMany(() => ContractRate, (rate) => rate.vehicleType)

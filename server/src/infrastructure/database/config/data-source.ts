@@ -1,6 +1,8 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { Client } from '../typeorm/entities/client.entity';
+import { ClientContact } from '../typeorm/entities/client-contact.entity';
 import { User } from '../typeorm/entities/user.entity';
+import { UserSession } from '../typeorm/entities/user-session.entity';
 import { PasswordRecoveryToken } from '../typeorm/entities/password-recovery-token.entity';
 import { ClientCard } from '../typeorm/entities/client-card.entity';
 import { Branch } from '../typeorm/entities/branch.entity';
@@ -15,38 +17,42 @@ import { Order } from '../typeorm/entities/order.entity';
 import { OrderRouteLog } from '../typeorm/entities/order-route-log.entity';
 import { Invoice } from '../typeorm/entities/invoice.entity';
 import { Payment } from '../typeorm/entities/payment.entity';
-import * as dotenv from 'dotenv';
+import { getDatabaseRuntimeConfig } from './database-env';
 
-dotenv.config();
+const databaseConfig = getDatabaseRuntimeConfig();
+
+export const databaseEntities = [
+  Client,
+  ClientContact,
+  User,
+  UserSession,
+  PasswordRecoveryToken,
+  ClientCard,
+  Branch,
+  Route,
+  VehicleType,
+  CargoType,
+  Contract,
+  ContractRoute,
+  ContractRate,
+  TransportUnit,
+  Order,
+  OrderRouteLog,
+  Invoice,
+  Payment,
+];
 
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  username: process.env.DB_USERNAME || 'postgres',
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE || 'logitrans_db',
-  entities: [
-    Client,
-    User,
-    PasswordRecoveryToken,
-    ClientCard,
-    Branch,
-    Route,
-    VehicleType,
-    CargoType,
-    Contract,
-    ContractRoute,
-    ContractRate,
-    TransportUnit,
-    Order,
-    OrderRouteLog,
-    Invoice,
-    Payment,
-  ],
+  host: databaseConfig.host,
+  port: databaseConfig.port,
+  username: databaseConfig.username,
+  password: databaseConfig.password,
+  database: databaseConfig.database,
+  entities: databaseEntities,
   migrations: [__dirname + '/../typeorm/migrations/*{.ts,.js}'],
   synchronize: false,
-  logging: true,
+  logging: databaseConfig.logging,
 };
 
 const dataSource = new DataSource(dataSourceOptions);

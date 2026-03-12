@@ -1,63 +1,72 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { RiskLevel } from '../../../../domain/enums/risk-level.enum';
 import { User } from './user.entity';
+import { ClientContact } from './client-contact.entity';
 import { ClientCard } from './client-card.entity';
 import { Contract } from './contract.entity';
 import { Invoice } from './invoice.entity';
 
-@Entity('CLIENTS')
+@Entity('clients')
 export class Client {
-  @PrimaryGeneratedColumn('uuid', { name: 'CLIENT_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'client_id' })
   clientId: string;
 
-  @Column({ name: 'CLIENT_CODE', type: 'varchar', length: 30, unique: true })
+  @Column({ name: 'client_code', type: 'varchar', length: 30, unique: true })
   clientCode: string;
 
-  @Column({ name: 'LEGAL_NAME', type: 'varchar', length: 180 })
+  @Column({ name: 'legal_name', type: 'varchar', length: 180 })
   legalName: string;
 
-  @Column({ name: 'COMMERCIAL_NAME', type: 'varchar', length: 180, nullable: true })
-  commercialName: string;
+  @Column({ name: 'commercial_name', type: 'varchar', length: 180, nullable: true })
+  commercialName: string | null;
 
-  @Column({ name: 'NIT', type: 'varchar', length: 20, unique: true })
+  @Column({ name: 'nit', type: 'varchar', length: 20, unique: true })
   nit: string;
 
-  @Column({ name: 'TAX_ADDRESS', type: 'text' })
+  @Column({ name: 'tax_address', type: 'text' })
   taxAddress: string;
 
-  @Column({ name: 'CONTACT_NAME', type: 'varchar', length: 160 })
-  contactName: string;
+  @Column({ name: 'primary_contact_name', type: 'varchar', length: 160 })
+  primaryContactName: string;
 
-  @Column({ name: 'CONTACT_EMAIL', type: 'varchar', length: 320 })
-  contactEmail: string;
+  @Column({ name: 'primary_contact_email', type: 'varchar', length: 320 })
+  primaryContactEmail: string;
 
-  @Column({ name: 'CONTACT_PHONE', type: 'varchar', length: 30, nullable: true })
-  contactPhone: string;
+  @Column({
+    name: 'primary_contact_phone',
+    type: 'varchar',
+    length: 30,
+    nullable: true,
+  })
+  primaryContactPhone: string | null;
 
-  @Column({ name: 'CREDIT_LIMIT', type: 'numeric', precision: 14, scale: 2, default: 0 })
+  @Column({ name: 'credit_limit', type: 'numeric', precision: 14, scale: 2, default: 0 })
   creditLimit: number;
 
-  @Column({ name: 'PAYMENT_RISK', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({ name: 'payment_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
   paymentRisk: RiskLevel;
 
-  @Column({ name: 'CUSTOMS_RISK', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({ name: 'customs_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
   customsRisk: RiskLevel;
 
-  @Column({ name: 'CARGO_RISK', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({ name: 'cargo_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
   cargoRisk: RiskLevel;
 
-  @Column({ name: 'AML_RISK', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({ name: 'aml_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
   amlRisk: RiskLevel;
 
-  @Column({ name: 'IS_BLOCKED', type: 'boolean', default: false })
+  @Column({ name: 'is_blocked', type: 'boolean', default: false })
   isBlocked: boolean;
 
-  @Column({ name: 'BLOCK_REASON', type: 'text', nullable: true })
-  blockReason: string;
+  @Column({ name: 'block_reason', type: 'text', nullable: true })
+  blockReason: string | null;
 
   // Relations
   @OneToMany(() => User, (user) => user.client)
   users: User[];
+
+  @OneToMany(() => ClientContact, (contact) => contact.client)
+  contacts: ClientContact[];
 
   @OneToMany(() => ClientCard, (card) => card.client)
   cards: ClientCard[];

@@ -2,35 +2,38 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index, O
 import { Client } from './client.entity';
 import { Payment } from './payment.entity';
 
-@Entity('CLIENT_CARDS')
+@Entity('client_cards')
 @Index(['clientId', 'cardAlias'], { unique: true })
 export class ClientCard {
-  @PrimaryGeneratedColumn('uuid', { name: 'CARD_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'card_id' })
   cardId: string;
 
-  @Column({ name: 'CLIENT_ID', type: 'uuid' })
+  @Column({ name: 'client_id', type: 'uuid' })
   clientId: string;
 
-  @Column({ name: 'CARD_ALIAS', type: 'varchar', length: 80 })
+  @Column({ name: 'card_alias', type: 'varchar', length: 80 })
   cardAlias: string;
 
-  @Column({ name: 'CARD_BRAND', type: 'varchar', length: 30 })
+  @Column({ name: 'cardholder_name', type: 'varchar', length: 160 })
+  cardholderName: string;
+
+  @Column({ name: 'card_brand', type: 'varchar', length: 30 })
   cardBrand: string;
 
-  @Column({ name: 'LAST_FOUR', type: 'char', length: 4 })
+  @Column({ name: 'last_four', type: 'char', length: 4 })
   lastFour: string;
 
-  @Column({ name: 'EXPIRATION_MONTH', type: 'smallint' })
+  @Column({ name: 'expiration_month', type: 'smallint' })
   expirationMonth: number;
 
-  @Column({ name: 'EXPIRATION_YEAR', type: 'smallint' })
+  @Column({ name: 'expiration_year', type: 'smallint' })
   expirationYear: number;
 
-  @Column({ name: 'IS_ACTIVE', type: 'boolean', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   @ManyToOne(() => Client, (client) => client.cards)
-  @JoinColumn({ name: 'CLIENT_ID' })
+  @JoinColumn({ name: 'client_id' })
   client: Client;
 
   @OneToMany(() => Payment, (payment) => payment.card)

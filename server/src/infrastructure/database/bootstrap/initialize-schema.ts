@@ -1,0 +1,138 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { DataSource } from 'typeorm';
+import { getDatabaseRuntimeConfig } from '../config/database-env';
+
+interface SchemaState {
+  tableCount: number;
+  viewCount: number;
+  hasPrimaryContactColumns: boolean;
+  hasUserSessions: boolean;
+  hasPaymentSupportField: boolean;
+  hasClientBalanceView: boolean;
+}
+
+async function getSchemaState(dataSource: DataSource): Promise<SchemaState> {
+  const counts = await dataSource.query<{
+    table_count: string;
+    view_count: string;
+  }>(
+    `SELECT
+        COUNT(*) FILTER (WHERE table_type = 'BASE TABLE')::text AS table_count,
+        COUNT(*) FILTER (WHERE table_type = 'VIEW')::text AS view_count
+      FROM information_schema.tables
+      WHERE table_schema = 'public'`,
+  );
+
+  const columns = await dataSource.query<{
+    has_primary_contact_columns: boolean;
+    has_user_sessions: boolean;
+    has_payment_support_field: boolean;
+    has_client_balance_view: boolean;
+  }>(
+    `SELECT
+        EXISTS(
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'clients'
+            AND column_name = 'primary_contact_name'
+        ) AS has_primary_contact_columns,
+        EXISTS(
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'user_sessions'
+            AND column_name = 'session_token'
+        ) AS has_user_sessions,
+        EXISTS(
+          SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'payments'
+            AND column_name = 'support_document_path'
+        ) AS has_payment_support_field,
+        EXISTS(
+          SELECT 1
+          FROM information_schema.views
+          WHERE table_schema = 'public'
+            AND table_name = 'v_client_balances'
+        ) AS has_client_balance_view`,
+  );
+
+  return {
+    tableCount: parseInt(counts[0]?.table_count || '0', 10),
+    viewCount: parseInt(counts[0]?.view_count || '0', 10),
+    hasPrimaryContactColumns: Boolean(columns[0]?.has_primary_contact_columns),
+    hasUserSessions: Boolean(columns[0]?.has_user_sessions),
+    hasPaymentSupportField: Boolean(columns[0]?.has_payment_support_field),
+    hasClientBalanceView: Boolean(columns[0]?.has_client_balance_view),
+  };
+}
+
+function isCanonicalSchema(state: SchemaState): boolean {
+  return (
+    state.hasPrimaryContactColumns &&
+    state.hasUserSessions &&
+    state.hasPaymentSupportField &&
+    state.hasClientBalanceView
+  );
+}
+
+async function resetPublicSchema(dataSource: DataSource): Promise<void> {
+  await dataSource.query('DROP SCHEMA IF EXISTS public CASCADE');
+  await dataSource.query('CREATE SCHEMA public');
+  await dataSource.query('GRANT ALL ON SCHEMA public TO public');
+}
+
+async function readCanonicalSql(): Promise<string> {
+  const filePath = join(process.cwd(), '..', 'db', 'logitrans_postgresql.sql');
+  return readFile(filePath, 'utf8');
+}
+
+function extractRoutine(sql: string, functionName: string): string {
+  const pattern = new RegExp(
+    `CREATE OR REPLACE FUNCTION ${functionName}\\([\\s\\S]*?\\$\\$;`,
+    'i',
+  );
+  const match = sql.match(pattern);
+
+  if (!match) {
+    throw new Error(`No se pudo extraer la funcion ${functionName} del SQL canonico.`);
+  }
+
+  return match[0];
+}
+
+async function refreshCanonicalRoutines(dataSource: DataSource): Promise<void> {
+  const sql = await readCanonicalSql();
+  await dataSource.query(extractRoutine(sql, 'POPULATE_INVOICE_FROM_ORDER'));
+}
+
+export async function ensureCanonicalSchema(
+  dataSource: DataSource,
+): Promise<'created' | 'existing'> {
+  const config = getDatabaseRuntimeConfig();
+  let state = await getSchemaState(dataSource);
+
+  if (config.resetOnBoot && (state.tableCount > 0 || state.viewCount > 0)) {
+    await resetPublicSchema(dataSource);
+    state = await getSchemaState(dataSource);
+  }
+
+  if (isCanonicalSchema(state)) {
+    await refreshCanonicalRoutines(dataSource);
+    return 'existing';
+  }
+
+  if (state.tableCount > 0 || state.viewCount > 0) {
+    throw new Error(
+      'Se detecto un esquema PostgreSQL previo que no coincide con el modelo canonico. Elimine la base/volumen actual o arranque con DB_RESET_ON_BOOT=true para recrearla.',
+    );
+  }
+
+  const sql = await readCanonicalSql();
+  await dataSource.query(sql);
+
+  return 'created';
+}

@@ -15,47 +15,47 @@ import { ContractRate } from './contract-rate.entity';
 import { CargoType } from './cargo-type.entity';
 import { Order } from './order.entity';
 
-@Entity('CONTRACTS')
+@Entity('contracts')
 export class Contract {
-  @PrimaryGeneratedColumn('uuid', { name: 'CONTRACT_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'contract_id' })
   contractId: string;
 
   @Column({
-    name: 'CONTRACT_NUMBER',
+    name: 'contract_number',
     type: 'varchar',
     length: 40,
     unique: true,
   })
   contractNumber: string;
 
-  @Column({ name: 'CLIENT_ID', type: 'uuid' })
+  @Column({ name: 'client_id', type: 'uuid' })
   clientId: string;
 
   @Column({
-    name: 'STATUS',
+    name: 'status',
     type: 'enum',
     enum: ContractStatus,
     default: ContractStatus.BORRADOR,
   })
   status: ContractStatus;
 
-  @Column({ name: 'START_DATE', type: 'date', default: () => 'CURRENT_DATE' })
+  @Column({ name: 'start_date', type: 'date', default: () => 'CURRENT_DATE' })
   startDate: string;
 
-  @Column({ name: 'END_DATE', type: 'date' })
+  @Column({ name: 'end_date', type: 'date' })
   endDate: string;
 
-  @Column({ name: 'ACCEPTED_AT', type: 'timestamptz', nullable: true })
-  acceptedAt: Date;
+  @Column({ name: 'accepted_at', type: 'timestamptz', nullable: true })
+  acceptedAt: Date | null;
 
-  @Column({ name: 'CREDIT_LIMIT', type: 'numeric', precision: 14, scale: 2 })
+  @Column({ name: 'credit_limit', type: 'numeric', precision: 14, scale: 2 })
   creditLimit: number;
 
-  @Column({ name: 'PAYMENT_TERM_DAYS', type: 'smallint' })
+  @Column({ name: 'payment_term_days', type: 'smallint' })
   paymentTermDays: number;
 
   @Column({
-    name: 'DISCOUNT_PERCENTAGE',
+    name: 'discount_percentage',
     type: 'numeric',
     precision: 5,
     scale: 2,
@@ -63,14 +63,11 @@ export class Contract {
   })
   discountPercentage: number;
 
-  @Column({ name: 'SIGNED_CONTRACT_PATH', type: 'text', nullable: true })
-  signedContractPath: string;
-
-  @Column({ name: 'NOTES', type: 'text', nullable: true })
-  notes: string;
+  @Column({ name: 'notes', type: 'text', nullable: true })
+  notes: string | null;
 
   @ManyToOne(() => Client, (client) => client.contracts)
-  @JoinColumn({ name: 'CLIENT_ID' })
+  @JoinColumn({ name: 'client_id' })
   client: Client;
 
   @OneToMany(() => ContractRoute, (route) => route.contract)
@@ -84,10 +81,10 @@ export class Contract {
 
   @ManyToMany(() => CargoType, (cargoType) => cargoType.contracts)
   @JoinTable({
-    name: 'CONTRACT_CARGO_TYPES',
-    joinColumn: { name: 'CONTRACT_ID', referencedColumnName: 'contractId' },
+    name: 'contract_cargo_types',
+    joinColumn: { name: 'contract_id', referencedColumnName: 'contractId' },
     inverseJoinColumn: {
-      name: 'CARGO_TYPE_ID',
+      name: 'cargo_type_id',
       referencedColumnName: 'cargoTypeId',
     },
   })

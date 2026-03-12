@@ -5,40 +5,44 @@ import { PasswordRecoveryToken } from './password-recovery-token.entity';
 import { Order } from './order.entity';
 import { Payment } from './payment.entity';
 import { TransportUnit } from './transport-unit.entity';
+import { UserSession } from './user-session.entity';
 
-@Entity('USERS')
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid', { name: 'USER_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'user_id' })
   userId: string;
 
-  @Column({ name: 'CLIENT_ID', type: 'uuid', nullable: true })
-  clientId: string;
+  @Column({ name: 'client_id', type: 'uuid', nullable: true })
+  clientId: string | null;
 
-  @Column({ name: 'ROLE', type: 'enum', enum: UserRole })
+  @Column({ name: 'role', type: 'enum', enum: UserRole })
   role: UserRole;
 
-  @Column({ name: 'FULL_NAME', type: 'varchar', length: 160 })
+  @Column({ name: 'full_name', type: 'varchar', length: 160 })
   fullName: string;
 
-  @Column({ name: 'EMAIL', type: 'varchar', length: 320, unique: true })
+  @Column({ name: 'email', type: 'varchar', length: 320, unique: true })
   email: string;
 
-  @Column({ name: 'PASSWORD_HASH', type: 'text' })
+  @Column({ name: 'password_hash', type: 'text' })
   passwordHash: string;
 
-  @Column({ name: 'PHONE', type: 'varchar', length: 30, nullable: true })
-  phone: string;
+  @Column({ name: 'phone', type: 'varchar', length: 30, nullable: true })
+  phone: string | null;
 
-  @Column({ name: 'IS_ACTIVE', type: 'boolean', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   // Relations
   @ManyToOne(() => Client, (client) => client.users, { nullable: true })
-  @JoinColumn({ name: 'CLIENT_ID' })
+  @JoinColumn({ name: 'client_id' })
   client: Client;
 
   @OneToMany(() => PasswordRecoveryToken, (token) => token.user)
   recoveryTokens: PasswordRecoveryToken[];
+
+  @OneToMany(() => UserSession, (session) => session.user)
+  sessions: UserSession[];
 
   @OneToMany(() => Order, (order) => order.requestedByUser)
   ordersRequested: Order[];

@@ -19,8 +19,8 @@ services:
 
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: server/Dockerfile
     container_name: logitrans_api
     restart: unless-stopped
     ports:
@@ -31,10 +31,12 @@ services:
       - DB_USERNAME=${DB_USERNAME:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - DB_DATABASE=${DB_DATABASE:-logitrans_db}
+      - DB_AUTO_SEED=true
+      - DB_RESET_ON_BOOT=false
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "npx typeorm-ts-node-commonjs schema:sync -d dist/infrastructure/database/config/data-source.js && node dist/infrastructure/database/seeds/initial-seed.js && npm run start:prod"
+    command: sh -c "npm run start:prod"
 
 volumes:
   postgres_data:

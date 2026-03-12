@@ -11,76 +11,79 @@ import { Order } from './order.entity';
 import { Client } from './client.entity';
 import { Payment } from './payment.entity';
 
-@Entity('INVOICES')
+@Entity('invoices')
 export class Invoice {
-  @PrimaryGeneratedColumn('uuid', { name: 'INVOICE_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'invoice_id' })
   invoiceId: string;
 
-  @Column({ name: 'INVOICE_NUMBER', type: 'varchar', length: 40, unique: true })
+  @Column({ name: 'invoice_number', type: 'varchar', length: 40, unique: true })
   invoiceNumber: string;
 
-  @Column({ name: 'ORDER_ID', type: 'uuid', unique: true })
+  @Column({ name: 'order_id', type: 'uuid', unique: true })
   orderId: string;
 
-  @Column({ name: 'CLIENT_ID', type: 'uuid' })
+  @Column({ name: 'client_id', type: 'uuid' })
   clientId: string;
 
   @Column({
-    name: 'STATUS',
+    name: 'status',
     type: 'enum',
     enum: InvoiceStatus,
     default: InvoiceStatus.BORRADOR,
   })
   status: InvoiceStatus;
 
-  @Column({ name: 'ISSUE_DATE', type: 'timestamptz' })
+  @Column({ name: 'issue_date', type: 'timestamptz' })
   issueDate: Date;
 
-  @Column({ name: 'DUE_DATE', type: 'date' })
+  @Column({ name: 'certified_at', type: 'timestamptz', nullable: true })
+  certifiedAt: Date | null;
+
+  @Column({ name: 'due_date', type: 'date' })
   dueDate: string;
 
-  @Column({ name: 'SENT_AT', type: 'timestamptz', nullable: true })
-  sentAt: Date;
+  @Column({ name: 'sent_at', type: 'timestamptz', nullable: true })
+  sentAt: Date | null;
 
-  @Column({ name: 'CLIENT_NAME', type: 'varchar', length: 180 })
+  @Column({ name: 'client_name', type: 'varchar', length: 180 })
   clientName: string;
 
-  @Column({ name: 'CLIENT_NIT', type: 'varchar', length: 20 })
+  @Column({ name: 'client_nit', type: 'varchar', length: 20 })
   clientNit: string;
 
-  @Column({ name: 'CLIENT_ADDRESS', type: 'text' })
+  @Column({ name: 'client_address', type: 'text' })
   clientAddress: string;
 
-  @Column({ name: 'SERVICE_DESCRIPTION', type: 'text' })
+  @Column({ name: 'service_description', type: 'text' })
   serviceDescription: string;
 
-  @Column({ name: 'SUBTOTAL_AMOUNT', type: 'numeric', precision: 14, scale: 2 })
+  @Column({ name: 'subtotal_amount', type: 'numeric', precision: 14, scale: 2 })
   subtotalAmount: number;
 
-  @Column({ name: 'TAX_AMOUNT', type: 'numeric', precision: 14, scale: 2 })
+  @Column({ name: 'tax_amount', type: 'numeric', precision: 14, scale: 2 })
   taxAmount: number;
 
-  @Column({ name: 'TOTAL_AMOUNT', type: 'numeric', precision: 14, scale: 2 })
+  @Column({ name: 'total_amount', type: 'numeric', precision: 14, scale: 2 })
   totalAmount: number;
 
   @Column({
-    name: 'FEL_UUID',
+    name: 'fel_uuid',
     type: 'varchar',
     length: 50,
     unique: true,
     nullable: true,
   })
-  felUuid: string;
+  felUuid: string | null;
 
-  @Column({ name: 'PDF_PATH', type: 'text', nullable: true })
-  pdfPath: string;
+  @Column({ name: 'pdf_path', type: 'text', nullable: true })
+  pdfPath: string | null;
 
   @ManyToOne(() => Order, (order) => order.invoices)
-  @JoinColumn({ name: 'ORDER_ID' })
+  @JoinColumn({ name: 'order_id' })
   order: Order;
 
   @ManyToOne(() => Client, (client) => client.invoices)
-  @JoinColumn({ name: 'CLIENT_ID' })
+  @JoinColumn({ name: 'client_id' })
   client: Client;
 
   @OneToMany(() => Payment, (payment) => payment.invoice)

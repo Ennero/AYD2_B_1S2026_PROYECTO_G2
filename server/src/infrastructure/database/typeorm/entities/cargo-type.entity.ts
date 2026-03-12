@@ -1,16 +1,16 @@
-import { Entity, PrimaryColumn, Column, OneToMany, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
 import { Contract } from './contract.entity';
 import { Order } from './order.entity';
 
-@Entity('CARGO_TYPES')
+@Entity('cargo_types')
 export class CargoType {
-  @PrimaryColumn('smallint', { name: 'CARGO_TYPE_ID' })
+  @PrimaryGeneratedColumn({ type: 'smallint', name: 'cargo_type_id' })
   cargoTypeId: number;
 
-  @Column({ name: 'CARGO_NAME', type: 'varchar', length: 100, unique: true })
+  @Column({ name: 'cargo_name', type: 'varchar', length: 100, unique: true })
   cargoName: string;
 
-  @Column({ name: 'REQUIRES_REFRIGERATION', type: 'boolean', default: false })
+  @Column({ name: 'requires_refrigeration', type: 'boolean', default: false })
   requiresRefrigeration: boolean;
 
   @ManyToMany(() => Contract, (contract) => contract.cargoTypes)

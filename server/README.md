@@ -22,7 +22,7 @@ Esto levantará dos contenedores:
 
 > **Nota:** La API está configurada para correr automáticamente todas las migraciones publicadas y ejecutar los scripts de seeding al iniciar en caso de ser necesario.
 
-### Paso 2: Generar y Ejecutar la Migración Inicial manualmente (Si corres Node localmente)
+### Paso 2: Arrancar localmente con bootstrap automatico (Si corres Node localmente)
 
 Si prefieres trabajar localmente sin la imagen de Node conectándote a la base de Docker:
 ```bash
@@ -32,22 +32,29 @@ npm install
 # Inicias únicamente la base de datos
 docker-compose up -d db
 
-# Ejecutar las migraciones pendientes en TypeORM para crear el esquema en la DB
-npm run migration:run
-
-# Insertar datos iniciales (Ramas, Tipos de vehículos, Tipos de Carga)
-npm run seed
-
 # Correr en modo desarrollo
 npm run start:dev
 ```
 
+Al iniciar, el backend ahora hace este flujo automaticamente:
+- crea la base `logitrans_db` si no existe
+- aplica el SQL canonico de `../db/logitrans_postgresql.sql`
+- inserta un seed amplio e idempotente para clientes, contratos, sesiones, ordenes, facturas y pagos
+
+Si ya existe una base vieja creada con el esquema incorrecto, puedes recrearla una vez con:
+```bash
+DB_RESET_ON_BOOT=true npm run start:dev
+```
+
 ### Paso 3: Probar los Datos Seed
 
-Actualmente el sistema inserta los siguientes datos maestros iniciales de forma automática:
-- **Sucursales**: Sede Central (GT-C), Sede Xela (GT-X)
-- **Tipos de Vehículos**: Panel Cerrada, Camión Pequeño, Cabezal Articulado.
-- **Tipos de Carga**: Carga General Seca, Perecederos/Frigoríficos, Material Peligroso.
+Actualmente el sistema deja una base poblada con datos coherentes del MVP:
+- catalogos base y rutas nacionales/internacionales
+- clientes con perfiles de riesgo, contactos y tarjetas
+- usuarios internos por rol y usuarios portal cliente
+- contratos, rutas y tarifas derivadas
+- unidades de transporte y pilotos asignados
+- ordenes en estados mixtos, bitacoras, facturas y pagos
 
 Para verificar que el backend funciona, puedes llamar al endpoint de pruebas de creación de usuarios (Clean architecture Use-Case).
 

@@ -66,6 +66,7 @@ Enum INVOICE_STATUS {
 Enum PAYMENT_METHOD {
   TARJETA
   TRANSFERENCIA
+  CHEQUE
 }
 
 Enum PAYMENT_STATUS {
@@ -81,9 +82,9 @@ Table CLIENTS {
   COMMERCIAL_NAME varchar(180)
   NIT varchar(20) [not null, unique]
   TAX_ADDRESS text [not null]
-  CONTACT_NAME varchar(160) [not null]
-  CONTACT_EMAIL varchar(320) [not null]
-  CONTACT_PHONE varchar(30)
+  PRIMARY_CONTACT_NAME varchar(160) [not null]
+  PRIMARY_CONTACT_EMAIL varchar(320) [not null]
+  PRIMARY_CONTACT_PHONE varchar(30)
   CREDIT_LIMIT numeric(14,2) [not null, default: 0]
   PAYMENT_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CUSTOMS_RISK RISK_LEVEL [not null, default: 'MEDIO']
@@ -104,6 +105,23 @@ Table USERS {
   IS_ACTIVE boolean [not null, default: true]
 }
 
+Table USER_SESSIONS {
+  SESSION_ID uuid [pk]
+  USER_ID uuid [not null]
+  USER_REMOTE inet
+  USER_AGENT varchar(255)
+  USER_UUID varchar(36) [not null]
+  SESSION_UUID varchar(36) [not null, unique]
+  SESSION_TOKEN text [not null, unique]
+  SESSION_SOURCE varchar(80) [not null]
+  USAGE_COUNT integer [not null, default: 0]
+  LAST_USED_AT timestamptz
+  EXPIRATION_AT timestamptz [not null]
+  DELETED_AT timestamptz
+  CREATED_AT timestamptz [not null]
+  UPDATED_AT timestamptz [not null]
+}
+
 Table PASSWORD_RECOVERY_TOKENS {
   TOKEN_ID uuid [pk]
   USER_ID uuid [not null]
@@ -112,10 +130,25 @@ Table PASSWORD_RECOVERY_TOKENS {
   USED_AT timestamptz
 }
 
+Table CLIENT_CONTACTS {
+  CONTACT_ID uuid [pk]
+  CLIENT_ID uuid [not null]
+  CONTACT_NAME varchar(160) [not null]
+  CONTACT_EMAIL varchar(320) [not null]
+  CONTACT_PHONE varchar(30)
+  POSITION_TITLE varchar(100)
+  IS_ACTIVE boolean [not null, default: true]
+
+  Indexes {
+    (CLIENT_ID, CONTACT_EMAIL) [unique]
+  }
+}
+
 Table CLIENT_CARDS {
   CARD_ID uuid [pk]
   CLIENT_ID uuid [not null]
   CARD_ALIAS varchar(80) [not null]
+  CARDHOLDER_NAME varchar(160) [not null]
   CARD_BRAND varchar(30) [not null]
   LAST_FOUR char(4) [not null]
   EXPIRATION_MONTH smallint [not null]
@@ -173,7 +206,6 @@ Table CONTRACTS {
   CREDIT_LIMIT numeric(14,2) [not null]
   PAYMENT_TERM_DAYS smallint [not null]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
-  SIGNED_CONTRACT_PATH text
   NOTES text
 }
 
@@ -279,10 +311,11 @@ Table ORDER_ROUTE_LOGS {
 Table INVOICES {
   INVOICE_ID uuid [pk]
   INVOICE_NUMBER varchar(40) [not null, unique]
-  ORDER_ID uuid [not null, unique]
+  ORDER_ID uuid [not null, unique, note: 'Se genera automaticamente como borrador cuando la orden cambia a ENTREGADA']
   CLIENT_ID uuid [not null]
   STATUS INVOICE_STATUS [not null, default: 'BORRADOR']
   ISSUE_DATE timestamptz [not null]
+  CERTIFIED_AT timestamptz
   DUE_DATE date [not null]
   SENT_AT timestamptz
   CLIENT_NAME varchar(180) [not null]
@@ -302,15 +335,19 @@ Table PAYMENTS {
   METHOD PAYMENT_METHOD [not null]
   STATUS PAYMENT_STATUS [not null, default: 'PENDIENTE']
   CARD_ID uuid
+  BANK_NAME varchar(120)
+  BANK_ACCOUNT_NUMBER varchar(50)
   BANK_REFERENCE varchar(80)
-  TRANSFER_RECEIPT_PATH text
+  SUPPORT_DOCUMENT_PATH text
   AMOUNT numeric(14,2) [not null]
   PAYMENT_DATE timestamptz [not null]
   REVIEWED_BY_USER_ID uuid
 }
 
 Ref: USERS.CLIENT_ID > CLIENTS.CLIENT_ID
+Ref: USER_SESSIONS.USER_ID > USERS.USER_ID
 Ref: PASSWORD_RECOVERY_TOKENS.USER_ID > USERS.USER_ID
+Ref: CLIENT_CONTACTS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CLIENT_CARDS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CONTRACTS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CONTRACT_ROUTES.CONTRACT_ID > CONTRACTS.CONTRACT_ID

@@ -11,20 +11,20 @@ import { Contract } from './contract.entity';
 import { VehicleType } from './vehicle-type.entity';
 import { Order } from './order.entity';
 
-@Entity('CONTRACT_RATES')
+@Entity('contract_rates')
 @Index(['contractId', 'vehicleTypeId'], { unique: true })
 export class ContractRate {
-  @PrimaryGeneratedColumn('uuid', { name: 'CONTRACT_RATE_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'contract_rate_id' })
   contractRateId: string;
 
-  @Column({ name: 'CONTRACT_ID', type: 'uuid' })
+  @Column({ name: 'contract_id', type: 'uuid' })
   contractId: string;
 
-  @Column({ name: 'VEHICLE_TYPE_ID', type: 'smallint' })
+  @Column({ name: 'vehicle_type_id', type: 'smallint' })
   vehicleTypeId: number;
 
   @Column({
-    name: 'BASE_RATE_PER_KM',
+    name: 'base_rate_per_km',
     type: 'numeric',
     precision: 12,
     scale: 2,
@@ -32,7 +32,7 @@ export class ContractRate {
   baseRatePerKm: number;
 
   @Column({
-    name: 'DISCOUNT_PERCENTAGE',
+    name: 'discount_percentage',
     type: 'numeric',
     precision: 5,
     scale: 2,
@@ -41,7 +41,7 @@ export class ContractRate {
   discountPercentage: number;
 
   @Column({
-    name: 'FINAL_RATE_PER_KM',
+    name: 'final_rate_per_km',
     type: 'numeric',
     precision: 12,
     scale: 2,
@@ -49,11 +49,11 @@ export class ContractRate {
   finalRatePerKm: number;
 
   @ManyToOne(() => Contract, (contract) => contract.contractRates)
-  @JoinColumn({ name: 'CONTRACT_ID' })
+  @JoinColumn({ name: 'contract_id' })
   contract: Contract;
 
   @ManyToOne(() => VehicleType, (vehicleType) => vehicleType.contractRates)
-  @JoinColumn({ name: 'VEHICLE_TYPE_ID' })
+  @JoinColumn({ name: 'vehicle_type_id' })
   vehicleType: VehicleType;
 
   @OneToMany(() => Order, (order) => order.contractRate)

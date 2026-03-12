@@ -11,57 +11,68 @@ import { Invoice } from './invoice.entity';
 import { ClientCard } from './client-card.entity';
 import { User } from './user.entity';
 
-@Entity('PAYMENTS')
+@Entity('payments')
 export class Payment {
-  @PrimaryGeneratedColumn('uuid', { name: 'PAYMENT_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'payment_id' })
   paymentId: string;
 
-  @Column({ name: 'INVOICE_ID', type: 'uuid' })
+  @Column({ name: 'invoice_id', type: 'uuid' })
   invoiceId: string;
 
-  @Column({ name: 'METHOD', type: 'enum', enum: PaymentMethod })
+  @Column({ name: 'method', type: 'enum', enum: PaymentMethod })
   method: PaymentMethod;
 
   @Column({
-    name: 'STATUS',
+    name: 'status',
     type: 'enum',
     enum: PaymentStatus,
     default: PaymentStatus.PENDIENTE,
   })
   status: PaymentStatus;
 
-  @Column({ name: 'CARD_ID', type: 'uuid', nullable: true })
-  cardId: string;
+  @Column({ name: 'card_id', type: 'uuid', nullable: true })
+  cardId: string | null;
+
+  @Column({ name: 'bank_name', type: 'varchar', length: 120, nullable: true })
+  bankName: string | null;
 
   @Column({
-    name: 'BANK_REFERENCE',
+    name: 'bank_account_number',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  bankAccountNumber: string | null;
+
+  @Column({
+    name: 'bank_reference',
     type: 'varchar',
     length: 80,
     nullable: true,
   })
-  bankReference: string;
+  bankReference: string | null;
 
-  @Column({ name: 'TRANSFER_RECEIPT_PATH', type: 'text', nullable: true })
-  transferReceiptPath: string;
+  @Column({ name: 'support_document_path', type: 'text', nullable: true })
+  supportDocumentPath: string | null;
 
-  @Column({ name: 'AMOUNT', type: 'numeric', precision: 14, scale: 2 })
+  @Column({ name: 'amount', type: 'numeric', precision: 14, scale: 2 })
   amount: number;
 
-  @Column({ name: 'PAYMENT_DATE', type: 'timestamptz' })
+  @Column({ name: 'payment_date', type: 'timestamptz' })
   paymentDate: Date;
 
-  @Column({ name: 'REVIEWED_BY_USER_ID', type: 'uuid', nullable: true })
-  reviewedByUserId: string;
+  @Column({ name: 'reviewed_by_user_id', type: 'uuid', nullable: true })
+  reviewedByUserId: string | null;
 
   @ManyToOne(() => Invoice, (invoice) => invoice.payments)
-  @JoinColumn({ name: 'INVOICE_ID' })
+  @JoinColumn({ name: 'invoice_id' })
   invoice: Invoice;
 
   @ManyToOne(() => ClientCard, (card) => card.payments)
-  @JoinColumn({ name: 'CARD_ID' })
+  @JoinColumn({ name: 'card_id' })
   card: ClientCard;
 
   @ManyToOne(() => User, (user) => user.paymentsReviewed)
-  @JoinColumn({ name: 'REVIEWED_BY_USER_ID' })
+  @JoinColumn({ name: 'reviewed_by_user_id' })
   reviewedByUser: User;
 }

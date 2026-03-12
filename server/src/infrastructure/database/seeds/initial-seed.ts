@@ -1,50 +1,21 @@
 import dataSource from '../config/data-source';
-import { Branch } from '../typeorm/entities/branch.entity';
-import { VehicleType } from '../typeorm/entities/vehicle-type.entity';
-import { CargoType } from '../typeorm/entities/cargo-type.entity';
+import { ensureDatabaseExists } from '../bootstrap/ensure-database';
+import { ensureCanonicalSchema } from '../bootstrap/initialize-schema';
+import { runInitialSeed } from './database-seeder';
 
 async function seed() {
+  await ensureDatabaseExists();
   await dataSource.initialize();
-  console.log('Database connected. Starting seeding...');
+  try {
+    const schemaState = await ensureCanonicalSchema(dataSource);
+    const result = await runInitialSeed(dataSource);
 
-  const branchRepo = dataSource.getRepository(Branch);
-  const vehicleTypeRepo = dataSource.getRepository(VehicleType);
-  const cargoTypeRepo = dataSource.getRepository(CargoType);
-
-  // Seed Branches
-  const existingBranches = await branchRepo.count();
-  if (existingBranches === 0) {
-    console.log('Seeding Branches...');
-    await branchRepo.save([
-      { branchId: 1, branchCode: 'GT-C', branchName: 'Sede Central', city: 'Guatemala', country: 'Guatemala', isActive: true },
-      { branchId: 2, branchCode: 'GT-X', branchName: 'Sede Xela', city: 'Quetzaltenango', country: 'Guatemala', isActive: true },
-    ]);
+    console.log(`Canonical schema: ${schemaState}`);
+    console.log(result.seeded ? 'Seed completed.' : 'Seed skipped: data already present.');
+    console.log(result.counts);
+  } finally {
+    await dataSource.destroy();
   }
-
-  // Seed Vehicle Types
-  const existingVehicles = await vehicleTypeRepo.count();
-  if (existingVehicles === 0) {
-    console.log('Seeding Vehicle Types...');
-    await vehicleTypeRepo.save([
-      { vehicleTypeId: 1, typeCode: 'PANEL', typeName: 'Panel Cerrada', minCapacityTon: 0.5, maxCapacityTon: 1.5, ratePerKm: 5.50 },
-      { vehicleTypeId: 2, typeCode: 'CAMION-P', typeName: 'Camión Pequeño', minCapacityTon: 2.0, maxCapacityTon: 5.0, ratePerKm: 8.50 },
-      { vehicleTypeId: 3, typeCode: 'CABEZAL', typeName: 'Cabezal Articulado', minCapacityTon: 10.0, maxCapacityTon: 30.0, ratePerKm: 15.00 },
-    ]);
-  }
-
-  // Seed Cargo Types
-  const existingCargo = await cargoTypeRepo.count();
-  if (existingCargo === 0) {
-    console.log('Seeding Cargo Types...');
-    await cargoTypeRepo.save([
-      { cargoTypeId: 1, cargoName: 'Carga General Seca', requiresRefrigeration: false },
-      { cargoTypeId: 2, cargoName: 'Perecederos / Frigoríficos', requiresRefrigeration: true },
-      { cargoTypeId: 3, cargoName: 'Material Peligroso', requiresRefrigeration: false },
-    ]);
-  }
-
-  console.log('Seeding completed.');
-  await dataSource.destroy();
 }
 
 seed().catch((err) => {

@@ -11,64 +11,64 @@ import { VehicleType } from './vehicle-type.entity';
 import { User } from './user.entity';
 import { Order } from './order.entity';
 
-@Entity('TRANSPORT_UNITS')
+@Entity('transport_units')
 export class TransportUnit {
-  @PrimaryGeneratedColumn('uuid', { name: 'UNIT_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'unit_id' })
   unitId: string;
 
-  @Column({ name: 'BRANCH_ID', type: 'smallint' })
+  @Column({ name: 'branch_id', type: 'smallint' })
   branchId: number;
 
-  @Column({ name: 'VEHICLE_TYPE_ID', type: 'smallint' })
+  @Column({ name: 'vehicle_type_id', type: 'smallint' })
   vehicleTypeId: number;
 
-  @Column({ name: 'PILOT_USER_ID', type: 'uuid', unique: true, nullable: true })
-  pilotUserId: string;
+  @Column({ name: 'pilot_user_id', type: 'uuid', unique: true, nullable: true })
+  pilotUserId: string | null;
 
-  @Column({ name: 'PLATE_NUMBER', type: 'varchar', length: 20, unique: true })
+  @Column({ name: 'plate_number', type: 'varchar', length: 20, unique: true })
   plateNumber: string;
 
   @Column({
-    name: 'VEHICLE_MODEL',
+    name: 'vehicle_model',
     type: 'varchar',
     length: 80,
     nullable: true,
   })
-  vehicleModel: string;
+  vehicleModel: string | null;
 
-  @Column({ name: 'CAPACITY_TON', type: 'numeric', precision: 6, scale: 2 })
+  @Column({ name: 'capacity_ton', type: 'numeric', precision: 6, scale: 2 })
   capacityTon: number;
 
-  @Column({ name: 'HAS_REFRIGERATION', type: 'boolean', default: false })
+  @Column({ name: 'has_refrigeration', type: 'boolean', default: false })
   hasRefrigeration: boolean;
 
   @Column({
-    name: 'PILOT_LICENSE_NUMBER',
+    name: 'pilot_license_number',
     type: 'varchar',
     length: 40,
     unique: true,
   })
   pilotLicenseNumber: string;
 
-  @Column({ name: 'PILOT_LICENSE_EXPIRATION', type: 'date' })
+  @Column({ name: 'pilot_license_expiration', type: 'date' })
   pilotLicenseExpiration: string;
 
-  @Column({ name: 'VEHICLE_DOCUMENT_EXPIRATION', type: 'date' })
+  @Column({ name: 'vehicle_document_expiration', type: 'date' })
   vehicleDocumentExpiration: string;
 
-  @Column({ name: 'IS_ACTIVE', type: 'boolean', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   @ManyToOne(() => Branch, (branch) => branch.transportUnits)
-  @JoinColumn({ name: 'BRANCH_ID' })
+  @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 
   @ManyToOne(() => VehicleType, (type) => type.transportUnits)
-  @JoinColumn({ name: 'VEHICLE_TYPE_ID' })
+  @JoinColumn({ name: 'vehicle_type_id' })
   vehicleType: VehicleType;
 
   @ManyToOne(() => User, (user) => user.transportUnits)
-  @JoinColumn({ name: 'PILOT_USER_ID' })
+  @JoinColumn({ name: 'pilot_user_id' })
   pilotUser: User;
 
   @OneToMany(() => Order, (order) => order.unit)

@@ -8,24 +8,24 @@ import {
 import { RouteEventType } from '../../../../domain/enums/route-event-type.enum';
 import { Order } from './order.entity';
 
-@Entity('ORDER_ROUTE_LOGS')
+@Entity('order_route_logs')
 export class OrderRouteLog {
-  @PrimaryGeneratedColumn('uuid', { name: 'LOG_ID' })
+  @PrimaryGeneratedColumn('uuid', { name: 'log_id' })
   logId: string;
 
-  @Column({ name: 'ORDER_ID', type: 'uuid' })
+  @Column({ name: 'order_id', type: 'uuid' })
   orderId: string;
 
-  @Column({ name: 'EVENT_TYPE', type: 'enum', enum: RouteEventType })
+  @Column({ name: 'event_type', type: 'enum', enum: RouteEventType })
   eventType: RouteEventType;
 
-  @Column({ name: 'EVENT_TIME', type: 'timestamptz' })
+  @Column({ name: 'event_time', type: 'timestamptz' })
   eventTime: Date;
 
-  @Column({ name: 'DESCRIPTION', type: 'text' })
+  @Column({ name: 'description', type: 'text' })
   description: string;
 
   @ManyToOne(() => Order, (order) => order.logs)
-  @JoinColumn({ name: 'ORDER_ID' })
+  @JoinColumn({ name: 'order_id' })
   order: Order;
 }

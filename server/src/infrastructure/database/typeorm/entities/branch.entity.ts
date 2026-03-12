@@ -1,25 +1,25 @@
-import { Entity, PrimaryColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { TransportUnit } from './transport-unit.entity';
 import { Order } from './order.entity';
 
-@Entity('BRANCHES')
+@Entity('branches')
 export class Branch {
-  @PrimaryColumn('smallint', { name: 'BRANCH_ID' })
+  @PrimaryGeneratedColumn({ type: 'smallint', name: 'branch_id' })
   branchId: number;
 
-  @Column({ name: 'BRANCH_CODE', type: 'varchar', length: 20, unique: true })
+  @Column({ name: 'branch_code', type: 'varchar', length: 20, unique: true })
   branchCode: string;
 
-  @Column({ name: 'BRANCH_NAME', type: 'varchar', length: 100, unique: true })
+  @Column({ name: 'branch_name', type: 'varchar', length: 100, unique: true })
   branchName: string;
 
-  @Column({ name: 'CITY', type: 'varchar', length: 100 })
+  @Column({ name: 'city', type: 'varchar', length: 100 })
   city: string;
 
-  @Column({ name: 'COUNTRY', type: 'varchar', length: 100 })
+  @Column({ name: 'country', type: 'varchar', length: 100 })
   country: string;
 
-  @Column({ name: 'IS_ACTIVE', type: 'boolean', default: true })
+  @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
   @OneToMany(() => TransportUnit, (unit) => unit.branch)
