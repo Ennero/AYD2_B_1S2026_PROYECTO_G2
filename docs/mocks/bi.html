@@ -81,7 +81,7 @@
                 <p id="view-subtitle" class="text-gray-500 text-lg mt-1 font-medium">Resumen de operaciones y KPIs logísticos</p>
             </div>
             <div class="flex gap-4 items-center">
-                <input type="text" value="Hoy: 03 Mar 2026" disabled class="border border-gray-300 rounded px-4 py-2 text-gray-600 bg-white font-medium shadow-sm w-40 text-center">
+                <input type="text" value="Periodo: Mar 2026" disabled class="border border-gray-300 rounded px-4 py-2 text-gray-600 bg-white font-medium shadow-sm w-44 text-center">
                 <button class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-2 px-6 rounded shadow transition-colors">
                     Exporta PDF
                 </button>
@@ -104,7 +104,7 @@
                     <button onclick="showView('kpis-view')" class="bg-white border border-gray-200 hover:border-logi-light rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
                         <i class="fas fa-truck text-4xl text-logi-light mb-3 group-hover:scale-110 transition-transform"></i>
                         <h3 class="text-lg font-bold text-gray-800">Operaciones</h3>
-                        <p class="text-gray-500 text-sm mt-1">Corte diario y sedes</p>
+                        <p class="text-gray-500 text-sm mt-1">Corte mensual y sedes</p>
                     </button>
 
                     <button onclick="showView('profit-view')" class="bg-white border border-gray-200 hover:border-logi-dark rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
@@ -126,20 +126,24 @@
         <!-- VISTA 2: OPERACIONES Y KPIS LOGÍSTICOS     -->
         <!-- ========================================== -->
         <div id="kpis-view" class="view-section hidden animate-fade-in">
+            <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-6">
+                <i class="fas fa-plug"></i>
+                GET /api/bi/kpis?period=MONTHLY&year=2026&month=3
+            </div>
             
             <!-- Tarjetas Superiores -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-logi-gray rounded-xl p-6 shadow-sm">
-                    <h4 class="font-bold text-gray-800 mb-4">Servicios Completados</h4>
+                    <h4 class="font-bold text-gray-800 mb-4">Servicios Completados del Mes</h4>
                     <p class="text-4xl font-black text-gray-900">142</p>
                 </div>
                 <div class="bg-logi-gray rounded-xl p-6 shadow-sm">
-                    <h4 class="font-bold text-gray-800 mb-4">Facturación del Día</h4>
+                    <h4 class="font-bold text-gray-800 mb-4">Facturación del Mes</h4>
                     <p class="text-3xl font-black text-gray-900 mb-1">Q 184,500</p>
-                    <p class="text-sm font-bold text-green-700">+5% vs promedio</p>
+                    <p class="text-sm font-bold text-green-700">+5% vs promedio mensual</p>
                 </div>
                 <div class="bg-logi-gray rounded-xl p-6 shadow-sm border border-red-300">
-                    <h4 class="font-bold text-gray-800 mb-4">Incidentes Activos</h4>
+                    <h4 class="font-bold text-gray-800 mb-4">Incidentes Activos del Periodo</h4>
                     <div class="flex items-end gap-3">
                         <p class="text-4xl font-black text-gray-900">3</p>
                         <p class="text-sm font-bold text-red-600 mb-1">Requiere atención</p>
@@ -360,6 +364,47 @@
             </div>
         </div>
 
+        <details class="bg-white rounded-3xl shadow-xl border border-gray-100 mb-8 group">
+            <summary class="list-none cursor-pointer p-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-logi-dark text-white flex items-center justify-center text-xl shadow-lg">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-logi-dark">Mapa API del Dashboard BI</h2>
+                        <p class="text-gray-500 text-sm">Cada bloque gerencial consume un endpoint distinto.</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-down text-logi-dark transition-transform group-open:rotate-180"></i>
+            </summary>
+
+            <div class="px-8 pb-8 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/bi/kpis?period=MONTHLY|YEARLY</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Tarjetas superiores</h3>
+                    <p class="text-gray-700">Llena `completedServices`, `billingAmount` y `activeIncidents` según el período solicitado por gerencia.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/bi/branches/distribution</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Operaciones por sede</h3>
+                    <p class="text-gray-700">Alimenta el gráfico de distribución y la comparación de volumen por sucursal.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/bi/profitability</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Rentabilidad y gasto crítico</h3>
+                    <p class="text-gray-700">Entrega margen promedio, ingreso vs gasto y el rubro más sensible para gerencia.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/bi/orders/recent</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Últimos despachos</h3>
+                    <p class="text-gray-700">Llena la tabla de monitoreo rápido con las órdenes más recientes, su cliente, ruta y estado.</p>
+                </article>
+            </div>
+        </details>
+
     </main>
 
     <script>
@@ -377,7 +422,7 @@
             } else {
                 globalHeader.classList.remove('hidden');
                 // Cambiar subtítulo según la vista
-                if(viewId === 'kpis-view') viewSubtitle.innerText = "Resumen de operaciones y KPIs logísticos";
+                if(viewId === 'kpis-view') viewSubtitle.innerText = "Resumen mensual o anual de operaciones y KPIs logísticos";
                 if(viewId === 'profit-view') viewSubtitle.innerText = "Medición de Cumplimiento (KPIs)";
                 if(viewId === 'alerts-view') viewSubtitle.innerText = "Alertas y Proyecciones de Escalamiento";
             }

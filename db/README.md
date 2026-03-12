@@ -18,6 +18,7 @@ Se eliminaron estas piezas para bajar complejidad:
 Se mantuvo únicamente lo que sí impacta el MVP y el statement, incluyendo:
 
 - clientes y contratos,
+- sesiones de usuario para login seguro y refresh token,
 - rutas autorizadas,
 - tarifas por tipo de vehículo,
 - unidades de transporte con piloto integrado,
@@ -44,11 +45,11 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 | `CLIENT_CODE` | Código corto de negocio para búsqueda y referencia. Si backend no lo manda, la base puede generarlo. |
 | `LEGAL_NAME` | Razón social usada en contrato y factura. |
 | `COMMERCIAL_NAME` | Nombre comercial para operación diaria. |
-| `NIT` | Dato fiscal obligatorio para la factura. Se dejó flexible para soportar formatos reales como `548973-1`, `CF` u otros valores válidos del flujo. |
+| `NIT` | Dato fiscal obligatorio para la factura. En este MVP se fuerza a 13 dígitos para alinearse con la validación simulada del certificador FEL. |
 | `TAX_ADDRESS` | Dirección fiscal del cliente. |
-| `CONTACT_NAME` | Contacto principal del cliente en el MVP. |
-| `CONTACT_EMAIL` | Correo del contacto principal. |
-| `CONTACT_PHONE` | Teléfono del contacto principal. |
+| `PRIMARY_CONTACT_NAME` | Contacto principal administrativo del cliente. |
+| `PRIMARY_CONTACT_EMAIL` | Correo del contacto principal administrativo. |
+| `PRIMARY_CONTACT_PHONE` | Teléfono del contacto principal administrativo. |
 | `CREDIT_LIMIT` | Límite de crédito para bloquear nuevas órdenes cuando se exceda. Inicia en `0` mientras el cliente aún no tenga condiciones comerciales formales. |
 | `PAYMENT_RISK` | Riesgo por capacidad de pago. |
 | `CUSTOMS_RISK` | Riesgo relacionado con aduanas. |
@@ -61,6 +62,8 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 
 Guarda las cuentas de acceso del sistema para clientes y personal interno.
 
+Aquí ya no viven los contactos operativos del cliente. Los contactos comerciales o logísticos del cliente se manejan aparte en `CLIENT_CONTACTS`.
+
 | Campo | Motivo |
 |---|---|
 | `USER_ID` | Identificador de la cuenta. |
@@ -71,6 +74,29 @@ Guarda las cuentas de acceso del sistema para clientes y personal interno.
 | `PASSWORD_HASH` | Contraseña protegida. |
 | `PHONE` | Medio de contacto. |
 | `IS_ACTIVE` | Permite desactivar la cuenta sin borrarla. |
+
+## `USER_SESSIONS`
+
+Tabla de sesión para soportar autenticación con JWT de corta duración y refresh tokens persistidos de forma segura.
+
+Esto aterriza la decisión arquitectónica de manejar sesiones revocables por usuario, aunque el acceso principal siga siendo stateless en cada request.
+
+| Campo | Motivo |
+|---|---|
+| `SESSION_ID` | Identificador de la sesión persistida. |
+| `USER_ID` | Usuario dueño de la sesión. |
+| `USER_REMOTE` | IP de origen usando el tipo nativo `inet` de PostgreSQL. |
+| `USER_AGENT` | Referencia del navegador o cliente que abrió la sesión. |
+| `USER_UUID` | Identificador único del usuario en formato textual para interoperabilidad con la capa de autenticación. |
+| `SESSION_UUID` | Identificador único de la sesión expuesto a la aplicación. |
+| `SESSION_TOKEN` | Token de sesión persistido para revalidación o renovación. |
+| `SESSION_SOURCE` | Origen desde donde se abrió la sesión, por ejemplo web, mobile o api. |
+| `USAGE_COUNT` | Contador de usos o interacciones asociadas al token de sesión. |
+| `LAST_USED_AT` | Último uso exitoso del refresh token. |
+| `EXPIRATION_AT` | Fecha de expiración de la sesión. |
+| `DELETED_AT` | Marca de borrado lógico o revocación. |
+| `CREATED_AT` | Momento de creación de la sesión. |
+| `UPDATED_AT` | Momento de la última actualización de la sesión. |
 
 ## `PASSWORD_RECOVERY_TOKENS`
 
@@ -84,6 +110,22 @@ Tabla mínima para recuperación de contraseña, porque el statement sí habla d
 | `EXPIRES_AT` | Fecha de expiración. |
 | `USED_AT` | Marca si ya fue utilizado. |
 
+## `CLIENT_CONTACTS`
+
+Guarda los contactos de negocio del cliente sin darles acceso a la plataforma.
+
+Esto evita mezclar contactos comerciales con usuarios autenticables del sistema.
+
+| Campo | Motivo |
+|---|---|
+| `CONTACT_ID` | Identificador del contacto. |
+| `CLIENT_ID` | Cliente al que pertenece el contacto. |
+| `CONTACT_NAME` | Nombre del contacto. |
+| `CONTACT_EMAIL` | Correo del contacto. |
+| `CONTACT_PHONE` | Teléfono del contacto. |
+| `POSITION_TITLE` | Cargo o rol dentro de la empresa cliente. |
+| `IS_ACTIVE` | Permite desactivar el contacto sin borrarlo. |
+
 ## `CLIENT_CARDS`
 
 Tarjetas simuladas del cliente para pagos internos del MVP.
@@ -93,6 +135,7 @@ Tarjetas simuladas del cliente para pagos internos del MVP.
 | `CARD_ID` | Identificador de la tarjeta simulada. |
 | `CLIENT_ID` | Cliente dueño de la tarjeta. |
 | `CARD_ALIAS` | Alias fácil de reconocer por el cliente. |
+| `CARDHOLDER_NAME` | Nombre del titular mostrado en el medio de pago. |
 | `CARD_BRAND` | Marca de la tarjeta. |
 | `LAST_FOUR` | Últimos cuatro dígitos para mostrarla sin guardar el número completo. |
 | `EXPIRATION_MONTH` | Mes de expiración. |
@@ -119,7 +162,7 @@ Rutas maestras del negocio.
 | Campo | Motivo |
 |---|---|
 | `ROUTE_ID` | Identificador interno de la ruta. |
-| `ROUTE_CODE` | Código corto de la ruta. |
+| `ROUTE_CODE` | Código corto de la ruta. Lo genera la base en formato incremental para que el agente operativo no lo escriba manualmente. |
 | `ORIGIN` | Origen textual de la ruta. |
 | `DESTINATION` | Destino textual de la ruta. |
 | `DISTANCE_KM` | Distancia usada en cotización y facturación. |
@@ -166,7 +209,6 @@ Contrato comercial del cliente.
 | `CREDIT_LIMIT` | Límite de crédito pactado para ese contrato. |
 | `PAYMENT_TERM_DAYS` | Plazo de pago pactado. |
 | `DISCOUNT_PERCENTAGE` | Descuento general del contrato, usado para derivar tarifas por tipo de vehículo. |
-| `SIGNED_CONTRACT_PATH` | Ruta del archivo firmado. |
 | `NOTES` | Observaciones contractuales. |
 
 ## `CONTRACT_ROUTES`
@@ -284,18 +326,21 @@ Se dejó porque sección B sí exige bitácora de ruta. No es historial técnico
 
 Factura electrónica simplificada y simulada.
 
+El borrador nace automáticamente cuando la orden cambia a `ENTREGADA`, de modo que Finanzas revisa un documento ya preparado en lugar de crearlo manualmente como paso principal.
+
 | Campo | Motivo |
 |---|---|
 | `INVOICE_ID` | Identificador interno de la factura. |
 | `INVOICE_NUMBER` | Número visible de la factura. Si backend no lo manda, la base puede generarlo. |
-| `ORDER_ID` | Orden que originó la factura. |
+| `ORDER_ID` | Orden que originó la factura. Es único para garantizar un solo borrador por entrega. |
 | `CLIENT_ID` | Cliente dueño de la factura; permite listar "Mis Facturas" de forma directa. |
 | `STATUS` | Estado de la factura. |
 | `ISSUE_DATE` | Fecha de emisión. |
+| `CERTIFIED_AT` | Fecha y hora real de certificación. Sirve para alimentar el panel del FEL cuando muestra cuántas facturas fueron certificadas hoy. |
 | `DUE_DATE` | Fecha de vencimiento. Si backend no la manda, la base puede derivarla desde el plazo del contrato. |
 | `SENT_AT` | Fecha y hora exacta en que se disparó el correo de envío de la factura. |
 | `CLIENT_NAME` | Nombre del cliente capturado en la factura. |
-| `CLIENT_NIT` | NIT usado en la factura, con la misma flexibilidad de formato que el cliente maestro. |
+| `CLIENT_NIT` | NIT usado en la factura. En este MVP debe conservar el formato numérico de 13 dígitos validado por FEL. |
 | `CLIENT_ADDRESS` | Dirección fiscal usada en la factura. |
 | `SERVICE_DESCRIPTION` | Descripción del servicio. |
 | `SUBTOTAL_AMOUNT` | Subtotal del documento. |
@@ -306,7 +351,7 @@ Factura electrónica simplificada y simulada.
 
 ## `PAYMENTS`
 
-Pago simulado del MVP. Solo existen tarjeta y transferencia.
+Pago simulado del MVP. Ahora soporta tarjeta, transferencia y cheque para cubrir el enunciado funcional.
 
 La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemplo si un pago fue rechazado y el cliente vuelve a intentarlo. La restricción real es que solo puede existir un pago aprobado por factura.
 
@@ -314,11 +359,13 @@ La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemp
 |---|---|
 | `PAYMENT_ID` | Identificador del pago. |
 | `INVOICE_ID` | Factura a pagar. |
-| `METHOD` | Método de pago: tarjeta o transferencia. |
+| `METHOD` | Método de pago: tarjeta, transferencia o cheque. |
 | `STATUS` | Estado del pago: pendiente, aprobado o rechazado. |
 | `CARD_ID` | Tarjeta elegida, si el pago fue con tarjeta. |
-| `BANK_REFERENCE` | Referencia bancaria para conciliación rápida cuando el pago es por transferencia. |
-| `TRANSFER_RECEIPT_PATH` | PDF del comprobante, si fue transferencia. |
+| `BANK_NAME` | Banco de origen del pago cuando no es tarjeta. |
+| `BANK_ACCOUNT_NUMBER` | Cuenta de origen usada en transferencia o cheque. |
+| `BANK_REFERENCE` | Referencia o autorización bancaria del pago. |
+| `SUPPORT_DOCUMENT_PATH` | Archivo soporte del pago cuando fue transferencia o cheque. |
 | `AMOUNT` | Monto pagado. |
 | `PAYMENT_DATE` | Fecha y hora del pago. |
 | `REVIEWED_BY_USER_ID` | Usuario que revisó y aprobó el pago si aplicó. |
@@ -328,13 +375,17 @@ La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemp
 - Se pueden generar automáticamente `CLIENT_CODE`, `CONTRACT_NUMBER`, `ORDER_NUMBER` e `INVOICE_NUMBER`.
 - Al crear o modificar el descuento general del contrato, la base puede sincronizar las tarifas contractuales por tipo de vehículo.
 - La capacidad real de la unidad debe coincidir con el rango del tipo de vehículo.
+- No se puede crear una orden si el contrato no esta vigente, si el cliente esta bloqueado, si tiene mora o si ya excedio el limite de credito del contrato.
 - Una orden no puede asignarse a una unidad que no soporte el peso.
 - Al asignar una unidad, la base puede completar la sede y la tarifa contractual de la orden.
 - Si la carga requiere refrigeración, la unidad debe tenerla.
-- Al crear una factura, la base puede completar datos del cliente y vencimiento desde la orden y el contrato.
+- La licencia del piloto y la documentacion del vehiculo deben estar vigentes al momento de la asignacion.
+- Cuando una orden pasa a `ENTREGADA`, la base inserta automáticamente una factura en `BORRADOR`.
+- Al insertar la factura, la base completa datos del cliente y vencimiento desde la orden y el contrato.
 - El monto del pago debe ser exactamente igual al total de la factura.
 - Si un pago queda aprobado, la factura pasa a `PAGADA`.
 - Un cliente no puede tener más de un contrato pendiente o vigente a la vez.
+- El login puede emitir una nueva sesion persistida para controlar refresh tokens y revocacion.
 
 ## Vistas incluidas
 
