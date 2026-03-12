@@ -341,7 +341,7 @@
             }
 
             currentRow = id;
-            console.log(`PATCH /api/certifier/invoices/${id}/certify -> STATUS: CERTIFIED`);
+            console.log(`PATCH /api/certifier/invoices/${id}/certify -> STATUS: CERTIFICADA`);
             
             // Generar UUID random para simular a la SAT
             const randomUUID = crypto.randomUUID().toUpperCase();
@@ -361,7 +361,7 @@
 
         // Simulación: PATCH /api/certifier/invoices/{ID}/reject
         function confirmReject() {
-            console.log(`PATCH /api/certifier/invoices/${currentRow}/reject -> STATUS: REJECTED`);
+            console.log(`PATCH /api/certifier/invoices/${currentRow}/reject -> STATUS: RECHAZADA`);
             document.getElementById('reject-modal').classList.add('hidden');
             // Ocultar la fila
             document.getElementById(`row-${currentRow}`).style.display = 'none';

@@ -18,6 +18,7 @@ Se eliminaron estas piezas para bajar complejidad:
 Se mantuvo únicamente lo que sí impacta el MVP y el statement, incluyendo:
 
 - clientes y contratos,
+- sesiones de usuario para login seguro y refresh token,
 - rutas autorizadas,
 - tarifas por tipo de vehículo,
 - unidades de transporte con piloto integrado,
@@ -44,7 +45,7 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 | `CLIENT_CODE` | Código corto de negocio para búsqueda y referencia. Si backend no lo manda, la base puede generarlo. |
 | `LEGAL_NAME` | Razón social usada en contrato y factura. |
 | `COMMERCIAL_NAME` | Nombre comercial para operación diaria. |
-| `NIT` | Dato fiscal obligatorio para la factura. Se dejó flexible para soportar formatos reales como `548973-1`, `CF` u otros valores válidos del flujo. |
+| `NIT` | Dato fiscal obligatorio para la factura. En este MVP se fuerza a 13 dígitos para alinearse con la validación simulada del certificador FEL. |
 | `TAX_ADDRESS` | Dirección fiscal del cliente. |
 | `PRIMARY_CONTACT_NAME` | Contacto principal administrativo del cliente. |
 | `PRIMARY_CONTACT_EMAIL` | Correo del contacto principal administrativo. |
@@ -73,6 +74,25 @@ Aquí ya no viven los contactos operativos del cliente. Los contactos comerciale
 | `PASSWORD_HASH` | Contraseña protegida. |
 | `PHONE` | Medio de contacto. |
 | `IS_ACTIVE` | Permite desactivar la cuenta sin borrarla. |
+
+## `USER_SESSIONS`
+
+Tabla de sesión para soportar autenticación con JWT de corta duración y refresh tokens persistidos de forma segura.
+
+Esto aterriza la decisión arquitectónica de manejar sesiones revocables por usuario, aunque el acceso principal siga siendo stateless en cada request.
+
+| Campo | Motivo |
+|---|---|
+| `SESSION_ID` | Identificador de la sesión persistida. |
+| `USER_ID` | Usuario dueño de la sesión. |
+| `REFRESH_TOKEN_HASH` | Hash del refresh token, nunca el token en texto plano. |
+| `USER_AGENT` | Referencia del navegador o cliente que abrió la sesión. |
+| `IP_ADDRESS` | IP de origen para trazabilidad básica. |
+| `ISSUED_AT` | Momento de creación de la sesión. |
+| `EXPIRES_AT` | Fecha de expiración del refresh token. |
+| `LAST_USED_AT` | Último uso exitoso del refresh token. |
+| `REVOKED_AT` | Momento de revocación de la sesión. |
+| `IS_ACTIVE` | Marca lógica para invalidar una sesión sin borrarla. |
 
 ## `PASSWORD_RECOVERY_TOKENS`
 
@@ -316,7 +336,7 @@ El borrador nace automáticamente cuando la orden cambia a `ENTREGADA`, de modo 
 | `DUE_DATE` | Fecha de vencimiento. Si backend no la manda, la base puede derivarla desde el plazo del contrato. |
 | `SENT_AT` | Fecha y hora exacta en que se disparó el correo de envío de la factura. |
 | `CLIENT_NAME` | Nombre del cliente capturado en la factura. |
-| `CLIENT_NIT` | NIT usado en la factura, con la misma flexibilidad de formato que el cliente maestro. |
+| `CLIENT_NIT` | NIT usado en la factura. En este MVP debe conservar el formato numérico de 13 dígitos validado por FEL. |
 | `CLIENT_ADDRESS` | Dirección fiscal usada en la factura. |
 | `SERVICE_DESCRIPTION` | Descripción del servicio. |
 | `SUBTOTAL_AMOUNT` | Subtotal del documento. |
@@ -351,14 +371,17 @@ La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemp
 - Se pueden generar automáticamente `CLIENT_CODE`, `CONTRACT_NUMBER`, `ORDER_NUMBER` e `INVOICE_NUMBER`.
 - Al crear o modificar el descuento general del contrato, la base puede sincronizar las tarifas contractuales por tipo de vehículo.
 - La capacidad real de la unidad debe coincidir con el rango del tipo de vehículo.
+- No se puede crear una orden si el contrato no esta vigente, si el cliente esta bloqueado, si tiene mora o si ya excedio el limite de credito del contrato.
 - Una orden no puede asignarse a una unidad que no soporte el peso.
 - Al asignar una unidad, la base puede completar la sede y la tarifa contractual de la orden.
 - Si la carga requiere refrigeración, la unidad debe tenerla.
+- La licencia del piloto y la documentacion del vehiculo deben estar vigentes al momento de la asignacion.
 - Cuando una orden pasa a `ENTREGADA`, la base inserta automáticamente una factura en `BORRADOR`.
 - Al insertar la factura, la base completa datos del cliente y vencimiento desde la orden y el contrato.
 - El monto del pago debe ser exactamente igual al total de la factura.
 - Si un pago queda aprobado, la factura pasa a `PAGADA`.
 - Un cliente no puede tener más de un contrato pendiente o vigente a la vez.
+- El login puede emitir una nueva sesion persistida para controlar refresh tokens y revocacion.
 
 ## Vistas incluidas
 

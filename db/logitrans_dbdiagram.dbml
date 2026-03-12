@@ -98,6 +98,19 @@ Table USERS {
   IS_ACTIVE boolean [not null, default: true]
 }
 
+Table USER_SESSIONS {
+  SESSION_ID uuid [pk]
+  USER_ID uuid [not null]
+  REFRESH_TOKEN_HASH text [not null, unique]
+  USER_AGENT text
+  IP_ADDRESS varchar(45)
+  ISSUED_AT timestamptz [not null]
+  EXPIRES_AT timestamptz [not null]
+  LAST_USED_AT timestamptz
+  REVOKED_AT timestamptz
+  IS_ACTIVE boolean [not null, default: true]
+}
+
 Table PASSWORD_RECOVERY_TOKENS {
   TOKEN_ID uuid [pk]
   USER_ID uuid [not null]
@@ -321,6 +334,7 @@ Table PAYMENTS {
 }
 
 Ref: USERS.CLIENT_ID > CLIENTS.CLIENT_ID
+Ref: USER_SESSIONS.USER_ID > USERS.USER_ID
 Ref: PASSWORD_RECOVERY_TOKENS.USER_ID > USERS.USER_ID
 Ref: CLIENT_CONTACTS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CLIENT_CARDS.CLIENT_ID > CLIENTS.CLIENT_ID

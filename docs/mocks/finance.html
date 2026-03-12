@@ -468,7 +468,7 @@
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
                     <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/payments/{PAYMENT_ID}/approve</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Aprobar y aplicar pago</h3>
-                    <p class="text-gray-700">Se ejecuta en tesorería, ya fuera del tramo FEL. Pasa el pago a `APPROVED`, marca la factura como `PAID` y libera el crédito consumido del cliente.</p>
+                    <p class="text-gray-700">Se ejecuta en tesorería, ya fuera del tramo FEL. Pasa el pago a `APROBADO`, marca la factura como `PAGADA` y libera el crédito consumido del cliente.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
@@ -589,7 +589,7 @@
         function approvePayment(paymentId) {
             console.log('PATCH /api/finance/payments/{PAYMENT_ID}/approve', {
                 PAYMENT_ID: paymentId,
-                STATUS: 'APPROVED',
+                STATUS: 'APROBADO',
                 FLOW_STAGE: 'POST_BILLING_RECONCILIATION'
             });
             document.getElementById('payment-modal').classList.remove('hidden');
@@ -600,7 +600,7 @@
             console.log('PATCH /api/finance/invoices/{INVOICE_ID}/send', {
                 INVOICE_ID: invoiceId,
                 INVOICE_NUMBER: invoiceNumber,
-                STATUS: 'SENT',
+                STATUS: 'ENVIADA',
                 FLOW_STAGE: 'POST_FEL_CERTIFICATION',
                 PDF_PATH: `/files/invoices/${invoiceNumber}.pdf`
             });
