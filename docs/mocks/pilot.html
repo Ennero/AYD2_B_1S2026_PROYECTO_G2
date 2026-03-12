@@ -333,6 +333,9 @@
                         <i class="fas fa-plug"></i>
                         PATCH /api/pilot/orders/{ORDER_ID}/deliver
                     </div>
+                    <p class="text-sm text-logi-dark mb-5 bg-white/70 border border-teal-100 rounded-xl px-4 py-3">
+                        El dispositivo envía firma y fotos en Base64. El backend transforma ese contenido en archivos persistidos y guarda las rutas resultantes.
+                    </p>
                     <div class="flex flex-col md:flex-row gap-6">
                         
                         <!-- Caja Firma -->
@@ -341,7 +344,7 @@
                                 <i class="fas fa-file-signature text-xl"></i>
                             </div>
                             <h4 class="font-bold text-gray-800 text-sm">Firma Digital del Receptor *</h4>
-                            <p class="text-xs text-gray-500 mb-4 mt-1">Capture la firma en la pantalla del dispositivo</p>
+                            <p class="text-xs text-gray-500 mb-4 mt-1">Capture la firma en la pantalla del dispositivo para serializarla en Base64</p>
                             <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded text-sm transition-colors">
                                 Capturar Firma
                             </button>
@@ -353,9 +356,9 @@
                                 <i class="fas fa-camera text-xl"></i>
                             </div>
                             <h4 class="font-bold text-gray-800 text-sm">Evidencia Fotográfica (Opcional)</h4>
-                            <p class="text-xs text-gray-500 mb-4 mt-1">Tome fotografías de la mercancía entregada</p>
+                            <p class="text-xs text-gray-500 mb-4 mt-1">Tome fotografías de la mercancía entregada para enviarlas en Base64</p>
                             <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded text-sm transition-colors">
-                                <i class="fas fa-upload mr-2"></i> Tomar/Subir Fotos
+                                <i class="fas fa-camera mr-2"></i> Capturar Fotos
                             </button>
                         </div>
 
@@ -420,7 +423,7 @@
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50 md:col-span-2">
                     <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/pilot/orders/{ORDER_ID}/deliver</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Confirmar entrega</h3>
-                    <p class="text-gray-700">Guarda `RECEIVER_NAME`, `RECEIVER_SIGNATURE_PATH`, `DELIVERY_EVIDENCE_PATH`, `DELIVERED_AT` y cambia `STATUS = ENTREGADA` para disparar facturación.</p>
+                    <p class="text-gray-700">Recibe `RECEIVER_NAME`, `RECEIVER_SIGNATURE_BASE64`, `DELIVERY_EVIDENCE_BASE64`, `DELIVERED_AT` y cambia `STATUS = ENTREGADA`. El backend genera `RECEIVER_SIGNATURE_PATH` y `DELIVERY_EVIDENCE_PATH` para persistencia.</p>
                 </article>
             </div>
         </div>
@@ -567,8 +570,13 @@
                 ORDER_ID: currentTripId,
                 STATUS: 'ENTREGADA',
                 RECEIVER_NAME: receiverName,
-                RECEIVER_SIGNATURE_PATH: '/files/signatures/' + currentTripId + '.png',
-                DELIVERY_EVIDENCE_PATH: '/files/evidence/' + currentTripId + '.jpg',
+                RECEIVER_SIGNATURE_BASE64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',
+                DELIVERY_EVIDENCE_BASE64: [
+                    'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...',
+                    'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...'
+                ],
+                GENERATED_RECEIVER_SIGNATURE_PATH: '/files/signatures/' + currentTripId + '.png',
+                GENERATED_DELIVERY_EVIDENCE_PATHS: ['/files/evidence/' + currentTripId + '-1.jpg'],
                 NOTES: deliveryNotes
             });
 

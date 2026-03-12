@@ -89,7 +89,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/dashboard/summary</td>
+      <td>/api/client/dashboard/summary</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -110,7 +110,32 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>POST</td>
-      <td>/api/cliente/orders</td>
+      <td>/api/client/cargo-types</td>
+      <td><pre>{
+  "headers": {
+    "Authorization": "Bearer &lt;jwt_cliente&gt;"
+  }
+}</pre></td>
+      <td><pre>{
+  "message": "Tipos de mercancia obtenidos correctamente",
+  "data": [
+    {
+      "cargoTypeId": 1,
+      "cargoName": "GENERAL",
+      "requiresRefrigeration": false
+    },
+    {
+      "cargoTypeId": 2,
+      "cargoName": "REFRIGERADO",
+      "requiresRefrigeration": true
+    }
+  ]
+}</pre></td>
+      <td>Consulta <strong>CARGO_TYPES</strong> activos para poblar el combobox del formulario de ordenes del cliente.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>/api/client/orders</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -137,7 +162,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/orders</td>
+      <td>/api/client/orders</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -165,7 +190,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/orders/catalog</td>
+      <td>/api/client/orders/catalog</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -184,7 +209,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/orders/{ORDER_ID}/tracking</td>
+      <td>/api/client/orders/{ORDER_ID}/tracking</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -213,7 +238,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/contracts</td>
+      <td>/api/client/contracts</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -238,7 +263,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/contracts/{CONTRACT_ID}</td>
+      <td>/api/client/contracts/{CONTRACT_ID}</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -270,13 +295,10 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/cliente/contracts/{CONTRACT_ID}/accept</td>
+      <td>/api/client/contracts/{CONTRACT_ID}/accept</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
-  },
-  "body": {
-    "signedContractPath": "/files/contracts/CONT-00012-signed.pdf"
   }
 }</pre></td>
       <td><pre>{
@@ -287,11 +309,11 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "acceptedAt": "2026-04-02T10:20:00Z"
   }
 }</pre></td>
-      <td>Actualiza <strong>CONTRACTS.STATUS</strong> a <strong>VIGENTE</strong>, guarda <strong>ACCEPTED_AT</strong> y opcionalmente <strong>SIGNED_CONTRACT_PATH</strong>.<br>Debe respetar el indice de contrato activo por cliente.</td>
+      <td>Actualiza <strong>CONTRACTS.STATUS</strong> a <strong>VIGENTE</strong> y guarda <strong>ACCEPTED_AT</strong>.<br>En este MVP no se persiste archivo firmado; debe respetar el indice de contrato activo por cliente.</td>
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/cliente/contracts/{CONTRACT_ID}/reject</td>
+      <td>/api/client/contracts/{CONTRACT_ID}/reject</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -311,7 +333,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/invoices</td>
+      <td>/api/client/invoices</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -338,7 +360,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/account-statement</td>
+      <td>/api/client/account-statement</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -361,7 +383,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>POST</td>
-      <td>/api/cliente/payments</td>
+      <td>/api/client/payments</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -387,7 +409,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/cards</td>
+      <td>/api/client/cards</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -398,47 +420,44 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "data": [
     {
       "CARD_ID": "89f38437-22b9-4941-adfd-c3d9d4048267",
-      "CARD_ALIAS": "Tarjeta principal",
+      "CARD_ALIAS": "Visa corporativa",
       "CARDHOLDER_NAME": "Ana Morales",
       "CARD_BRAND": "VISA",
       "LAST_FOUR": "4455",
-      "IS_DEFAULT": true,
       "IS_ACTIVE": true
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>CLIENT_CARDS</strong> por <strong>CLIENT_ID</strong> del usuario autenticado.<br>Normalmente devuelve solo tarjetas activas y marca la principal con <strong>IS_DEFAULT</strong>.</td>
+      <td>Consulta <strong>CLIENT_CARDS</strong> por <strong>CLIENT_ID</strong> del usuario autenticado.<br>Devuelve tarjetas activas sin manejar una bandera de tarjeta predeterminada en este MVP.</td>
     </tr>
     <tr>
       <td>POST</td>
-      <td>/api/cliente/cards</td>
+      <td>/api/client/cards</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
   },
   "body": {
-    "CARD_ALIAS": "Tarjeta principal",
+    "CARD_ALIAS": "Visa corporativa",
     "CARDHOLDER_NAME": "Ana Morales",
     "CARD_BRAND": "VISA",
     "LAST_FOUR": "4455",
     "EXPIRATION_MONTH": 12,
-    "EXPIRATION_YEAR": 2028,
-    "IS_DEFAULT": true
+    "EXPIRATION_YEAR": 2028
   }
 }</pre></td>
       <td><pre>{
   "message": "Tarjeta registrada correctamente",
   "data": {
     "CARD_ID": "89f38437-22b9-4941-adfd-c3d9d4048267",
-    "IS_ACTIVE": true,
-    "IS_DEFAULT": true
+    "IS_ACTIVE": true
   }
 }</pre></td>
-      <td>Inserta en <strong>CLIENT_CARDS</strong>.<br>Debe respetar la unicidad de <strong>(CLIENT_ID, CARD_ALIAS)</strong> y la regla de una sola tarjeta <strong>IS_DEFAULT</strong> por cliente.<br>No se guarda numero completo de tarjeta en este modelo MVP.</td>
+      <td>Inserta en <strong>CLIENT_CARDS</strong>.<br>Debe respetar la unicidad de <strong>(CLIENT_ID, CARD_ALIAS)</strong>.<br>No se guarda numero completo de tarjeta en este modelo MVP.</td>
     </tr>
     <tr>
       <td>DELETE</td>
-      <td>/api/cliente/cards/{CARD_ID}</td>
+      <td>/api/client/cards/{CARD_ID}</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -455,7 +474,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/profile</td>
+      <td>/api/client/profile</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -474,7 +493,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/cliente/profile/password</td>
+      <td>/api/client/profile/password</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -493,7 +512,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/cliente/contacts</td>
+      <td>/api/client/contacts</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -508,7 +527,6 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
       "CONTACT_EMAIL": "ana.morales@empresa.com",
       "CONTACT_PHONE": "5566-7788",
       "POSITION_TITLE": "Compras",
-      "IS_PRIMARY": false,
       "IS_ACTIVE": true
     }
   ]
@@ -517,7 +535,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>POST</td>
-      <td>/api/cliente/contacts</td>
+      <td>/api/client/contacts</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -526,8 +544,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "CONTACT_NAME": "Ana Morales",
     "CONTACT_EMAIL": "ana.morales@empresa.com",
     "CONTACT_PHONE": "5566-7788",
-    "POSITION_TITLE": "Compras",
-    "IS_PRIMARY": false
+    "POSITION_TITLE": "Compras"
   }
 }</pre></td>
       <td><pre>{
@@ -536,11 +553,11 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "CONTACT_ID": "0b5c4c3d-9bc7-4ee0-b7fe-9b9c4f7168b0"
   }
 }</pre></td>
-      <td>Inserta en <strong>CLIENT_CONTACTS</strong>.<br>Si <strong>IS_PRIMARY</strong> llega en verdadero, debe sincronizar el anterior primario para conservar la unicidad.</td>
+      <td>Inserta en <strong>CLIENT_CONTACTS</strong>.<br>El contacto principal del cliente se administra directamente en <strong>CLIENTS.PRIMARY_CONTACT_*</strong>, no con una bandera adicional.</td>
     </tr>
     <tr>
       <td>PUT</td>
-      <td>/api/cliente/contacts/{CONTACT_ID}</td>
+      <td>/api/client/contacts/{CONTACT_ID}</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -561,7 +578,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>DELETE</td>
-      <td>/api/cliente/contacts/{CONTACT_ID}</td>
+      <td>/api/client/contacts/{CONTACT_ID}</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
@@ -594,7 +611,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>POST</td>
-      <td>/api/operative/clients</td>
+      <td>/api/operations/clients</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
@@ -617,15 +634,14 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "message": "Cliente registrado correctamente",
   "data": {
     "CLIENT_ID": "fe3fc5a5-7f42-48cf-963b-ea854aa0e2ff",
-    "CLIENT_CODE": "CLI-00012",
-    "PRIMARY_CONTACT_ID": "0b5c4c3d-9bc7-4ee0-b7fe-9b9c4f7168b0"
+    "CLIENT_CODE": "CLI-00012"
   }
 }</pre></td>
-      <td>Inserta en <strong>CLIENTS</strong> y registra el contacto principal en <strong>CLIENT_CONTACTS</strong>.<br>No crea usuarios de plataforma automaticamente.</td>
+      <td>Inserta en <strong>CLIENTS</strong> usando <strong>PRIMARY_CONTACT_NAME</strong>, <strong>PRIMARY_CONTACT_EMAIL</strong> y <strong>PRIMARY_CONTACT_PHONE</strong>.<br>No crea usuarios de plataforma automaticamente.</td>
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/operative/clients</td>
+      <td>/api/operations/clients</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
@@ -649,7 +665,51 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/operative/routes</td>
+      <td>/api/operations/cargo-types</td>
+      <td><pre>{
+  "headers": {
+    "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
+  },
+  "query": {
+    "isActive": true
+  }
+}</pre></td>
+      <td><pre>{
+  "message": "Tipos de mercancia obtenidos correctamente",
+  "data": [
+    {
+      "cargoTypeId": 1,
+      "cargoName": "GENERAL",
+      "requiresRefrigeration": false
+    }
+  ]
+}</pre></td>
+      <td>Consulta <strong>CARGO_TYPES</strong> para mantener el catalogo que luego usan contratos y clientes.</td>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>/api/operations/cargo-types</td>
+      <td><pre>{
+  "headers": {
+    "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
+  },
+  "body": {
+    "cargoName": "QUIMICOS",
+    "requiresRefrigeration": false
+  }
+}</pre></td>
+      <td><pre>{
+  "message": "Tipo de mercancia registrado correctamente",
+  "data": {
+    "cargoTypeId": 5,
+    "cargoName": "QUIMICOS"
+  }
+}</pre></td>
+      <td>Inserta una nueva fila en <strong>CARGO_TYPES</strong> para ampliar el catalogo operativo disponible en contratos y ordenes.</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td>/api/operations/routes</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
@@ -674,13 +734,12 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>POST</td>
-      <td>/api/operative/routes</td>
+      <td>/api/operations/routes</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
   },
   "body": {
-    "ROUTE_CODE": "GUA-PBR",
     "ORIGIN": "CIUDAD DE GUATEMALA",
     "DESTINATION": "PUERTO BARRIOS",
     "DISTANCE_KM": 295,
@@ -692,14 +751,14 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "message": "Ruta registrada correctamente",
   "data": {
     "ROUTE_ID": 9,
-    "ROUTE_CODE": "GUA-PBR"
+    "ROUTE_CODE": "RTE-00009"
   }
 }</pre></td>
-      <td>Inserta una nueva fila en <strong>ROUTES</strong> para ampliar el catalogo operativo reutilizado por contratos y asignaciones logisticas.</td>
+      <td>Inserta una nueva fila en <strong>ROUTES</strong> para ampliar el catalogo operativo reutilizado por contratos y asignaciones logisticas.<br>El <strong>ROUTE_CODE</strong> lo genera automaticamente la base de datos.</td>
     </tr>
     <tr>
       <td>POST</td>
-      <td>/api/operative/contracts</td>
+      <td>/api/operations/contracts</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
@@ -742,7 +801,24 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>GET</td>
-      <td>/api/logistic/orders</td>
+      <td>/api/logistics/dashboard/summary</td>
+      <td><pre>{
+  "headers": {
+    "Authorization": "Bearer &lt;jwt_agente_logistico&gt;"
+  }
+}</pre></td>
+      <td><pre>{
+  "message": "Resumen logistico obtenido correctamente",
+  "data": {
+    "pendingOrders": 2,
+    "availableUnits": 5
+  }
+}</pre></td>
+      <td>Hace agregaciones sobre <strong>ORDERS</strong> pendientes de asignacion y <strong>TRANSPORT_UNITS</strong> disponibles para poblar la pantalla inicial.</td>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td>/api/logistics/orders</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_logistico&gt;"
@@ -771,7 +847,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/logistic/orders/{ORDER_ID}</td>
+      <td>/api/logistics/orders/{ORDER_ID}</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_logistico&gt;"
@@ -792,7 +868,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/operative/routes</td>
+      <td>/api/operations/routes</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_logistico&gt;"
@@ -806,7 +882,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "data": [
     {
       "ROUTE_ID": 7,
-      "ROUTE_CODE": "GUA-SAL"
+      "ROUTE_CODE": "RTE-00007"
     }
   ]
 }</pre></td>
@@ -814,7 +890,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/logistic/unit-binomials</td>
+      <td>/api/logistics/unit-binomials</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_logistico&gt;"
@@ -841,7 +917,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/logistic/orders/{ORDER_ID}/assignment</td>
+      <td>/api/logistics/orders/{ORDER_ID}/assignment</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_agente_logistico&gt;"
@@ -1024,8 +1100,10 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   },
   "body": {
     "receiverName": "Carlos Estrada",
-    "receiverSignaturePath": "/files/signatures/ORD-000085.png",
-    "deliveryEvidencePath": "/files/evidence/ORD-000085.jpg"
+    "receiverSignatureBase64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
+    "deliveryEvidenceBase64": [
+      "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD..."
+    ]
   }
 }</pre></td>
       <td><pre>{
@@ -1033,10 +1111,12 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "data": {
     "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
     "status": "ENTREGADA",
-    "deliveredAt": "2026-04-01T22:10:00Z"
+    "deliveredAt": "2026-04-01T22:10:00Z",
+    "receiverSignaturePath": "/files/signatures/ORD-000085.png",
+    "deliveryEvidencePaths": ["/files/evidence/ORD-000085-1.jpg"]
   }
 }</pre></td>
-      <td>Actualiza <strong>ORDERS.STATUS</strong> a <strong>ENTREGADA</strong> y guarda <strong>RECEIVER_NAME</strong>, <strong>RECEIVER_SIGNATURE_PATH</strong>, <strong>DELIVERY_EVIDENCE_PATH</strong> y <strong>DELIVERED_AT</strong>.<br>Esta transicion habilita el flujo de facturacion.</td>
+      <td>Actualiza <strong>ORDERS.STATUS</strong> a <strong>ENTREGADA</strong> y guarda <strong>RECEIVER_NAME</strong>, <strong>DELIVERED_AT</strong> y la evidencia derivada del contenido Base64.<br>El backend genera <strong>RECEIVER_SIGNATURE_PATH</strong> y <strong>DELIVERY_EVIDENCE_PATH</strong> para persistencia.<br>Esta transicion habilita el flujo de facturacion.</td>
     </tr>
   </tbody>
 </table>
@@ -1060,6 +1140,11 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_finanzas&gt;"
+  },
+  "query": {
+    "period": "MONTHLY",
+    "year": 2026,
+    "month": 4
   }
 }</pre></td>
       <td><pre>{
@@ -1067,10 +1152,10 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "data": {
     "ordersPendingInvoice": 4,
     "paymentsPendingReconciliation": 3,
-    "todayIncome": 23520.0
+    "collectedAmount": 23520.0
   }
 }</pre></td>
-      <td>Combina agregaciones sobre <strong>ORDERS</strong>, <strong>INVOICES</strong> y <strong>PAYMENTS</strong>.<br><strong>ordersPendingInvoice</strong> sale de ordenes entregadas sin factura.<br><strong>todayIncome</strong> puede salir de pagos aprobados del dia.</td>
+      <td>Combina agregaciones sobre <strong>ORDERS</strong>, <strong>INVOICES</strong> y <strong>PAYMENTS</strong>.<br><strong>ordersPendingInvoice</strong> sale de ordenes entregadas sin factura.<br><strong>collectedAmount</strong> resume los pagos aprobados del periodo consultado.</td>
     </tr>
     <tr>
       <td>GET</td>
@@ -1206,7 +1291,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "invoiceStatus": "PAGADA"
   }
 }</pre></td>
-      <td>Actualiza <strong>PAYMENTS.STATUS</strong> y <strong>REVIEWED_BY_USER_ID</strong>.<br>El trigger <strong>SYNC_INVOICE_PAYMENT</strong> actualiza la factura a <strong>PAGADA</strong>.<br>La regla de pago aprobado unico por factura ya esta cubierta por indice y trigger.</td>
+  <td>Actualiza <strong>PAYMENTS.STATUS</strong> y <strong>REVIEWED_BY_USER_ID</strong> durante la conciliacion de tesoreria posterior al envio y certificacion FEL.<br>El trigger <strong>SYNC_INVOICE_PAYMENT</strong> actualiza la factura a <strong>PAGADA</strong>.<br>La regla de pago aprobado unico por factura ya esta cubierta por indice y trigger.</td>
     </tr>
     <tr>
       <td>GET</td>
@@ -1266,24 +1351,29 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>GET</td>
-      <td>/api/certificator/dashboard/summary</td>
+      <td>/api/certifier/dashboard/summary</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_certificador&gt;"
+  },
+  "query": {
+    "period": "MONTHLY",
+    "year": 2026,
+    "month": 4
   }
 }</pre></td>
       <td><pre>{
   "message": "Resumen FEL obtenido correctamente",
   "data": {
     "pendingInvoices": 3,
-    "certifiedToday": 7
+    "certifiedCount": 7
   }
 }</pre></td>
-      <td>Hace agregaciones sobre <strong>INVOICES</strong>.<br><strong>pendingInvoices</strong> sale de facturas en <strong>BORRADOR</strong>.<br><strong>certifiedToday</strong> usa <strong>CERTIFIED_AT</strong>.</td>
+      <td>Hace agregaciones sobre <strong>INVOICES</strong>.<br><strong>pendingInvoices</strong> sale de facturas en <strong>BORRADOR</strong>.<br><strong>certifiedCount</strong> usa <strong>CERTIFIED_AT</strong> para el periodo solicitado.</td>
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/certificator/invoices</td>
+      <td>/api/certifier/invoices</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_certificador&gt;"
@@ -1309,7 +1399,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/certificator/invoices/{INVOICE_ID}/certify</td>
+      <td>/api/certifier/invoices/{INVOICE_ID}/certify</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_certificador&gt;"
@@ -1331,7 +1421,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/certificator/invoices/{INVOICE_ID}/reject</td>
+      <td>/api/certifier/invoices/{INVOICE_ID}/reject</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_certificador&gt;"
@@ -1367,24 +1457,26 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>GET</td>
-      <td>/api/bi/kpis/daily</td>
+      <td>/api/bi/kpis</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_gerencia&gt;"
   },
   "query": {
-    "date": "2026-04-01"
+    "period": "MONTHLY",
+    "year": 2026,
+    "month": 4
   }
 }</pre></td>
       <td><pre>{
-  "message": "KPIs diarios obtenidos correctamente",
+  "message": "KPIs obtenidos correctamente",
   "data": {
-    "completedServices": 18,
-    "dailyBilling": 145000.0,
+    "completedServices": 142,
+    "billingAmount": 145000.0,
     "activeIncidents": 2
   }
 }</pre></td>
-      <td>Puede apoyarse en <strong>V_DAILY_OPERATIONS</strong> para servicios y facturacion diaria.<br>Los incidentes activos pueden salir de <strong>ORDER_ROUTE_LOGS</strong> con eventos de tipo <strong>INCIDENTE</strong>.</td>
+      <td>Hace agregaciones por periodo sobre <strong>ORDERS</strong>, <strong>INVOICES</strong> y <strong>PAYMENTS</strong>.<br>Los incidentes activos pueden salir de <strong>ORDER_ROUTE_LOGS</strong> con eventos de tipo <strong>INCIDENTE</strong>.</td>
     </tr>
     <tr>
       <td>GET</td>
@@ -1394,7 +1486,9 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_gerencia&gt;"
   },
   "query": {
-    "date": "2026-04-01"
+    "period": "MONTHLY",
+    "year": 2026,
+    "month": 4
   }
 }</pre></td>
       <td><pre>{
@@ -1412,7 +1506,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Se alimenta de <strong>V_DAILY_OPERATIONS</strong> y de <strong>BRANCHES</strong> para comparativos por sede.</td>
+      <td>Se alimenta de agregaciones por periodo y de <strong>BRANCHES</strong> para comparativos por sede.</td>
     </tr>
     <tr>
       <td>GET</td>

@@ -70,7 +70,7 @@
                     <button onclick="showView('register-view')" class="bg-white border-2 border-gray-200 hover:border-logi-light rounded-2xl p-8 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
                         <i class="fas fa-user-plus text-5xl text-logi-light mb-4 group-hover:scale-110 transition-transform"></i>
                         <h3 class="text-2xl font-black text-gray-800">1. Nuevo Cliente</h3>
-                        <p class="text-gray-500 mt-2">Registra datos fiscales, de contacto y perfil de riesgo.</p>
+                        <p class="text-gray-500 mt-2">Registra datos fiscales, contacto principal y perfil de riesgo.</p>
                     </button>
 
                     <button onclick="showView('contract-view')" class="bg-white border-2 border-gray-200 hover:border-logi-dark rounded-2xl p-8 shadow-sm hover:shadow-md transition-all group flex flex-col items-center">
@@ -173,7 +173,7 @@
 
                 <div class="flex justify-center mt-12">
                     <button onclick="registerClient()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-4 px-10 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex items-center">
-                        <i class="fas fa-envelope mr-3"></i> Registrar y Enviar Credenciales
+                        <i class="fas fa-save mr-3"></i> Registrar Cliente
                     </button>
                 </div>
             </div>
@@ -224,7 +224,7 @@
                             <label class="block text-xl font-bold text-gray-900 mb-3">Rutas Autorizadas</label>
                             <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-4">
                                 <i class="fas fa-plug"></i>
-                                GET /api/operative/routes
+                                GET /api/operations/routes
                             </div>
                             <div class="grid grid-cols-1 gap-3">
                                 <button type="button" onclick="toggleRouteSelection(this)" data-route-id="route-gt-sv" class="route-btn border-2 border-logi-light text-left text-logi-dark font-bold py-3 px-4 rounded-xl transition-colors bg-teal-50 shadow-inner">
@@ -242,11 +242,12 @@
                             <div class="mt-5 rounded-2xl border border-dashed border-logi-light bg-teal-50/60 p-4">
                                 <div class="flex items-center justify-between mb-3">
                                     <h4 class="font-bold text-logi-dark">Agregar Ruta al Catálogo</h4>
-                                    <span class="text-xs font-black uppercase tracking-wider text-logi-dark">POST /api/operative/routes</span>
+                                    <span class="text-xs font-black uppercase tracking-wider text-logi-dark">POST /api/operations/routes</span>
                                 </div>
+                                <p class="text-xs text-gray-600 mb-3">`ROUTE_CODE` ya no se captura aquí. La base lo genera automáticamente de forma incremental.</p>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <input id="route_code" type="text" placeholder="ROUTE_CODE" class="border border-logi-tan rounded-lg px-3 py-2 focus:outline-none focus:border-logi-dark">
                                     <input id="route_distance_km" type="number" placeholder="DISTANCE_KM" class="border border-logi-tan rounded-lg px-3 py-2 focus:outline-none focus:border-logi-dark">
+                                    <input id="route_estimated_hours" type="number" placeholder="ESTIMATED_HOURS" class="border border-logi-tan rounded-lg px-3 py-2 focus:outline-none focus:border-logi-dark">
                                     <input id="route_origin" type="text" placeholder="ORIGIN" class="border border-logi-tan rounded-lg px-3 py-2 focus:outline-none focus:border-logi-dark">
                                     <input id="route_destination" type="text" placeholder="DESTINATION" class="border border-logi-tan rounded-lg px-3 py-2 focus:outline-none focus:border-logi-dark">
                                 </div>
@@ -260,11 +261,34 @@
 
                         <div>
                             <label class="block text-xl font-bold text-gray-900 mb-3">Tipos de Carga Permitidos</label>
+                            <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-4">
+                                <i class="fas fa-plug"></i>
+                                GET /api/operations/cargo-types
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-teal-50 shadow-inner">Carga General</button>
                                 <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50">Perecederos</button>
                                 <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-teal-50 shadow-inner">Construcción</button>
                                 <button type="button" onclick="toggleCargoType(this)" class="cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50">Peligrosa</button>
+                            </div>
+
+                            <div class="mt-5 rounded-2xl border border-dashed border-logi-light bg-teal-50/60 p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="font-bold text-logi-dark">Agregar Tipo de Mercancía</h4>
+                                    <span class="text-xs font-black uppercase tracking-wider text-logi-dark">POST /api/operations/cargo-types</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input id="cargo_type_name" type="text" placeholder="CARGO_NAME" class="border border-logi-tan rounded-lg px-3 py-2 focus:outline-none focus:border-logi-dark">
+                                    <select id="cargo_requires_refrigeration" class="border border-logi-tan rounded-lg px-3 py-2 focus:outline-none focus:border-logi-dark bg-white text-gray-700">
+                                        <option value="false">REQUIRES_REFRIGERATION = false</option>
+                                        <option value="true">REQUIRES_REFRIGERATION = true</option>
+                                    </select>
+                                </div>
+                                <div class="mt-3 flex justify-end">
+                                    <button type="button" onclick="addCargoTypeCatalog()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-2 px-5 rounded-lg shadow transition-colors">
+                                        Guardar Tipo
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -307,33 +331,45 @@
         <div class="bg-white rounded-b-3xl shadow-xl border border-t-0 border-gray-100 p-8">
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/clients</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/clients</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Vista "Registrar Cliente"</h3>
-                    <p class="text-gray-700">Se dispara desde el botón "Registrar y Enviar Credenciales". Inserta CLIENTS, crea el USER cliente y dispara el correo de acceso inicial.</p>
+                    <p class="text-gray-700">Se dispara desde el botón de registro. Inserta `CLIENTS` y deja registrado también el contacto principal del cliente.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/clients</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/clients</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Buscador de cliente</h3>
                     <p class="text-gray-700">Llena el cuadro "Buscar Cliente Registrado" y permite seleccionar al cliente correcto antes de crear la propuesta comercial.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/contracts</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/contracts</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Contrato unificado</h3>
                     <p class="text-gray-700">Se usa al presionar "Generar y Enviar Propuesta al Cliente". En un solo payload crea el contrato y adjunta `routeIds`, `cargoTypeIds`, crédito, plazo, descuento, notas y estado `PENDIENTE`.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/routes</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/routes</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Catálogo de rutas</h3>
                     <p class="text-gray-700">Alimenta el panel de selección de rutas autorizadas para evitar texto libre y asegurar que el contrato solo use rutas vigentes.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/routes</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/routes</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Alta de ruta operativa</h3>
-                    <p class="text-gray-700">Permite agregar nuevas rutas al catálogo maestro con `ROUTE_CODE`, `ORIGIN`, `DESTINATION`, `DISTANCE_KM` y `ESTIMATED_HOURS`.</p>
+                    <p class="text-gray-700">Permite agregar nuevas rutas al catálogo maestro con `ORIGIN`, `DESTINATION`, `DISTANCE_KM` y `ESTIMATED_HOURS`. El `ROUTE_CODE` lo genera la base.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/cargo-types</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Catálogo de mercancías</h3>
+                    <p class="text-gray-700">Expone el catálogo reutilizable de tipos de mercancía para contratos y para el portal cliente.</p>
+                </article>
+
+                <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/cargo-types</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Alta de mercancía</h3>
+                    <p class="text-gray-700">Permite ampliar el catálogo maestro de `CARGO_TYPES` sin tocar la base manualmente.</p>
                 </article>
             </div>
         </div>
@@ -347,7 +383,7 @@
                 <i class="fas fa-user-check text-5xl text-green-600"></i>
             </div>
             <h3 class="text-3xl font-black text-logi-dark mb-3">Cliente Registrado</h3>
-            <p class="text-gray-600 mb-8 text-lg">El cliente ha sido guardado exitosamente. Se ha enviado un correo automático con sus credenciales de acceso al portal.</p>
+            <p class="text-gray-600 mb-8 text-lg">El cliente y su contacto principal fueron guardados exitosamente para continuar con la propuesta comercial.</p>
             <button onclick="closeModal('modal-client')" class="w-full bg-logi-dark text-white font-bold py-4 rounded-xl hover:bg-teal-800 transition-colors shadow-lg">
                 Aceptar
             </button>
@@ -434,22 +470,22 @@
         }
 
         function addRouteCatalog() {
-            const routeCode = document.getElementById('route_code').value;
             const origin = document.getElementById('route_origin').value;
             const destination = document.getElementById('route_destination').value;
             const distanceKm = document.getElementById('route_distance_km').value;
+            const estimatedHours = document.getElementById('route_estimated_hours').value;
+            const generatedRouteCode = `RTE-${String(document.querySelectorAll('.route-btn').length + 1).padStart(5, '0')}`;
 
-            if(!routeCode || !origin || !destination || !distanceKm) {
-                alert('Por favor complete ROUTE_CODE, ORIGIN, DESTINATION y DISTANCE_KM.');
+            if(!origin || !destination || !distanceKm || !estimatedHours) {
+                alert('Por favor complete ORIGIN, DESTINATION, DISTANCE_KM y ESTIMATED_HOURS.');
                 return;
             }
 
-            console.log('POST /api/operative/routes', {
-                ROUTE_CODE: routeCode,
+            console.log('POST /api/operations/routes', {
                 ORIGIN: origin,
                 DESTINATION: destination,
                 DISTANCE_KM: Number(distanceKm),
-                ESTIMATED_HOURS: 6,
+                ESTIMATED_HOURS: Number(estimatedHours),
                 IS_INTERNATIONAL: false
             });
 
@@ -458,16 +494,44 @@
                 const newButton = document.createElement('button');
                 newButton.type = 'button';
                 newButton.className = 'route-btn border-2 border-logi-light text-left text-logi-dark font-bold py-3 px-4 rounded-xl transition-colors bg-white hover:bg-teal-50';
-                newButton.dataset.routeId = routeCode;
+                newButton.dataset.routeId = generatedRouteCode;
                 newButton.onclick = function () { toggleRouteSelection(newButton); };
-                newButton.textContent = `${origin} -> ${destination}`;
+                newButton.textContent = `${origin} -> ${destination} (${generatedRouteCode})`;
                 routeList.appendChild(newButton);
             }
 
-            document.getElementById('route_code').value = '';
             document.getElementById('route_origin').value = '';
             document.getElementById('route_destination').value = '';
             document.getElementById('route_distance_km').value = '';
+            document.getElementById('route_estimated_hours').value = '';
+        }
+
+        function addCargoTypeCatalog() {
+            const cargoName = document.getElementById('cargo_type_name').value;
+            const requiresRefrigeration = document.getElementById('cargo_requires_refrigeration').value === 'true';
+
+            if(!cargoName) {
+                alert('Por favor complete CARGO_NAME.');
+                return;
+            }
+
+            console.log('POST /api/operations/cargo-types', {
+                CARGO_NAME: cargoName,
+                REQUIRES_REFRIGERATION: requiresRefrigeration
+            });
+
+            const cargoGrid = document.querySelector('.cargo-type-btn')?.parentElement;
+            if (cargoGrid) {
+                const newButton = document.createElement('button');
+                newButton.type = 'button';
+                newButton.className = 'cargo-type-btn border-2 border-logi-light text-logi-dark font-bold py-3 rounded-xl transition-colors bg-white hover:bg-teal-50';
+                newButton.onclick = function () { toggleCargoType(newButton); };
+                newButton.textContent = cargoName;
+                cargoGrid.appendChild(newButton);
+            }
+
+            document.getElementById('cargo_type_name').value = '';
+            document.getElementById('cargo_requires_refrigeration').value = 'false';
         }
 
 
@@ -479,12 +543,10 @@
             
             if(!nit) { alert("Por favor ingrese el NIT del cliente."); return; }
 
-            // POST /api/operative/clients
-            console.log("Simulando POST a DB:", {
+            console.log('POST /api/operations/clients', {
                 PRIMARY_CONTACT_NAME: name,
                 NIT: nit,
                 PAYMENT_RISK: document.getElementById('payment_risk').value
-                // ... demas campos
             });
 
             document.getElementById('modal-client').classList.remove('hidden');
@@ -499,8 +561,7 @@
             if(!client || !limit) { alert("Por favor seleccione un cliente y asigne un límite de crédito."); return; }
             if(routeIds.length === 0) { alert("Por favor seleccione al menos una ruta autorizada."); return; }
 
-            // POST /api/operative/contracts
-            console.log("Simulando POST a DB:", {
+            console.log('POST /api/operations/contracts', {
                 CREDIT_LIMIT: limit,
                 PAYMENT_TERM_DAYS: document.getElementById('payment_term_days').value,
                 DISCOUNT_PERCENTAGE: document.getElementById('discount_pct').value,

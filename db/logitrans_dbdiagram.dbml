@@ -113,7 +113,6 @@ Table CLIENT_CONTACTS {
   CONTACT_EMAIL varchar(320) [not null]
   CONTACT_PHONE varchar(30)
   POSITION_TITLE varchar(100)
-  IS_PRIMARY boolean [not null, default: false]
   IS_ACTIVE boolean [not null, default: true]
 
   Indexes {
@@ -130,7 +129,6 @@ Table CLIENT_CARDS {
   LAST_FOUR char(4) [not null]
   EXPIRATION_MONTH smallint [not null]
   EXPIRATION_YEAR smallint [not null]
-  IS_DEFAULT boolean [not null, default: false]
   IS_ACTIVE boolean [not null, default: true]
 
   Indexes {
@@ -184,7 +182,6 @@ Table CONTRACTS {
   CREDIT_LIMIT numeric(14,2) [not null]
   PAYMENT_TERM_DAYS smallint [not null]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
-  SIGNED_CONTRACT_PATH text
   NOTES text
 }
 

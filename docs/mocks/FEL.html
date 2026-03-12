@@ -74,13 +74,13 @@
                     </div>
                     <div class="text-center">
                         <h4 class="text-4xl font-black text-green-600">142</h4>
-                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Certificadas Hoy</p>
+                        <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Certificadas del Mes</p>
                     </div>
                 </div>
 
                 <div class="inline-flex items-center gap-2 bg-blue-50 text-sat-blue border border-blue-200 rounded-full px-4 py-2 text-sm font-bold mb-8">
                     <i class="fas fa-plug"></i>
-                    GET /api/certificator/dashboard/summary
+                    GET /api/certifier/dashboard/summary?period=MONTHLY&year=2026&month=3
                 </div>
 
                 <button onclick="showView('dashboard-view')" class="bg-sat-blue hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex items-center mx-auto">
@@ -188,25 +188,25 @@
 
             <div class="px-8 pb-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
                 <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-sat-blue text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/dashboard/summary</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-sat-blue text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-sat-blue">/api/certifier/dashboard/summary?period=MONTHLY|YEARLY</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Inicio FEL</h3>
-                    <p class="text-gray-700">Devuelve `pendingInvoices` y `certifiedToday`. Para este segundo indicador la base ya necesita `CERTIFIED_AT`.</p>
+                    <p class="text-gray-700">Devuelve `pendingInvoices` y `certifiedCount` para el período solicitado. Este indicador se apoya en `CERTIFIED_AT`.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-sat-blue text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/invoices</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-sat-blue text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-sat-blue">/api/certifier/invoices</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Bandeja DTEs</h3>
                     <p class="text-gray-700">Puebla la tabla principal con facturas en `BORRADOR` para revisión del certificador.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/invoices/{INVOICE_ID}/certify</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-sat-blue">/api/certifier/invoices/{INVOICE_ID}/certify</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Botón "Certificar"</h3>
                     <p class="text-gray-700">Actualiza la factura a `CERTIFICADA` y devuelve el `FEL_UUID` que luego se muestra en el modal de éxito.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-blue-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-sat-blue">/api/certificator/invoices/{INVOICE_ID}/reject</span></div>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-sat-blue">/api/certifier/invoices/{INVOICE_ID}/reject</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Botón "Rechazar"</h3>
                     <p class="text-gray-700">Marca la factura como `RECHAZADA` para que Finanzas vuelva a corregirla antes de intentar otra certificación.</p>
                 </article>
@@ -288,10 +288,10 @@
             }
         }
 
-        // Simulación: PATCH /api/certificador/invoices/{ID}/certify
+        // Simulación: PATCH /api/certifier/invoices/{ID}/certify
         function certifyInvoice(id) {
             currentRow = id;
-            console.log(`PATCH /api/certificador/invoices/${id}/certify -> STATUS: CERTIFICADA`);
+            console.log(`PATCH /api/certifier/invoices/${id}/certify -> STATUS: CERTIFIED`);
             
             // Generar UUID random para simular a la SAT
             const randomUUID = crypto.randomUUID().toUpperCase();
@@ -309,9 +309,9 @@
             document.getElementById('reject-modal').classList.remove('hidden');
         }
 
-        // Simulación: PATCH /api/certificador/invoices/{ID}/reject
+        // Simulación: PATCH /api/certifier/invoices/{ID}/reject
         function confirmReject() {
-            console.log(`PATCH /api/certificador/invoices/${currentRow}/reject -> STATUS: RECHAZADA`);
+            console.log(`PATCH /api/certifier/invoices/${currentRow}/reject -> STATUS: REJECTED`);
             document.getElementById('reject-modal').classList.add('hidden');
             // Ocultar la fila
             document.getElementById(`row-${currentRow}`).style.display = 'none';

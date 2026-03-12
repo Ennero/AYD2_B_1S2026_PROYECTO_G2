@@ -113,7 +113,7 @@
                     <div class="md:col-span-3 flex items-center justify-between bg-white/70 border border-white/60 rounded-2xl px-4 py-3 shadow-sm">
                         <div class="inline-flex items-center gap-2 bg-white text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold">
                             <i class="fas fa-plug"></i>
-                            GET /api/cliente/orders?LIMIT=3
+                            GET /api/client/orders?LIMIT=3
                         </div>
                         <button onclick="showView('orders-view', document.querySelectorAll('.nav-btn')[1])" class="text-sm font-bold text-logi-dark hover:text-teal-700 transition-colors">
                             Ver historial completo <i class="fas fa-arrow-right ml-1"></i>
@@ -205,10 +205,16 @@
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Tipo de Mercancía</label>
+                            <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold mb-3">
+                                <i class="fas fa-plug"></i>
+                                GET /api/client/cargo-types
+                            </div>
                             <select id="cargo_type" class="w-full border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-white text-gray-700 font-medium">
                                 <option value="">Seleccione Tipo de Mercancía</option>
-                                <option value="Construccion">Material de Construcción</option>
-                                <option value="General">Carga General</option>
+                                <option value="1">Carga General</option>
+                                <option value="2">Material de Construcción</option>
+                                <option value="3">Perecederos</option>
+                                <option value="4">Carga Peligrosa</option>
                             </select>
                         </div>
                         <div>
@@ -269,7 +275,7 @@
                 </div>
                 <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold">
                     <i class="fas fa-plug"></i>
-                    GET /api/cliente/orders
+                    GET /api/client/orders
                 </div>
             </div>
 
@@ -320,7 +326,7 @@
                         <h3 class="text-2xl font-black text-logi-dark">Tracking Detallado</h3>
                         <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold">
                             <i class="fas fa-plug"></i>
-                            GET /api/cliente/orders/catalog
+                            GET /api/client/orders/catalog
                         </div>
                     </div>
 
@@ -338,7 +344,7 @@
 
                     <div class="inline-flex items-center gap-2 bg-white text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold mb-4">
                         <i class="fas fa-plug"></i>
-                        GET /api/cliente/orders/{ORDER_ID}/tracking
+                        GET /api/client/orders/{ORDER_ID}/tracking
                     </div>
 
                     <div id="tracking-panel" class="hidden rounded-2xl border border-gray-200 bg-gray-50 p-5">
@@ -450,7 +456,7 @@
                         <h3 class="text-2xl font-black text-logi-dark">Tarjetas Guardadas</h3>
                         <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold">
                             <i class="fas fa-plug"></i>
-                            GET /api/cliente/cards y POST /api/cliente/cards
+                            GET /api/client/cards y POST /api/client/cards
                         </div>
                     </div>
 
@@ -458,7 +464,7 @@
                         <div class="space-y-4" id="card-list">
                             <div class="border border-gray-200 rounded-2xl p-5 flex items-center justify-between bg-gray-50">
                                 <div>
-                                    <p class="font-black text-gray-900">Tarjeta principal</p>
+                                    <p class="font-black text-gray-900">Visa corporativa</p>
                                     <p class="text-sm text-gray-500">VISA | CARDHOLDER_NAME: Ana Morales | LAST_FOUR: 4455</p>
                                 </div>
                                 <button onclick="removeCard('CARD-4455')" class="bg-red-500 hover:bg-red-600 text-white w-10 h-10 rounded shadow"><i class="fas fa-trash"></i></button>
@@ -479,10 +485,6 @@
                                 <input id="card_exp_month" type="number" placeholder="EXPIRATION_MONTH" class="border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
                                 <input id="card_exp_year" type="number" placeholder="EXPIRATION_YEAR" class="border border-logi-tan rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark">
                             </div>
-                            <label class="flex items-center gap-2 text-sm font-bold text-logi-dark mt-4 cursor-pointer">
-                                <input id="card_is_default" type="checkbox" class="accent-logi-dark">
-                                IS_DEFAULT
-                            </label>
                             <div class="flex justify-end mt-5">
                                 <button onclick="addCard()" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-colors">
                                     Guardar Tarjeta
@@ -612,45 +614,46 @@
                 <div>
                     <h3 class="text-xl font-black text-gray-900 mb-3">Inicio, órdenes y tracking</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/dashboard/summary</span></div><h4 class="font-bold text-gray-900 mb-2">Dashboard principal</h4><p class="text-gray-700">Llena los indicadores de límite, deuda, crédito disponible y órdenes activas del panel de bienvenida.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/orders</span></div><h4 class="font-bold text-gray-900 mb-2">Wizard "Nuevo Servicio"</h4><p class="text-gray-700">Se dispara al confirmar la solicitud. Inserta la orden y valida que el cliente no esté bloqueado por mora o exceso de crédito.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/orders</span></div><h4 class="font-bold text-gray-900 mb-2">Órdenes recientes e historial</h4><p class="text-gray-700">El mismo endpoint soporta `LIMIT=3` para el dashboard y sin límite para mostrar el historial completo del cliente.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/orders/catalog</span></div><h4 class="font-bold text-gray-900 mb-2">Combobox de tracking</h4><p class="text-gray-700">Devuelve `ORDER_ID` y `ORDER_NUMBER` para poblar el selector del tracking detallado sin cargar toda la orden de nuevo.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/orders/{ORDER_ID}/tracking</span></div><h4 class="font-bold text-gray-900 mb-2">Tracking detallado</h4><p class="text-gray-700">Es el endpoint faltante para abrir el detalle de una orden y mostrar la bitácora que el piloto va registrando.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/dashboard/summary</span></div><h4 class="font-bold text-gray-900 mb-2">Dashboard principal</h4><p class="text-gray-700">Llena los indicadores de límite, deuda, crédito disponible y órdenes activas del panel de bienvenida.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/orders</span></div><h4 class="font-bold text-gray-900 mb-2">Wizard "Nuevo Servicio"</h4><p class="text-gray-700">Se dispara al confirmar la solicitud. Inserta la orden y valida que el cliente no esté bloqueado por mora o exceso de crédito.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/orders</span></div><h4 class="font-bold text-gray-900 mb-2">Órdenes recientes e historial</h4><p class="text-gray-700">El mismo endpoint soporta `LIMIT=3` para el dashboard y sin límite para mostrar el historial completo del cliente.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/orders/catalog</span></div><h4 class="font-bold text-gray-900 mb-2">Combobox de tracking</h4><p class="text-gray-700">Devuelve `ORDER_ID` y `ORDER_NUMBER` para poblar el selector del tracking detallado sin cargar toda la orden de nuevo.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/orders/{ORDER_ID}/tracking</span></div><h4 class="font-bold text-gray-900 mb-2">Tracking detallado</h4><p class="text-gray-700">Es el endpoint faltante para abrir el detalle de una orden y mostrar la bitácora que el piloto va registrando.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/cargo-types</span></div><h4 class="font-bold text-gray-900 mb-2">Catálogo de mercancías</h4><p class="text-gray-700">Llena el combobox del wizard con los tipos de mercancía que el cliente puede solicitar.</p></article>
                     </div>
                 </div>
 
                 <div>
                     <h3 class="text-xl font-black text-gray-900 mb-3">Contratos</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts</span></div><h4 class="font-bold text-gray-900 mb-2">Repositorio de contratos</h4><p class="text-gray-700">Carga las tarjetas de contratos vigentes y vencidos del panel "Reglas y Contratos".</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts/{CONTRACT_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Detalle del contrato</h4><p class="text-gray-700">Se usa al presionar "Ver Detalles" para desplegar crédito, rutas, tipos de carga y tarifario pactado.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts/{CONTRACT_ID}/accept</span></div><h4 class="font-bold text-gray-900 mb-2">Aceptar propuesta</h4><p class="text-gray-700">Convierte un contrato pendiente en vigente y guarda el archivo firmado si el portal permite confirmarlo desde aquí.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contracts/{CONTRACT_ID}/reject</span></div><h4 class="font-bold text-gray-900 mb-2">Rechazar propuesta</h4><p class="text-gray-700">Cierra el flujo cuando el cliente no acepta la oferta y deja trazabilidad del motivo comercial.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contracts</span></div><h4 class="font-bold text-gray-900 mb-2">Repositorio de contratos</h4><p class="text-gray-700">Carga las tarjetas de contratos vigentes y vencidos del panel "Reglas y Contratos".</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contracts/{CONTRACT_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Detalle del contrato</h4><p class="text-gray-700">Se usa al presionar "Ver Detalles" para desplegar crédito, rutas, tipos de carga y tarifario pactado.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contracts/{CONTRACT_ID}/accept</span></div><h4 class="font-bold text-gray-900 mb-2">Aceptar propuesta</h4><p class="text-gray-700">Convierte un contrato pendiente en vigente. En este MVP no se almacena archivo firmado adicional.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contracts/{CONTRACT_ID}/reject</span></div><h4 class="font-bold text-gray-900 mb-2">Rechazar propuesta</h4><p class="text-gray-700">Cierra el flujo cuando el cliente no acepta la oferta y deja trazabilidad del motivo comercial.</p></article>
                     </div>
                 </div>
 
                 <div>
                     <h3 class="text-xl font-black text-gray-900 mb-3">Facturas, pagos y tarjetas</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/invoices</span></div><h4 class="font-bold text-gray-900 mb-2">Mis Facturas</h4><p class="text-gray-700">Alimenta la tabla del repositorio documental. Se reutiliza con filtros por `STATUS` o por búsqueda `search=FEL-`.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/account-statement</span></div><h4 class="font-bold text-gray-900 mb-2">Estado de cuenta</h4><p class="text-gray-700">Calcula deuda al día, vencida y crítica para el bloque de aging report sin que el front tenga que hacer cálculos propios.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/payments</span></div><h4 class="font-bold text-gray-900 mb-2">Modal de pago</h4><p class="text-gray-700">Es la acción central del modal. Soporta tarjeta con `CARD_ID` o transferencia con `BANK_REFERENCE` y `TRANSFER_RECEIPT_PATH`.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/cards</span></div><h4 class="font-bold text-gray-900 mb-2">Tarjetas guardadas</h4><p class="text-gray-700">Debe llenar el selector de tarjetas del tab de pago con tarjeta. Sin esto, el `CARD_ID` no tendría origen visible.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/cards</span></div><h4 class="font-bold text-gray-900 mb-2">Registrar nueva tarjeta</h4><p class="text-gray-700">Puede colgarse del flujo "Ingresar Nueva Tarjeta..." del selector para crear un método de pago reutilizable.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-red-600 text-white text-xs font-black px-2 py-1 rounded-full">DELETE</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/cards/{CARD_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Desactivar tarjeta</h4><p class="text-gray-700">No borra físicamente; deja la tarjeta inactiva para mantener historial de pagos previos.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/invoices</span></div><h4 class="font-bold text-gray-900 mb-2">Mis Facturas</h4><p class="text-gray-700">Alimenta la tabla del repositorio documental. Se reutiliza con filtros por `STATUS` o por búsqueda `search=FEL-`.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/account-statement</span></div><h4 class="font-bold text-gray-900 mb-2">Estado de cuenta</h4><p class="text-gray-700">Calcula deuda al día, vencida y crítica para el bloque de aging report sin que el front tenga que hacer cálculos propios.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/payments</span></div><h4 class="font-bold text-gray-900 mb-2">Modal de pago</h4><p class="text-gray-700">Es la acción central del modal. Soporta tarjeta con `CARD_ID` o transferencia con `BANK_REFERENCE` y `SUPPORT_DOCUMENT_PATH`.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/cards</span></div><h4 class="font-bold text-gray-900 mb-2">Tarjetas guardadas</h4><p class="text-gray-700">Debe llenar el selector de tarjetas del tab de pago con tarjeta. Sin esto, el `CARD_ID` no tendría origen visible.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/cards</span></div><h4 class="font-bold text-gray-900 mb-2">Registrar nueva tarjeta</h4><p class="text-gray-700">Puede colgarse del flujo "Ingresar Nueva Tarjeta..." del selector para crear un método de pago reutilizable.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-red-600 text-white text-xs font-black px-2 py-1 rounded-full">DELETE</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/cards/{CARD_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Desactivar tarjeta</h4><p class="text-gray-700">No borra físicamente; deja la tarjeta inactiva para mantener historial de pagos previos.</p></article>
                     </div>
                 </div>
 
                 <div>
                     <h3 class="text-xl font-black text-gray-900 mb-3">Perfil y contactos</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/profile</span></div><h4 class="font-bold text-gray-900 mb-2">Mi perfil empresarial</h4><p class="text-gray-700">Carga razón social, NIT y teléfono principal para la vista de datos del cliente.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contacts</span></div><h4 class="font-bold text-gray-900 mb-2">Listado de contactos</h4><p class="text-gray-700">Llena la vista desde `CLIENT_CONTACTS` y mantiene estos registros separados de los usuarios del sistema.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/profile/password</span></div><h4 class="font-bold text-gray-900 mb-2">Cambio de contraseña</h4><p class="text-gray-700">Encaja con el botón "Cambiar Clave" del perfil y requiere validar la contraseña actual antes de guardar la nueva.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contacts</span></div><h4 class="font-bold text-gray-900 mb-2">Agregar contacto</h4><p class="text-gray-700">Inserta en `CLIENT_CONTACTS` sin crear acceso a la plataforma.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PUT</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contacts/{CONTACT_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Editar contacto</h4><p class="text-gray-700">Actualiza `CLIENT_CONTACTS` del cliente autenticado, ya no `USERS`.</p></article>
-                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-red-600 text-white text-xs font-black px-2 py-1 rounded-full">DELETE</span><span class="font-mono text-xs break-all text-logi-dark">/api/cliente/contacts/{CONTACT_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Desactivar contacto</h4><p class="text-gray-700">Hace borrado lógico en `CLIENT_CONTACTS.IS_ACTIVE`.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/profile</span></div><h4 class="font-bold text-gray-900 mb-2">Mi perfil empresarial</h4><p class="text-gray-700">Carga razón social, NIT y teléfono principal para la vista de datos del cliente.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contacts</span></div><h4 class="font-bold text-gray-900 mb-2">Listado de contactos</h4><p class="text-gray-700">Llena la vista desde `CLIENT_CONTACTS` y mantiene estos registros separados de los usuarios del sistema.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/profile/password</span></div><h4 class="font-bold text-gray-900 mb-2">Cambio de contraseña</h4><p class="text-gray-700">Encaja con el botón "Cambiar Clave" del perfil y requiere validar la contraseña actual antes de guardar la nueva.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contacts</span></div><h4 class="font-bold text-gray-900 mb-2">Agregar contacto</h4><p class="text-gray-700">Inserta en `CLIENT_CONTACTS` sin crear acceso a la plataforma.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PUT</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contacts/{CONTACT_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Editar contacto</h4><p class="text-gray-700">Actualiza `CLIENT_CONTACTS` del cliente autenticado, ya no `USERS`.</p></article>
+                        <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50"><div class="flex items-center gap-2 mb-3"><span class="bg-red-600 text-white text-xs font-black px-2 py-1 rounded-full">DELETE</span><span class="font-mono text-xs break-all text-logi-dark">/api/client/contacts/{CONTACT_ID}</span></div><h4 class="font-bold text-gray-900 mb-2">Desactivar contacto</h4><p class="text-gray-700">Hace borrado lógico en `CLIENT_CONTACTS.IS_ACTIVE`.</p></article>
                     </div>
                 </div>
             </div>
@@ -689,7 +692,7 @@
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Seleccionar Tarjeta Guardada</label>
                             <select class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-logi-dark bg-gray-50 text-gray-700">
-                                <option>VISA terminada en 4455 (Principal)</option>
+                                <option>VISA terminada en 4455</option>
                                 <option>Ingresar Nueva Tarjeta...</option>
                             </select>
                         </div>
@@ -805,7 +808,7 @@
         }
 
         function submitPayment(method) {
-            console.log(`POST /api/cliente/payments -> Method: ${method}`);
+            console.log(`POST /api/client/payments -> Method: ${method}`);
             closeModal('pay-modal');
             
             document.getElementById('success-title').innerText = "Pago Registrado";
@@ -829,8 +832,8 @@
                 return;
             }
 
-            console.log('GET /api/cliente/orders/catalog');
-            console.log('GET /api/cliente/orders/{ORDER_ID}/tracking', {
+            console.log('GET /api/client/orders/catalog');
+            console.log('GET /api/client/orders/{ORDER_ID}/tracking', {
                 ORDER_NUMBER: orderNumber
             });
 
@@ -845,21 +848,19 @@
             const cardLastFour = document.getElementById('card_last_four').value;
             const cardExpMonth = document.getElementById('card_exp_month').value;
             const cardExpYear = document.getElementById('card_exp_year').value;
-            const isDefault = document.getElementById('card_is_default').checked;
 
             if(!cardAlias || !cardholderName || !cardBrand || !cardLastFour || !cardExpMonth || !cardExpYear) {
                 alert('Complete CARD_ALIAS, CARDHOLDER_NAME, CARD_BRAND, LAST_FOUR y expiración.');
                 return;
             }
 
-            console.log('POST /api/cliente/cards', {
+            console.log('POST /api/client/cards', {
                 CARD_ALIAS: cardAlias,
                 CARDHOLDER_NAME: cardholderName,
                 CARD_BRAND: cardBrand,
                 LAST_FOUR: cardLastFour,
                 EXPIRATION_MONTH: Number(cardExpMonth),
-                EXPIRATION_YEAR: Number(cardExpYear),
-                IS_DEFAULT: isDefault
+                EXPIRATION_YEAR: Number(cardExpYear)
             });
 
             const cardList = document.getElementById('card-list');
@@ -880,11 +881,10 @@
             document.getElementById('card_last_four').value = '';
             document.getElementById('card_exp_month').value = '';
             document.getElementById('card_exp_year').value = '';
-            document.getElementById('card_is_default').checked = false;
         }
 
         function removeCard(cardId) {
-            console.log('DELETE /api/cliente/cards/{CARD_ID}', {
+            console.log('DELETE /api/client/cards/{CARD_ID}', {
                 CARD_ID: cardId
             });
             document.getElementById('success-title').innerText = 'Tarjeta Desactivada';
@@ -893,7 +893,7 @@
         }
 
         function addContact() {
-            console.log('POST /api/cliente/contacts', {
+            console.log('POST /api/client/contacts', {
                 CONTACT_NAME: 'Nuevo contacto',
                 CONTACT_EMAIL: 'nuevo.contacto@cliente.com',
                 POSITION_TITLE: 'Compras'
@@ -904,7 +904,7 @@
         }
 
         function editContact(contactId) {
-            console.log('PUT /api/cliente/contacts/{CONTACT_ID}', {
+            console.log('PUT /api/client/contacts/{CONTACT_ID}', {
                 CONTACT_ID: contactId,
                 CONTACT_PHONE: '3223-3233'
             });
@@ -914,7 +914,7 @@
         }
 
         function removeContact(contactId) {
-            console.log('DELETE /api/cliente/contacts/{CONTACT_ID}', {
+            console.log('DELETE /api/client/contacts/{CONTACT_ID}', {
                 CONTACT_ID: contactId
             });
             document.getElementById('success-title').innerText = 'Contacto Desactivado';
@@ -944,7 +944,8 @@
         }
 
         function submitOrder() {
-            console.log('POST /api/cliente/orders', {
+            console.log('POST /api/client/orders', {
+                CARGO_TYPE_ID: document.getElementById('cargo_type').value,
                 PICKUP_ADDRESS: document.getElementById('pickup_address').value,
                 DELIVERY_ADDRESS: document.getElementById('delivery_address').value,
                 DECLARED_WEIGHT_TON: document.getElementById('weight').value

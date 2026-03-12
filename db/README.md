@@ -100,7 +100,6 @@ Esto evita mezclar contactos comerciales con usuarios autenticables del sistema.
 | `CONTACT_EMAIL` | Correo del contacto. |
 | `CONTACT_PHONE` | Teléfono del contacto. |
 | `POSITION_TITLE` | Cargo o rol dentro de la empresa cliente. |
-| `IS_PRIMARY` | Marca al contacto principal de negocio del cliente. |
 | `IS_ACTIVE` | Permite desactivar el contacto sin borrarlo. |
 
 ## `CLIENT_CARDS`
@@ -117,7 +116,6 @@ Tarjetas simuladas del cliente para pagos internos del MVP.
 | `LAST_FOUR` | Últimos cuatro dígitos para mostrarla sin guardar el número completo. |
 | `EXPIRATION_MONTH` | Mes de expiración. |
 | `EXPIRATION_YEAR` | Año de expiración. |
-| `IS_DEFAULT` | Indica si es la tarjeta principal del cliente. |
 | `IS_ACTIVE` | Indica si la tarjeta está habilitada para simular pagos. |
 
 ## `BRANCHES`
@@ -140,7 +138,7 @@ Rutas maestras del negocio.
 | Campo | Motivo |
 |---|---|
 | `ROUTE_ID` | Identificador interno de la ruta. |
-| `ROUTE_CODE` | Código corto de la ruta. |
+| `ROUTE_CODE` | Código corto de la ruta. Lo genera la base en formato incremental para que el agente operativo no lo escriba manualmente. |
 | `ORIGIN` | Origen textual de la ruta. |
 | `DESTINATION` | Destino textual de la ruta. |
 | `DISTANCE_KM` | Distancia usada en cotización y facturación. |
@@ -187,7 +185,6 @@ Contrato comercial del cliente.
 | `CREDIT_LIMIT` | Límite de crédito pactado para ese contrato. |
 | `PAYMENT_TERM_DAYS` | Plazo de pago pactado. |
 | `DISCOUNT_PERCENTAGE` | Descuento general del contrato, usado para derivar tarifas por tipo de vehículo. |
-| `SIGNED_CONTRACT_PATH` | Ruta del archivo firmado. |
 | `NOTES` | Observaciones contractuales. |
 
 ## `CONTRACT_ROUTES`

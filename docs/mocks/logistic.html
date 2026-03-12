@@ -81,6 +81,11 @@
                     </div>
                 </div>
 
+                <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-8">
+                    <i class="fas fa-plug"></i>
+                    GET /api/logistics/dashboard/summary
+                </div>
+
                 <button onclick="showView('dashboard-view')" class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:-translate-y-1 text-lg flex items-center mx-auto">
                     Ir a Órdenes de Servicio <i class="fas fa-arrow-right ml-3"></i>
                 </button>
@@ -272,31 +277,37 @@
         <div class="bg-white rounded-b-3xl shadow-xl border border-t-0 border-gray-100 p-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/orders</span></div>
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistics/dashboard/summary</span></div>
+                <h3 class="font-bold text-gray-900 mb-2">Inicio logístico</h3>
+                <p class="text-gray-700">Carga el resumen inicial con `pendingOrders` y `availableUnits` antes de entrar a la bandeja operativa.</p>
+            </article>
+
+            <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistics/orders</span></div>
                 <h3 class="font-bold text-gray-900 mb-2">Listado principal</h3>
                 <p class="text-gray-700">Carga las tarjetas de órdenes nuevas y se apoya en los filtros laterales por fecha, cliente, origen, destino y estado.</p>
             </article>
 
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/orders/{ORDER_ID}</span></div>
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistics/orders/{ORDER_ID}</span></div>
                 <h3 class="font-bold text-gray-900 mb-2">Detalle de la orden</h3>
                 <p class="text-gray-700">Llena el modal con `ORDER_NUMBER`, `ORIGIN`, `DESTINATION`, `DECLARED_WEIGHT_TON`, `CARGO_TYPE_ID` y los datos principales del cliente.</p>
             </article>
 
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operative/routes</span></div>
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/operations/routes</span></div>
                 <h3 class="font-bold text-gray-900 mb-2">Catálogo reutilizado de rutas</h3>
                 <p class="text-gray-700">Logística reutiliza el mismo catálogo del módulo operativo para buscar rutas vigentes y no duplicar mantenimiento.</p>
             </article>
 
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/unit-binomials</span></div>
+                <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistics/unit-binomials</span></div>
                 <h3 class="font-bold text-gray-900 mb-2">Catálogo de binomios</h3>
                 <p class="text-gray-700">Se usa al abrir el modal para listar combinaciones piloto + unidad compatibles con la orden y ya filtradas por disponibilidad real.</p>
             </article>
 
             <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistic/orders/{ORDER_ID}/assignment</span></div>
+                <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/logistics/orders/{ORDER_ID}/assignment</span></div>
                 <h3 class="font-bold text-gray-900 mb-2">Planeación y asignación unificadas</h3>
                 <p class="text-gray-700">Recibe `routeId`, `scheduledDeparture` y `binomialId` en un solo payload. Deja la orden en `ASIGNADA` y habilita el flujo del encargado de patio.</p>
             </article>
@@ -379,7 +390,7 @@
                 <label class="block text-lg font-bold text-gray-900 mb-2">Ruta Operativa</label>
                 <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-xs font-bold mb-3">
                     <i class="fas fa-plug"></i>
-                    GET /api/operative/routes
+                    GET /api/operations/routes
                 </div>
                 <div class="relative mb-4">
                     <select id="select-route" class="w-full p-4 rounded-xl border-2 border-logi-tan bg-white focus:outline-none focus:border-logi-dark text-gray-700 appearance-none text-lg cursor-pointer">
@@ -403,7 +414,7 @@
                     <i class="fas fa-chevron-down absolute right-4 top-5 text-gray-400"></i>
                 </div>
 
-                <p class="text-sm text-gray-500 mt-3">Los binomios salen de <span class="font-mono">GET /api/logistic/unit-binomials</span> y las rutas autorizadas ya vienen en el detalle de la orden.</p>
+                <p class="text-sm text-gray-500 mt-3">Los binomios salen de <span class="font-mono">GET /api/logistics/unit-binomials</span> y las rutas autorizadas ya vienen en el detalle de la orden.</p>
 
                 <!-- Botonera Modal -->
                 <div class="flex justify-between items-center gap-4 mt-6">
@@ -464,13 +475,13 @@
         function openAssignModal(id) {
             currentOrderId = id;
             document.getElementById('modal-order-id').innerText = id;
-            console.log('GET /api/logistic/orders/{ORDER_ID}', {
+            console.log('GET /api/logistics/orders/{ORDER_ID}', {
                 ORDER_ID: id
             });
-            console.log('GET /api/operative/routes', {
+            console.log('GET /api/operations/routes', {
                 IS_ACTIVE: true
             });
-            console.log('GET /api/logistic/unit-binomials', {
+            console.log('GET /api/logistics/unit-binomials', {
                 ORDER_ID: id
             });
             document.getElementById('assign-modal').classList.remove('hidden');
@@ -498,8 +509,8 @@
                 return;
             }
 
-            // Simulación PATCH /api/logistic/orders/{ORDER_ID}/assignment
-            console.log('PATCH /api/logistic/orders/{ORDER_ID}/assignment', {
+            // Simulación PATCH /api/logistics/orders/{ORDER_ID}/assignment
+            console.log('PATCH /api/logistics/orders/{ORDER_ID}/assignment', {
                 ORDER_ID: currentOrderId,
                 CONTRACT_ROUTE_ID: routeSelect.value,
                 SCHEDULED_PICKUP_AT: scheduledDeparture.value,
