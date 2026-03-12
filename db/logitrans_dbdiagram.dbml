@@ -287,7 +287,7 @@ Table ORDER_ROUTE_LOGS {
 Table INVOICES {
   INVOICE_ID uuid [pk]
   INVOICE_NUMBER varchar(40) [not null, unique]
-  ORDER_ID uuid [not null, unique]
+  ORDER_ID uuid [not null, unique, note: 'Se genera automaticamente como borrador cuando la orden cambia a ENTREGADA']
   CLIENT_ID uuid [not null]
   STATUS INVOICE_STATUS [not null, default: 'BORRADOR']
   ISSUE_DATE timestamptz [not null]

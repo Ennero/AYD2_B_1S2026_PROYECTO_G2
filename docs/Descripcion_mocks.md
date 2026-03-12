@@ -154,7 +154,7 @@ Pantalla de parametrización financiera y operativa. Permite establecer y actual
 
 ### 2. Panel de Facturación (Agente Financiero)
 
-Centro de control para la gestión de cobros. Presenta un listado centralizado de todos los viajes que ya han sido completados (estado "Entregada"), permitiendo al equipo financiero identificar rápidamente los servicios pendientes de cobro y accionar el botón de **"Generar Pre-factura"** para iniciar el ciclo contable.
+Centro de control para la gestión de cobros. Presenta un listado centralizado de los borradores de factura generados automáticamente cuando los viajes pasan a estado "Entregada", permitiendo al equipo financiero revisar el documento fiscal, ajustarlo si hace falta y remitirlo al flujo FEL.
 
 ![Panel de Facturación](./img_mocks/PanelFacts.png)
 
@@ -162,7 +162,7 @@ Centro de control para la gestión de cobros. Presenta un listado centralizado d
 
 ### 3. Revisión Pre-factura (DTE)
 
-Vista previa y validación del borrador de cobro. Permite al agente financiero auditar los datos fiscales del cliente, el concepto detallado del servicio logístico y el desglose de montos (Subtotal, IVA y Total a facturar) antes de enviar el documento definitivo para su certificación legal.
+Vista previa y validación del borrador de cobro autogenerado. Permite al agente financiero auditar los datos fiscales del cliente, el concepto detallado del servicio logístico y el desglose de montos (Subtotal, IVA y Total a facturar) antes de enviar el documento definitivo para su certificación legal.
 
 ![Revisión Pre-factura](./img_mocks/RevisionPreFactura.png)
 

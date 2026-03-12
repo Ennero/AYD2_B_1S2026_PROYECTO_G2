@@ -1116,7 +1116,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "deliveryEvidencePaths": ["/files/evidence/ORD-000085-1.jpg"]
   }
 }</pre></td>
-      <td>Actualiza <strong>ORDERS.STATUS</strong> a <strong>ENTREGADA</strong> y guarda <strong>RECEIVER_NAME</strong>, <strong>DELIVERED_AT</strong> y la evidencia derivada del contenido Base64.<br>El backend genera <strong>RECEIVER_SIGNATURE_PATH</strong> y <strong>DELIVERY_EVIDENCE_PATH</strong> para persistencia.<br>Esta transicion habilita el flujo de facturacion.</td>
+      <td>Actualiza <strong>ORDERS.STATUS</strong> a <strong>ENTREGADA</strong> y guarda <strong>RECEIVER_NAME</strong>, <strong>DELIVERED_AT</strong> y la evidencia derivada del contenido Base64.<br>El backend genera <strong>RECEIVER_SIGNATURE_PATH</strong> y <strong>DELIVERY_EVIDENCE_PATH</strong> para persistencia.<br>La transicion dispara <strong>TRG_AUTO_CREATE_DRAFT_INVOICE</strong>, que inserta una factura <strong>BORRADOR</strong> lista para revision financiera.</td>
     </tr>
   </tbody>
 </table>
@@ -1150,80 +1150,85 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
       <td><pre>{
   "message": "Resumen financiero obtenido correctamente",
   "data": {
-    "ordersPendingInvoice": 4,
+    "draftInvoicesPendingReview": 4,
     "paymentsPendingReconciliation": 3,
     "collectedAmount": 23520.0
   }
 }</pre></td>
-      <td>Combina agregaciones sobre <strong>ORDERS</strong>, <strong>INVOICES</strong> y <strong>PAYMENTS</strong>.<br><strong>ordersPendingInvoice</strong> sale de ordenes entregadas sin factura.<br><strong>collectedAmount</strong> resume los pagos aprobados del periodo consultado.</td>
+      <td>Combina agregaciones sobre <strong>ORDERS</strong>, <strong>INVOICES</strong> y <strong>PAYMENTS</strong>.<br><strong>draftInvoicesPendingReview</strong> sale de facturas <strong>BORRADOR</strong> generadas automaticamente al entregar la orden.<br><strong>collectedAmount</strong> resume los pagos aprobados del periodo consultado.</td>
     </tr>
     <tr>
       <td>GET</td>
-      <td>/api/finance/orders-to-invoice</td>
+      <td>/api/finance/invoices</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_finanzas&gt;"
   },
   "query": {
-    "status": "ENTREGADA"
+    "status": "BORRADOR"
   }
 }</pre></td>
       <td><pre>{
-  "message": "Ordenes pendientes de facturar obtenidas correctamente",
+  "message": "Facturas borrador obtenidas correctamente",
   "data": [
     {
-      "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+      "invoiceId": "965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6",
+      "invoiceNumber": "FAC-000031",
       "orderNumber": "ORD-000085",
       "clientName": "Comercializadora Maya, S.A.",
+      "status": "BORRADOR",
       "totalAmount": 23520.0,
       "deliveredAt": "2026-04-01T22:10:00Z"
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>ORDERS</strong> con estado <strong>ENTREGADA</strong> y hace anti-join contra <strong>INVOICES</strong> para detectar las que aun no fueron facturadas.</td>
+      <td>Consulta <strong>INVOICES</strong> filtrando por <strong>STATUS = BORRADOR</strong>.<br>Esta es la bandeja principal de Finanzas despues de que la entrega genero automaticamente el borrador.</td>
     </tr>
       <tr>
         <td>GET</td>
-        <td>/api/finance/orders/{ORDER_ID}/pre-invoice</td>
+        <td>/api/finance/invoices/{INVOICE_ID}</td>
         <td><pre>{
     "headers": {
       "Authorization": "Bearer &lt;jwt_finanzas&gt;"
     }
   }</pre></td>
         <td><pre>{
-    "message": "Vista previa de prefactura obtenida correctamente",
+    "message": "Factura borrador obtenida correctamente",
     "data": {
-      "ORDER_ID": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
-      "CLIENT_ID": "fe3fc5a5-7f42-48cf-963b-ea854aa0e2ff",
-      "SERVICE_DESCRIPTION": "Servicio logistico de exportacion",
-      "TOTAL_AMOUNT": 23520.0,
-      "DUE_DATE": "2026-05-01"
+      "invoiceId": "965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6",
+      "invoiceNumber": "FAC-000031",
+      "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+      "clientId": "fe3fc5a5-7f42-48cf-963b-ea854aa0e2ff",
+      "serviceDescription": "Servicio logistico de exportacion",
+      "totalAmount": 23520.0,
+      "dueDate": "2026-05-01"
     }
   }</pre></td>
-        <td>Precarga desde <strong>ORDERS</strong>, <strong>CONTRACTS</strong> y datos del cliente los campos visibles antes de emitir la prefactura.</td>
+        <td>Devuelve el borrador ya insertado en <strong>INVOICES</strong> con datos precargados desde <strong>ORDERS</strong>, <strong>CONTRACTS</strong> y <strong>CLIENTS</strong>.</td>
       </tr>
     <tr>
-      <td>POST</td>
-      <td>/api/finance/invoices</td>
+      <td>PATCH</td>
+      <td>/api/finance/invoices/{INVOICE_ID}/submit-for-certification</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_finanzas&gt;"
   },
   "body": {
-    "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
     "serviceDescription": "Servicio logistico de exportacion",
-    "dueDate": "2026-05-01"
+    "dueDate": "2026-05-01",
+    "reviewConfirmed": true
   }
 }</pre></td>
       <td><pre>{
-  "message": "Factura borrador creada correctamente",
+  "message": "Factura borrador enviada a certificacion correctamente",
   "data": {
     "invoiceId": "965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6",
     "invoiceNumber": "FAC-000031",
-    "status": "BORRADOR"
+    "status": "BORRADOR",
+    "nextStep": "PATCH /api/certifier/invoices/{INVOICE_ID}/certify"
   }
 }</pre></td>
-      <td>Inserta en <strong>INVOICES</strong>.<br>El trigger <strong>POPULATE_INVOICE_FROM_ORDER</strong> llena cliente, NIT, direccion, montos y vencimiento desde la orden y el contrato.</td>
+      <td>No crea una nueva factura.<br>Confirma la revision financiera del borrador autogenerado y lo deja listo para que FEL lo procese sobre la misma tabla <strong>INVOICES</strong>.</td>
     </tr>
     <tr>
       <td>PATCH</td>
@@ -1233,6 +1238,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_finanzas&gt;"
   },
   "body": {
+    "serviceDescription": "Servicio logistico de exportacion",
     "pdfPath": "/files/invoices/FAC-000031.pdf"
   }
 }</pre></td>

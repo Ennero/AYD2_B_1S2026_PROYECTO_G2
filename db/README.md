@@ -302,11 +302,13 @@ Se dejó porque sección B sí exige bitácora de ruta. No es historial técnico
 
 Factura electrónica simplificada y simulada.
 
+El borrador nace automáticamente cuando la orden cambia a `ENTREGADA`, de modo que Finanzas revisa un documento ya preparado en lugar de crearlo manualmente como paso principal.
+
 | Campo | Motivo |
 |---|---|
 | `INVOICE_ID` | Identificador interno de la factura. |
 | `INVOICE_NUMBER` | Número visible de la factura. Si backend no lo manda, la base puede generarlo. |
-| `ORDER_ID` | Orden que originó la factura. |
+| `ORDER_ID` | Orden que originó la factura. Es único para garantizar un solo borrador por entrega. |
 | `CLIENT_ID` | Cliente dueño de la factura; permite listar "Mis Facturas" de forma directa. |
 | `STATUS` | Estado de la factura. |
 | `ISSUE_DATE` | Fecha de emisión. |
@@ -352,7 +354,8 @@ La tabla ahora permite varios intentos de pago sobre la misma factura, por ejemp
 - Una orden no puede asignarse a una unidad que no soporte el peso.
 - Al asignar una unidad, la base puede completar la sede y la tarifa contractual de la orden.
 - Si la carga requiere refrigeración, la unidad debe tenerla.
-- Al crear una factura, la base puede completar datos del cliente y vencimiento desde la orden y el contrato.
+- Cuando una orden pasa a `ENTREGADA`, la base inserta automáticamente una factura en `BORRADOR`.
+- Al insertar la factura, la base completa datos del cliente y vencimiento desde la orden y el contrato.
 - El monto del pago debe ser exactamente igual al total de la factura.
 - Si un pago queda aprobado, la factura pasa a `PAGADA`.
 - Un cliente no puede tener más de un contrato pendiente o vigente a la vez.

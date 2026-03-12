@@ -75,7 +75,7 @@
                     <div class="bg-red-50 border border-red-100 rounded-xl p-6 shadow-sm transform hover:scale-105 transition-transform cursor-pointer" onclick="showView('billing-view', document.querySelectorAll('.nav-btn')[1])">
                         <i class="fas fa-file-invoice text-3xl text-red-400 mb-3"></i>
                         <h4 class="text-4xl font-black text-red-600 mb-1">5</h4>
-                        <p class="text-sm font-bold text-gray-600 uppercase">Órdenes sin facturar</p>
+                        <p class="text-sm font-bold text-gray-600 uppercase">Borradores por revisar</p>
                     </div>
                     <div class="bg-yellow-50 border border-yellow-100 rounded-xl p-6 shadow-sm transform hover:scale-105 transition-transform cursor-pointer" onclick="showView('payments-view', document.querySelectorAll('.nav-btn')[2])">
                         <i class="fas fa-search-dollar text-3xl text-yellow-500 mb-3"></i>
@@ -103,12 +103,12 @@
             <div class="flex justify-between items-center mb-8 border-b-2 border-gray-200 pb-4">
                 <h2 class="text-3xl font-serif font-bold text-gray-900">Panel de Facturación - Agente Financiero</h2>
                 <button class="bg-logi-dark hover:bg-teal-900 text-white font-bold py-2 px-6 rounded shadow flex items-center">
-                    <i class="fas fa-plus mr-2"></i> Crear Manual
+                    <i class="fas fa-plus mr-2"></i> Crear Manual (Contingencia)
                 </button>
             </div>
 
             <div class="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-                En esta misma vista conviven dos bandejas: primero aparecen las órdenes <strong>ENTREGADA</strong> pendientes de prefactura y, cuando FEL certifica, la factura pasa a la bandeja de <strong>certificadas listas para envío</strong> para que Finanzas la despache al cliente.
+                En esta misma vista conviven dos bandejas: primero aparecen las <strong>facturas BORRADOR</strong> que el backend generó automáticamente cuando la orden pasó a <strong>ENTREGADA</strong> y, cuando FEL certifica, la factura pasa a la bandeja de <strong>certificadas listas para envío</strong> para que Finanzas la despache al cliente.
             </div>
 
             <!-- Filtros -->
@@ -116,37 +116,37 @@
                 <input type="text" placeholder="Buscar por nombre, cliente, ..." class="flex-1 min-w-[200px] border border-teal-600 rounded-full px-6 py-2 focus:outline-none focus:ring-2 focus:ring-logi-light">
                 <select class="border border-teal-600 rounded-full px-6 py-2 text-gray-600 bg-white focus:outline-none">
                     <option>Estados</option>
-                    <option>Entregada (Lista)</option>
+                    <option>Borrador pendiente</option>
                 </select>
                 <input type="date" class="border border-teal-600 rounded-full px-6 py-2 text-gray-600 bg-white focus:outline-none">
             </div>
 
             <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-4">
                 <i class="fas fa-plug"></i>
-                GET /api/finance/orders-to-invoice
+                GET /api/finance/invoices?status=BORRADOR
             </div>
 
             <!-- Tabla -->
             <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-                <div class="bg-gray-50 grid grid-cols-5 gap-4 p-4 text-center border-b border-gray-200">
-                    <div class="font-extrabold text-gray-800 text-left pl-4">No. Orden</div>
+                <div class="bg-gray-50 grid grid-cols-6 gap-4 p-4 text-center border-b border-gray-200">
+                    <div class="font-extrabold text-gray-800 text-left pl-4">Factura</div>
+                    <div class="font-extrabold text-gray-800">Orden</div>
                     <div class="font-extrabold text-gray-800">Cliente</div>
-                    <div class="font-extrabold text-gray-800">Ruta</div>
                     <div class="font-extrabold text-gray-800">Fecha entrega</div>
                     <div class="font-extrabold text-gray-800">Estado</div>
                     <div class="font-extrabold text-gray-800">Acciones</div>
                 </div>
 
                 <!-- Fila 1 -->
-                <div class="grid grid-cols-5 gap-4 p-4 items-center text-center border-b border-gray-200 hover:bg-gray-50" id="bill-row-1">
+                <div class="grid grid-cols-6 gap-4 p-4 items-center text-center border-b border-gray-200 hover:bg-gray-50" id="draft-row-031">
+                    <div class="font-serif text-gray-800 text-left pl-4 font-bold">FAC-000031</div>
                     <div class="font-serif text-gray-800 text-left pl-4 font-bold">ORD-001</div>
                     <div class="text-gray-800">Cementos progreso</div>
-                    <div class="text-gray-600 font-medium">Guate <i class="fas fa-arrow-right mx-1 text-teal-400"></i> Xela</div>
                     <div class="text-gray-600 text-sm">12/05/2026</div>
-                    <div><span class="bg-logi-dark text-white text-xs font-bold px-3 py-1 rounded-full">Entregada</span></div>
+                    <div><span class="bg-logi-red text-white text-xs font-bold px-3 py-1 rounded-full">Borrador</span></div>
                     <div>
-                        <button onclick="openPreInvoiceForm('ORD-001')" class="bg-logi-red hover:bg-red-700 text-white font-bold py-1.5 px-4 rounded shadow transition-colors text-sm">
-                            Generar Pre-factura
+                        <button onclick="openPreInvoiceForm('965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6', 'FAC-000031', 'draft-row-031')" class="bg-logi-red hover:bg-red-700 text-white font-bold py-1.5 px-4 rounded shadow transition-colors text-sm">
+                            Revisar Borrador
                         </button>
                     </div>
                 </div>
@@ -196,11 +196,15 @@
                 <i class="fas fa-arrow-left mr-2"></i> Volver a Bandeja
             </button>
 
-            <h2 class="text-3xl font-serif font-bold text-gray-900 mb-8 border-b-2 border-gray-200 pb-4">Revisión pre-factura (DTE)</h2>
+            <h2 class="text-3xl font-serif font-bold text-gray-900 mb-8 border-b-2 border-gray-200 pb-4">Revisión de factura borrador (DTE)</h2>
 
             <div class="inline-flex items-center gap-2 bg-teal-50 text-logi-dark border border-teal-200 rounded-full px-4 py-2 text-sm font-bold mb-6">
                 <i class="fas fa-plug"></i>
-                GET /api/finance/orders/{ORDER_ID}/pre-invoice
+                GET /api/finance/invoices/{INVOICE_ID}
+            </div>
+
+            <div class="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+                Este borrador ya existe en la base: se generó automáticamente al marcar la orden como <strong>ENTREGADA</strong>. Finanzas solo valida el contenido antes de remitirlo al certificador FEL.
             </div>
 
             <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -211,7 +215,7 @@
                         <p class="font-bold text-gray-600 mt-1">Transporte de Carga Pesada</p>
                     </div>
                     <div class="bg-gray-300 text-gray-600 font-bold px-6 py-2 rounded-lg">
-                        Pre-factura borrador
+                        Factura borrador autogenerada
                     </div>
                 </div>
 
@@ -411,7 +415,7 @@
 
         <div class="bg-white rounded-b-3xl shadow-xl border border-t-0 border-gray-100 p-8">
             <div class="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                <strong>No conviene unificar</strong> `/api/finance/invoices` con `/api/finance/invoices/{INVOICE_ID}/send`: uno crea el borrador que se manda al certifier y el otro envía al cliente la factura ya certificada.
+                <strong>No conviene unificar</strong> la generación automática del borrador con `/api/finance/invoices/{INVOICE_ID}/submit-for-certification`: el borrador nace al entregar la orden y Finanzas solo lo revisa antes de enviarlo al certifier.
             </div>
 
             <div class="mb-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
@@ -422,25 +426,25 @@
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
                     <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/dashboard/summary</span></div>
                     <h3 class="font-bold text-gray-900 mb-2">Inicio financiero</h3>
-                    <p class="text-gray-700">Devuelve `ordersPendingInvoice`, `paymentsPendingReconciliation` y `collectedAmount` por `period=MONTHLY` o `period=YEARLY`.</p>
+                    <p class="text-gray-700">Devuelve `draftInvoicesPendingReview`, `paymentsPendingReconciliation` y `collectedAmount` por `period=MONTHLY` o `period=YEARLY`.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/orders-to-invoice</span></div>
-                    <h3 class="font-bold text-gray-900 mb-2">Bandeja a facturar</h3>
-                    <p class="text-gray-700">Alimenta la tabla principal con órdenes `ENTREGADA` que todavía no tienen factura. Es la vista de entrada para generar pre-facturas.</p>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/invoices?status=BORRADOR</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Bandeja de borradores</h3>
+                    <p class="text-gray-700">Alimenta la tabla principal con facturas `BORRADOR` que se generaron automáticamente cuando la entrega se cerró.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">POST</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/invoices</span></div>
-                    <h3 class="font-bold text-gray-900 mb-2">Revisión pre-factura</h3>
-                    <p class="text-gray-700">Se usa cuando el agente confirma el borrador. Crea el registro en `INVOICES` con estado `BORRADOR` antes de enviarlo al certificador FEL.</p>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-amber-500 text-yellow-950 text-xs font-black px-2 py-1 rounded-full">PATCH</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/invoices/{INVOICE_ID}/submit-for-certification</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Enviar a certificación</h3>
+                    <p class="text-gray-700">Se usa cuando el agente confirma el borrador autogenerado. No crea otra factura; solo valida el documento y lo remite al flujo FEL.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
-                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/orders/{ORDER_ID}/pre-invoice</span></div>
-                    <h3 class="font-bold text-gray-900 mb-2">Carga previa del DTE</h3>
-                    <p class="text-gray-700">Devuelve `CLIENT_NAME`, `CLIENT_NIT`, `CLIENT_ADDRESS`, `SERVICE_DESCRIPTION`, `SUBTOTAL_AMOUNT`, `TAX_AMOUNT` y `TOTAL_AMOUNT` antes de generar el borrador.</p>
+                    <div class="flex items-center gap-2 mb-3"><span class="bg-logi-dark text-white text-xs font-black px-2 py-1 rounded-full">GET</span><span class="font-mono text-xs break-all text-logi-dark">/api/finance/invoices/{INVOICE_ID}</span></div>
+                    <h3 class="font-bold text-gray-900 mb-2">Carga del borrador</h3>
+                    <p class="text-gray-700">Devuelve el borrador ya existente con `CLIENT_NAME`, `CLIENT_NIT`, `CLIENT_ADDRESS`, `SERVICE_DESCRIPTION`, `SUBTOTAL_AMOUNT`, `TAX_AMOUNT` y `TOTAL_AMOUNT` para revisión.</p>
                 </article>
 
                 <article class="border border-gray-200 rounded-2xl p-5 bg-gray-50">
@@ -489,7 +493,7 @@
         <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl border-t-8 border-logi-dark">
             <i class="fas fa-paper-plane text-5xl text-logi-dark mb-4"></i>
             <h3 class="text-2xl font-bold text-gray-800 mb-2">Borrador Enviado</h3>
-            <p class="text-gray-600 mb-6">La pre-factura ha sido enviada al simulador SAT (Certificador FEL). Queda a la espera de autorización.</p>
+            <p class="text-gray-600 mb-6">La factura borrador revisada ha sido enviada al simulador SAT (Certificador FEL). Queda a la espera de autorización.</p>
             <button onclick="closeModal('fel-modal', 'billing-view')" class="w-full bg-logi-dark text-white font-bold py-3 rounded-lg hover:bg-teal-800 transition-colors">Aceptar</button>
         </div>
     </div>
@@ -550,10 +554,16 @@
             }
         }
 
-        // Lógica: Ir a Pre-Factura
-        function openPreInvoiceForm(orderId) {
-            console.log('GET /api/finance/orders/{ORDER_ID}/pre-invoice', {
-                ORDER_ID: orderId
+        let currentDraftInvoiceId = null;
+        let currentDraftRowId = null;
+
+        // Lógica: Ir a revisión del borrador
+        function openPreInvoiceForm(invoiceId, invoiceNumber, rowId) {
+            currentDraftInvoiceId = invoiceId;
+            currentDraftRowId = rowId;
+            console.log('GET /api/finance/invoices/{INVOICE_ID}', {
+                INVOICE_ID: invoiceId,
+                INVOICE_NUMBER: invoiceNumber
             });
             showView('pre-invoice-view', null);
             // Quitamos el highlight del menu para mostrar que estamos en un sub-paso
@@ -563,13 +573,16 @@
 
         // Lógica: Enviar a FEL
         function sendToFel() {
-            console.log('POST /api/finance/invoices', {
-                ORDER_ID: 'uuid-orden-001',
-                STATUS: 'DRAFT',
+            console.log('PATCH /api/finance/invoices/{INVOICE_ID}/submit-for-certification', {
+                INVOICE_ID: currentDraftInvoiceId,
+                STATUS: 'BORRADOR',
+                REVIEW_CONFIRMED: true,
                 NEXT_STEP: 'PATCH /api/certifier/invoices/{INVOICE_ID}/certify'
             });
             document.getElementById('fel-modal').classList.remove('hidden');
-            document.getElementById('bill-row-1').style.display = 'none'; // Simulamos que desaparece
+            if (currentDraftRowId) {
+                document.getElementById(currentDraftRowId).style.display = 'none';
+            }
         }
 
         // Lógica: Aprobar Pago
