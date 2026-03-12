@@ -1248,6 +1248,31 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>GET</td>
+      <td>/api/finance/invoices</td>
+      <td><pre>{
+  "headers": {
+    "Authorization": "Bearer &lt;jwt_finanzas&gt;"
+  },
+  "query": {
+    "status": "CERTIFICADA"
+  }
+}</pre></td>
+      <td><pre>{
+  "message": "Facturas certificadas obtenidas correctamente",
+  "data": [
+    {
+      "invoiceId": "965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6",
+      "invoiceNumber": "FAC-000031",
+      "clientName": "Comercializadora Maya, S.A.",
+      "felUuid": "3C7D8A4E-3D23-4ED8-B410-ABC123456789",
+      "status": "CERTIFICADA"
+    }
+  ]
+}</pre></td>
+      <td>Consulta <strong>INVOICES</strong> filtrando facturas <strong>CERTIFICADA</strong> y no enviadas.<br>Esta es la bandeja post-FEL desde donde Finanzas despacha el comprobante al cliente.</td>
+    </tr>
+    <tr>
+      <td>GET</td>
       <td>/api/finance/payments</td>
       <td><pre>{
   "headers": {
@@ -1398,6 +1423,27 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
       <td>Consulta <strong>INVOICES</strong> en estado <strong>BORRADOR</strong>.<br>Esta es la bandeja operativa del certificador.</td>
     </tr>
     <tr>
+      <td>POST</td>
+      <td>/api/certifier/invoices/{INVOICE_ID}/validate-nit</td>
+      <td><pre>{
+  "headers": {
+    "Authorization": "Bearer &lt;jwt_certificador&gt;"
+  },
+  "body": {
+    "clientNit": "1234567890123"
+  }
+}</pre></td>
+      <td><pre>{
+  "message": "NIT validado correctamente",
+  "data": {
+    "invoiceId": "965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6",
+    "clientNit": "1234567890123",
+    "isValid": true
+  }
+}</pre></td>
+      <td>Simula la validación del NIT previo a la certificación FEL.<br>En el MVP se usa para cumplir la regla funcional de verificar la identidad fiscal antes de emitir el UUID.</td>
+    </tr>
+    <tr>
       <td>PATCH</td>
       <td>/api/certifier/invoices/{INVOICE_ID}/certify</td>
       <td><pre>{
@@ -1417,7 +1463,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "certifiedAt": "2026-04-02T08:40:00Z"
   }
 }</pre></td>
-      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Es la base para el KPI del panel FEL.</td>
+      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Debe ejecutarse solo despues de validar el NIT del receptor.<br>Es la base para el KPI del panel FEL.</td>
     </tr>
     <tr>
       <td>PATCH</td>
