@@ -1,0 +1,688 @@
+,"Morado=Ya lo 
+pueden programar",,,,,
+,"Verde = Implementado 
+(front y back)",Marco con este color los que se usan en varios módulos (son los combobox),,,,
+,"Celeste = Creado 
+(creado por back)",,,"Me dio pereza pero en todos, iria dentro del data 
+Asi como con los de response",,
+,Rojo = Necesita arreglos,,,,,
+"Creador 
+(a quien funar)",Done,Method,Endpoint,Request (Query / Body),Response ,Observaciones
+AUTENTICACIÓN / PÚBLICO,,,,,,
+,,POST,/api/auth/login,"{
+  ""data"": {
+    ""email"": ""patio@logitrans.com"",
+    ""password"": ""miClaveSecreta""
+  }
+}","{
+  ""message"": ""Usuario logueado"",
+  ""data"": {
+    ""userId"": ""5d3fd0c3-2c18-4f1a-9c5f-53a6f0c5fb4a"",
+    ""role"": ""ENCARGADO_PATIO"",
+    ""fullName"": ""Pablo Perez"",
+    ""token"": ""eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...""
+  }
+}","El correo hace match directo con la columna EMAIL.
+La contraseña se deja como ""password"" (minúsculas) porque el usuario manda
+texto plano, y el backend es el que lo compara contra
+la columna PASSWORD_HASH de la DB."
+,,POST,/api/auth/recovery,"{
+  ""data"": {
+    ""email"": ""cliente@empresa.com""
+  }
+}","""message"": ""Correo con token único enviado correctamente"",
+""data"": {}",Aqui deberia de enviarle un correo al correo con el token
+,,POST,/api/auth/password,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer recovery-token-o-jwt""
+  },
+  ""body"": {
+    ""password"": ""NuevaClave2026!"",
+    ""confirmation"": ""NuevaClave2026!""
+  }
+}","{
+  ""message"": ""Contrasena modificada correctamente"",
+  ""data"": {}
+}","Aqui obtendria la nueva contraseña y deberia de mandar al
+para que ya se puede poder acceder con la nueva 
+No permitir usar la contraña actual como la contraseña
+nueva"
+,,,,,,
+ENCARGADO DE PATIO,,,,,,
+,,GET,"/api/patio/orders/
+","Query Params:
+?STATUS=ASIGNADA
+?PLATE_NUMBER=HT44343
+?startDate=2026-04-01
+
+Token Bearer","{
+    ""message"": ""..."",
+    ""data"": [
+        {
+            ""ORDER_ID"": ""uuid-001"",
+            ""ORDER_NUMBER"": ""ORD-085"",
+            ""PLATE_NUMBER"": ""HT44343"",
+            ""FULL_NAME"": ""Pablo"",
+            ""ORIGIN"": ""Planta 3"",
+            ""DESTINATION"": ""Bodega"",
+            ""STATUS"": ""ASIGNADA""
+        }
+    ]
+}","Mapeo:
+- ORDER_ID, ORDER_NUMBER, STATUS vienen de tabla ORDERS.
+- PLATE_NUMBER de TRANSPORT_UNITS.
+- FULL_NAME (Piloto) de USERS.
+- ORIGIN y DESTINATION de ROUTES"
+,,PATCH,/api/patio/orders/{ORDER_ID}/formalize,"Body (JSON):
+{
+""LOADED_WEIGHT_TON"": 43.5,
+""STOWAGE_CONFIRMED"": true,
+""STATUS"": ""LISTA_PARA_DESPACHO""
+}
+Token Bearer","
+{
+    ""message"": ""Despacho autorizado"",
+    ""data"": {
+        ""ORDER_ID"": ""uuid-001"",
+        ""STATUS"": ""LISTA_PARA_DESPACHO""
+    }
+}
+
+","Acción DB:
+Hace un UPDATE ORDERS SET LOADED_WEIGHT_TON = 43.5,
+STOWAGE_CONFIRMED = true,
+STATUS = 'LISTA_PARA_DESPACHO' WHERE ORDER_ID = {ORDER_ID};."
+,,,,,,
+AGENTE LOGÍSTICO,,,,,,
+,,GET,/api/pilot/orders,Token Bearer,"{ ""message"": ""..."",
+""data"": [
+ { ""ORDER_ID"": ""uuid..."",
+""LEGAL_NAME"": ""Cementos Progreso"",
+""PICKUP_ADDRESS"": ""Planta 3"",
+""DELIVERY_ADDRESS"": ""Bodega Xela"",
+""CARGO_NAME"": ""Cemento"",
+""LOADED_WEIGHT_TON"": 32.5,
+""STATUS"": ""LISTA_PARA_DESPACHO"" } 
+] }","Aqui solo obtendria los datos de la base de datos que tienen esos mismo
+nombres"
+,,PATCH,/api/pilot/orders/{ORDER_ID}/status,"Body:
+{
+""STATUS"": ""EN_TRANSITO"",
+""DISPATCHED_AT"": ""2026-03-09T08:00:00Z""
+}
+Token Bearer","""message"": ""Viaje comenzado correctamente"",
+""data"": {}","Acción DB: Actualiza el STATUS en la tabla ORDERS
+para que el cliente lo vea en su tracking."
+,,POST,/api/pilot/orders/{ORDER_ID}/logs,"Body:
+{
+""EVENT_TYPE"": ""PUNTO_CONTROL"",
+""EVENT_TIME"": ""2026-03-09T10:00:00Z"",
+""DESCRIPTION"": ""Paso por ruta al Atlántico sin novedad""
+}
+Token Bearer","""message"": ""Evento Registrado correctamente"",
+""data"": {}","Acción DB: Inserta un nuevo registro en la tabla ORDER_ROUTE_LOGS.
+Esta es la bitácora requerida por la Fase 2."
+,,PATCH,/api/pilot/orders/{ORDER_ID}/deliver,"Body:
+{
+""STATUS"": ""ENTREGADA"",
+""DELIVERED_AT"": ""2026-03-09T14:00Z"",
+""RECEIVER_NAME"": ""Juan Pérez"",
+""RECEIVER_SIGNATURE_PATH"": ""https://s3.../firma.png"",
+""DELIVERY_EVIDENCE_PATH"": ""https://s3.../foto.png""
+}
+Token Bearer","""message"": ""Evento Registrado correctamente"",
+""data"": {}","Acción DB: Cierra el viaje en ORDERS y guarda las URLs (o Base64)
+de la evidencia digital. Esto dispara la facturación."
+,,,,,,
+CERTIFICADOR FEL,,,,,,
+,,GET,/api/certificator/dashboard/summary,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_certificador>""
+  }
+}","{
+  ""message"": ""Resumen FEL obtenido correctamente"",
+  ""data"": {
+    ""pendingInvoices"": 3,
+    ""certifiedToday"": 7
+  }
+}","Hace agregaciones sobre INVOICES.
+pendingInvoices sale de facturas en BORRADOR.
+certifiedToday usa CERTIFIED_AT."
+,,GET,/api/certificator/invoices,"Query Params:
+?STATUS=BORRADOR
+
+Token Bearer","""message"": ""..."",
+""data"": [
+{
+""INVOICE_ID"": ""uuid..."",
+""INVOICE_NUMBER"": ""DTE-001"",
+""CLIENT_NAME"": ""LogiTrans (Emisor)"",
+""CLIENT_NIT"": ""548973-1"",
+""TOTAL_AMOUNT"": 10000.0,
+""ISSUE_DATE"": ""2026-05-12T..."",
+""STATUS"": ""BORRADOR""
+}
+]",Aqui solo obtiene la información del backend
+,,PATCH,/api/certificator/invoices/{INVOICE_ID}/certify,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_certificador>""
+  },
+  ""body"": {
+    ""felUuid"": ""3C7D8A4E-3D23-4ED8-B410-ABC123456789""
+  }
+}","""message"": ""Factura Certificada"",
+""data"": {}","Actualiza la tabla INVOICES cambiando el STATUS a 
+CERTIFICADA y guardando la firma digital en FEL_UUID."
+,,PATCH,/api/certificator/invoices/{INVOICE_ID}/reject,"Body (JSON):
+{
+""STATUS"": ""RECHAZADA""
+}
+
+Token Bearer","{
+  ""message"": ""Factura rechazada correctamente"",
+  ""data"": {
+    ""invoiceId"": ""965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6"",
+    ""status"": ""RECHAZADA""
+  }
+}","Actualiza el STATUS a RECHAZADA en la tabla INVOICES.
+El Agente Financiero tendrá que corregirla."
+,,,,,,
+AGENTE FINANCIERO,,,,,,
+,,GET,/api/finance/dashboard/summary,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  }
+}","{
+  ""message"": ""Resumen financiero obtenido correctamente"",
+  ""data"": {
+    ""ordersPendingInvoice"": 4,
+    ""paymentsPendingReconciliation"": 3,
+    ""todayIncome"": 23520.0
+  }
+}","Combina agregaciones sobre ORDERS, INVOICES y PAYMENTS.
+ordersPendingInvoice sale de ordenes entregadas sin factura.
+todayIncome puede salir de pagos aprobados del dia."
+,,GET,/api/finance/orders-to-invoice,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  },
+  ""query"": {
+    ""status"": ""ENTREGADA""
+  }
+}","{
+  ""message"": ""Ordenes pendientes de facturar obtenidas correctamente"",
+  ""data"": [
+    {
+      ""orderId"": ""87086e66-cb0c-45b1-b70f-d5b74c915d45"",
+      ""orderNumber"": ""ORD-000085"",
+      ""clientName"": ""Comercializadora Maya, S.A."",
+      ""totalAmount"": 23520.0,
+      ""deliveredAt"": ""2026-04-01T22:10:00Z""
+    }
+  ]
+}","Consulta ORDERS con estado ENTREGADA y hace anti-join contra INVOICES
+para detectar las que aun no fueron facturadas."
+,,POST,/api/finance/invoices,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  },
+  ""body"": {
+    ""orderId"": ""87086e66-cb0c-45b1-b70f-d5b74c915d45"",
+    ""serviceDescription"": ""Servicio logistico de exportacion"",
+    ""dueDate"": ""2026-05-01""
+  }
+}","{
+  ""message"": ""Factura borrador creada correctamente"",
+  ""data"": {
+    ""invoiceId"": ""965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6"",
+    ""invoiceNumber"": ""FAC-000031"",
+    ""status"": ""BORRADOR""
+  }
+}","Inserta en INVOICES.
+El trigger POPULATE_INVOICE_FROM_ORDER llena cliente, NIT, direccion,
+montos y vencimiento desde la orden y el contrato."
+,"Se puede unificar con el
+anterior, haciendo ambas
+acciones con dicho 
+endpoint",PATCH,/api/finance/invoices/{INVOICE_ID}/send,"{ ""STATUS"": ""ENVIADA"", ""PDF_PATH"": ""https://s3.../factura.pdf"" }
+Token Bearer","{ 
+""message"": ""Factura enviada al cliente"",
+""data"": { 
+""INVOICE_ID"": ""uuid..."", ""STATUS"": ""ENVIADA"",
+""SENT_AT"": ""2026-05-12T17:40:00Z"" } 
+}",
+,,GET,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  },
+  ""body"": {
+    ""pdfPath"": ""/files/invoices/FAC-000031.pdf""
+  }
+}","{
+  ""message"": ""Factura enviada correctamente"",
+  ""data"": {
+    ""invoiceId"": ""965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6"",
+    ""status"": ""ENVIADA"",
+    ""sentAt"": ""2026-04-02T09:00:00Z""
+  }
+}","{
+  ""message"": ""Factura enviada correctamente"",
+  ""data"": {
+    ""invoiceId"": ""965b0a6f-35c4-430d-bf87-4fbd1ff2b6c6"",
+    ""status"": ""ENVIADA"",
+    ""sentAt"": ""2026-04-02T09:00:00Z""
+  }
+}","No conviene unificarlo con la creacion de factura.
+Este paso actualiza INVOICES.STATUS, PDF_PATH y SENT_AT
+una vez que la factura ya esta certificada."
+,,GET,/api/finance/payments,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  },
+  ""query"": {
+    ""status"": ""PENDIENTE""
+  }
+}","{
+  ""message"": ""Pagos obtenidos correctamente"",
+  ""data"": [
+    {
+      ""paymentId"": ""ec08b307-09bb-4f5c-98d6-c6a4fa32bcb3"",
+      ""invoiceNumber"": ""FAC-000031"",
+      ""method"": ""TRANSFERENCIA"",
+      ""bankReference"": ""TRX-882771"",
+      ""amount"": 23520.0,
+      ""status"": ""PENDIENTE""
+    }
+  ]
+}","Consulta PAYMENTS con JOIN a INVOICES.
+Sirve para la conciliacion financiera."
+,,PATCH,/api/finance/payments/{PAYMENT_ID}/approve,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  },
+  ""body"": {
+    ""status"": ""APROBADO""
+  }
+}","{
+  ""message"": ""Pago aprobado correctamente"",
+  ""data"": {
+    ""paymentId"": ""ec08b307-09bb-4f5c-98d6-c6a4fa32bcb3"",
+    ""status"": ""APROBADO"",
+    ""invoiceStatus"": ""PAGADA""
+  }
+}","Actualiza PAYMENTS.STATUS y REVIEWED_BY_USER_ID.
+El trigger SYNC_INVOICE_PAYMENT actualiza la factura a PAGADA.
+La regla de pago aprobado unico por factura ya esta cubierta por indice y trigger."
+,,GET,/api/finance/rates,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  }
+}","{
+  ""message"": ""Tarifas obtenidas correctamente"",
+  ""data"": [
+    {
+      ""vehicleTypeId"": 2,
+      ""typeName"": ""CAMION PESADO"",
+      ""ratePerKm"": 12.5
+    }
+ ...
+  ]
+}",Consulta VEHICLE_TYPES para cargar el tarifario base visible en la vista de configuracion.
+,,PATCH,/api/finance/rates/{VEHICLE_TYPE_ID},"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_finanzas>""
+  },
+  ""body"": {
+    ""ratePerKm"": 13.25
+  }
+}","{
+  ""message"": ""Tarifa actualizada correctamente"",
+  ""data"": {
+    ""vehicleTypeId"": 2,
+    ""ratePerKm"": 13.25
+  }
+}","Actualiza VEHICLE_TYPES.RATE_PER_KM.
+Afecta contratos y ordenes futuras; no debe recalcular retroactivamente documentos historicos."
+,,,,,,
+AGENTE LOGÍSTICO,,,,,,
+,,GET,/api/logistic/orders,"{
+  ""headers"": {
+    ""Authorization"": ""Bearer <jwt_agente_logistico>""
+  },
+  ""query"": {
+    ""status"": ""REGISTRADA"",
+    ""startDate"": ""2026-04-01"",
+    ""clientId"": ""fe3fc5a5-7f42-48cf-963b-ea854aa0e2ff""
+  }
+}","{
+  ""message"": ""Ordenes obtenidas correctamente"",
+  ""data"": [
+    {
+      ""orderId"": ""87086e66-cb0c-45b1-b70f-d5b74c915d45"",
+      ""orderNumber"": ""ORD-000085"",
+      ""clientName"": ""Comercializadora Maya, S.A."",
+      ""origin"": ""Ciudad de Guatemala"",
+      ""destination"": ""San Salvador"",
+      ""declaredWeightTon"": 10.5,
+      ""status"": ""REGISTRADA""
+    }
+  ]
+}","Hace JOIN entre ORDERS, CONTRACTS y CLIENTS.
+Sirve para listar ordenes pendientes de asignacion."
+,,,,,,
+,,GET,/api/logistic/resources/available,"Query Params:
+?minCapacityTon=32.0
+
+Token Bearer
+","""message"": ""..."",
+""data"": [
+{
+""UNIT_ID"": ""uuid..."",
+""PLATE_NUMBER"": ""HT44343"",
+""VEHICLE_MODEL"": ""Camión Pesado"",
+""FULL_NAME"": ""Pablo (Piloto)"",
+""CAPACITY_TON"": 35.0
+}
+]","Filtra en TRANSPORT_UNITS cruzado con USERS
+que no tengan un viaje activo"
+,,PATCH,/api/logistic/orders/{ORDER_ID}/assign,"Body (JSON):
+{
+""UNIT_ID"": ""uuid-del-camion-piloto"",
+""STATUS"": ""ASIGNADA""
+}
+
+Token Bearer
+","""message"": ""Piloto asignado"",
+""data"": {
+""UNIT_ID"": ""uuid-del-camion-piloto"",
+""STATUS"": ""ASIGNADA""
+}","Acción DB:
+Actualiza el campo UNIT_ID en la tabla ORDERS y cambia el STATUS
+a ASIGNADA. Esto dispara la alerta para el Encargado de Patio."
+,,PATCH,/api/logistic/orders/{ORDER_ID}/plan,"{ ""CONTRACT_ROUTE_ID"": ""uuid..."", 
+""SCHEDULED_PICKUP_AT"": ""2026-04-01T08:00:00Z"",
+""NOTES"": ""Ruta validada para despacho"" }
+
+Token Bearer","{ ""message"": ""Orden planificada"", 
+""data"": {
+ ""ORDER_ID"": ""uuid..."", 
+""CONTRACT_ROUTE_ID"": ""uuid..."", 
+""ORIGIN"": ""Planta 3"", 
+""DESTINATION"": ""Bodega Xela"" } }","Actualiza ORDERS.CONTRACT_ROUTE_ID, SCHEDULED_PICKUP_AT y NOTES. Con
+la DB actual, al ligar la ruta la orden ya puede completar distancia operativa y
+dejar trazable qué ruta contractual se usó."
+,,,,,,
+,,,,,,
+AGENTE OPERATIVO,,,,,,
+,,POST,/api/operative/clients,"Body (JSON):
+{
+""CONTACT_NAME"": ""Henry Contreras"",
+""CONTACT_PHONE"": ""5555-4444"",
+""CONTACT_EMAIL"": ""ejemplo@gmail.com"",
+""LEGAL_NAME"": ""Cementos Progreso S.A."",
+""TAX_ADDRESS"": ""Zona 10"",
+""NIT"": ""2323232323"",
+""PAYMENT_RISK"": ""MEDIO"",
+""CARGO_RISK"": ""BAJO"",
+""CUSTOMS_RISK"": ""BAJO"",
+""AML_RISK"": ""BAJO""
+}
+
+Token Bearer","""message"": ""Cliente Registrado correctamente"",
+""data"": {
+""CONTACT_NAME"": ""Henry Contreras"",
+""CONTACT_PHONE"": ""5555-4444"",
+""CONTACT_EMAIL"": ""ejemplo@gmail.com"",
+""LEGAL_NAME"": ""Cementos Progreso S.A."",
+""TAX_ADDRESS"": ""Zona 10"",
+""NIT"": ""2323232323"",
+""PAYMENT_RISK"": ""MEDIO"",
+""CARGO_RISK"": ""BAJO"",
+""CUSTOMS_RISK"": ""BAJO"",
+""AML_RISK"": ""BAJO""
+}","Acción DB:
+1. Inserta en CLIENTS.
+2. Inserta automáticamente en USERS (Rol: CLIENTE) y dispara un corre
+ con las credenciales (Notificaciones)."
+,,GET,/api/operative/clients,"Query Params:
+?search=Cementos / nit / dpi
+
+Token Bearer","""message"": ""..."",
+""data"": [
+{
+""CLIENT_ID"": ""uuid..."",
+""LEGAL_NAME"": ""Cementos Progreso S.A."",
+""NIT"": ""2323232323""
+}
+]
+
+(Usado para buscar al cliente en la vista de Contratos).",Solo obtiene los valores
+,,POST,/api/operative/contracts,"Body (JSON):
+{
+""CLIENT_ID"": ""uuid..."",
+""CREDIT_LIMIT"": 10000.00,
+""PAYMENT_TERM_DAYS"": 30,
+""DISCOUNT_PERCENTAGE"": 5.00,
+""NOTES"": ""Por volumen de viaje"",
+""STATUS"": ""PENDIENTE""
+}
+
+Token Bearer","""message"": ""Propuesta enviada al cliente"",
+""data"": {
+""CLIENT_ID"": ""uuid..."",
+""CREDIT_LIMIT"": 10000.0,
+""PAYMENT_TERM_DAYS"": 30,
+""DISCOUNT_PERCENTAGE"": 5.0,
+""NOTES"": ""Por volumen de viaje"",
+""STATUS"": ""PENDIENTE""
+}","Acción DB:
+Inserta el contrato en CONTRACTS y sus detalles en CONTRACT_RATES.
+Queda en estado PENDIENTE hasta que el cliente lo acepte en su portal."
+,"Unificable con 
+/api/operative/contracts ",POST,/api/operative/contracts/{CONTRACT_ID}/routes,"{ ""ROUTES"": 
+[ { ""ROUTE_ID"": 1, ""PROMISED_DELIVERY_HOURS"": 8.5 },
+{ ""ROUTE_ID"": 2, ""PROMISED_DELIVERY_HOURS"": 5.0 } ] 
+}
+Token Beare","{ ""message"": ""Rutas contractuales registradas"",
+""data"": { ""CONTRACT_ID"": ""uuid..."",
+""ROUTES"": [ { ""ROUTE_ID"": 1, ""PROMISED_DELIVERY_HOURS"": 8.5 },
+{ ""ROUTE_ID"": 2, ""PROMISED_DELIVERY_HOURS"": 5.0 } ] } 
+}","Inserta en CONTRACT_ROUTES. Sin esto, el detalle del contrato no puede devolver ROUTES reales ni validar rutas autorizadas."
+,"Unificable con 
+/api/operative/contracts",POST,/api/operative/contracts/{CONTRACT_ID}/cargo-types,"{ 
+""CARGO_TYPES"": 
+[ { ""CARGO_TYPE_ID"": 1 }, { ""CARGO_TYPE_ID"": 2 } ] 
+}
+
+Token Bearer","{ ""message"": ""Tipos de carga autorizados"",
+""data"": { ""CONTRACT_ID"": ""uuid..."",
+""CARGO_TYPES"": [ { ""CARGO_TYPE_ID"": 1 },
+{ ""CARGO_TYPE_ID"": 2 } ] } }","Inserta en CONTRACT_CARGO_TYPES. Completa la parte del contrato que hoy
+no entra en POST /api/operative/contracts."
+,,,,,,
+GERENTE,,,,,,
+,,GET,/api/bi/kpis/daily,"Query Params:
+?date=2026-03-03
+
+Token Bearer","""message"": ""..."",
+""data"": {
+""completedServices"": 142,
+""dailyBilling"": 184500.0,
+""activeIncidents"": 3
+}","Mapeo DB:
+- completedServices: COUNT(ORDER_ID) donde STATUS = 'ENTREGADA'.
+- dailyBilling: SUM(TOTAL_AMOUNT) de la tabla INVOICES.
+- activeIncidents: COUNT en ORDER_ROUTE_LOGS donde EVENT_TYPE = 'INCIDENTE'."
+,,GET,/api/bi/branches/distribution,"Query Params:
+?startDate=...&endDate=...
+
+Token Bearer","""message"": ""..."",
+""data"": [
+{
+""BRANCH_NAME"": ""Guatemala"",
+""orderCount"": 45
+},
+{
+""BRANCH_NAME"": ""Xela"",
+""orderCount"": 30
+}
+]","Mapeo DB:
+SELECT b.BRANCH_NAME, COUNT(o.ORDER_ID) FROM ORDERS o 
+JOIN BRANCHES b ON o.BRANCH_ID = b.BRANCH_ID GROUP BY b.BRANCH_NAME;"
+,,GET,/api/bi/profitability,"Query Params:
+?month=2026-03
+Token Bearer","""message"": ""..."",
+""data"": {
+""averageMargin"": 28.4,
+""criticalExpense"": ""Combustible"",
+""incomeVsExpenses"": []
+}","Mapeo DB (El requerimiento clave de la Fase 2):
+Ingresos = SUM(TOTAL_AMOUNT).
+Gastos = SUM(FUEL_COST + VIATICS_COST + MAINTENANCE_COST) de la tabla ORDERS."
+,,GET,/api/bi/orders/recent,"Query Params:
+?limit=5
+
+Token Bearer","""message"": ""..."",
+""data"": [
+{
+""ORDER_NUMBER"": ""ORD-8902"",
+""LEGAL_NAME"": ""Industrias..."",
+""ORIGIN"": ""Guate"",
+""DESTINATION"": ""Pto. Barrios"",
+""STATUS"": ""ENTREGADA""
+}
+]",Solo obtiene los valores
+,,,,,,
+CLIENTE,,,,,,
+,,GET,/api/cliente/dashboard/summary,Token Bearer,"""message"": ""..."",
+""data"": {
+""CREDIT_LIMIT"": 150000,
+""TOTAL_DEBT"": 10000,
+""AVAILABLE_CREDIT"": 140000,
+""ACTIVE_ORDERS_COUNT"": 2
+}","Mapeo DB: Extrae el límite de CLIENTS. Suma el TOTAL_AMOUNT de INVOICES
+donde el estado no sea PAGADA, y cuenta las ORDERS activas."
+,,PATCH,/api/cliente/profile/password,"Body (JSON):
+{ ""currentPassword"": ""..."", ""newPassword"": ""...""}","""message"": ""Contraseña actualizada exitosamente"",
+""data"": {
+""currentPassword"": ""..."",
+""newPassword"": ""...""
+}","Acción DB: Verifica que currentPassword haga match con
+el PASSWORD_HASH de USERS y luego lo actualiza."
+,,PUT,/api/cliente/contacts/{USER_ID},"Body (JSON)
+{ 
+""FULL_NAME"": ""Nuevo Nombre"",
+""PHONE"": ""9999-8888"", ""EMAIL"": ""nuevo@correo.com""
+}","""message"": ""Contacto actualizado"",
+""data"": {
+""FULL_NAME"": ""Nuevo Nombre"",
+""PHONE"": ""9999-8888"",
+""EMAIL"": ""nuevo@correo.com""
+}",Acción DB: Hace un UPDATE directo en la tabla USERS para ese USER_ID
+,,DELETE,/api/cliente/contacts/{USER_ID},Token Bearer,"""message"": ""Contacto eliminado"",
+""data"": {}","Acción DB: En lugar de borrar el registro, hace un UPDATE en USERS
+y cambia IS_ACTIVE = false (Borrado lógico para no perder historial)."
+,,GET,/api/cliente/contracts,Token Bearer,"""message"": ""..."",
+""data"": [
+{
+""CONTRACT_ID"": ""uuid..."",
+""CONTRACT_NUMBER"": ""CONT-092"",
+""STATUS"": ""VIGENTE""
+}
+]","Mapeo DB: Trae todos los contratos de la tabla CONTRACTS
+vinculados al CLIENT_ID del usuario logueado."
+,,GET,/api/cliente/contracts/{CONTRACT_ID},Token Bearer,"""message"": ""..."",
+""data"": {
+""CREDIT_LIMIT"": 150000,
+""ROUTES"": [],
+""RATES"": []
+}","Mapeo DB: Hace un JOIN de CONTRACTS, CONTRACT_ROUTES
+y CONTRACT_RATES para llenar el modal de detalles."
+,,GET,/api/cliente/invoices,Query Params:?STATUS=ENVIADA,"""message"": ""..."",
+""data"": [
+{
+""INVOICE_ID"": ""uuid..."",
+""INVOICE_NUMBER"": ""FEL-001"",
+""ISSUE_DATE"": ""2026-02-14"",
+""TOTAL_AMOUNT"": 10000.0
+}
+]",Mapeo DB: Busca en la tabla INVOICES filtrando por el CLIENT_ID
+,,GET,/api/cliente/account-statement,Token Bearer,"""message"": ""..."",
+""data"": {
+""onTimeDebt"": 10000.0,
+""overdue30Days"": 0.0,
+""criticalDebt"": 0.0
+}","Lógica Backend: No necesita tocar la DB. El backend toma las facturas pendientes, 
+compara el DUE_DATE con la fecha actual, y agrupa la deuda para llenar el
+""Reporte de Vencimientos"" (Aging Report)."
+,,POST,/api/cliente/payments,"Body (JSON):
+{
+""INVOICE_ID"": ""uuid..."", ""METHOD"": ""TRANSFERENCIA"",
+""AMOUNT"": 10000.00, ""TRANSFER_RECEIPT_PATH"": ""url_foto.jpg""
+}","""message"": ""Pago registrado y en revisión"",
+""data"": {
+""INVOICE_ID"": ""uuid..."",
+""METHOD"": ""TRANSFERENCIA"",
+""AMOUNT"": 10000.0,
+""TRANSFER_RECEIPT_PATH"": ""url_foto.jpg""
+}","Acción DB: Inserta en la tabla PAYMENTS. Queda con
+status PENDIENTE hasta que el Agente Financiero (Marcos) lo apruebe."
+,,GET,/api/cliente/profile,Token Bearer,"""message"": ""..."",
+""data"": {
+""LEGAL_NAME"": ""Cementos..."",
+""NIT"": ""548973-1"",
+""CONTACT_PHONE"": ""2222-3333""
+}","Obtiene los datos de las tablas CLIENTS y USERS para llenar la vista de ""Mis Datos""."
+,,POST,/api/cliente/orders,"Body:
+
+{
+""CONTRACT_ID"": ""uuid..."",
+""CARGO_TYPE_ID"": 1,
+""PICKUP_ADDRESS"": ""..."",
+""DELIVERY_ADDRESS"": ""..."",
+""DECLARED_WEIGHT_TON"": 32.0
+}","""message"": ""Orden creada"",
+""data"": {
+""CONTRACT_ID"": ""uuid..."",
+""CARGO_TYPE_ID"": 1,
+""PICKUP_ADDRESS"": ""..."",
+""DELIVERY_ADDRESS"": ""..."",
+""DECLARED_WEIGHT_TON"": 32.0
+}","Inserta en ORDERS. Regla: El backend debe validar que el
+CLIENT_ID no tenga IS_BLOCKED = true por falta de pago."
+,,GET,/api/cliente/invoices,"Query Params:
+?STATUS=CERTIFICADA
+?search=FEL-","""message"": ""..."",
+""data"": [
+{
+""INVOICE_NUMBER"": ""FEL-01"",
+""SERVICE_DESCRIPTION"": ""Flete..."",
+""FEL_UUID"": ""987E..."",
+""TOTAL_AMOUNT"": 10000,
+""STATUS"": ""CERTIFICADA""
+}
+]","Llena la tabla de la vista ""Mis Facturas"".
+Hace un SELECT a INVOICES donde CLIENT_ID sea el del token."
+,,POST,/api/cliente/payments,"Body (Opción Tarjeta):
+{
+""INVOICE_ID"": ""uuid..."",
+""METHOD"": ""TARJETA"",
+""AMOUNT"": 10000,
+""CARD_ID"": ""uuid-tarjeta-guardada""
+}
+
+Body (Opción Transferencia):
+{
+""INVOICE_ID"": ""uuid..."",
+""METHOD"": ""TRANSFERENCIA"",
+""AMOUNT"": 10000,
+""BANK_REFERENCE"": ""REF-890"",
+""TRANSFER_RECEIPT_PATH"": ""https://s3.../deposito.pdf""
+}","""message"": ""Pago registrado. En espera de conciliación."",
+""data"": {
+""INVOICE_ID"": ""uuid..."",
+""METHOD"": ""TARJETA"",
+""AMOUNT"": 10000,
+""CARD_ID"": ""uuid-tarjeta-guardada""
+}","Inserta en PAYMENTS con status PENDIENTE.
+Si es tarjeta, vincula CARD_ID. Si es transferencia, guarda la URL del PDF."

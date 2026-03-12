@@ -1,0 +1,342 @@
+# Database
+
+Be a db administrator, expert on relational database and PostgreSQL.
+We need to implement the respective models and relationships between them, for the follwing database diagram:
+
+
+<dbdiagram>
+Project LogiTrans {
+  database_type: 'PostgreSQL'
+}
+
+Enum USER_ROLE {
+  CLIENTE
+  AGENTE_OPERATIVO
+  AGENTE_LOGISTICO
+  ENCARGADO_PATIO
+  PILOTO
+  AGENTE_FINANCIERO
+  GERENCIA
+  ADMIN
+}
+
+Enum RISK_LEVEL {
+  BAJO
+  MEDIO
+  ALTO
+  CRITICO
+}
+
+Enum CONTRACT_STATUS {
+  BORRADOR
+  PENDIENTE
+  VIGENTE
+  VENCIDO
+  RECHAZADO
+  CANCELADO
+}
+
+Enum ORDER_STATUS {
+  REGISTRADA
+  ASIGNADA
+  LISTA_PARA_DESPACHO
+  EN_TRANSITO
+  ENTREGADA
+  BLOQUEADA
+  CANCELADA
+}
+
+Enum ROUTE_EVENT_TYPE {
+  SALIDA
+  PUNTO_CONTROL
+  ADUANA
+  INCIDENTE
+  LLEGADA
+  OTRO
+}
+
+Enum INVOICE_STATUS {
+  BORRADOR
+  CERTIFICADA
+  ENVIADA
+  PAGADA
+  RECHAZADA
+}
+
+Enum PAYMENT_METHOD {
+  TARJETA
+  TRANSFERENCIA
+}
+
+Enum PAYMENT_STATUS {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+Table CLIENTS {
+  CLIENT_ID uuid [pk]
+  CLIENT_CODE varchar(30) [not null, unique]
+  LEGAL_NAME varchar(180) [not null]
+  COMMERCIAL_NAME varchar(180)
+  NIT varchar(20) [not null, unique]
+  TAX_ADDRESS text [not null]
+  CONTACT_NAME varchar(160) [not null]
+  CONTACT_EMAIL varchar(320) [not null]
+  CONTACT_PHONE varchar(30)
+  CREDIT_LIMIT numeric(14,2) [not null, default: 0]
+  PAYMENT_RISK RISK_LEVEL [not null, default: 'MEDIO']
+  CUSTOMS_RISK RISK_LEVEL [not null, default: 'MEDIO']
+  CARGO_RISK RISK_LEVEL [not null, default: 'MEDIO']
+  AML_RISK RISK_LEVEL [not null, default: 'MEDIO']
+  IS_BLOCKED boolean [not null, default: false]
+  BLOCK_REASON text
+}
+
+Table USERS {
+  USER_ID uuid [pk]
+  CLIENT_ID uuid
+  ROLE USER_ROLE [not null]
+  FULL_NAME varchar(160) [not null]
+  EMAIL varchar(320) [not null, unique]
+  PASSWORD_HASH text [not null]
+  PHONE varchar(30)
+  IS_ACTIVE boolean [not null, default: true]
+}
+
+Table PASSWORD_RECOVERY_TOKENS {
+  TOKEN_ID uuid [pk]
+  USER_ID uuid [not null]
+  TOKEN_HASH text [not null, unique]
+  EXPIRES_AT timestamptz [not null]
+  USED_AT timestamptz
+}
+
+Table CLIENT_CARDS {
+  CARD_ID uuid [pk]
+  CLIENT_ID uuid [not null]
+  CARD_ALIAS varchar(80) [not null]
+  CARD_BRAND varchar(30) [not null]
+  LAST_FOUR char(4) [not null]
+  EXPIRATION_MONTH smallint [not null]
+  EXPIRATION_YEAR smallint [not null]
+  IS_ACTIVE boolean [not null, default: true]
+
+  Indexes {
+    (CLIENT_ID, CARD_ALIAS) [unique]
+  }
+}
+
+Table BRANCHES {
+  BRANCH_ID smallint [pk]
+  BRANCH_CODE varchar(20) [not null, unique]
+  BRANCH_NAME varchar(100) [not null, unique]
+  CITY varchar(100) [not null]
+  COUNTRY varchar(100) [not null]
+  IS_ACTIVE boolean [not null, default: true]
+}
+
+Table ROUTES {
+  ROUTE_ID bigint [pk]
+  ROUTE_CODE varchar(30) [not null, unique]
+  ORIGIN varchar(120) [not null]
+  DESTINATION varchar(120) [not null]
+  DISTANCE_KM numeric(10,2) [not null]
+  ESTIMATED_HOURS numeric(10,2) [not null]
+  IS_INTERNATIONAL boolean [not null, default: false]
+  IS_ACTIVE boolean [not null, default: true]
+}
+
+Table VEHICLE_TYPES {
+  VEHICLE_TYPE_ID smallint [pk]
+  TYPE_CODE varchar(20) [not null, unique]
+  TYPE_NAME varchar(100) [not null, unique]
+  MIN_CAPACITY_TON numeric(6,2) [not null]
+  MAX_CAPACITY_TON numeric(6,2)
+  RATE_PER_KM numeric(12,2) [not null]
+}
+
+Table CARGO_TYPES {
+  CARGO_TYPE_ID smallint [pk]
+  CARGO_NAME varchar(100) [not null, unique]
+  REQUIRES_REFRIGERATION boolean [not null, default: false]
+}
+
+Table CONTRACTS {
+  CONTRACT_ID uuid [pk]
+  CONTRACT_NUMBER varchar(40) [not null, unique]
+  CLIENT_ID uuid [not null]
+  STATUS CONTRACT_STATUS [not null, default: 'BORRADOR']
+  START_DATE date [not null, default: `CURRENT_DATE`]
+  END_DATE date [not null]
+  ACCEPTED_AT timestamptz
+  CREDIT_LIMIT numeric(14,2) [not null]
+  PAYMENT_TERM_DAYS smallint [not null]
+  DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
+  SIGNED_CONTRACT_PATH text
+  NOTES text
+}
+
+Table CONTRACT_ROUTES {
+  CONTRACT_ROUTE_ID uuid [pk]
+  CONTRACT_ID uuid [not null]
+  ROUTE_ID bigint [not null]
+  PROMISED_DELIVERY_HOURS numeric(10,2) [not null]
+
+  Indexes {
+    (CONTRACT_ID, ROUTE_ID) [unique]
+    (CONTRACT_ROUTE_ID, CONTRACT_ID) [unique]
+  }
+}
+
+Table CONTRACT_CARGO_TYPES {
+  CONTRACT_ID uuid [not null]
+  CARGO_TYPE_ID smallint [not null]
+
+  Indexes {
+    (CONTRACT_ID, CARGO_TYPE_ID) [pk]
+  }
+}
+
+Table CONTRACT_RATES {
+  CONTRACT_RATE_ID uuid [pk]
+  CONTRACT_ID uuid [not null]
+  VEHICLE_TYPE_ID smallint [not null]
+  BASE_RATE_PER_KM numeric(12,2) [not null]
+  DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
+  FINAL_RATE_PER_KM numeric(12,2) [not null]
+
+  Indexes {
+    (CONTRACT_ID, VEHICLE_TYPE_ID) [unique]
+    (CONTRACT_RATE_ID, CONTRACT_ID) [unique]
+  }
+}
+
+Table TRANSPORT_UNITS {
+  UNIT_ID uuid [pk]
+  BRANCH_ID smallint [not null]
+  VEHICLE_TYPE_ID smallint [not null]
+  PILOT_USER_ID uuid [unique]
+  PLATE_NUMBER varchar(20) [not null, unique]
+  VEHICLE_MODEL varchar(80)
+  CAPACITY_TON numeric(6,2) [not null]
+  HAS_REFRIGERATION boolean [not null, default: false]
+  PILOT_LICENSE_NUMBER varchar(40) [not null, unique]
+  PILOT_LICENSE_EXPIRATION date [not null]
+  VEHICLE_DOCUMENT_EXPIRATION date [not null]
+  IS_ACTIVE boolean [not null, default: true]
+}
+
+Table ORDERS {
+  ORDER_ID uuid [pk]
+  ORDER_NUMBER varchar(40) [not null, unique]
+  CONTRACT_ID uuid [not null]
+  REQUESTED_BY_USER_ID uuid [not null]
+  BRANCH_ID smallint
+  CONTRACT_ROUTE_ID uuid
+  CONTRACT_RATE_ID uuid
+  CARGO_TYPE_ID smallint [not null]
+  UNIT_ID uuid
+  STATUS ORDER_STATUS [not null, default: 'REGISTRADA']
+  CARGO_DESCRIPTION text [not null, default: 'PENDIENTE_DETALLE']
+  DECLARED_WEIGHT_TON numeric(8,2) [not null]
+  LOADED_WEIGHT_TON numeric(8,2)
+  ORIGIN text
+  DESTINATION text
+  PICKUP_ADDRESS text [not null]
+  DELIVERY_ADDRESS text [not null]
+  REQUESTED_AT timestamptz [not null]
+  SCHEDULED_PICKUP_AT timestamptz
+  PROMISED_DELIVERY_AT timestamptz
+  DISPATCHED_AT timestamptz
+  DELIVERED_AT timestamptz
+  STOWAGE_CONFIRMED boolean
+  IS_SEALED boolean
+  RECEIVER_NAME varchar(160)
+  RECEIVER_SIGNATURE_PATH text
+  DELIVERY_EVIDENCE_PATH text
+  DISTANCE_KM numeric(10,2) [not null, default: 0]
+  BASE_RATE_PER_KM numeric(12,2) [not null, default: 0]
+  DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
+  FINAL_RATE_PER_KM numeric(12,2) [not null, default: 0]
+  SUBTOTAL_AMOUNT numeric(14,2) [not null, default: 0]
+  TAX_AMOUNT numeric(14,2) [not null, default: 0]
+  TOTAL_AMOUNT numeric(14,2) [not null, default: 0]
+  FUEL_COST numeric(14,2) [not null, default: 0]
+  VIATICS_COST numeric(14,2) [not null, default: 0]
+  MAINTENANCE_COST numeric(14,2) [not null, default: 0]
+  NOTES text
+}
+
+Table ORDER_ROUTE_LOGS {
+  LOG_ID uuid [pk]
+  ORDER_ID uuid [not null]
+  EVENT_TYPE ROUTE_EVENT_TYPE [not null]
+  EVENT_TIME timestamptz [not null]
+  DESCRIPTION text [not null]
+}
+
+Table INVOICES {
+  INVOICE_ID uuid [pk]
+  INVOICE_NUMBER varchar(40) [not null, unique]
+  ORDER_ID uuid [not null, unique]
+  CLIENT_ID uuid [not null]
+  STATUS INVOICE_STATUS [not null, default: 'BORRADOR']
+  ISSUE_DATE timestamptz [not null]
+  DUE_DATE date [not null]
+  SENT_AT timestamptz
+  CLIENT_NAME varchar(180) [not null]
+  CLIENT_NIT varchar(20) [not null]
+  CLIENT_ADDRESS text [not null]
+  SERVICE_DESCRIPTION text [not null]
+  SUBTOTAL_AMOUNT numeric(14,2) [not null]
+  TAX_AMOUNT numeric(14,2) [not null]
+  TOTAL_AMOUNT numeric(14,2) [not null]
+  FEL_UUID varchar(50) [unique]
+  PDF_PATH text
+}
+
+Table PAYMENTS {
+  PAYMENT_ID uuid [pk]
+  INVOICE_ID uuid [not null]
+  METHOD PAYMENT_METHOD [not null]
+  STATUS PAYMENT_STATUS [not null, default: 'PENDIENTE']
+  CARD_ID uuid
+  BANK_REFERENCE varchar(80)
+  TRANSFER_RECEIPT_PATH text
+  AMOUNT numeric(14,2) [not null]
+  PAYMENT_DATE timestamptz [not null]
+  REVIEWED_BY_USER_ID uuid
+}
+
+Ref: USERS.CLIENT_ID > CLIENTS.CLIENT_ID
+Ref: PASSWORD_RECOVERY_TOKENS.USER_ID > USERS.USER_ID
+Ref: CLIENT_CARDS.CLIENT_ID > CLIENTS.CLIENT_ID
+Ref: CONTRACTS.CLIENT_ID > CLIENTS.CLIENT_ID
+Ref: CONTRACT_ROUTES.CONTRACT_ID > CONTRACTS.CONTRACT_ID
+Ref: CONTRACT_ROUTES.ROUTE_ID > ROUTES.ROUTE_ID
+Ref: CONTRACT_CARGO_TYPES.CONTRACT_ID > CONTRACTS.CONTRACT_ID
+Ref: CONTRACT_CARGO_TYPES.CARGO_TYPE_ID > CARGO_TYPES.CARGO_TYPE_ID
+Ref: CONTRACT_RATES.CONTRACT_ID > CONTRACTS.CONTRACT_ID
+Ref: CONTRACT_RATES.VEHICLE_TYPE_ID > VEHICLE_TYPES.VEHICLE_TYPE_ID
+Ref: TRANSPORT_UNITS.BRANCH_ID > BRANCHES.BRANCH_ID
+Ref: TRANSPORT_UNITS.VEHICLE_TYPE_ID > VEHICLE_TYPES.VEHICLE_TYPE_ID
+Ref: TRANSPORT_UNITS.PILOT_USER_ID > USERS.USER_ID
+Ref: ORDERS.CONTRACT_ID > CONTRACTS.CONTRACT_ID
+Ref: ORDERS.REQUESTED_BY_USER_ID > USERS.USER_ID
+Ref: ORDERS.BRANCH_ID > BRANCHES.BRANCH_ID
+Ref: ORDERS.CONTRACT_ROUTE_ID > CONTRACT_ROUTES.CONTRACT_ROUTE_ID
+Ref: ORDERS.CONTRACT_RATE_ID > CONTRACT_RATES.CONTRACT_RATE_ID
+Ref: ORDERS.CARGO_TYPE_ID > CARGO_TYPES.CARGO_TYPE_ID
+Ref: ORDERS.UNIT_ID > TRANSPORT_UNITS.UNIT_ID
+Ref: ORDER_ROUTE_LOGS.ORDER_ID > ORDERS.ORDER_ID
+Ref: INVOICES.ORDER_ID > ORDERS.ORDER_ID
+Ref: INVOICES.CLIENT_ID > CLIENTS.CLIENT_ID
+Ref: PAYMENTS.INVOICE_ID > INVOICES.INVOICE_ID
+Ref: PAYMENTS.CARD_ID > CLIENT_CARDS.CARD_ID
+Ref: PAYMENTS.REVIEWED_BY_USER_ID > USERS.USER_ID
+</dbdiagram>
+
+
+Please, implement TypeORM models for the database diagram above, and define all the relationships between them. Use ordered migrations to create the database schema.
+Create a TypeORM seed file to populate the database with initial data for each table.
