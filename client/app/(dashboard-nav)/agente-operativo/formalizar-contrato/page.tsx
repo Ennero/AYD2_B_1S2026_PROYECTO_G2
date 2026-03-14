@@ -190,7 +190,7 @@ export default function FormalizarContratoPage() {
             </div>
           </Card>
 
-          <div className="mt-10 flex justify-center">
+          <div className="mt-10 flex justify-end">
             <Button type="button" size="lg" className="w-full max-w-xl" onClick={handleSubmit}>
               Generar y Enviar Propuesta al Cliente
               <Send size={18} />
