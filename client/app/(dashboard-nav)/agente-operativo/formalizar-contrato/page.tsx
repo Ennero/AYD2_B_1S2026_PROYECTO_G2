@@ -23,7 +23,9 @@ import { useMemo, useState } from "react"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
-import { Search, Send } from "lucide-react"
+import Modal from "@/components/ui/Modal"
+import { FileText, Search, Send } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 type PlazoPago = 15 | 30 | 45
 
@@ -31,6 +33,7 @@ const cargaOptions = ["Carga General", "Perecederos", "Construcción", "Peligros
 type CargaOption = (typeof cargaOptions)[number]
 
 export default function FormalizarContratoPage() {
+  const router = useRouter()
   const [clienteQuery, setClienteQuery] = useState("")
   const [limiteCredito, setLimiteCredito] = useState("")
   const [rutasAutorizadas, setRutasAutorizadas] = useState("")
@@ -38,6 +41,7 @@ export default function FormalizarContratoPage() {
   const [cargasPermitidas, setCargasPermitidas] = useState<CargaOption[]>(["Carga General"])
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState("")
   const [descuentoJustificacion, setDescuentoJustificacion] = useState("")
+  const [successOpen, setSuccessOpen] = useState(false)
 
   const isCargaSelected = useMemo(() => {
     const selected = new Set(cargasPermitidas)
@@ -59,10 +63,41 @@ export default function FormalizarContratoPage() {
       descuentoPorcentaje,
       descuentoJustificacion,
     })
+
+    setSuccessOpen(true)
   }
 
   return (
     <div className="space-y-8">
+      <Modal open={successOpen} onClose={() => setSuccessOpen(false)} size="sm">
+        <div className="-mx-6 -mt-4 mb-6 h-1.5 bg-secondary" />
+
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-secondary/15 flex items-center justify-center">
+            <FileText className="text-secondary" size={28} />
+          </div>
+
+          <h2 className="mt-5">Contrato Generado</h2>
+          <p className="text-text-muted text-small mt-2">
+            El contrato digital está en estado <span className="font-semibold">PENDIENTE</span>. El cliente debe
+            ingresar a su portal para revisarlo y aceptarlo.
+          </p>
+
+          <div className="mt-6">
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => {
+                setSuccessOpen(false)
+                router.push("/agente-operativo")
+              }}
+            >
+              Volver al Inicio
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <div className="text-center">
         <h1>Formalización de Contrato</h1>
       </div>

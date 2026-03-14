@@ -21,8 +21,11 @@ import Stepper from "@/components/shared/Stepper"
 import Button from "@/components/ui/Button"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
+import Modal from "@/components/ui/Modal"
 import Select from "@/components/ui/Select"
 import { useMemo, useState } from "react"
+import { UserCheck } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 type FormState = {
   nombre: string
@@ -38,8 +41,10 @@ type FormState = {
 }
 
 export default function RegistrarClientePage() {
+  const router = useRouter()
   const steps = useMemo(() => ["Datos Generales", "Datos Fiscales", "Perfil de Riesgo"], [])
   const [currentStep, setCurrentStep] = useState(0)
+  const [successOpen, setSuccessOpen] = useState(false)
 
   const [form, setForm] = useState<FormState>({
     nombre: "",
@@ -80,6 +85,7 @@ export default function RegistrarClientePage() {
     // TODO: integrar POST /api/v1/clientes cuando exista el endpoint.
     // Por ahora solo es UI/flujo de pasos.
     console.log("Registrar cliente:", form)
+    setSuccessOpen(true)
   }
 
   function goBack() {
@@ -92,6 +98,31 @@ export default function RegistrarClientePage() {
 
   return (
     <div className="space-y-8">
+      <Modal open={successOpen} onClose={() => setSuccessOpen(false)} size="sm">
+        <div className="-mx-6 -mt-4 mb-6 h-1.5 bg-secondary" />
+
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 rounded-full bg-secondary/15 flex items-center justify-center">
+            <UserCheck className="text-secondary" size={28} />
+          </div>
+
+          <h2 className="mt-5">Cliente Registrado</h2>
+          <p className="text-text-muted text-small mt-2">
+            El cliente ha sido guardado exitosamente. Se ha enviado un correo automático con sus credenciales de acceso
+            al portal.
+          </p>
+
+          <div className="mt-6">
+            <Button type="button" className="w-full" onClick={() => {
+              router.push("/agente-operativo")
+              setSuccessOpen(false)
+            }}>
+              Aceptar
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <div className="text-center">
         <h1>Registrar Cliente Nuevo</h1>
         <p className="text-text-muted mt-2">Ingresa los datos paso a paso</p>
