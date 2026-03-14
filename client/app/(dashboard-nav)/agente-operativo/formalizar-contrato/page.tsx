@@ -17,11 +17,187 @@
  * Al completar → redirigir a /agente-operativo/contrato-generado
  */
 
+"use client"
+
+import { useMemo, useState } from "react"
+import Card from "@/components/ui/Card"
+import Input from "@/components/ui/Input"
+import Button from "@/components/ui/Button"
+import { Search, Send } from "lucide-react"
+
+type PlazoPago = 15 | 30 | 45
+
+const cargaOptions = ["Carga General", "Perecederos", "Construcción", "Peligrosa"] as const
+type CargaOption = (typeof cargaOptions)[number]
+
 export default function FormalizarContratoPage() {
+  const [clienteQuery, setClienteQuery] = useState("")
+  const [limiteCredito, setLimiteCredito] = useState("")
+  const [rutasAutorizadas, setRutasAutorizadas] = useState("")
+  const [plazoPago, setPlazoPago] = useState<PlazoPago>(30)
+  const [cargasPermitidas, setCargasPermitidas] = useState<CargaOption[]>(["Carga General"])
+  const [descuentoPorcentaje, setDescuentoPorcentaje] = useState("")
+  const [descuentoJustificacion, setDescuentoJustificacion] = useState("")
+
+  const isCargaSelected = useMemo(() => {
+    const selected = new Set(cargasPermitidas)
+    return (opt: CargaOption) => selected.has(opt)
+  }, [cargasPermitidas])
+
+  function toggleCarga(opt: CargaOption) {
+    setCargasPermitidas((prev) => (prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]))
+  }
+
+  function handleSubmit() {
+    // TODO: integrar POST /api/v1/contratos cuando exista el endpoint.
+    console.log("Formalizar contrato:", {
+      clienteQuery,
+      limiteCredito,
+      rutasAutorizadas,
+      plazoPago,
+      cargasPermitidas,
+      descuentoPorcentaje,
+      descuentoJustificacion,
+    })
+  }
+
   return (
-    <div>
-      <h1>Formalización de Contrato</h1>
-      <p className="text-text-muted mt-2">Implementar formulario de formalización con búsqueda de cliente</p>
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1>Formalización de Contrato</h1>
+      </div>
+
+      <div className="flex justify-center">
+        <Card className="w-full max-w-5xl rounded-2xl p-8 sm:p-10">
+          <Card variant="surface" className="rounded-2xl p-6 sm:p-7">
+            <h3 className="text-lg">Buscar Cliente Registrado</h3>
+
+            <div className="mt-4 relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
+                <Search size={18} />
+              </span>
+              <Input
+                label=""
+                placeholder="Buscar Razón Social o NIT"
+                value={clienteQuery}
+                onChange={(e) => setClienteQuery(e.target.value)}
+                className="pl-11 bg-white"
+              />
+              {/*
+                TODO:
+                Cuando se implemente la búsqueda interactiva, aquí irá un dropdown
+                con coincidencias según clienteQuery (autocomplete/select).
+              */}
+            </div>
+          </Card>
+
+          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-base">Límite de Crédito</h3>
+                <div className="mt-3 relative">
+                  <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-text-muted">
+                    <Search size={18} />
+                  </span>
+                  <Input
+                    label=""
+                    placeholder="10000"
+                    inputMode="numeric"
+                    value={limiteCredito}
+                    onChange={(e) => setLimiteCredito(e.target.value)}
+                    className="pr-11"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-base">Plazo de Pago</h3>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {([15, 30, 45] as const).map((dias) => {
+                    const selected = plazoPago === dias
+                    return (
+                      <Button
+                        key={dias}
+                        type="button"
+                        variant={selected ? "primary" : "outline"}
+                        className="rounded-full px-8"
+                        onClick={() => setPlazoPago(dias)}
+                      >
+                        {dias} Días
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-8 lg:border-l lg:border-black/10 lg:pl-8">
+              <div>
+                <h3 className="text-base">Rutas Autorizadas</h3>
+                <div className="mt-3">
+                  <Input
+                    label=""
+                    placeholder="Rutas"
+                    value={rutasAutorizadas}
+                    onChange={(e) => setRutasAutorizadas(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-base">Tipos de Carga Permitidos</h3>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {cargaOptions.map((opt) => {
+                    const selected = isCargaSelected(opt)
+                    return (
+                      <Button
+                        key={opt}
+                        type="button"
+                        variant={selected ? "surface" : "outline"}
+                        className="w-full rounded-xl"
+                        onClick={() => toggleCarga(opt)}
+                      >
+                        {opt}
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Card variant="primary" className="mt-10 rounded-2xl p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+              <div className="text-lg font-semibold">Aplicar Descuento</div>
+
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-4">
+                <Input
+                  label=""
+                  placeholder="Porcentaje %"
+                  inputMode="numeric"
+                  value={descuentoPorcentaje}
+                  onChange={(e) => setDescuentoPorcentaje(e.target.value)}
+                  className="bg-white"
+                />
+                <Input
+                  label=""
+                  placeholder="Justificación"
+                  value={descuentoJustificacion}
+                  onChange={(e) => setDescuentoJustificacion(e.target.value)}
+                  className="bg-white"
+                />
+              </div>
+            </div>
+          </Card>
+
+          <div className="mt-10 flex justify-center">
+            <Button type="button" size="lg" className="w-full max-w-xl" onClick={handleSubmit}>
+              Generar y Enviar Propuesta al Cliente
+              <Send size={18} />
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   )
 }
