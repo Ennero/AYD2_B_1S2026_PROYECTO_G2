@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { ShieldCheck, CheckCircle, FileText, FileCheck2 } from 'lucide-react';
+import { Clock as ClockIcon, ShieldCheck, CheckCircle, FileText } from 'lucide-react';
 import { useState, useEffect } from "react";
 
 export default function CertificadorFelPage() {
+  const [time, setTime] = useState(new Date())
   const [mounted, setMounted] = useState(false)
 
   // Datos simulados para Fase 1
@@ -15,21 +16,23 @@ export default function CertificadorFelPage() {
 
   useEffect(() => {
     setMounted(true)
+    const timer = setInterval(() => setTime(new Date()), 1000)
+    return () => clearInterval(timer)
   }, [])
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] rounded-3xl overflow-hidden relative animate-in fade-in duration-700 font-body">
-      {/* Minimalist Background Image */}
+    <div className="min-h-screen relative animate-in fade-in duration-700 font-body">
+      {/* HD Minimalist Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
-        style={{ backgroundImage: "url('/images/certificador-minimal.png')" }}
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 pointer-events-none"
+        style={{ backgroundImage: "url('/images/certificador-minimal-hd.png')" }}
       />
       
       {/* Subtle Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
 
       {/* Content */}
-      <div className="relative z-10 w-full h-full min-h-[calc(100vh-4rem)] px-8 py-12 md:p-20 flex flex-col items-center text-center max-w-7xl mx-auto">
+      <div className="relative z-10 w-full h-full min-h-screen px-6 py-12 md:p-20 flex flex-col items-center text-center max-w-7xl mx-auto">
         
         {/* Top Section - Welcome */}
         <div className="max-w-4xl mb-16 mt-8">
@@ -43,7 +46,7 @@ export default function CertificadorFelPage() {
         </div>
 
         {/* Action & Stats Section - Re-distributed */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 w-full max-w-6xl">
           
           {/* Main Action Card - Larger/Highlighted */}
           <Link href="/certificador-fel/bandeja" className="lg:col-span-1 block outline-none group">
@@ -64,7 +67,7 @@ export default function CertificadorFelPage() {
           </Link>
 
           {/* Stats Cards */}
-          <div className="bg-white/70 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
+          <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
              <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Documentos Pendientes</div>
              <div className="flex flex-col items-center">
                  <div className="text-7xl font-heading font-extrabold text-[#0A3B7C]">{summary.pending}</div>
@@ -73,14 +76,14 @@ export default function CertificadorFelPage() {
              <p className="text-[#64748B] text-base mt-2">En cola de revisión</p>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
+          <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
              <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Certificados Hoy</div>
              <div className="flex flex-col items-center">
                  <div className="text-7xl font-heading font-extrabold text-[#53B73E]">{summary.certifiedToday}</div>
                  <div className="w-12 h-1.5 bg-[#0A3B7C]/10 rounded-full mt-4"></div>
              </div>
              <div className="flex items-center gap-2 text-[#53B73E] font-medium text-base">
-               <CheckCircle size={20} />
+               <CheckCircle size={24} />
                DTE Emitidos
              </div>
           </div>
@@ -88,16 +91,16 @@ export default function CertificadorFelPage() {
 
         {/* Footer Status Indicators - Minimalist */}
         <div className="mt-16 flex flex-wrap justify-center gap-8">
-            <div className="flex items-center gap-3 px-6 py-3 bg-white/50 rounded-full border border-black/5">
-                <span className="relative flex h-3 w-3">
+            <div className="flex items-center gap-4 px-8 py-4 bg-white/60 rounded-full border border-black/5 shadow-sm">
+                <span className="relative flex h-3.5 w-3.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#53B73E]"></span>
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#53B73E]"></span>
                 </span>
-                <span className="text-[#0A3B7C] text-sm font-semibold tracking-wide">CONEXIÓN SAT ACTIVA</span>
+                <span className="text-[#0A3B7C] text-sm font-bold tracking-widest uppercase">Conexión SAT Activa</span>
             </div>
-            <div className="flex items-center gap-3 px-6 py-3 bg-white/50 rounded-full border border-black/5">
-                <ShieldCheck size={20} className="text-[#0A3B7C]/60" />
-                <span className="text-[#0A3B7C] text-sm font-semibold tracking-wide uppercase">Simulador Operativo</span>
+            <div className="flex items-center gap-4 px-8 py-4 bg-white/60 rounded-full border border-black/5 shadow-sm">
+                <ShieldCheck size={24} className="text-[#0A3B7C]/60" />
+                <span className="text-[#0A3B7C] text-sm font-bold tracking-widest uppercase">Simulador Operativo</span>
             </div>
         </div>
 
