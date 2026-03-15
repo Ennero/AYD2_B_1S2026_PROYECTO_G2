@@ -9,7 +9,6 @@ import { useState } from "react";
 import { FiltrosViaje, OrderStatus } from "@/types/pilot";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { on } from "events";
 
 interface FiltrosSidebarProps {
     filtros: FiltrosViaje
