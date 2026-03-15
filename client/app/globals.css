@@ -7,17 +7,18 @@
    =========================== */
 @theme inline {
   /* Colors */
-  --color-primary: #074F57;
-  --color-primary-hover: #077187;
-  --color-primary-active: #077187;
-  --color-secondary: #74A57F;
-  --color-accent: #9ECE9A;
-  --color-surface: #E4C5AF;
-  --color-background: #F7F5F3;
-  --color-text-primary: #1A1A1A;
-  --color-text-muted: #6B6B6B;
-  --color-error: #D94F4F;
-  --color-warning: #E6A817;
+  --color-primary: #0A3B7C;
+  --color-primary-hover: #083066;
+  --color-primary-active: #06234D;
+  --color-secondary: #53B73E;
+  --color-accent: #3A8E2A;
+  --color-surface: #ffffff;
+  --color-background: #F4F7F9;
+  --color-text-primary: #1A202C;
+  --color-text-muted: #64748B;
+  --color-error: #E53E3E;
+  --color-warning: #D69E2E;
+  --color-success: #53B73E;
 }
 
 /* ===========================

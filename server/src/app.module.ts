@@ -10,6 +10,7 @@ import { HealthModule } from './health/health.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OperationsModule } from './operations/operations.module';
 import { LogisticsModule } from './logistics/logistics.module';
+import { CertifierModule } from './certifier/certifier.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { LogisticsModule } from './logistics/logistics.module';
     AuthModule,
     OperationsModule,
     LogisticsModule,
+    CertifierModule,
   ],
   controllers: [AppController],
   providers: [AppService],
