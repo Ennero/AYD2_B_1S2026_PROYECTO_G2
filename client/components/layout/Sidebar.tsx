@@ -73,18 +73,19 @@ export default function Sidebar() {
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between min-h-[76px] bg-[#083066]">
-        {!collapsed && (
+      <div className="p-4 border-b border-white/10 flex items-center justify-between min-h-[80px] bg-[#083066] relative">
+        <div className="flex-1 flex justify-center">
           <Link href={config?.items[0]?.href || "/"}>
-            {/* Added white div background if needed for the logo, or logo natively handles it */}
-            <div className="bg-white px-2 py-1 rounded-lg shadow-sm">
-              <Image src="/logo.svg" alt="LogiTrans" width={160} height={48} className="h-10 w-auto" priority />
-            </div>
+            {collapsed ? (
+              <Image src="/logo-icon.svg" alt="LogiTrans" width={40} height={44} className="h-11 w-auto" priority />
+            ) : (
+              <Image src="/logo-white.svg" alt="LogiTrans" width={160} height={48} className="h-12 w-auto" priority />
+            )}
           </Link>
-        )}
+        </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="text-white/80 hover:text-white transition-colors cursor-pointer p-1 rounded hover:bg-white/10 ml-auto"
+          className="text-white/80 hover:text-white transition-colors cursor-pointer p-1 rounded hover:bg-white/10 absolute right-2 top-1/2 -translate-y-1/2"
         >
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -147,7 +148,7 @@ export default function Sidebar() {
             </div>
           </div>
         ) : (
-          <div className="py-4 flex flex-col items-center gap-4 bg-black/10">
+          <div className="py-6 flex flex-col items-center gap-4 bg-black/10">
             <span className="relative flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-[#53B73E]"></span>
@@ -159,7 +160,7 @@ export default function Sidebar() {
         <div className="p-4 border-t border-white/5">
           <button
             className={cn(
-              "flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-colors text-sm w-full cursor-pointer",
+              "flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 p-3 rounded-lg transition-colors text-sm w-full cursor-pointer",
               collapsed && "justify-center"
             )}
             title="Cerrar sesión"

@@ -38,7 +38,14 @@ export default function FormalizarContratoPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in duration-500">
+    <div className="relative min-h-[calc(100vh-4rem)]">
+      {/* Minimalist Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 pointer-events-none"
+        style={{ backgroundImage: "url('/images/agente-minimal.png')" }}
+      />
+      
+      <div className="relative z-10 space-y-8 animate-in fade-in duration-500 p-2 md:p-10 pb-20 max-w-7xl mx-auto">
       
       {/* Header */}
       <div>
@@ -144,7 +151,7 @@ export default function FormalizarContratoPage() {
                         onClick={() => toggleCarga(opt)}
                         className={`p-3 text-sm font-medium rounded-xl border text-center transition-all ${
                           selected 
-                            ? "border-primary bg-primary/5 text-primary" 
+                            ? "border-[#0A3B7C] bg-[#0A3B7C]/10 text-[#0A3B7C]" 
                             : "border-black/10 text-text-muted hover:border-black/20 hover:bg-surface"
                         }`}
                       >
@@ -202,7 +209,7 @@ export default function FormalizarContratoPage() {
             
             <Button 
               type="button" 
-              className="w-full bg-accent text-primary hover:bg-accent/90" 
+              className="w-full bg-[#0A3B7C] text-white hover:bg-[#083066] border-none shadow-lg" 
               size="lg"
               onClick={handleSubmit}
             >
@@ -214,7 +221,7 @@ export default function FormalizarContratoPage() {
 
       </div>
 
-      <Modal isOpen={successOpen} onClose={() => setSuccessOpen(false)}>
+      <Modal open={successOpen} onClose={() => setSuccessOpen(false)}>
         <div className="py-6 text-center">
           <div className="mx-auto w-20 h-20 rounded-full bg-accent/20 flex flex-col items-center justify-center mb-6">
             <FileText className="text-accent" size={36} />
@@ -239,6 +246,7 @@ export default function FormalizarContratoPage() {
           </div>
         </div>
       </Modal>
+    </div>
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useState } from "react"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
-import { Check, X, FileText, AlertTriangle, ShieldCheck, FileCheck2 } from "lucide-react"
+import { Check, X, FileText, AlertTriangle } from "lucide-react"
 
 // Datos simulados
 const mockInvoices = [
@@ -47,14 +47,14 @@ export default function BandejaAprobacionPage() {
   }
 
   return (
-    <div className="relative">
-      {/* Background Watermarks */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-[0] flex justify-between">
-        <ShieldCheck className="absolute -top-24 -right-24 text-primary/[0.03] w-[500px] h-[500px] transform rotate-12" strokeWidth={1} />
-        <FileCheck2 className="absolute -bottom-24 -left-24 text-accent/[0.04] w-[600px] h-[600px] transform -rotate-12" strokeWidth={1} />
-      </div>
-
-      <div className="relative z-10 space-y-6 animate-in fade-in duration-500">
+    <div className="relative min-h-[calc(100vh-4rem)]">
+      {/* Minimalist Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 pointer-events-none"
+        style={{ backgroundImage: "url('/images/certificador-minimal.png')" }}
+      />
+      
+      <div className="relative z-10 space-y-6 animate-in fade-in duration-500 p-2 md:p-6 pb-20">
       <div>
         <h1 className="text-2xl font-heading font-bold text-primary">Bandeja de Aprobación</h1>
         <p className="text-text-muted mt-1">Revisión y certificación de Documentos Tributarios Electrónicos (DTE)</p>
@@ -105,7 +105,7 @@ export default function BandejaAprobacionPage() {
                       </Button>
                       <Button 
                         size="sm" 
-                        className="bg-accent text-primary hover:bg-accent/80"
+                        className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] border-none shadow-md"
                         onClick={() => handleAction(inv, "certify")}
                       >
                         <Check size={16} /> Certificar
@@ -121,7 +121,7 @@ export default function BandejaAprobacionPage() {
 
       {/* Modal Certificar */}
       <Modal 
-        isOpen={showCertifyModal} 
+        open={showCertifyModal} 
         onClose={() => !isProcessing && setShowCertifyModal(false)}
         title="Certificar Documento"
       >
@@ -143,7 +143,7 @@ export default function BandejaAprobacionPage() {
               Cancelar
             </Button>
             <Button 
-              className="bg-accent text-primary hover:bg-accent/90" 
+              className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] border-none shadow-md" 
               onClick={confirmCertify} 
               loading={isProcessing}
             >
@@ -155,7 +155,7 @@ export default function BandejaAprobacionPage() {
 
       {/* Modal Rechazar */}
       <Modal 
-        isOpen={showRejectModal} 
+        open={showRejectModal} 
         onClose={() => !isProcessing && setShowRejectModal(false)}
         title="Rechazar Documento"
       >

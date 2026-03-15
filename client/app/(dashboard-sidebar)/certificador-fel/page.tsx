@@ -1,69 +1,107 @@
-import Card from "@/components/ui/Card"
-import Button from "@/components/ui/Button"
+"use client"
+
 import Link from "next/link"
-import { CheckCircle, Clock, FileCheck2, ShieldCheck } from "lucide-react"
+import { ShieldCheck, CheckCircle, FileText, FileCheck2 } from 'lucide-react';
+import { useState, useEffect } from "react";
 
 export default function CertificadorFelPage() {
+  const [mounted, setMounted] = useState(false)
+
   // Datos simulados para Fase 1
   const summary = {
     pending: 14,
     certifiedToday: 42,
   }
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
-    <div className="relative">
-      {/* Background Watermarks */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 flex justify-between">
-        <ShieldCheck className="absolute -top-24 -right-24 text-primary/[0.03] w-[500px] h-[500px] transform rotate-12" strokeWidth={1} />
-        <FileCheck2 className="absolute -bottom-24 -left-24 text-accent/[0.04] w-[600px] h-[600px] transform -rotate-12" strokeWidth={1} />
-      </div>
+    <div className="min-h-[calc(100vh-4rem)] rounded-3xl overflow-hidden relative animate-in fade-in duration-700 font-body">
+      {/* Minimalist Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
+        style={{ backgroundImage: "url('/images/certificador-minimal.png')" }}
+      />
+      
+      {/* Subtle Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
 
-      <div className="relative z-10 space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-heading font-bold text-primary">Portal Certificador FEL</h1>
-          <p className="text-text-muted mt-1 font-body text-lg">Agencia de Administración Tributaria (Simulador)</p>
+      {/* Content */}
+      <div className="relative z-10 w-full h-full min-h-[calc(100vh-4rem)] px-8 py-12 md:p-20 flex flex-col items-center text-center max-w-7xl mx-auto">
+        
+        {/* Top Section - Welcome */}
+        <div className="max-w-4xl mb-16 mt-8">
+          <h1 className="text-5xl md:text-7xl font-heading font-extrabold text-[#0A3B7C] tracking-tight leading-tight">
+            Portal Tributario <br />
+            <span className="text-[#53B73E]">Certificador FEL</span>
+          </h1>
+          <p className="text-[#64748B] text-xl md:text-2xl mt-6 font-light max-w-3xl mx-auto">
+            Sistema de validación y certificación de Documentos Tributarios Electrónicos (DTE) para operaciones LogiTrans en cumplimiento con SAT.
+          </p>
         </div>
-        <Link href="/certificador-fel/bandeja">
-          <Button size="lg" className="shadow-md">
-            Ir a Bandeja de Aprobación
-          </Button>
-        </Link>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="flex items-center p-8 gap-6 border-l-4 border-l-warning">
-          <div className="p-4 bg-warning/10 rounded-full text-warning">
-            <Clock size={40} />
-          </div>
-          <div>
-            <p className="text-text-muted text-sm uppercase tracking-wide font-semibold">Documentos Pendientes</p>
-            <p className="text-5xl font-bold font-heading mt-1">{summary.pending}</p>
-          </div>
-        </Card>
+        {/* Action & Stats Section - Re-distributed */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+          
+          {/* Main Action Card - Larger/Highlighted */}
+          <Link href="/certificador-fel/bandeja" className="lg:col-span-1 block outline-none group">
+            <div className="bg-white/90 backdrop-blur-md border border-black/5 hover:border-[#53B73E]/40 rounded-3xl p-10 h-full transition-all duration-300 transform group-hover:-translate-y-2 shadow-sm group-hover:shadow-[0_20px_50px_rgba(10,59,124,0.1)] flex flex-col items-center gap-6">
+              <div className="w-20 h-20 bg-[#53B73E]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#53B73E]/20 transition-colors">
+                <FileText size={40} className="text-[#53B73E]" />
+              </div>
+              <div>
+                <h3 className="text-3xl font-heading font-bold text-[#0A3B7C] mb-4">Ir a Bandeja</h3>
+                <p className="text-[#64748B] text-lg leading-relaxed">
+                  Acceso a documentos fiscales pendientes de aprobación y firma electrónica.
+                </p>
+              </div>
+              <div className="mt-4 text-[#53B73E] font-semibold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
+                Validar DTE <span>→</span>
+              </div>
+            </div>
+          </Link>
 
-        <Card className="flex items-center p-8 gap-6 border-l-4 border-l-accent">
-          <div className="p-4 bg-accent/20 rounded-full text-primary">
-            <CheckCircle size={40} className="text-accent" />
+          {/* Stats Cards */}
+          <div className="bg-white/70 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
+             <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Documentos Pendientes</div>
+             <div className="flex flex-col items-center">
+                 <div className="text-7xl font-heading font-extrabold text-[#0A3B7C]">{summary.pending}</div>
+                 <div className="w-12 h-1.5 bg-[#53B73E]/20 rounded-full mt-4"></div>
+             </div>
+             <p className="text-[#64748B] text-base mt-2">En cola de revisión</p>
           </div>
-          <div>
-            <p className="text-text-muted text-sm uppercase tracking-wide font-semibold">Certificados Hoy</p>
-            <p className="text-5xl font-bold font-heading mt-1 text-primary">{summary.certifiedToday}</p>
-          </div>
-        </Card>
-      </div>
 
-      <div className="mt-12 bg-surface p-6 rounded-2xl border border-black/5">
-        <h2 className="font-heading text-xl font-semibold mb-4 text-primary">Estado del Servicio</h2>
-        <div className="flex items-center gap-3 text-sm text-text-primary">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-accent"></span>
-          </span>
-          Conexión activa con el simulador SAT. Todos los servicios operativos.
+          <div className="bg-white/70 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
+             <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Certificados Hoy</div>
+             <div className="flex flex-col items-center">
+                 <div className="text-7xl font-heading font-extrabold text-[#53B73E]">{summary.certifiedToday}</div>
+                 <div className="w-12 h-1.5 bg-[#0A3B7C]/10 rounded-full mt-4"></div>
+             </div>
+             <div className="flex items-center gap-2 text-[#53B73E] font-medium text-base">
+               <CheckCircle size={20} />
+               DTE Emitidos
+             </div>
+          </div>
         </div>
+
+        {/* Footer Status Indicators - Minimalist */}
+        <div className="mt-16 flex flex-wrap justify-center gap-8">
+            <div className="flex items-center gap-3 px-6 py-3 bg-white/50 rounded-full border border-black/5">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#53B73E]"></span>
+                </span>
+                <span className="text-[#0A3B7C] text-sm font-semibold tracking-wide">CONEXIÓN SAT ACTIVA</span>
+            </div>
+            <div className="flex items-center gap-3 px-6 py-3 bg-white/50 rounded-full border border-black/5">
+                <ShieldCheck size={20} className="text-[#0A3B7C]/60" />
+                <span className="text-[#0A3B7C] text-sm font-semibold tracking-wide uppercase">Simulador Operativo</span>
+            </div>
+        </div>
+
       </div>
-    </div>
     </div>
   )
 }
