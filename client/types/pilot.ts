@@ -34,10 +34,10 @@ export interface ViajeResumen {
     origin: string
     destination: string
     status: OrderStatus
-    clientName?: string
-    cargoTyoe?: string // Tipo de mercancia
-    declaredWeigthTon?: number // Peso declarado en toneladas
-    scheduledDate: string // Fecha programa de salida
+    clientName?: string        // Nombre del cliente (enriquecido en el JOIN)
+    cargoType?: string         // Tipo de mercancía (ej. "Construcción", "General")
+    declaredWeightTon?: number // Peso declarado en toneladas
+    scheduledPickupAt?: string     // Fecha programada de salida (ISO string)
 }
 
 // ------ GET /api/pilot/orders/{ORDER_ID} ------
