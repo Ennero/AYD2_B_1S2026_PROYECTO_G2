@@ -1,40 +1,98 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
-import { FileText, Search, Send, MapPin, Truck, DollarSign, Percent, ChevronRight, ShieldCheck } from "lucide-react"
+import { FileText, Search, Send, MapPin, Truck, DollarSign, Percent, ChevronRight, ShieldCheck, Loader2, Check, X } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { api } from "@/lib/api/client"
+import { ENDPOINTS } from "@/lib/api/endpoints"
+import { toast } from "sonner"
 
 type PlazoPago = 15 | 30 | 45
 
-const cargaOptions = ["Carga General", "Perecederos", "Construcción", "Peligrosa"] as const
-type CargaOption = (typeof cargaOptions)[number]
+const cargaOptions = [
+  { id: 1, name: "Carga General" },
+  { id: 2, name: "Perecederos" },
+  { id: 3, name: "Construcción" },
+  { id: 4, name: "Peligrosa" }
+] as const
+
+type CargaOption = typeof cargaOptions[number]
+
+export interface Client {
+  clientId: string
+  legalName: string
+  commercialName: string
+  nit: string
+}
 
 export default function FormalizarContratoPage() {
   const router = useRouter()
   const [clienteQuery, setClienteQuery] = useState("")
+  const [clients, setClients] = useState<Client[]>([])
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [searching, setSearching] = useState(false)
+  
   const [limiteCredito, setLimiteCredito] = useState("")
   const [rutasAutorizadas, setRutasAutorizadas] = useState("")
   const [plazoPago, setPlazoPago] = useState<PlazoPago>(30)
-  const [cargasPermitidas, setCargasPermitidas] = useState<CargaOption[]>(["Carga General"])
+  const [cargasPermitidas, setCargasPermitidas] = useState<number[]>([1])
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState("")
   const [descuentoJustificacion, setDescuentoJustificacion] = useState("")
   const [successOpen, setSuccessOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const isCargaSelected = useMemo(() => {
-    const selected = new Set(cargasPermitidas)
-    return (opt: CargaOption) => selected.has(opt)
-  }, [cargasPermitidas])
+  // Búsqueda de clientes (Debounce simplificado con useEffect)
+  useEffect(() => {
+    if (clienteQuery.length < 3) {
+      setClients([])
+      return
+    }
 
-  function toggleCarga(opt: CargaOption) {
-    setCargasPermitidas((prev) => (prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]))
+    const timer = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const response = await api.get<{ data: Client[] }>(`${ENDPOINTS.CLIENTES.LIST}?search=${clienteQuery}`)
+        setClients(response.data.data)
+      } catch (e) {
+        console.error("Search failed", e)
+      } finally {
+        setSearching(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [clienteQuery])
+
+  function toggleCarga(id: number) {
+    setCargasPermitidas((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
-  function handleSubmit() {
-    setSuccessOpen(true)
+  async function handleSubmit() {
+    if (!selectedClient) return toast.error("Debe seleccionar un cliente")
+    if (!limiteCredito) return toast.error("Debe definir un límite de crédito")
+
+    setLoading(true)
+    try {
+      const payload = {
+        clientId: selectedClient.clientId,
+        creditLimit: parseFloat(limiteCredito),
+        paymentTermDays: plazoPago,
+        discountPercentage: parseFloat(descuentoPorcentaje) || 0,
+        routeIds: [1, 2], // Hardcoded por ahora ya que no hay CRUD de rutas en frontend
+        cargoTypeIds: cargasPermitidas
+      }
+      
+      await api.post(ENDPOINTS.CONTRATOS.CREATE, payload)
+      setSuccessOpen(true)
+    } catch (error) {
+      console.error("Failed to create contract:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -71,10 +129,66 @@ export default function FormalizarContratoPage() {
                   label=""
                   placeholder="Buscar Razón Social o NIT del cliente registrado"
                   value={clienteQuery}
-                  onChange={(e) => setClienteQuery(e.target.value)}
+                  onChange={(e) => {
+                    setClienteQuery(e.target.value)
+                    if (selectedClient) setSelectedClient(null)
+                  }}
                   className="pl-14 py-4 bg-surface/30 border-none shadow-inner text-lg rounded-2xl"
                 />
+                
+                {searching && (
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2">
+                    <Loader2 className="animate-spin text-[#0A3B7C]" size={20} />
+                  </div>
+                )}
               </div>
+
+              {/* Resultados de búsqueda */}
+              {clients.length > 0 && !selectedClient && (
+                <div className="mt-4 bg-white border border-black/5 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                  {clients.map((c) => (
+                    <button
+                      key={c.clientId}
+                      className="w-full text-left p-4 hover:bg-[#0A3B7C]/5 flex items-center justify-between group transition-colors"
+                      onClick={() => {
+                        setSelectedClient(c)
+                        setClienteQuery(c.legalName)
+                        setClients([])
+                      }}
+                    >
+                      <div>
+                        <div className="font-bold text-[#0A3B7C]">{c.legalName}</div>
+                        <div className="text-xs text-[#64748B]">NIT: {c.nit}</div>
+                      </div>
+                      <ChevronRight size={18} className="text-[#64748B] group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {selectedClient && (
+                <div className="mt-4 p-4 bg-[#53B73E]/10 rounded-2xl border border-[#53B73E]/20 flex items-center justify-between animate-in zoom-in duration-300">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#53B73E] rounded-lg">
+                      <Check size={18} className="text-white" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[#53B73E] uppercase tracking-wider">Cliente Seleccionado</div>
+                      <div className="font-bold text-[#0A3B7C]">{selectedClient.legalName}</div>
+                    </div>
+                  </div>
+                  <button 
+                    className="text-[#64748B] hover:text-[#E53E3E] p-2"
+                    onClick={() => {
+                        setSelectedClient(null)
+                        setClienteQuery("")
+                    }}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              )}
+
               <p className="text-sm text-[#64748B] mt-4 ml-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#53B73E]"></span>
                 El cliente debe estar previamente dado de alta en la plataforma.
@@ -147,19 +261,19 @@ export default function FormalizarContratoPage() {
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {cargaOptions.map((opt) => {
-                      const selected = isCargaSelected(opt)
+                      const selected = cargasPermitidas.includes(opt.id)
                       return (
                         <button
-                          key={opt}
+                          key={opt.id}
                           type="button"
-                          onClick={() => toggleCarga(opt)}
+                          onClick={() => toggleCarga(opt.id)}
                           className={`p-4 text-xs font-bold rounded-2xl border-2 transition-all uppercase tracking-wider ${
                             selected 
                               ? "border-[#53B73E] bg-[#53B73E]/10 text-[#53B73E] shadow-sm" 
                               : "border-black/5 text-[#64748B] hover:border-[#0A3B7C]/40 hover:bg-surface/50"
                           }`}
                         >
-                          {opt}
+                          {opt.name}
                         </button>
                       )
                     })}

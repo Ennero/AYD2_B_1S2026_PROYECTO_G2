@@ -37,18 +37,21 @@ export function useAuth() {
   /** Login con email y contraseña */
   const login = async (email: string, password: string) => {
     const response = await api.post<LoginResponse>(ENDPOINTS.AUTH.LOGIN, { email, password }, { skipAuth: true })
-    setToken(response.data.access_token)
-    setUser(response.data.user)
+    const { token, role, fullName, userId } = response.data.data
+    
+    setToken(token)
+    setUser({ userId, role, fullName })
 
     // Redirigir según el rol
     const roleRoutes: Record<string, string> = {
-      agente_operativo: "/agente-operativo",
-      piloto: "/piloto",
-      agente_logistico: "/agente-logistico",
-      encargado_patio: "/encargado-patio",
-      certificador_fel: "/certificador-fel",
+      ADMIN: "/certificador-fel",
+      AGENTE_OPERATIVO: "/agente-operativo",
+      PILOTO: "/piloto",
+      AGENTE_LOGISTICO: "/agente-logistico",
+      ENCARGADO_PATIO: "/encargado-patio",
+      CLIENTE: "/cliente",
     }
-    router.push(roleRoutes[response.data.user.rol] || "/")
+    router.push(roleRoutes[role] || "/")
   }
 
   /** Cerrar sesión */

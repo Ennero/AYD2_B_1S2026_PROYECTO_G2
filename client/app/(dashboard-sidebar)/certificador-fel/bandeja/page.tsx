@@ -1,49 +1,88 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
-import { Check, X, FileText, AlertTriangle } from "lucide-react"
-
-// Datos simulados
-const mockInvoices = [
-  { id: "inv-001", number: "DTE-001", client: "Transportes El Rápido", nit: "1234567-8", amount: 15400.00, date: "2026-03-15" },
-  { id: "inv-002", number: "DTE-002", client: "Distribuidora Central", nit: "9876543-2", amount: 8250.50, date: "2026-03-15" },
-  { id: "inv-003", number: "DTE-003", client: "Logística del Norte", nit: "4567891-3", amount: 22100.00, date: "2026-03-14" },
-]
+import { Check, X, FileText, AlertTriangle, Loader2 } from "lucide-react"
+import { api } from "@/lib/api/client"
+import { ENDPOINTS } from "@/lib/api/endpoints"
+import { Invoice } from "@/lib/api/types"
+import { toast } from "sonner"
 
 export default function BandejaAprobacionPage() {
-  const [invoices, setInvoices] = useState(mockInvoices)
-  const [selectedInvoice, setSelectedInvoice] = useState<any>(null)
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
+  const [rejectReason, setRejectReason] = useState("")
   
   // Modals
   const [showCertifyModal, setShowCertifyModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleAction = (invoice: any, action: "certify" | "reject") => {
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true)
+      const response = await api.get<{ data: Invoice[] }>(ENDPOINTS.CERTIFIER.INVOICES)
+      setInvoices(response.data.data)
+    } catch (error) {
+      console.error("Failed to fetch invoices:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchInvoices()
+  }, [])
+
+  const handleAction = (invoice: Invoice, action: "certify" | "reject") => {
     setSelectedInvoice(invoice)
     if (action === "certify") setShowCertifyModal(true)
-    if (action === "reject") setShowRejectModal(true)
+    if (action === "reject") {
+        setRejectReason("")
+        setShowRejectModal(true)
+    }
   }
 
-  const confirmCertify = () => {
+  const confirmCertify = async () => {
+    if (!selectedInvoice) return
     setIsProcessing(true)
-    setTimeout(() => {
-      setInvoices(prev => prev.filter(inv => inv.id !== selectedInvoice.id))
-      setIsProcessing(false)
+    try {
+      // Simulamos la generación de un UUID de FEL que normalmente vendría de SAT
+      const pseudoFelUuid = crypto.randomUUID().toUpperCase()
+      await api.patch(ENDPOINTS.CERTIFIER.CERTIFY(selectedInvoice.invoiceId), { felUuid: pseudoFelUuid })
+      
+      toast.success(`Factura ${selectedInvoice.invoiceNumber} certificada con éxito`)
+      await fetchInvoices()
       setShowCertifyModal(false)
-    }, 800)
+    } catch (error) {
+      console.error("Certification error:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
+    if (!selectedInvoice) return
+    if (!rejectReason.trim()) {
+        toast.error("Debe proporcionar un motivo de rechazo")
+        return
+    }
+
     setIsProcessing(true)
-    setTimeout(() => {
-      setInvoices(prev => prev.filter(inv => inv.id !== selectedInvoice.id))
-      setIsProcessing(false)
+    try {
+      await api.patch(ENDPOINTS.CERTIFIER.RECHAZAR(selectedInvoice.invoiceId), { reason: rejectReason })
+      
+      toast.success(`Documento ${selectedInvoice.invoiceNumber} rechazado correctamente`)
+      await fetchInvoices()
       setShowRejectModal(false)
-    }, 800)
+    } catch (error) {
+      console.error("Rejection error:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -81,20 +120,20 @@ export default function BandejaAprobacionPage() {
                   </tr>
                 ) : (
                   invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-black/[0.02] transition-colors">
+                    <tr key={inv.invoiceId} className="hover:bg-black/[0.02] transition-colors">
                       <td className="p-6">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-[#0A3B7C]/10 rounded-lg">
                             <FileText size={20} className="text-[#0A3B7C]" />
                           </div>
-                          <span className="font-bold text-[#0A3B7C]">{inv.number}</span>
+                          <span className="font-bold text-[#0A3B7C]">{inv.invoiceNumber}</span>
                         </div>
-                        <div className="text-xs text-[#64748B] mt-1 ml-11">{inv.date}</div>
+                        <div className="text-xs text-[#64748B] mt-1 ml-11">{new Date(inv.issueDate).toLocaleDateString()}</div>
                       </td>
-                      <td className="p-6 font-semibold text-[#1A202C]">{inv.client}</td>
-                      <td className="p-6 text-[#64748B]">{inv.nit}</td>
+                      <td className="p-6 font-semibold text-[#1A202C]">{inv.clientName}</td>
+                      <td className="p-6 text-[#64748B]">{inv.clientNit}</td>
                       <td className="p-6 font-extrabold text-lg text-[#0A3B7C] tracking-tight">
-                        Q {inv.amount.toLocaleString('es-GT', { minimumFractionDigits: 2 })}
+                        {inv.currency} {Number(inv.totalAmount).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="p-6 text-right space-x-3">
                         <Button 
@@ -134,7 +173,7 @@ export default function BandejaAprobacionPage() {
               </div>
             </div>
             <p className="text-center font-bold text-xl mb-3 text-[#0A3B7C]">
-              ¿Confirmas la certificación de {selectedInvoice?.number}?
+              ¿Confirmas la certificación de {selectedInvoice?.invoiceNumber}?
             </p>
             <p className="text-center text-[#64748B] text-base mb-10 max-w-sm mx-auto">
               Se generará un UUID de FEL y el documento será válido ante la SAT de forma inmediata.
@@ -172,6 +211,8 @@ export default function BandejaAprobacionPage() {
               <textarea 
                 className="w-full border border-black/10 rounded-2xl p-5 text-base focus:outline-none focus:ring-4 focus:ring-[#E53E3E]/10 min-h-[120px] bg-surface/50"
                 placeholder="Ej. NIT inválido, montos no coinciden con la orden de servicio..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
               ></textarea>
             </div>
             
