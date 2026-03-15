@@ -59,9 +59,9 @@ export interface ViajeDetalle {
     clientName: string
     pilotName: string
     estimatedHours: number
-    declaredWeigthTon: number
+    declaredWeightTon: number
     cargoType: string
-    scheduledDate?: string
+    scheduledPickupAt?: string
     dispatchedAt?: string // LLama al cambiar a EN_TRANSITO
     deliveredAt?: string  // LLama al cambiar a ENTREGADA
     logs: LogEvento[]
