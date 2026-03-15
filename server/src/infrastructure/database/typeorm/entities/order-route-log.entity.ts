@@ -19,7 +19,7 @@ export class OrderRouteLog {
   @Column({ name: 'event_type', type: 'enum', enum: RouteEventType })
   eventType: RouteEventType;
 
-  @Column({ name: 'event_time', type: 'timestamptz' })
+  @Column({ name: 'event_time', type: 'timestamptz', default: () => 'NOW()' })
   eventTime: Date;
 
   @Column({ name: 'description', type: 'text' })

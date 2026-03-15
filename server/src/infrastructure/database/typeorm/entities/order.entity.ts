@@ -90,7 +90,7 @@ export class Order {
   @Column({ name: 'delivery_address', type: 'text' })
   deliveryAddress: string;
 
-  @Column({ name: 'requested_at', type: 'timestamptz' })
+  @Column({ name: 'requested_at', type: 'timestamptz', default: () => 'NOW()' })
   requestedAt: Date;
 
   @Column({ name: 'scheduled_pickup_at', type: 'timestamptz', nullable: true })

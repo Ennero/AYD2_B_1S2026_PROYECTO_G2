@@ -13,6 +13,7 @@ import { Order } from './order.entity';
 
 @Entity('contract_routes')
 @Index(['contractId', 'routeId'], { unique: true })
+@Index(['contractRouteId', 'contractId'], { unique: true })
 export class ContractRoute {
   @PrimaryGeneratedColumn('uuid', { name: 'contract_route_id' })
   contractRouteId: string;

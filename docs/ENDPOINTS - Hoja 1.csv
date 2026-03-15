@@ -1,0 +1,755 @@
+CATÁLOGO DE ENDPOINTS — AYD2,,,,,
+Módulo,Method,Endpoint,Request (Query / Body),Response,Observaciones
+AUTENTICACIÓN / PÚBLICO,,,,,
+,POST,/api/auth/login,"{
+  ""body"": {
+  ""email"": ""patio@logitrans.com"",
+  ""password"": ""miClaveSecreta""
+  }
+ }","{
+  ""message"": ""Usuario logueado"",
+  ""data"": {
+  ""userId"": ""5d3fd0c3..."",
+  ""sessionUuid"": ""7de0be95..."",
+  ""role"": ""ENCARGADO_PATIO"",
+  ""fullName"": ""Pablo Perez"",
+  ""token"": ""eyJhbGci...""
+  }
+ }","Valida USERS.EMAIL. Compara clave plana contra USERS.PASSWORD_HASH. Inserta sesión en USER_SESSIONS con USER_REMOTE, USER_AGENT, SESSION_UUID, SESSION_TOKEN, EXPIRATION_AT."
+,POST,/api/auth/refresh,"{
+  ""cookies"": {
+  ""sessionToken"": ""<httpOnly_session_token>""
+  }
+ }","{
+  ""message"": ""Sesion renovada correctamente"",
+  ""data"": {
+  ""sessionUuid"": ""7de0be95..."",
+  ""token"": ""eyJhbGci...""
+  }
+ }","Busca sesión activa en USER_SESSIONS. Valida EXPIRATION_AT, incrementa USAGE_COUNT, actualiza LAST_USED_AT y puede rotar el token."
+,POST,/api/auth/logout,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt>"" },
+  ""cookies"": { ""sessionToken"": ""<token>"" }
+ }","{
+  ""message"": ""Sesion cerrada correctamente"",
+  ""data"": {}
+ }",Revoca la sesión con UPDATE USER_SESSIONS SET DELETED_AT. Invalida el token sin borrar historial.
+,POST,/api/auth/recovery,"{
+  ""body"": {
+  ""email"": ""cliente@empresa.com""
+  }
+ }","{
+  ""message"": ""Correo con token unico enviado"",
+  ""data"": { ""expiresInMinutes"": 30 }
+ }","Busca usuario por USERS.EMAIL. Inserta en PASSWORD_RECOVERY_TOKENS con TOKEN_HASH, EXPIRES_AT, USER_ID. El token real se envía por correo."
+,POST,/api/auth/password,"{
+  ""headers"": { ""Authorization"": ""Bearer recovery-token"" },
+  ""body"": {
+  ""password"": ""NuevaClave2026!"",
+  ""confirmation"": ""NuevaClave2026!""
+  }
+ }","{
+  ""message"": ""Contrasena modificada correctamente"",
+  ""data"": {}
+ }",Actualiza USERS.PASSWORD_HASH. Marca PASSWORD_RECOVERY_TOKENS.USED_AT. Impide reutilizar contraseña actual.
+,,,,,
+PORTAL CLIENTE,,,,,
+,GET,/api/client/dashboard/summary,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Resumen del cliente obtenido"",
+  ""data"": {
+  ""creditLimit"": 50000.0,
+  ""outstandingBalance"": 18750.0,
+  ""availableCredit"": 31250.0,
+  ""activeOrders"": 3,
+  ""overdueInvoices"": 1,
+  ""shouldBlockOrders"": true
+  }
+ }",Se apoya en V_CLIENT_BALANCES. Cuenta órdenes activas desde ORDERS por cliente autenticado. No modifica datos.
+,POST,/api/client/cargo-types,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Tipos de mercancia obtenidos"",
+  ""data"": [
+  { ""cargoTypeId"": 1, ""cargoName"": ""GENERAL"", ""requiresRefrigeration"": false },
+  { ""cargoTypeId"": 2, ""cargoName"": ""REFRIGERADO"", ""requiresRefrigeration"": true }
+  ]
+ }",Consulta CARGO_TYPES activos para poblar el combobox del formulario de órdenes del cliente.
+,POST,/api/client/orders,"{
+  ""body"": {
+  ""CONTRACT_ID"": ""a73b5271..."",
+  ""CARGO_TYPE_ID"": 2,
+  ""DECLARED_WEIGHT_TON"": 10.5,
+  ""CARGO_DESCRIPTION"": ""Producto refrigerado"",
+  ""PICKUP_ADDRESS"": ""Zona 12, Guatemala"",
+  ""DELIVERY_ADDRESS"": ""San Salvador""
+  }
+ }","{
+  ""message"": ""Orden registrada correctamente"",
+  ""data"": {
+  ""orderId"": ""87086e66..."",
+  ""orderNumber"": ""ORD-000085"",
+  ""status"": ""REGISTRADA""
+  }
+ }","Inserta en ORDERS. Trigger VALIDATE_ORDER_COMMERCIAL_RULES impide la orden si contrato no vigente, cliente bloqueado, mora o crédito excedido. CONTRACT_ROUTE_ID la asigna Logística después."
+,GET,/api/client/orders,"{
+  ""query"": {
+  ""limit"": 3,
+  ""status"": ""EN_TRANSITO"",
+  ""search"": ""ORD-000085""
+  }
+ }","{
+  ""message"": ""Ordenes obtenidas"",
+  ""data"": [
+  {
+  ""orderId"": ""87086e66..."",
+  ""orderNumber"": ""ORD-000085"",
+  ""origin"": ""Guatemala"",
+  ""destination"": ""San Salvador"",
+  ""status"": ""EN_TRANSITO""
+  }
+  ]
+ }",SELECT sobre ORDERS filtrando por cliente del token vía CONTRACTS.CLIENT_ID. limit=3 alimenta dashboard; sin límite sirve el historial completo.
+,GET,/api/client/orders/catalog,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Catalogo de ordenes obtenido"",
+  ""data"": [
+  { ""ORDER_ID"": ""87086e66..."", ""ORDER_NUMBER"": ""ORD-000085"" }
+  ]
+ }",Lista reducida ORDER_ID + ORDER_NUMBER para poblar combobox del tracking.
+,GET,/api/client/orders/{ORDER_ID}/tracking,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Tracking obtenido"",
+  ""data"": {
+  ""orderId"": ""87086e66..."",
+  ""status"": ""EN_TRANSITO"",
+  ""logs"": [
+  { ""eventType"": ""SALIDA"", ""eventTime"": ""2026-04-01T14:00:00Z"" },
+  { ""eventType"": ""PUNTO_CONTROL"", ""eventTime"": ""2026-04-01T18:15:00Z"" }
+  ]
+  }
+ }",Lee de ORDERS y ORDER_ROUTE_LOGS. Alimenta el tracking del cliente sin exponer tablas internas.
+,GET,/api/client/contracts,"{
+  ""query"": { ""status"": ""PENDIENTE"" }
+ }","{
+  ""message"": ""Contratos obtenidos"",
+  ""data"": [
+  {
+  ""contractId"": ""a73b5271..."",
+  ""contractNumber"": ""CONT-00012"",
+  ""status"": ""PENDIENTE"",
+  ""startDate"": ""2026-04-01"",
+  ""endDate"": ""2027-04-01""
+  }
+  ]
+ }",Consulta CONTRACTS por cliente autenticado. No modifica datos.
+,GET,/api/client/contracts/{CONTRACT_ID},"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Detalle del contrato obtenido"",
+  ""data"": {
+  ""contractId"": ""a73b5271..."",
+  ""creditLimit"": 50000.0,
+  ""paymentTermDays"": 30,
+  ""discountPercentage"": 5.0,
+  ""routes"": [{ ""routeId"": 7, ""origin"": ""CIUDAD DE GUATEMALA"", ""destination"": ""SAN SALVADOR"" }]
+  }
+ }","JOIN entre CONTRACTS, CONTRACT_ROUTES, ROUTES, CONTRACT_CARGO_TYPES, CARGO_TYPES. Puede sumar CONTRACT_RATES para tarifario pactado."
+,PATCH,/api/client/contracts/{CONTRACT_ID}/accept,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Contrato aceptado correctamente"",
+  ""data"": {
+  ""contractId"": ""a73b5271..."",
+  ""status"": ""VIGENTE"",
+  ""acceptedAt"": ""2026-04-02T10:20:00Z""
+  }
+ }",Actualiza CONTRACTS.STATUS a VIGENTE y guarda ACCEPTED_AT. Debe respetar índice de contrato activo por cliente.
+,PATCH,/api/client/contracts/{CONTRACT_ID}/reject,"{
+  ""body"": { ""reason"": ""No aceptamos el plazo de pago propuesto"" }
+ }","{
+  ""message"": ""Contrato rechazado correctamente"",
+  ""data"": {
+  ""contractId"": ""a73b5271..."",
+  ""status"": ""RECHAZADO""
+  }
+ }",Actualiza CONTRACTS.STATUS a RECHAZADO. El motivo puede guardarse en CONTRACTS.NOTES.
+,GET,/api/client/invoices,"{
+  ""query"": { ""status"": ""ENVIADA"", ""search"": ""FAC-"" }
+ }","{
+  ""message"": ""Facturas obtenidas"",
+  ""data"": [
+  {
+  ""invoiceId"": ""965b0a6f..."",
+  ""invoiceNumber"": ""FAC-000031"",
+  ""status"": ""ENVIADA"",
+  ""totalAmount"": 23520.0,
+  ""dueDate"": ""2026-05-01""
+  }
+  ]
+ }",Lee de INVOICES filtrando por CLIENT_ID. Puede incluir enlace a PDF_PATH cuando la factura ya fue enviada.
+,GET,/api/client/account-statement,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Estado de cuenta obtenido"",
+  ""data"": {
+  ""outstandingBalance"": 18750.0,
+  ""availableCredit"": 31250.0,
+  ""overdueInvoices"": 1,
+  ""aging"": { ""current"": 12000.0, ""over30"": 6750.0, ""over60"": 0.0 }
+  }
+ }",Puede apoyarse en V_CLIENT_BALANCES y agregaciones de INVOICES por vencimiento. No modifica datos.
+,POST,/api/client/payments,"{
+  ""body"": {
+  ""INVOICE_ID"": ""965b0a6f..."",
+  ""PAYMENT_METHOD"": ""TRANSFERENCIA"",
+  ""BANK_NAME"": ""BANCO INDUSTRIAL"",
+  ""BANK_REFERENCE"": ""TRX-882771"",
+  ""AMOUNT"": 23520.0
+  }
+ }","{
+  ""message"": ""Pago registrado correctamente"",
+  ""data"": {
+  ""paymentId"": ""ec08b307..."",
+  ""status"": ""PENDIENTE""
+  }
+ }","Inserta en PAYMENTS. Trigger valida que AMOUNT coincida con total de factura. TRANSFERENCIA/CHEQUE exige BANK_NAME, BANK_ACCOUNT_NUMBER, BANK_REFERENCE, SUPPORT_DOCUMENT_PATH; tarjeta exige CARD_ID."
+,GET,/api/client/cards,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Tarjetas obtenidas"",
+  ""data"": [
+  { ""CARD_ID"": ""89f38437..."", ""CARD_ALIAS"": ""Visa corporativa"", ""CARD_BRAND"": ""VISA"", ""LAST_FOUR"": ""4455"", ""IS_ACTIVE"": true }
+  ]
+ }",Consulta CLIENT_CARDS por CLIENT_ID del usuario autenticado. Devuelve tarjetas activas.
+,POST,/api/client/cards,"{
+  ""body"": {
+  ""CARD_ALIAS"": ""Visa corporativa"",
+  ""CARDHOLDER_NAME"": ""Ana Morales"",
+  ""CARD_BRAND"": ""VISA"",
+  ""LAST_FOUR"": ""4455"",
+  ""EXPIRATION_MONTH"": 12,
+  ""EXPIRATION_YEAR"": 2028
+  }
+ }","{
+  ""message"": ""Tarjeta registrada correctamente"",
+  ""data"": { ""CARD_ID"": ""89f38437..."", ""IS_ACTIVE"": true }
+ }","Inserta en CLIENT_CARDS. Unicidad (CLIENT_ID, CARD_ALIAS). No se guarda número completo."
+,DELETE,/api/client/cards/{CARD_ID},"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Tarjeta desactivada correctamente"",
+  ""data"": { ""cardId"": ""89f38437..."", ""isActive"": false }
+ }",No borra físicamente. UPDATE CLIENT_CARDS SET IS_ACTIVE = FALSE para conservar histórico de pagos.
+,GET,/api/client/profile,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Perfil obtenido correctamente"",
+  ""data"": {
+  ""CLIENT_ID"": ""fe3fc5a5..."",
+  ""LEGAL_NAME"": ""Comercializadora Maya, S.A."",
+  ""NIT"": ""1234567-8"",
+  ""PRIMARY_CONTACT_PHONE"": ""5555-1212""
+  }
+ }",Consulta CLIENTS y puede enriquecer con CLIENT_CONTACTS para contactos secundarios.
+,PATCH,/api/client/profile/password,"{
+  ""body"": {
+  ""currentPassword"": ""ClaveActual123"",
+  ""newPassword"": ""NuevaClave2026!"",
+  ""confirmation"": ""NuevaClave2026!""
+  }
+ }","{
+  ""message"": ""Contrasena actualizada correctamente"",
+  ""data"": {}
+ }",Actualiza USERS.PASSWORD_HASH del usuario autenticado. Valida la clave actual antes del cambio.
+,GET,/api/client/contacts,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Contactos obtenidos"",
+  ""data"": [
+  { ""CONTACT_ID"": ""0b5c4c3d..."", ""CONTACT_NAME"": ""Ana Morales"", ""CONTACT_EMAIL"": ""ana@empresa.com"", ""IS_ACTIVE"": true }
+  ]
+ }",Consulta CLIENT_CONTACTS del cliente autenticado. No crea ni expone usuarios de plataforma.
+,POST,/api/client/contacts,"{
+  ""body"": {
+  ""CONTACT_NAME"": ""Ana Morales"",
+  ""CONTACT_EMAIL"": ""ana@empresa.com"",
+  ""CONTACT_PHONE"": ""5566-7788"",
+  ""POSITION_TITLE"": ""Compras""
+  }
+ }","{
+  ""message"": ""Contacto registrado correctamente"",
+  ""data"": { ""CONTACT_ID"": ""0b5c4c3d..."" }
+ }",Inserta en CLIENT_CONTACTS. El contacto principal se administra en CLIENTS.PRIMARY_CONTACT_*.
+,PUT,/api/client/contacts/{CONTACT_ID},"{
+  ""body"": {
+  ""CONTACT_NAME"": ""Ana Morales"",
+  ""CONTACT_EMAIL"": ""ana@empresa.com"",
+  ""CONTACT_PHONE"": ""5566-7788""
+  }
+ }","{
+  ""message"": ""Contacto actualizado correctamente"",
+  ""data"": { ""CONTACT_ID"": ""0b5c4c3d..."" }
+ }",UPDATE sobre CLIENT_CONTACTS del cliente correspondiente. Impide modificar contactos de otro cliente.
+,DELETE,/api/client/contacts/{CONTACT_ID},"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_cliente>"" }
+ }","{
+  ""message"": ""Contacto desactivado correctamente"",
+  ""data"": { ""CONTACT_ID"": ""0b5c4c3d..."", ""IS_ACTIVE"": false }
+ }",Borrado lógico con CLIENT_CONTACTS.IS_ACTIVE = FALSE. No borra el registro.
+,,,,,
+AGENTE OPERATIVO,,,,,
+,POST,/api/operations/clients,"{
+  ""body"": {
+  ""LEGAL_NAME"": ""Comercializadora Maya, S.A."",
+  ""COMMERCIAL_NAME"": ""Maya Foods"",
+  ""NIT"": ""1234567-8"",
+  ""PRIMARY_CONTACT_NAME"": ""Ana Morales"",
+  ""PRIMARY_CONTACT_EMAIL"": ""ana@empresa.com"",
+  ""PAYMENT_RISK"": ""MEDIO"",
+  ""CARGO_RISK"": ""BAJO""
+  }
+ }","{
+  ""message"": ""Cliente registrado correctamente"",
+  ""data"": {
+  ""CLIENT_ID"": ""fe3fc5a5..."",
+  ""CLIENT_CODE"": ""CLI-00012""
+  }
+ }",Inserta en CLIENTS usando PRIMARY_CONTACT_*. No crea usuarios de plataforma automáticamente.
+,GET,/api/operations/clients,"{
+  ""query"": { ""search"": ""Maya"" }
+ }","{
+  ""message"": ""Clientes obtenidos"",
+  ""data"": [
+  { ""clientId"": ""fe3fc5a5..."", ""clientCode"": ""CLI-00012"", ""legalName"": ""Comercializadora Maya, S.A."", ""nit"": ""1234567-8"" }
+  ]
+ }","SELECT sobre CLIENTS por razón social, nombre comercial o NIT. No modifica datos."
+,GET,/api/operations/cargo-types,"{
+  ""query"": { ""isActive"": true }
+ }","{
+  ""message"": ""Tipos de mercancia obtenidos"",
+  ""data"": [
+  { ""cargoTypeId"": 1, ""cargoName"": ""GENERAL"", ""requiresRefrigeration"": false }
+  ]
+ }",Consulta CARGO_TYPES para mantener el catálogo que usan contratos y clientes.
+,POST,/api/operations/cargo-types,"{
+  ""body"": {
+  ""cargoName"": ""QUIMICOS"",
+  ""requiresRefrigeration"": false
+  }
+ }","{
+  ""message"": ""Tipo de mercancia registrado"",
+  ""data"": { ""cargoTypeId"": 5, ""cargoName"": ""QUIMICOS"" }
+ }",Inserta nueva fila en CARGO_TYPES para ampliar catálogo operativo.
+,GET,/api/operations/routes,"{
+  ""query"": { ""isActive"": true }
+ }","{
+  ""message"": ""Rutas obtenidas"",
+  ""data"": [
+  { ""routeId"": 7, ""routeCode"": ""GUA-SAL"", ""origin"": ""CIUDAD DE GUATEMALA"", ""destination"": ""SAN SALVADOR"", ""estimatedHours"": 5.5 }
+  ]
+ }",Consulta ROUTES filtrando rutas activas. Alimenta panel de selección del contrato y se reutiliza desde Logística.
+,POST,/api/operations/routes,"{
+  ""body"": {
+  ""ORIGIN"": ""CIUDAD DE GUATEMALA"",
+  ""DESTINATION"": ""PUERTO BARRIOS"",
+  ""DISTANCE_KM"": 295,
+  ""ESTIMATED_HOURS"": 6.5,
+  ""IS_ACTIVE"": true
+  }
+ }","{
+  ""message"": ""Ruta registrada correctamente"",
+  ""data"": { ""ROUTE_ID"": 9, ""ROUTE_CODE"": ""RTE-00009"" }
+ }",Inserta en ROUTES. ROUTE_CODE lo genera la base de datos automáticamente.
+,POST,/api/operations/contracts,"{
+  ""body"": {
+  ""clientId"": ""fe3fc5a5..."",
+  ""creditLimit"": 50000.0,
+  ""paymentTermDays"": 30,
+  ""discountPercentage"": 5.0,
+  ""routeIds"": [7, 8],
+  ""cargoTypeIds"": [1, 2]
+  }
+ }","{
+  ""message"": ""Contrato generado correctamente"",
+  ""data"": {
+  ""contractId"": ""a73b5271..."",
+  ""contractNumber"": ""CONT-00012"",
+  ""status"": ""PENDIENTE""
+  }
+ }","Inserta en CONTRACTS, CONTRACT_ROUTES y CONTRACT_CARGO_TYPES en una transacción. Trigger SYNC_CONTRACT_DEFAULTS genera/sincroniza CONTRACT_RATES según descuento."
+,,,,,
+AGENTE LOGÍSTICO,,,,,
+,GET,/api/logistics/dashboard/summary,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_agente_logistico>"" }
+ }","{
+  ""message"": ""Resumen logistico obtenido"",
+  ""data"": {
+  ""pendingOrders"": 2,
+  ""availableUnits"": 5
+  }
+ }",Agregaciones sobre ORDERS pendientes de asignación y TRANSPORT_UNITS disponibles.
+,GET,/api/logistics/orders,"{
+  ""query"": {
+  ""status"": ""REGISTRADA"",
+  ""startDate"": ""2026-04-01"",
+  ""clientId"": ""fe3fc5a5...""
+  }
+ }","{
+  ""message"": ""Ordenes obtenidas"",
+  ""data"": [
+  {
+  ""orderId"": ""87086e66..."",
+  ""orderNumber"": ""ORD-000085"",
+  ""clientName"": ""Comercializadora Maya, S.A."",
+  ""status"": ""REGISTRADA""
+  }
+  ]
+ }","JOIN entre ORDERS, CONTRACTS y CLIENTS. Lista órdenes pendientes de asignación."
+,GET,/api/logistics/orders/{ORDER_ID},"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_agente_logistico>"" }
+ }","{
+  ""message"": ""Detalle de orden obtenido"",
+  ""data"": {
+  ""ORDER_ID"": ""87086e66..."",
+  ""ORDER_NUMBER"": ""ORD-000085"",
+  ""PICKUP_ADDRESS"": ""Planta 3"",
+  ""DECLARED_WEIGHT_TON"": 10.5,
+  ""STATUS"": ""REGISTRADA""
+  }
+ }",Detalle puntual de la orden antes de asignar unidad y ruta.
+,GET,/api/operations/routes,"{
+  ""query"": { ""isActive"": true }
+ }","{
+  ""message"": ""Rutas obtenidas"",
+  ""data"": [
+  { ""ROUTE_ID"": 7, ""ROUTE_CODE"": ""RTE-00007"" }
+  ]
+ }",Logística reutiliza el catálogo de ROUTES administrado por Operativa. Evita duplicar mantenimiento.
+,GET,/api/logistics/unit-binomials,"{
+  ""query"": {
+  ""orderId"": ""87086e66...""
+  }
+ }","{
+  ""message"": ""Binomios obtenidos"",
+  ""data"": [
+  {
+  ""binomialId"": ""unit:5f1c0f39..."",
+  ""unitId"": ""5f1c0f39..."",
+  ""pilotName"": ""Pablo Perez"",
+  ""plateNumber"": ""HT44343"",
+  ""vehicleType"": ""CAMION PESADO"",
+  ""capacityTon"": 12.0
+  }
+  ]
+ }","Consulta TRANSPORT_UNITS y USERS del piloto. Filtra unidades activas, documentación vigente y compatibles con peso y tipo de carga."
+,PATCH,/api/logistics/orders/{ORDER_ID}/assignment,"{
+  ""body"": {
+  ""contractRouteId"": ""963d1f1f..."",
+  ""binomialId"": ""unit:5f1c0f39..."",
+  ""scheduledDeparture"": ""2026-04-01T14:00:00Z""
+  }
+ }","{
+  ""message"": ""Orden asignada correctamente"",
+  ""data"": {
+  ""orderId"": ""87086e66..."",
+  ""status"": ""ASIGNADA"",
+  ""unitId"": ""5f1c0f39..."",
+  ""scheduledPickupAt"": ""2026-04-01T14:00:00Z""
+  }
+ }","Actualiza ORDERS.UNIT_ID, CONTRACT_ROUTE_ID, SCHEDULED_PICKUP_AT y STATUS. Trigger VALIDATE_ORDER_ASSIGNMENT valida capacidad, refrigeración, tarifa y distancia."
+,,,,,
+ENCARGADO DE PATIO,,,,,
+,GET,/api/patio/orders,"{
+  ""query"": {
+  ""status"": ""ASIGNADA"",
+  ""plateNumber"": ""HT44343"",
+  ""startDate"": ""2026-04-01""
+  }
+ }","{
+  ""message"": ""Ordenes obtenidas"",
+  ""data"": [
+  {
+  ""orderId"": ""87086e66..."",
+  ""orderNumber"": ""ORD-000085"",
+  ""plateNumber"": ""HT44343"",
+  ""fullName"": ""Pablo Perez"",
+  ""status"": ""ASIGNADA""
+  }
+  ]
+ }","ORDER_ID, ORDER_NUMBER, STATUS de ORDERS; PLATE_NUMBER de TRANSPORT_UNITS; FULL_NAME de USERS; ORIGIN/DESTINATION de ORDERS o ruta asociada."
+,PATCH,/api/patio/orders/{ORDER_ID}/formalize,"{
+  ""body"": {
+  ""loadedWeightTon"": 10.2,
+  ""stowageConfirmed"": true,
+  ""status"": ""LISTA_PARA_DESPACHO""
+  }
+ }","{
+  ""message"": ""Despacho autorizado"",
+  ""data"": {
+  ""orderId"": ""87086e66..."",
+  ""status"": ""LISTA_PARA_DESPACHO""
+  }
+ }","UPDATE ORDERS con LOADED_WEIGHT_TON, STOWAGE_CONFIRMED y STATUS. Trigger puede rechazar si el peso excede la capacidad de la unidad asignada."
+,,,,,
+PORTAL DE PILOTOS,,,,,
+,GET,/api/pilot/orders,"{
+  ""query"": { ""status"": ""LISTA_PARA_DESPACHO"" }
+ }","{
+  ""message"": ""Viajes obtenidos"",
+  ""data"": [
+  {
+  ""orderId"": ""87086e66..."",
+  ""orderNumber"": ""ORD-000085"",
+  ""origin"": ""Ciudad de Guatemala"",
+  ""destination"": ""San Salvador"",
+  ""status"": ""LISTA_PARA_DESPACHO""
+  }
+  ]
+ }",Consulta ORDERS por UNIT_ID de la unidad asociada al piloto en TRANSPORT_UNITS.PILOT_USER_ID.
+,PATCH,/api/pilot/orders/{ORDER_ID}/status,"{
+  ""body"": { ""status"": ""EN_TRANSITO"" }
+ }","{
+  ""message"": ""Estado actualizado correctamente"",
+  ""data"": {
+  ""orderId"": ""87086e66..."",
+  ""status"": ""EN_TRANSITO"",
+  ""dispatchedAt"": ""2026-04-01T14:05:00Z""
+  }
+ }",Actualiza ORDERS.STATUS a EN_TRANSITO y registra DISPATCHED_AT. Valida que la orden esté en LISTA_PARA_DESPACHO.
+,POST,/api/pilot/orders/{ORDER_ID}/logs,"{
+  ""body"": {
+  ""eventType"": ""PUNTO_CONTROL"",
+  ""description"": ""Paso por control km 85""
+  }
+ }","{
+  ""message"": ""Evento registrado correctamente"",
+  ""data"": {
+  ""logId"": ""b2c2e3d7..."",
+  ""eventTime"": ""2026-04-01T18:15:00Z""
+  }
+ }","Inserta en ORDER_ROUTE_LOGS con ORDER_ID, EVENT_TYPE y DESCRIPTION. Este historial alimenta el tracking del cliente."
+,PATCH,/api/pilot/orders/{ORDER_ID}/deliver,"{
+  ""body"": {
+  ""receiverName"": ""Carlos Estrada"",
+  ""receiverSignatureBase64"": ""data:image/png;base64,..."",
+  ""deliveryEvidenceBase64"": [""data:image/jpeg;base64,...""]
+  }
+ }","{
+  ""message"": ""Entrega registrada correctamente"",
+  ""data"": {
+  ""orderId"": ""87086e66..."",
+  ""status"": ""ENTREGADA"",
+  ""deliveredAt"": ""2026-04-01T22:10:00Z"",
+  ""receiverSignaturePath"": ""/files/signatures/ORD-000085.png""
+  }
+ }","Actualiza ORDERS.STATUS a ENTREGADA. Guarda RECEIVER_NAME, DELIVERED_AT, evidencia en paths. Transición dispara TRG_AUTO_CREATE_DRAFT_INVOICE."
+,,,,,
+AGENTE FINANCIERO,,,,,
+,GET,/api/finance/dashboard/summary,"{
+  ""query"": { ""period"": ""MONTHLY"", ""year"": 2026, ""month"": 4 }
+ }","{
+  ""message"": ""Resumen financiero obtenido"",
+  ""data"": {
+  ""draftInvoicesPendingReview"": 4,
+  ""paymentsPendingReconciliation"": 3,
+  ""collectedAmount"": 23520.0
+  }
+ }","Combina agregaciones de ORDERS, INVOICES y PAYMENTS. draftInvoicesPendingReview: facturas BORRADOR. collectedAmount: pagos aprobados del período."
+,GET,/api/finance/invoices,"{
+  ""query"": { ""status"": ""BORRADOR"" }
+ }","{
+  ""message"": ""Facturas borrador obtenidas"",
+  ""data"": [
+  {
+  ""invoiceId"": ""965b0a6f..."",
+  ""invoiceNumber"": ""FAC-000031"",
+  ""clientName"": ""Comercializadora Maya, S.A."",
+  ""status"": ""BORRADOR"",
+  ""totalAmount"": 23520.0
+  }
+  ]
+ }",Consulta INVOICES filtrando STATUS = BORRADOR. Bandeja principal de Finanzas post-entrega.
+,GET,/api/finance/invoices/{INVOICE_ID},"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_finanzas>"" }
+ }","{
+  ""message"": ""Factura borrador obtenida"",
+  ""data"": {
+  ""invoiceId"": ""965b0a6f..."",
+  ""orderId"": ""87086e66..."",
+  ""clientId"": ""fe3fc5a5..."",
+  ""totalAmount"": 23520.0,
+  ""dueDate"": ""2026-05-01""
+  }
+ }","Devuelve borrador insertado en INVOICES con datos precargados desde ORDERS, CONTRACTS y CLIENTS."
+,PATCH,/api/finance/invoices/{INVOICE_ID}/submit-for-certification,"{
+  ""body"": {
+  ""serviceDescription"": ""Servicio logistico de exportacion"",
+  ""dueDate"": ""2026-05-01"",
+  ""reviewConfirmed"": true
+  }
+ }","{
+  ""message"": ""Factura enviada a certificacion"",
+  ""data"": {
+  ""invoiceId"": ""965b0a6f..."",
+  ""status"": ""BORRADOR"",
+  ""nextStep"": ""PATCH /api/certifier/invoices/{INVOICE_ID}/certify""
+  }
+ }",No crea nueva factura. Confirma revisión financiera del borrador y lo deja listo para que FEL lo procese sobre INVOICES.
+,PATCH,/api/finance/invoices/{INVOICE_ID}/send,"{
+  ""body"": {
+  ""serviceDescription"": ""Servicio logistico de exportacion"",
+  ""pdfPath"": ""/files/invoices/FAC-000031.pdf""
+  }
+ }","{
+  ""message"": ""Factura enviada correctamente"",
+  ""data"": {
+  ""invoiceId"": ""965b0a6f..."",
+  ""status"": ""ENVIADA"",
+  ""sentAt"": ""2026-04-02T09:00:00Z""
+  }
+ }","Actualiza INVOICES.STATUS, PDF_PATH y SENT_AT una vez que la factura ya está certificada."
+,GET,/api/finance/payments,"{
+  ""query"": { ""status"": ""PENDIENTE"" }
+ }","{
+  ""message"": ""Pagos obtenidos"",
+  ""data"": [
+  {
+  ""paymentId"": ""ec08b307..."",
+  ""invoiceNumber"": ""FAC-000031"",
+  ""method"": ""TRANSFERENCIA"",
+  ""bankReference"": ""TRX-882771"",
+  ""amount"": 23520.0,
+  ""status"": ""PENDIENTE""
+  }
+  ]
+ }",Consulta PAYMENTS con JOIN a INVOICES. Sirve para la conciliación financiera.
+,PATCH,/api/finance/payments/{PAYMENT_ID}/approve,"{
+  ""body"": { ""status"": ""APROBADO"" }
+ }","{
+  ""message"": ""Pago aprobado correctamente"",
+  ""data"": {
+  ""paymentId"": ""ec08b307..."",
+  ""status"": ""APROBADO"",
+  ""invoiceStatus"": ""PAGADA""
+  }
+ }",Actualiza PAYMENTS.STATUS y REVIEWED_BY_USER_ID. Trigger SYNC_INVOICE_PAYMENT actualiza factura a PAGADA. Regla de pago único por factura cubierta por índice y trigger.
+,GET,/api/finance/rates,"{
+  ""headers"": { ""Authorization"": ""Bearer <jwt_finanzas>"" }
+ }","{
+  ""message"": ""Tarifas obtenidas"",
+  ""data"": [
+  { ""vehicleTypeId"": 2, ""typeName"": ""CAMION PESADO"", ""ratePerKm"": 12.5 }
+  ]
+ }",Consulta VEHICLE_TYPES para cargar el tarifario base.
+,PATCH,/api/finance/rates/{VEHICLE_TYPE_ID},"{
+  ""body"": { ""ratePerKm"": 13.25 }
+ }","{
+  ""message"": ""Tarifa actualizada correctamente"",
+  ""data"": { ""vehicleTypeId"": 2, ""ratePerKm"": 13.25 }
+ }",Actualiza VEHICLE_TYPES.RATE_PER_KM. Afecta contratos y órdenes futuras; no recalcula documentos históricos.
+,,,,,
+CERTIFICADOR FEL,,,,,
+,GET,/api/certifier/dashboard/summary,"{
+  ""query"": { ""period"": ""MONTHLY"", ""year"": 2026, ""month"": 4 }
+ }","{
+  ""message"": ""Resumen FEL obtenido"",
+  ""data"": {
+  ""pendingInvoices"": 3,
+  ""certifiedCount"": 7
+  }
+ }",Agregaciones sobre INVOICES. pendingInvoices: facturas BORRADOR. certifiedCount usa CERTIFIED_AT para el período.
+,GET,/api/certifier/invoices,"{
+  ""query"": { ""status"": ""BORRADOR"" }
+ }","{
+  ""message"": ""Facturas obtenidas"",
+  ""data"": [
+  {
+  ""invoiceId"": ""965b0a6f..."",
+  ""invoiceNumber"": ""FAC-000031"",
+  ""clientNit"": ""1234567-8"",
+  ""totalAmount"": 23520.0,
+  ""status"": ""BORRADOR""
+  }
+  ]
+ }",Consulta INVOICES en estado BORRADOR. Bandeja operativa del certificador.
+,POST,/api/certifier/invoices/{INVOICE_ID}/validate-nit,"{
+  ""body"": { ""clientNit"": ""1234567890123"" }
+ }","{
+  ""message"": ""NIT validado correctamente"",
+  ""data"": {
+  ""invoiceId"": ""965b0a6f..."",
+  ""clientNit"": ""1234567890123"",
+  ""isValid"": true
+  }
+ }",Simula validación del NIT previo a certificación FEL. Cumple regla funcional de verificar identidad fiscal antes de emitir UUID.
+,PATCH,/api/certifier/invoices/{INVOICE_ID}/certify,"{
+  ""body"": {
+  ""felUuid"": ""3C7D8A4E-3D23-4ED8-B410-ABC123456789""
+  }
+ }","{
+  ""message"": ""Factura certificada correctamente"",
+  ""data"": {
+  ""invoiceId"": ""965b0a6f..."",
+  ""status"": ""CERTIFICADA"",
+  ""felUuid"": ""3C7D8A4E..."",
+  ""certifiedAt"": ""2026-04-02T08:40:00Z""
+  }
+ }","Actualiza INVOICES.STATUS a CERTIFICADA, guarda FEL_UUID y CERTIFIED_AT. Solo ejecutar después de validar NIT. Base para KPI del panel FEL."
+,PATCH,/api/certifier/invoices/{INVOICE_ID}/reject,"{
+  ""body"": { ""reason"": ""NIT invalido para emision FEL"" }
+ }","{
+  ""message"": ""Factura rechazada correctamente"",
+  ""data"": {
+  ""invoiceId"": ""965b0a6f..."",
+  ""status"": ""RECHAZADA""
+  }
+ }",Actualiza INVOICES.STATUS a RECHAZADA. El motivo puede guardarse en bitácora externa.
+,,,,,
+BI / GERENCIA,,,,,
+,GET,/api/bi/kpis,"{
+  ""query"": { ""period"": ""MONTHLY"", ""year"": 2026, ""month"": 4 }
+ }","{
+  ""message"": ""KPIs obtenidos correctamente"",
+  ""data"": {
+  ""completedServices"": 142,
+  ""billingAmount"": 145000.0,
+  ""activeIncidents"": 2
+  }
+ }","Agregaciones por período sobre ORDERS, INVOICES y PAYMENTS. Incidentes activos de ORDER_ROUTE_LOGS con eventos tipo INCIDENTE."
+,GET,/api/bi/branches/distribution,"{
+  ""query"": { ""period"": ""MONTHLY"", ""year"": 2026, ""month"": 4 }
+ }","{
+  ""message"": ""Distribucion por sedes obtenida"",
+  ""data"": [
+  { ""branchId"": 1, ""branchName"": ""SEDE GUATEMALA"", ""totalOrders"": 12 },
+  { ""branchId"": 2, ""branchName"": ""SEDE QUETZALTENANGO"", ""totalOrders"": 6 }
+  ]
+ }",Agregaciones por período con BRANCHES para comparativos por sede.
+,GET,/api/bi/profitability,"{
+  ""query"": { ""contractId"": ""a73b5271..."" }
+ }","{
+  ""message"": ""Rentabilidad obtenida"",
+  ""data"": {
+  ""contractId"": ""a73b5271..."",
+  ""revenueAmount"": 225000.0,
+  ""operatingCostAmount"": 143500.0,
+  ""grossMarginAmount"": 81500.0
+  }
+ }",Apoyada en V_CONTRACT_PROFITABILITY. Usa ingresos facturados y costos operativos para calcular margen bruto.
+,GET,/api/bi/orders/recent,"{
+  ""query"": { ""limit"": 10 }
+ }","{
+  ""message"": ""Ordenes recientes obtenidas"",
+  ""data"": [
+  {
+  ""orderNumber"": ""ORD-000085"",
+  ""clientName"": ""Comercializadora Maya, S.A."",
+  ""route"": ""CIUDAD DE GUATEMALA -> SAN SALVADOR"",
+  ""status"": ""EN_TRANSITO""
+  }
+  ]
+ }","JOIN entre ORDERS, CONTRACTS y CLIENTS. Consulta de monitoreo; no modifica datos."

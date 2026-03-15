@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { Client } from '../typeorm/entities/client.entity';
 import { ClientContact } from '../typeorm/entities/client-contact.entity';

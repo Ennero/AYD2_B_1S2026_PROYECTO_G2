@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { ensureDatabaseExists } from './infrastructure/database/bootstrap/ensure-database';
@@ -10,8 +11,16 @@ async function bootstrap() {
   await ensureDatabaseExists();
 
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
   const dataSource = app.get(DataSource);
   const databaseConfig = getDatabaseRuntimeConfig();
+
+  // Enable CORS
+  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost').split(',');
+  app.enableCors({
+    origin: corsOrigins.map(o => o.trim()),
+    credentials: true,
+  });
 
   await ensureCanonicalSchema(dataSource);
 
@@ -19,6 +28,8 @@ async function bootstrap() {
     await runInitialSeed(dataSource);
   }
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`Server running on port ${port}`);
 }
 bootstrap();

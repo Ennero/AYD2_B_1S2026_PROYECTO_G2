@@ -33,13 +33,13 @@ export class Invoice {
   })
   status: InvoiceStatus;
 
-  @Column({ name: 'issue_date', type: 'timestamptz' })
+  @Column({ name: 'issue_date', type: 'timestamptz', default: () => 'NOW()' })
   issueDate: Date;
 
   @Column({ name: 'certified_at', type: 'timestamptz', nullable: true })
   certifiedAt: Date | null;
 
-  @Column({ name: 'due_date', type: 'date' })
+  @Column({ name: 'due_date', type: 'date', default: () => "(CURRENT_DATE + INTERVAL '30 day')::DATE" })
   dueDate: string;
 
   @Column({ name: 'sent_at', type: 'timestamptz', nullable: true })

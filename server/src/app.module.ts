@@ -6,6 +6,9 @@ import { AppService } from './app.service';
 import { UserModule } from './user.module';
 import { AuthModule } from './auth/auth.module';
 import { dataSourceOptions } from './infrastructure/database/config/data-source';
+import { HealthModule } from './health/health.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { OperationsModule } from './operations/operations.module';
 
 @Module({
   imports: [
@@ -13,8 +16,11 @@ import { dataSourceOptions } from './infrastructure/database/config/data-source'
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(dataSourceOptions),
+    HealthModule,
+    NotificationsModule,
     UserModule,
     AuthModule,
+    OperationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
