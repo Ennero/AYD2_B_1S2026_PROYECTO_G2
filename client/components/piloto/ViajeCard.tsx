@@ -1,3 +1,5 @@
+"use client"
+
 // ============================================================
 // components/piloto/ViajeCard.tsx
 // Tarjeta de viaje para el dashboard del piloto.

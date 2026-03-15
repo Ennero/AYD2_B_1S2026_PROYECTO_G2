@@ -1,3 +1,4 @@
+"use client"
 // ============================================================
 // components/piloto/FiltrosSidebar.tsx
 // Panel lateral de filtros de búsqueda del Dashboard Piloto.
