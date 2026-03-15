@@ -1,10 +1,3 @@
-export enum USER_ROLE {
-  CLIENTE = 'CLIENTE',
-  AGENTE_OPERATIVO = 'AGENTE_OPERATIVO',
-  AGENTE_LOGISTICO = 'AGENTE_LOGISTICO',
-  ENCARGADO_PATIO = 'ENCARGADO_PATIO',
-  PILOTO = 'PILOTO',
-  AGENTE_FINANCIERO = 'AGENTE_FINANCIERO',
-  GERENCIA = 'GERENCIA',
-  ADMIN = 'ADMIN'
-}
+// Re-exporta el enum canónico del dominio compartido.
+// Usar USER_ROLE o UserRole de forma indistinta en el proyecto.
+export { UserRole as USER_ROLE } from '../../../domain/enums/user-role.enum';

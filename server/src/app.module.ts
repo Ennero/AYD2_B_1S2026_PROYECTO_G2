@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { dataSourceOptions } from './infrastructure/database/config/data-source';
 import { HealthModule } from './health/health.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { OperationsModule } from './operations/operations.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     NotificationsModule,
     UserModule,
     AuthModule,
+    OperationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

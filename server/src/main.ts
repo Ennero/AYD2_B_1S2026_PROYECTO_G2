@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { ensureDatabaseExists } from './infrastructure/database/bootstrap/ensure-database';
@@ -10,6 +11,7 @@ async function bootstrap() {
   await ensureDatabaseExists();
 
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
   const dataSource = app.get(DataSource);
   const databaseConfig = getDatabaseRuntimeConfig();
 
