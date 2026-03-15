@@ -69,16 +69,13 @@ export const ENDPOINTS = {
   },
 
   // ── Agente Logístico ─────────────────────
-  ORDENES: {
-    LIST: `${API_VERSION}/ordenes`,
-    GET: (id: string) => `${API_VERSION}/ordenes/${id}`,
-    ASIGNAR_RUTA: (id: string) => `${API_VERSION}/ordenes/${id}/asignar-ruta`,
-  },
-
-  RUTAS: {
-    LIST: `${API_VERSION}/rutas`,
-    CREATE: `${API_VERSION}/rutas`,
-    GET: (id: string) => `${API_VERSION}/rutas/${id}`,
+  LOGISTICS: {
+    DASHBOARD_SUMMARY: `/api/logistics/dashboard/summary`,
+    ORDERS_LIST: `/api/logistics/orders`,
+    ORDER_DETAIL: (id: string) => `/api/logistics/orders/${id}`,
+    UNIT_BINOMIALS: `/api/logistics/unit-binomials`,
+    ROUTES: `/api/logistics/routes`,
+    ASSIGN_ORDER: (id: string) => `/api/logistics/orders/${id}/assignment`,
   },
 
   // ── Encargado de Patio ───────────────────
