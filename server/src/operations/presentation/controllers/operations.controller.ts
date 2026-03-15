@@ -14,6 +14,10 @@ import { Roles } from '../../../auth/presentation/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/presentation/decorators/current-user.decorator';
 import { USER_ROLE } from '../../../auth/domain/enums/user-role.enum';
 import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.interface';
+import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
+import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
+import { CreateClientDto } from '../dtos/create-client.dto';
+import { Get, Query } from '@nestjs/common';
 
 /**
  * OperationsController — Endpoints del Agente Operativo.
@@ -25,7 +29,11 @@ import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.int
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(USER_ROLE.AGENTE_OPERATIVO)
 export class OperationsController {
-  constructor(private readonly createContractUseCase: CreateContractUseCase) {}
+  constructor(
+    private readonly createContractUseCase: CreateContractUseCase,
+    private readonly createClientUseCase: CreateClientUseCase,
+    private readonly getClientsUseCase: GetClientsUseCase,
+  ) {}
 
   /**
    * POST /api/operations/contracts
@@ -55,5 +63,18 @@ export class OperationsController {
     );
 
     return { message: 'Contrato generado correctamente', data };
+  }
+
+  @Post('clients')
+  @HttpCode(HttpStatus.CREATED)
+  async createClient(@Body() dto: CreateClientDto) {
+    const data = await this.createClientUseCase.execute(dto);
+    return { message: 'Cliente registrado correctamente', data };
+  }
+
+  @Get('clients')
+  async getClients(@Query('search') search?: string) {
+    const data = await this.getClientsUseCase.execute(search);
+    return { message: 'Clientes obtenidos correctamente', data };
   }
 }

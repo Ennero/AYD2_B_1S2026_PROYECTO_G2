@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
 import { DataSource, EntityManager, In } from 'typeorm';
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
@@ -1159,18 +1160,20 @@ export class DatabaseSeeder {
 
   private async seedInternalUsers(manager: EntityManager): Promise<User[]> {
     const repository = manager.getRepository(User);
-    await repository.save(
-      INTERNAL_USERS.map((user) =>
-        repository.create({
+    const usersToCreate = await Promise.all(
+      INTERNAL_USERS.map(async (user) => {
+        const passwordHash = await bcrypt.hash(`seed$${user.email}`, 10);
+        return repository.create({
           role: user.role,
           fullName: user.fullName,
           email: user.email,
-          passwordHash: `seed$${user.email}`,
+          passwordHash,
           phone: user.phone,
           isActive: true,
-        }),
-      ),
+        });
+      }),
     );
+    await repository.save(usersToCreate);
 
     return repository.find({
       where: { email: In(INTERNAL_USERS.map((user) => user.email)) },
@@ -1212,18 +1215,21 @@ export class DatabaseSeeder {
     const repository = manager.getRepository(User);
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
 
-    const clientUsers = CLIENT_BLUEPRINTS.map((client) => {
-      const entity = mustFind(clientByNit.get(client.nit), client.legalName);
-      return repository.create({
-        clientId: entity.clientId,
-        role: UserRole.CLIENTE,
-        fullName: `${client.primaryContactName} Portal`,
-        email: `portal.${client.key}@clientes.logitrans.gt`,
-        passwordHash: `seed$portal.${client.key}`,
-        phone: client.primaryContactPhone,
-        isActive: true,
-      });
-    });
+    const clientUsers = await Promise.all(
+      CLIENT_BLUEPRINTS.map(async (client) => {
+        const entity = mustFind(clientByNit.get(client.nit), client.legalName);
+        const passwordHash = await bcrypt.hash(`seed$portal.${client.key}`, 10);
+        return repository.create({
+          clientId: entity.clientId,
+          role: UserRole.CLIENTE,
+          fullName: `${client.primaryContactName} Portal`,
+          email: `portal.${client.key}@clientes.logitrans.gt`,
+          passwordHash,
+          phone: client.primaryContactPhone,
+          isActive: true,
+        });
+      })
+    );
 
     await repository.save(clientUsers);
 
