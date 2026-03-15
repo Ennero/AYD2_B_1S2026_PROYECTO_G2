@@ -4,7 +4,7 @@
    Uso: import { ENDPOINTS } from "@/lib/api/endpoints"
    =========================== */
 
-const API_VERSION = "/api/v1"
+const API_VERSION = "/api"
 
 export const ENDPOINTS = {
   // ── Auth ──────────────────────────────────
