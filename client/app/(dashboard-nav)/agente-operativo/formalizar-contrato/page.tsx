@@ -208,7 +208,7 @@ export default function FormalizarContratoPage() {
             <Card className="bg-[#0A3B7C] text-white p-10 border-none shadow-2xl rounded-3xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
               
-              <h3 className="font-heading font-extrabold text-2xl mb-8 flex items-center gap-3">
+              <h3 className="font-heading font-extrabold text-2xl mb-8 flex items-center gap-3 !text-white">
                 <FileText size={28} className="text-[#53B73E]" />
                 Resumen Final
               </h3>
