@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_DATABASE:-logitrans_db}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,26 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  app:
-    build:
-      context: ..
-      dockerfile: server/Dockerfile
-    container_name: logitrans_api
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USERNAME=${DB_USERNAME:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_DATABASE=${DB_DATABASE:-logitrans_db}
-      - DB_AUTO_SEED=true
-      - DB_RESET_ON_BOOT=false
-    depends_on:
-      db:
-        condition: service_healthy
-    command: sh -c "npm run start:prod"
 
 volumes:
   postgres_data:

@@ -58,7 +58,7 @@ export class Payment {
   @Column({ name: 'amount', type: 'numeric', precision: 14, scale: 2 })
   amount: number;
 
-  @Column({ name: 'payment_date', type: 'timestamptz' })
+  @Column({ name: 'payment_date', type: 'timestamptz', default: () => 'NOW()' })
   paymentDate: Date;
 
   @Column({ name: 'reviewed_by_user_id', type: 'uuid', nullable: true })

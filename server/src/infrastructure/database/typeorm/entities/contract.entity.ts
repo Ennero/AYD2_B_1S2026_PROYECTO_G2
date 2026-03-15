@@ -42,7 +42,7 @@ export class Contract {
   @Column({ name: 'start_date', type: 'date', default: () => 'CURRENT_DATE' })
   startDate: string;
 
-  @Column({ name: 'end_date', type: 'date' })
+  @Column({ name: 'end_date', type: 'date', default: () => "(CURRENT_DATE + INTERVAL '1 year')::DATE" })
   endDate: string;
 
   @Column({ name: 'accepted_at', type: 'timestamptz', nullable: true })

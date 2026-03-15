@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Check } from 'typeorm';
 import { RiskLevel } from '../../../../domain/enums/risk-level.enum';
 import { User } from './user.entity';
 import { ClientContact } from './client-contact.entity';
@@ -7,6 +7,7 @@ import { Contract } from './contract.entity';
 import { Invoice } from './invoice.entity';
 
 @Entity('clients')
+@Check("nit ~ '^[0-9]{13}$'")
 export class Client {
   @PrimaryGeneratedColumn('uuid', { name: 'client_id' })
   clientId: string;

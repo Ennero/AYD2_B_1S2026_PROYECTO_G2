@@ -13,6 +13,7 @@ import { Order } from './order.entity';
 
 @Entity('contract_rates')
 @Index(['contractId', 'vehicleTypeId'], { unique: true })
+@Index(['contractRateId', 'contractId'], { unique: true })
 export class ContractRate {
   @PrimaryGeneratedColumn('uuid', { name: 'contract_rate_id' })
   contractRateId: string;

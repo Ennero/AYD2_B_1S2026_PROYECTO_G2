@@ -13,12 +13,21 @@ async function bootstrap() {
   const dataSource = app.get(DataSource);
   const databaseConfig = getDatabaseRuntimeConfig();
 
+  // Enable CORS
+  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost').split(',');
+  app.enableCors({
+    origin: corsOrigins.map(o => o.trim()),
+    credentials: true,
+  });
+
   await ensureCanonicalSchema(dataSource);
 
   if (databaseConfig.autoSeed) {
     await runInitialSeed(dataSource);
   }
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`Server running on port ${port}`);
 }
 bootstrap();
