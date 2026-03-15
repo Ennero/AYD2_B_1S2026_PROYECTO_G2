@@ -1,4 +1,3 @@
-import { CargoType } from '../../server/src/infrastructure/database/typeorm/entities/cargo-type.entity';
 // ------- Enums de estado ---------
 
 export type OrderStatus =
