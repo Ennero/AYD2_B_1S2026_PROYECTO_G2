@@ -26,6 +26,9 @@ import Select from "@/components/ui/Select"
 import { useMemo, useState } from "react"
 import { UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { api } from "@/lib/api/client"
+import { ENDPOINTS } from "@/lib/api/endpoints"
+import { toast } from "sonner"
 
 type FormState = {
   nombre: string
@@ -40,11 +43,25 @@ type FormState = {
   lavadoDinero: string
 }
 
+type RiskLevel = "BAJO" | "MEDIO" | "ALTO" | "CRITICO"
+
+type CreateClientResponse = {
+  message: string
+  data: {
+    clientId: string
+    clientCode: string
+    legalName: string
+    nit: string
+    primaryContactEmail: string
+  }
+}
+
 export default function RegistrarClientePage() {
   const router = useRouter()
   const steps = useMemo(() => ["Datos Generales", "Datos Fiscales", "Perfil de Riesgo"], [])
   const [currentStep, setCurrentStep] = useState(0)
   const [successOpen, setSuccessOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState<FormState>({
     nombre: "",
@@ -81,11 +98,57 @@ export default function RegistrarClientePage() {
     []
   )
 
-  function handleSubmit() {
-    // TODO: integrar POST /api/v1/clientes cuando exista el endpoint.
-    // Por ahora solo es UI/flujo de pasos.
-    console.log("Registrar cliente:", form)
-    setSuccessOpen(true)
+  function toRiskLevel(value: string): RiskLevel {
+    const normalized = value.toLowerCase()
+    if (normalized === "bajo") return "BAJO"
+    if (normalized === "alto") return "ALTO"
+    return "MEDIO"
+  }
+
+  function paymentCapacityToRisk(value: string): RiskLevel {
+    const normalized = value.toLowerCase()
+    if (normalized === "alta") return "BAJO"
+    if (normalized === "baja") return "ALTO"
+    return "MEDIO"
+  }
+
+  async function handleSubmit() {
+    const nitSanitized = form.nit.replace(/\D/g, "")
+
+    if (!form.nombre || !form.correo || !form.razonSocial || !form.direccion) {
+      toast.error("Completa los campos obligatorios para registrar el cliente.")
+      return
+    }
+
+    if (!/^\d{13}$/.test(nitSanitized)) {
+      toast.error("El NIT debe tener exactamente 13 dígitos.")
+      return
+    }
+
+    if (!form.capacidadPago || !form.riesgoMercancia || !form.riesgoAduanas || !form.lavadoDinero) {
+      toast.error("Completa el perfil de riesgo antes de continuar.")
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await api.post<CreateClientResponse>(ENDPOINTS.CLIENTES.CREATE, {
+        legalName: form.razonSocial,
+        nit: nitSanitized,
+        taxAddress: form.direccion,
+        primaryContactName: form.nombre,
+        primaryContactEmail: form.correo,
+        primaryContactPhone: form.telefono || undefined,
+        paymentRisk: paymentCapacityToRisk(form.capacidadPago),
+        cargoRisk: toRiskLevel(form.riesgoMercancia),
+        customsRisk: toRiskLevel(form.riesgoAduanas),
+        amlRisk: toRiskLevel(form.lavadoDinero),
+      })
+
+      setSuccessOpen(true)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function goBack() {
@@ -230,7 +293,7 @@ export default function RegistrarClientePage() {
                 Siguiente
               </Button>
             ) : (
-              <Button type="button" onClick={handleSubmit}>
+              <Button type="button" onClick={handleSubmit} loading={isSubmitting}>
                 Registrar y Enviar Credenciales
               </Button>
             )}

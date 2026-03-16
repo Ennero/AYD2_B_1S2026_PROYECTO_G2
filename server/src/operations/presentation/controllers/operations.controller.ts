@@ -7,6 +7,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CreateContractUseCase } from '../../application/use-cases/create-contract.use-case';
+import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
+import { CreateClientDto } from '../dtos/create-client.dto';
 import { CreateContractDto } from '../dtos/create-contract.dto';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
@@ -25,7 +27,36 @@ import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.int
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(USER_ROLE.AGENTE_OPERATIVO)
 export class OperationsController {
-  constructor(private readonly createContractUseCase: CreateContractUseCase) {}
+  constructor(
+    private readonly createContractUseCase: CreateContractUseCase,
+    private readonly createClientUseCase: CreateClientUseCase,
+  ) {}
+
+  /**
+   * POST /api/operations/clients
+   *
+   * Registra un nuevo cliente para iniciar su ciclo comercial.
+   */
+  @Post('clients')
+  @HttpCode(HttpStatus.CREATED)
+  async createClient(@Body() dto: CreateClientDto) {
+    const data = await this.createClientUseCase.execute({
+      legalName: dto.legalName,
+      commercialName: dto.commercialName,
+      nit: dto.nit,
+      taxAddress: dto.taxAddress,
+      primaryContactName: dto.primaryContactName,
+      primaryContactEmail: dto.primaryContactEmail,
+      primaryContactPhone: dto.primaryContactPhone,
+      creditLimit: dto.creditLimit,
+      paymentRisk: dto.paymentRisk,
+      customsRisk: dto.customsRisk,
+      cargoRisk: dto.cargoRisk,
+      amlRisk: dto.amlRisk,
+    });
+
+    return { message: 'Cliente creado correctamente', data };
+  }
 
   /**
    * POST /api/operations/contracts
