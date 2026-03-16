@@ -21,8 +21,19 @@ export function useAuth() {
   /** Obtener perfil del usuario actual */
   const fetchUser = useCallback(async () => {
     try {
-      const response = await api.get<UserProfile>(ENDPOINTS.AUTH.ME, { silentError: true })
-      setUser(response.data)
+      // Extraer datos del JWT para no requerir endpoint extra, asumiendo JWT base64
+      const token = localStorage.getItem("access_token") || document.cookie.match(/(?:^|; )access_token=([^;]*)/)?.[1]
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        setUser({
+          id: payload.sub,
+          nombre: payload.fullName,
+          email: payload.email,
+          rol: payload.role.toLowerCase() as any
+        })
+      } else {
+        setUser(null)
+      }
     } catch {
       setUser(null)
     } finally {
@@ -36,9 +47,23 @@ export function useAuth() {
 
   /** Login con email y contraseña */
   const login = async (email: string, password: string) => {
-    const response = await api.post<LoginResponse>(ENDPOINTS.AUTH.LOGIN, { email, password }, { skipAuth: true })
-    setToken(response.data.access_token)
-    setUser(response.data.user)
+    // La respuesta real del backend es { message: string, data: { token, role, fullName, userId, sessionUuid } }
+    const response = await api.post<{ data: { token: string, role: string, fullName: string, userId: string } }>(
+      ENDPOINTS.AUTH.LOGIN, 
+      { email, password }, 
+      { skipAuth: true }
+    )
+    
+    const backendData = response.data.data
+    setToken(backendData.token)
+    
+    const userProfile = {
+      id: backendData.userId,
+      nombre: backendData.fullName,
+      email,
+      rol: backendData.role.toLowerCase() as any
+    }
+    setUser(userProfile)
 
     // Redirigir según el rol
     const roleRoutes: Record<string, string> = {
@@ -48,7 +73,7 @@ export function useAuth() {
       encargado_patio: "/encargado-patio",
       certificador_fel: "/certificador-fel",
     }
-    router.push(roleRoutes[response.data.user.rol] || "/")
+    router.push(roleRoutes[userProfile.rol] || "/")
   }
 
   /** Cerrar sesión */

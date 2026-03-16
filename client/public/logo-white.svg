@@ -1,0 +1,19 @@
+<svg width="400" height="120" viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logotipo Hexagonal C/Flecha -->
+  <g transform="translate(10, 10)">
+    <!-- Forma C exterior en White (adaptado para dark background) -->
+    <path d="M45 5 L85 25 L85 75 L45 95 L5 75 L5 25 Z" fill="none" stroke="white" stroke-width="8" stroke-linejoin="round"/>
+    
+    <!-- Forma interior flecha/casa en Bright Green (#53B73E) -->
+    <path d="M45 25 L65 37 L65 70 L55 70 L55 50 L35 50 L35 70 L25 70 L25 37 Z" fill="#53B73E"/>
+    
+    <!-- Círculo interior en Bright Green (#53B73E) -->
+    <circle cx="45" cy="58" r="8" fill="#53B73E"/>
+  </g>
+
+  <!-- Texto LogiTrans -->
+  <text x="110" y="55" font-family="Montserrat, sans-serif" font-weight="700" font-size="38" fill="#53B73E">Logi<tspan fill="white">Trans</tspan></text>
+  
+  <!-- Texto Guatemala, S.A. -->
+  <text x="115" y="85" font-family="Montserrat, sans-serif" font-weight="600" font-size="20" fill="white">Guatemala, S.A.</text>
+</svg>

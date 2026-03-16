@@ -1,7 +1,10 @@
 import {
   Controller,
+  Get,
   Post,
+  Patch,
   Body,
+  Param,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -9,7 +12,10 @@ import {
 import { CreateContractUseCase } from '../../application/use-cases/create-contract.use-case';
 import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
 import { CreateClientDto } from '../dtos/create-client.dto';
+import { ListCargasUseCase } from '../../application/use-cases/list-cargas.use-case';
+import { FormalizeCargaUseCase } from '../../application/use-cases/formalize-carga.use-case';
 import { CreateContractDto } from '../dtos/create-contract.dto';
+import { FormalizeCargaDto } from '../dtos/formalize-carga.dto';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
 import { Roles } from '../../../auth/presentation/decorators/roles.decorator';
@@ -25,11 +31,13 @@ import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.int
  */
 @Controller('api/operations')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(USER_ROLE.AGENTE_OPERATIVO)
+@Roles(USER_ROLE.AGENTE_OPERATIVO, USER_ROLE.ENCARGADO_PATIO)
 export class OperationsController {
   constructor(
     private readonly createContractUseCase: CreateContractUseCase,
     private readonly createClientUseCase: CreateClientUseCase,
+    private readonly listCargasUseCase: ListCargasUseCase,
+    private readonly formalizeCargaUseCase: FormalizeCargaUseCase,
   ) {}
 
   /**
@@ -86,5 +94,41 @@ export class OperationsController {
     );
 
     return { message: 'Contrato generado correctamente', data };
+  }
+
+  /**
+   * GET /api/operations/cargas
+   * Listar cargas pendientes y formalizadas para el Encargado de Patio.
+   */
+  @Get('cargas')
+  @Roles(USER_ROLE.ENCARGADO_PATIO)
+  @HttpCode(HttpStatus.OK)
+  async listCargas() {
+    const data = await this.listCargasUseCase.execute();
+    return { message: 'Cargas obtenidas', data };
+  }
+
+  /**
+   * PATCH /api/operations/cargas/:id/formalizar
+   * Formalizar una carga validada por el Encargado de Patio.
+   */
+  @Patch('cargas/:id/formalizar')
+  @Roles(USER_ROLE.ENCARGADO_PATIO)
+  @HttpCode(HttpStatus.OK)
+  async formalizeCarga(
+    @Param('id') orderId: string,
+    @Body() dto: FormalizeCargaDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    // DTO validation is handled globally if using ValidationPipe
+    // Fallbacks just in case
+    const data = await this.formalizeCargaUseCase.execute(
+      orderId,
+      dto.loadedWeightTon || 1,
+      dto.stowageConfirmed ?? true,
+      user.fullName,
+    );
+
+    return { message: 'Carga formalizada correctamente', data };
   }
 }

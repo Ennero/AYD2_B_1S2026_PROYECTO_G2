@@ -1,16 +1,16 @@
 import { Toaster } from "sonner"
-import Navbar from "@/components/layout/Navbar"
+import Sidebar from "@/components/layout/Sidebar"
 
 /**
- * Layout para roles con Navbar superior.
+ * Layout general para roles (ahora todos usan Sidebar).
  * Agente Operativo, Piloto, Agente Logístico.
  */
 export default function DashboardNavLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex overflow-hidden">
       <Toaster position="top-right" richColors />
-      <Navbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
         {children}
       </main>
     </div>

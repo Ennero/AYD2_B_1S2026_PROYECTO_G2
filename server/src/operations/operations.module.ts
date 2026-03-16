@@ -4,6 +4,8 @@ import { ClientFactory } from './application/factories/client.factory';
 import { CreateClientUseCase } from './application/use-cases/create-client.use-case';
 import { CreateContractUseCase } from './application/use-cases/create-contract.use-case';
 import { ClientsController } from './presentation/controllers/clients.controller';
+import { ListCargasUseCase } from './application/use-cases/list-cargas.use-case';
+import { FormalizeCargaUseCase } from './application/use-cases/formalize-carga.use-case';
 import { OperationsController } from './presentation/controllers/operations.controller';
 
 /**
@@ -19,7 +21,7 @@ import { OperationsController } from './presentation/controllers/operations.cont
  */
 @Module({
   imports: [NotificationsModule],
-  providers: [CreateContractUseCase, CreateClientUseCase, ClientFactory],
+  providers: [CreateContractUseCase, ListCargasUseCase, FormalizeCargaUseCase, CreateClientUseCase, ClientFactory],
   controllers: [OperationsController, ClientsController],
 })
 export class OperationsModule {}

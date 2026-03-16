@@ -34,15 +34,21 @@ interface ApiError {
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null
+  // Usamos api de document.cookie también para poder leer
+  const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/)
+  if (match) return match[1]
   return localStorage.getItem("access_token")
 }
 
 export function setToken(token: string): void {
   localStorage.setItem("access_token", token)
+  // Añadimos a cookies para que lo lea el middleware (30 días)
+  document.cookie = `access_token=${token}; path=/; max-age=${30 * 24 * 60 * 60}`
 }
 
 export function removeToken(): void {
   localStorage.removeItem("access_token")
+  document.cookie = "access_token=; path=/; max-age=0"
 }
 
 /* ---------- Core fetch wrapper ---------- */

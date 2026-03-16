@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
@@ -47,7 +48,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href={config?.items[0]?.href || "/"} className="flex items-center gap-2">
-            <span className="font-heading text-xl font-bold tracking-tight">LOGITRANS</span>
+            <Image src="/logo.svg" alt="LogiTrans" width={200} height={60} className="h-12 w-auto" priority />
           </Link>
 
           {/* Desktop nav items */}
