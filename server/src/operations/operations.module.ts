@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CreateContractUseCase } from './application/use-cases/create-contract.use-case';
+import { ListCargasUseCase } from './application/use-cases/list-cargas.use-case';
+import { FormalizeCargaUseCase } from './application/use-cases/formalize-carga.use-case';
 import { OperationsController } from './presentation/controllers/operations.controller';
 
 /**
@@ -16,7 +18,7 @@ import { OperationsController } from './presentation/controllers/operations.cont
  */
 @Module({
   imports: [NotificationsModule],
-  providers: [CreateContractUseCase],
+  providers: [CreateContractUseCase, ListCargasUseCase, FormalizeCargaUseCase],
   controllers: [OperationsController],
 })
 export class OperationsModule {}

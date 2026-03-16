@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -35,9 +36,15 @@ import { NotificationsModule } from '../notifications/notifications.module';
 @Module({
   imports: [
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secretKeyTemporario',
-      signOptions: { expiresIn: (process.env.JWT_EXPIRATION || '1d') as any },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'secretKeyTemporario',
+        signOptions: {
+          expiresIn: (configService.get<string>('JWT_EXPIRATION') || '1d') as any,
+        },
+      }),
     }),
     TypeOrmModule.forFeature([User, UserSession, PasswordRecoveryToken]),
     NotificationsModule,
