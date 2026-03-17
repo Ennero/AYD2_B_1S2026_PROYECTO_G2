@@ -992,7 +992,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>GET</td>
-      <td>/api/patio/orders</td>
+      <td>/api/operations/cargas</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_encargado_patio&gt;"
@@ -1004,16 +1004,17 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   }
 }</pre></td>
       <td><pre>{
-  "message": "Ordenes obtenidas correctamente",
+  "message": "Cargas obtenidas",
   "data": [
     {
-      "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
-      "orderNumber": "ORD-000085",
+      "id": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+      "codigo": "ORD-000085",
+      "unitId": "fbf1d967-9cde-4a10-b728-0e9493190a14",
+      "vehicleModel": "Hino 500 2021",
       "plateNumber": "HT44343",
-      "fullName": "Pablo Perez",
-      "origin": "Planta 3",
-      "destination": "Bodega Central",
-      "status": "ASIGNADA"
+      "origen": "Planta 3",
+      "destino": "Bodega Central",
+      "estado": "PENDIENTE"
     }
   ]
 }</pre></td>
@@ -1021,21 +1022,22 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/patio/orders/{ORDER_ID}/formalize</td>
+      <td>/api/operations/cargas/{ORDER_ID}/formalizar</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_encargado_patio&gt;"
   },
   "body": {
+    "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
     "loadedWeightTon": 10.2,
-    "stowageConfirmed": true,
-    "status": "LISTA_PARA_DESPACHO"
+    "stowageConfirmed": true
   }
 }</pre></td>
       <td><pre>{
-  "message": "Despacho autorizado",
+  "message": "Carga formalizada correctamente",
   "data": {
     "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+    "orderNumber": "ORD-000085",
     "status": "LISTA_PARA_DESPACHO"
   }
 }</pre></td>

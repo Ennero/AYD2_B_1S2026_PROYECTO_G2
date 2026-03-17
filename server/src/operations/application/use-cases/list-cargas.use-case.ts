@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
@@ -16,7 +16,6 @@ export class ListCargasUseCase {
       where: [
         { status: OrderStatus.ASIGNADA },
         { status: OrderStatus.LISTA_PARA_DESPACHO },
-        { status: OrderStatus.REGISTRADA } // También registradas por si no hay asignación aún
       ],
       relations: ['contractRoute', 'unit'],
       order: {
