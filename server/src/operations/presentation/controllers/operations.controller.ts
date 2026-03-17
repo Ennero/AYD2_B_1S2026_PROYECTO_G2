@@ -32,7 +32,7 @@ import { CreateClientDto } from '../dtos/create-client.dto';
  */
 @Controller('api/operations')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(USER_ROLE.AGENTE_OPERATIVO, USER_ROLE.ENCARGADO_PATIO)
+@Roles(USER_ROLE.AGENTE_OPERATIVO)
 export class OperationsController {
   constructor(
     private readonly createContractUseCase: CreateContractUseCase,
@@ -94,12 +94,10 @@ export class OperationsController {
     @Body() dto: FormalizeCargaDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    // DTO validation is handled globally if using ValidationPipe
-    // Fallbacks just in case
     const data = await this.formalizeCargaUseCase.execute(
       orderId,
-      dto.loadedWeightTon || 1,
-      dto.stowageConfirmed ?? true,
+      dto.loadedWeightTon,
+      dto.stowageConfirmed,
       user.fullName,
     );
 

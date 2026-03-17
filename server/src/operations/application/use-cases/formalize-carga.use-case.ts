@@ -32,6 +32,12 @@ export class FormalizeCargaUseCase {
         throw new BadRequestException(`La orden ${order.orderNumber} ya está formalizada y lista para despacho.`);
       }
 
+      if (order.status !== OrderStatus.ASIGNADA) {
+        throw new BadRequestException(
+          `La orden ${order.orderNumber} no puede formalizarse desde el estado ${order.status}.`,
+        );
+      }
+
       // Update order details
       order.loadedWeightTon = loadedWeightTon;
       order.stowageConfirmed = stowageConfirmed;

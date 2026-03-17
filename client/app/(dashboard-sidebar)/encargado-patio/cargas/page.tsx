@@ -229,7 +229,7 @@ export default function FormalizarCargasPage() {
                           disabled={isFormalizado}
                           className="w-20 px-3 py-1.5 text-center text-text-primary font-bold rounded bg-white shadow-inner disabled:opacity-80"
                         />
-                        <span className="text-sm font-bold">KG</span>
+                        <span className="text-sm font-bold">TON</span>
                       </div>
                     </div>
 
