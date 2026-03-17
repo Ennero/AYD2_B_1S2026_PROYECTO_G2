@@ -63,6 +63,6 @@ export const ENDPOINTS = {
     INVOICES: `/api/certifier/invoices`,
     VALIDATE_NIT: (id: string) => `/api/certifier/invoices/${id}/validate-nit`,
     CERTIFY: (id: string) => `/api/certifier/invoices/${id}/certify`,
-    RECHAZAR: (id: string) => `/api/certifier/invoices/${id}/rechazar`,
+    REJECT: (id: string) => `/api/certifier/invoices/${id}/reject`,
   },
 } as const

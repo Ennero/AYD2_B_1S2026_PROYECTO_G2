@@ -30,7 +30,7 @@ export class CertifierService {
   async getPendingInvoices() {
     return this.dataSource.getRepository(Invoice).find({
       where: { status: InvoiceStatus.BORRADOR },
-      select: ['invoiceId', 'invoiceNumber', 'clientName', 'clientNit', 'totalAmount', 'status'],
+      select: ['invoiceId', 'invoiceNumber', 'issueDate', 'clientName', 'clientNit', 'totalAmount', 'status'],
       order: { issueDate: 'ASC' },
     });
   }
@@ -39,8 +39,11 @@ export class CertifierService {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
 
-    // Basic mock validation, checking if they match
-    const isValid = invoice.clientNit === clientNit || clientNit.trim().length > 4;
+    const normalizedInputNit = clientNit.replace(/\D/g, '');
+    const normalizedInvoiceNit = invoice.clientNit.replace(/\D/g, '');
+    const hasValidFormat = /^\d{13}$/.test(normalizedInputNit);
+    const isValid = hasValidFormat && normalizedInputNit === normalizedInvoiceNit;
+
     return {
       invoiceId,
       clientNit,
@@ -48,11 +51,18 @@ export class CertifierService {
     };
   }
 
-  async certifyInvoice(invoiceId: string, felUuid: string) {
+  async certifyInvoice(invoiceId: string, felUuid: string, clientNit: string) {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
     if (invoice.status !== InvoiceStatus.BORRADOR) {
       throw new BadRequestException('La factura no esta en estado BORRADOR');
+    }
+
+    const nitValidation = await this.validateNit(invoiceId, clientNit);
+    if (!nitValidation.isValid) {
+      throw new BadRequestException(
+        'Debe validar correctamente el NIT del receptor antes de certificar la factura',
+      );
     }
 
     invoice.status = InvoiceStatus.CERTIFICADA;

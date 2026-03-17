@@ -15,7 +15,7 @@ import { invoiceTemplate, InvoiceTemplateData } from './templates/invoice.templa
  *
  * Orquesta los templates con el adaptador de envío (IEmailService).
  * Los módulos de dominio (Contratos, Órdenes, Facturación) inyectan
- * este servicio para disparar notificaciones sin conocer SES ni HTML.
+ * este servicio para disparar notificaciones sin conocer el proveedor externo ni HTML.
  *
  * @example
  *   constructor(private readonly emailService: EmailService) {}

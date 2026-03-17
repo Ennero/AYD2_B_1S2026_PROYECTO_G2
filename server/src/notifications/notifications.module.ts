@@ -9,11 +9,11 @@ import { EmailService } from './email/application/email.service';
  *
  * Agrupa toda la infraestructura de notificaciones salientes del sistema.
  * Actualmente expone:
- *   - EmailService  →  para notificar a clientes y agentes vía Amazon SES.
+ *   - EmailService  →  para notificar a clientes y agentes vía Resend.
  *
  * Diseño:
  *   El token EMAIL_SERVICE_TOKEN desacopla EmailService del adaptador concreto.
- *   Para cambiar de SES a SMTP (o un stub en tests) sólo se reemplaza el
+ *   Para cambiar de Resend a otro proveedor (o un stub en tests) solo se reemplaza el
  *   provider correspondiente, sin tocar ningún módulo de negocio.
  *
  * Uso en otros módulos:
