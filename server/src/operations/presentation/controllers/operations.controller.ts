@@ -23,7 +23,6 @@ import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.int
 import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
 import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
 import { CreateClientDto } from '../dtos/create-client.dto';
-import { Get, Query } from '@nestjs/common';
 
 /**
  * OperationsController — Endpoints del Agente Operativo.
