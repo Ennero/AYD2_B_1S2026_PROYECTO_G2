@@ -27,14 +27,13 @@ export class ListCargasUseCase {
     return orders.map(order => ({
       id: order.orderId,
       codigo: order.orderNumber,
-      // Map mock data if real data is missing until relationships are fully seeded
-      piloto: "Piloto Asignado", // TODO: join with transport unit driver
-      vehiculo: order.unit?.plateNumber || "Pendiente de Asignación",
+      unitId: order.unitId,
+      vehicleModel: order.unit?.vehicleModel || 'Modelo no disponible',
+      plateNumber: order.unit?.plateNumber || 'Pendiente de Asignación',
       fecha: order.requestedAt.toLocaleDateString('es-GT'),
       origen: order.origin || order.pickupAddress,
       destino: order.destination || order.deliveryAddress,
       estado: order.status === OrderStatus.LISTA_PARA_DESPACHO ? 'FORMALIZADO' : 'PENDIENTE',
-      idOrden: order.orderNumber.replace(/[^0-9]/g, '').substring(0, 4) || "0",
       peso: order.loadedWeightTon || 0,
       estibaValida: order.stowageConfirmed || false,
     }));

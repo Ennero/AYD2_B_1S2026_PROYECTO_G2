@@ -10,6 +10,7 @@ export const ENDPOINTS = {
   // ── Auth ──────────────────────────────────
   AUTH: {
     LOGIN: `${API_VERSION}/auth/login`,
+    LOGOUT: `${API_VERSION}/auth/logout`,
     REGISTER: `${API_VERSION}/auth/register`,
     FORGOT_PASSWORD: `${API_VERSION}/auth/forgot-password`,
     REFRESH: `${API_VERSION}/auth/refresh`,

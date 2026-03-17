@@ -82,6 +82,7 @@ async function request<T>(
   try {
     const response = await fetch(url, {
       ...fetchOptions,
+      credentials: "include",
       headers,
       body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     })

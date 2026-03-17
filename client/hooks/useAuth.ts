@@ -78,10 +78,16 @@ export function useAuth() {
   }
 
   /** Cerrar sesión */
-  const logout = () => {
-    removeToken()
-    setUser(null)
-    router.push("/login")
+  const logout = async () => {
+    try {
+      await api.post(ENDPOINTS.AUTH.LOGOUT, {}, { silentError: true })
+    } catch {
+      // No bloqueamos el cierre local si la revocación remota falla.
+    } finally {
+      removeToken()
+      setUser(null)
+      router.push("/login")
+    }
   }
 
   return { user, loading, login, logout, refetch: fetchUser }

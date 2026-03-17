@@ -13,13 +13,13 @@ import { api } from "@/lib/api/client"
 type CargaReal = {
   id: string
   codigo: string
-  piloto: string
-  vehiculo: string
+  unitId: string | null
+  vehicleModel: string
+  plateNumber: string
   fecha: string
   origen: string
   destino: string
   estado: "PENDIENTE" | "FORMALIZADO"
-  idOrden: string
   peso: string
   estibaValida: boolean
 }
@@ -53,15 +53,16 @@ export default function FormalizarCargasPage() {
   }, [])
 
   const handleFormalizar = async (id: string, carga: CargaReal) => {
-    if (!carga.idOrden || parseFloat(carga.peso) <= 0 || !carga.estibaValida) {
-      toast.error("Debes completar ID Orden, Peso > 0 y tickar Estiba Válida")
+    const weight = Number(carga.peso)
+    if (!carga.unitId || !Number.isFinite(weight) || weight <= 0 || !carga.estibaValida) {
+      toast.error("Debes tener unit_id asignado, registrar peso > 0 y validar estiba")
       return
     }
 
     try {
       const response = await api.patch(`/api/operations/cargas/${id}/formalizar`, {
         orderId: id,
-        loadedWeightTon: parseFloat(carga.peso),
+        loadedWeightTon: weight,
         stowageConfirmed: carga.estibaValida
       })
 
@@ -154,6 +155,7 @@ export default function FormalizarCargasPage() {
       <div className="space-y-12 mt-10">
         {cargas.map((carga) => {
           const isFormalizado = carga.estado === "FORMALIZADO"
+          const hasAssignedUnit = Boolean(carga.unitId)
 
           return (
             <div key={carga.id} className="relative">
@@ -187,9 +189,9 @@ export default function FormalizarCargasPage() {
                   {/* Info Header */}
                   <div className="lg:col-span-9 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left mb-4 sm:mb-0">
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Piloto</p>
-                      <p className="font-bold text-lg">{carga.piloto}</p>
-                      <p className="text-xs text-white/70">{carga.vehiculo}</p>
+                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Unidad Asignada</p>
+                      <p className="font-bold text-lg">{carga.vehicleModel}</p>
+                      <p className="text-xs text-white/70">Placa: {carga.plateNumber}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Fecha</p>
@@ -208,13 +210,12 @@ export default function FormalizarCargasPage() {
                   {/* Action Row - Inputs and buttons */}
                   <div className="lg:col-span-12 flex flex-wrap items-center justify-center lg:justify-end gap-x-6 gap-y-4 pt-4 border-t border-white/10 mt-2">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">ID de Orden:</span>
+                      <span className="text-sm font-medium">unit_id:</span>
                       <input 
                         type="text" 
-                        value={carga.idOrden}
-                        onChange={(e) => updateCargaField(carga.id, 'idOrden', e.target.value)}
-                        disabled={isFormalizado}
-                        className="w-20 px-3 py-1.5 text-center text-text-primary font-bold rounded bg-white shadow-inner disabled:opacity-80"
+                        value={carga.unitId ?? "SIN ASIGNAR"}
+                        readOnly
+                        className="w-48 px-3 py-1.5 text-center text-text-primary font-bold rounded bg-white shadow-inner disabled:opacity-80"
                       />
                     </div>
 
@@ -249,11 +250,11 @@ export default function FormalizarCargasPage() {
                     </div>
 
                     <Button 
-                      disabled={isFormalizado}
+                      disabled={isFormalizado || !hasAssignedUnit}
                       onClick={() => handleFormalizar(carga.id, carga)}
                       className={cn(
                         "font-bold py-2.5 px-6 rounded shadow-md transition-all",
-                        isFormalizado 
+                        isFormalizado || !hasAssignedUnit
                           ? "bg-white/20 text-white/50 border border-white/10 cursor-not-allowed hover:bg-white/20 hover:text-white/50" 
                           : "bg-[#DBCFB0] text-text-primary hover:bg-[#c9bea1]"
                       )}
