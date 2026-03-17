@@ -11,6 +11,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { OperationsModule } from './operations/operations.module';
 import { LogisticsModule } from './logistics/logistics.module';
 import { CertifierModule } from './certifier/certifier.module';
+import { PilotModule } from './pilot/pilot.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CertifierModule } from './certifier/certifier.module';
     OperationsModule,
     LogisticsModule,
     CertifierModule,
+    PilotModule
   ],
   controllers: [AppController],
   providers: [AppService],

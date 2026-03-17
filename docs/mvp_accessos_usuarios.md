@@ -15,15 +15,15 @@ Ejemplo:
 
 ## Top 7 usuarios recomendados para pruebas
 
-| Rol | Nombre | Email | Password seed | Uso sugerido MVP |
-|---|---|---|---|---|
-| ADMIN | Sofia Calderon | admin@logitrans.gt | seed$admin@logitrans.gt | Validaciones globales y diagnostico transversal |
-| AGENTE_OPERATIVO | Andrea Solares | operativo.1@logitrans.gt | seed$operativo.1@logitrans.gt | Alta de clientes, contratos y flujo comercial |
-| AGENTE_LOGISTICO | Karla Menendez | logistica.1@logitrans.gt | seed$logistica.1@logitrans.gt | Planificacion y asignacion de ordenes |
-| ENCARGADO_PATIO | Mario Caal | patio.1@logitrans.gt | seed$patio.1@logitrans.gt | Registro en patio, validacion y despacho |
-| AGENTE_FINANCIERO | Silvia Monterroso | finanzas.1@logitrans.gt | seed$finanzas.1@logitrans.gt | Flujo FEL (borrador, validar NIT, certificar/rechazar) |
-| GERENCIA | Ricardo Solis | gerencia@logitrans.gt | seed$gerencia@logitrans.gt | Dashboard BI y revision de KPIs |
-| PILOTO | Carlos Mendez | piloto.01@logitrans.gt | seed$piloto.01@logitrans.gt | Monitoreo de viaje, bitacora y entrega |
+| Rol               | Nombre            | Email                    | Password seed                 | Uso sugerido MVP                                       |
+| ----------------- | ----------------- | ------------------------ | ----------------------------- | ------------------------------------------------------ |
+| ADMIN             | Sofia Calderon    | admin@logitrans.gt       | seed$admin@logitrans.gt       | Validaciones globales y diagnostico transversal        |
+| AGENTE_OPERATIVO  | Andrea Solares    | operativo.1@logitrans.gt | seed$operativo.1@logitrans.gt | Alta de clientes, contratos y flujo comercial          |
+| AGENTE_LOGISTICO  | Karla Menendez    | logistica.1@logitrans.gt | seed$logistica.1@logitrans.gt | Planificacion y asignacion de ordenes                  |
+| ENCARGADO_PATIO   | Mario Caal        | patio.1@logitrans.gt     | seed$patio.1@logitrans.gt     | Registro en patio, validacion y despacho               |
+| AGENTE_FINANCIERO | Silvia Monterroso | finanzas.1@logitrans.gt  | seed$finanzas.1@logitrans.gt  | Flujo FEL (borrador, validar NIT, certificar/rechazar) |
+| GERENCIA          | Ricardo Solis     | gerencia@logitrans.gt    | seed$gerencia@logitrans.gt    | Dashboard BI y revision de KPIs                        |
+| PILOTO            | Carlos Mendez     | piloto.01@logitrans.gt   | seed$piloto.01@logitrans.gt   | Monitoreo de viaje, bitacora y entrega                 |
 
 ## Usuario cliente recomendado
 
