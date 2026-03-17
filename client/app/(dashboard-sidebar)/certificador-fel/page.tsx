@@ -1,22 +1,37 @@
 "use client"
 
-import Link from "next/link"
+import Link from "next/link";
 import { Clock as ClockIcon, ShieldCheck, CheckCircle, FileText } from 'lucide-react';
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api/client";
+import { ENDPOINTS } from "@/lib/api/endpoints";
+import { CertifierSummary } from "@/lib/api/types";
 
 export default function CertificadorFelPage() {
   const [time, setTime] = useState(new Date())
   const [mounted, setMounted] = useState(false)
-
-  // Datos simulados para Fase 1
-  const summary = {
-    pending: 14,
-    certifiedToday: 42,
-  }
+  const [loading, setLoading] = useState(true)
+  const [summary, setSummary] = useState<CertifierSummary>({
+    pendingInvoices: 0,
+    certifiedCount: 0,
+  })
 
   useEffect(() => {
     setMounted(true)
     const timer = setInterval(() => setTime(new Date()), 1000)
+    
+    const fetchSummary = async () => {
+      try {
+        const response = await api.get<{ data: CertifierSummary }>(ENDPOINTS.CERTIFIER.SUMMARY)
+        setSummary(response.data.data)
+      } catch (error) {
+        console.error("Error fetching summary:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSummary()
     return () => clearInterval(timer)
   }, [])
 
@@ -70,7 +85,7 @@ export default function CertificadorFelPage() {
           <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
              <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Documentos Pendientes</div>
              <div className="flex flex-col items-center">
-                 <div className="text-7xl font-heading font-extrabold text-[#0A3B7C]">{summary.pending}</div>
+                 <div className="text-7xl font-heading font-extrabold text-[#0A3B7C]">{summary.pendingInvoices}</div>
                  <div className="w-12 h-1.5 bg-[#53B73E]/20 rounded-full mt-4"></div>
              </div>
              <p className="text-[#64748B] text-base mt-2">En cola de revisión</p>
@@ -79,7 +94,7 @@ export default function CertificadorFelPage() {
           <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
              <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Certificados Hoy</div>
              <div className="flex flex-col items-center">
-                 <div className="text-7xl font-heading font-extrabold text-[#53B73E]">{summary.certifiedToday}</div>
+                 <div className="text-7xl font-heading font-extrabold text-[#53B73E]">{summary.certifiedCount}</div>
                  <div className="w-12 h-1.5 bg-[#0A3B7C]/10 rounded-full mt-4"></div>
              </div>
              <div className="flex items-center gap-2 text-[#53B73E] font-medium text-base">

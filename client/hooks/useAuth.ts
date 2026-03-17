@@ -67,11 +67,12 @@ export function useAuth() {
 
     // Redirigir según el rol
     const roleRoutes: Record<string, string> = {
-      agente_operativo: "/agente-operativo",
-      piloto: "/piloto",
-      agente_logistico: "/agente-logistico",
-      encargado_patio: "/encargado-patio",
-      certificador_fel: "/certificador-fel",
+      ADMIN: "/certificador-fel",
+      AGENTE_OPERATIVO: "/agente-operativo",
+      PILOTO: "/piloto",
+      AGENTE_LOGISTICO: "/agente-logistico",
+      ENCARGADO_PATIO: "/encargado-patio",
+      CLIENTE: "/cliente",
     }
     router.push(roleRoutes[userProfile.rol] || "/")
   }

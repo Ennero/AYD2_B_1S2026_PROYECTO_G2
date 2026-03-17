@@ -7,8 +7,17 @@ import Input from "@/components/ui/Input"
 import Modal from "@/components/ui/Modal"
 import Select from "@/components/ui/Select"
 import { useMemo, useState } from "react"
-import { UserCheck } from "lucide-react"
+import { UserCheck, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { api } from "@/lib/api/client"
+import { ENDPOINTS } from "@/lib/api/endpoints"
+import { toast } from "sonner"
+
+enum RiskLevel {
+  BAJO = 'BAJO',
+  MEDIO = 'MEDIO',
+  ALTO = 'ALTO',
+}
 
 type FormState = {
   nombre: string
@@ -57,16 +66,42 @@ export default function RegistrarClientePage() {
 
   const capacidadPagoOptions = useMemo(
     () => [
-      { value: "baja", label: "Baja" },
-      { value: "media", label: "Media" },
-      { value: "alta", label: "Alta" },
+      { value: "bajo", label: "Baja" },
+      { value: "medio", label: "Media" },
+      { value: "alto", label: "Alta" },
     ],
     []
   )
 
-  function handleSubmit() {
-    console.log("Registrar cliente:", form)
-    setSuccessOpen(true)
+  const [loading, setLoading] = useState(false)
+
+  async function handleSubmit() {
+    if (!form.razonSocial || !form.nit || !form.nombre || !form.correo) {
+        return toast.error("Por favor completa los campos obligatorios")
+    }
+
+    setLoading(true)
+    try {
+      const payload = {
+        legalName: form.razonSocial,
+        nit: form.nit,
+        taxAddress: form.direccion || "Ciudad",
+        primaryContactName: form.nombre,
+        primaryContactEmail: form.correo,
+        primaryContactPhone: form.telefono,
+        paymentRisk: (form.capacidadPago || "medio").toUpperCase() as RiskLevel,
+        customsRisk: (form.riesgoAduanas || "medio").toUpperCase() as RiskLevel,
+        cargoRisk: (form.riesgoMercancia || "medio").toUpperCase() as RiskLevel,
+        amlRisk: (form.lavadoDinero || "medio").toUpperCase() as RiskLevel,
+      }
+      
+      await api.post(ENDPOINTS.CLIENTES.CREATE, payload)
+      setSuccessOpen(true)
+    } catch (error) {
+      console.error("Failed to register client:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   function goBack() {
@@ -221,7 +256,12 @@ export default function RegistrarClientePage() {
                   Siguiente
                 </Button>
               ) : (
-                <Button type="button" onClick={handleSubmit} className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] px-10">
+                <Button 
+                  type="button" 
+                  onClick={handleSubmit} 
+                  className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] px-10"
+                  loading={loading}
+                >
                   Registrar Cliente
                 </Button>
               )}
