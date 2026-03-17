@@ -15,45 +15,45 @@ const statusConfig: Record<
 > = {
   EN_TRANSITO: {
     label: "En Tránsito",
-    badgeCls: "bg-accent text-primary border border-primary/30",
+    badgeCls: "bg-accent text-primary font-black border-2 border-primary/40",
     btnLabel: "Actualizar Bitácora",
-    btnCls: "bg-warning hover:bg-yellow-400 text-yellow-900",
+    btnCls: "bg-warning text-yellow-900 font-black border-2 border-yellow-600 hover:bg-yellow-400 shadow-lg",
   },
   LISTA_PARA_DESPACHO: {
     label: "Listo para Despacho",
-    badgeCls: "bg-warning text-yellow-900 border border-yellow-600/30",
+    badgeCls: "bg-warning text-yellow-900 font-black border-2 border-yellow-600",
     btnLabel: "Empezar Viaje",
-    btnCls: "bg-secondary hover:bg-primary text-white",
+    btnCls: "bg-white text-primary font-black border-2 border-white hover:bg-gray-100 shadow-lg",
   },
   REGISTRADA: {
     label: "Registrada",
-    badgeCls: "bg-gray-200 text-text-muted border border-gray-300",
+    badgeCls: "bg-gray-100 text-gray-700 font-black border-2 border-gray-400",
     btnLabel: "Ver Detalle",
-    btnCls: "bg-primary hover:bg-primary-hover text-white",
+    btnCls: "bg-white text-primary font-black border-2 border-white hover:bg-gray-100 shadow-lg",
   },
   ASIGNADA: {
     label: "Asignada",
-    badgeCls: "bg-blue-100 text-blue-800 border border-blue-300",
+    badgeCls: "bg-blue-200 text-blue-900 font-black border-2 border-blue-400",
     btnLabel: "Ver Detalle",
-    btnCls: "bg-primary hover:bg-primary-hover text-white",
+    btnCls: "bg-white text-primary font-black border-2 border-white hover:bg-gray-100 shadow-lg",
   },
   ENTREGADA: {
     label: "Entregada",
-    badgeCls: "bg-green-100 text-green-800 border border-green-300",
+    badgeCls: "bg-green-200 text-green-900 font-black border-2 border-green-500",
     btnLabel: "Ver Detalle",
-    btnCls: "bg-primary hover:bg-primary-hover text-white",
+    btnCls: "bg-white text-primary font-black border-2 border-white hover:bg-gray-100 shadow-lg",
   },
   BLOQUEADA: {
     label: "Bloqueada",
-    badgeCls: "bg-red-100 text-red-800 border border-red-300",
+    badgeCls: "bg-red-200 text-red-900 font-black border-2 border-red-500",
     btnLabel: "Ver Detalle",
-    btnCls: "bg-text-muted cursor-not-allowed text-white opacity-70",
+    btnCls: "bg-gray-400 text-white font-black border-2 border-gray-500 cursor-not-allowed opacity-70",
   },
   CANCELADA: {
     label: "Cancelada",
-    badgeCls: "bg-gray-200 text-text-muted border border-gray-400",
+    badgeCls: "bg-gray-200 text-gray-700 font-black border-2 border-gray-400",
     btnLabel: "Ver Detalle",
-    btnCls: "bg-text-muted cursor-not-allowed text-white opacity-70",
+    btnCls: "bg-gray-400 text-white font-black border-2 border-gray-500 cursor-not-allowed opacity-70",
   },
 }
 
@@ -73,12 +73,12 @@ export default function ViajeCard({ viaje, onAbrir }: ViajeCardProps) {
     : "—"
 
   return (
-    <div className="relative bg-primary rounded-2xl shadow-lg mt-6">
+    <div className="relative bg-primary rounded-2xl shadow-xl mt-6 border border-primary-hover">
 
       {/* Badge de estado centrado arriba */}
-      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
         <span className={cn(
-          "font-bold px-6 py-1 rounded-full text-sm shadow whitespace-nowrap",
+          "px-6 py-1.5 rounded-full text-sm shadow-md whitespace-nowrap",
           cfg.badgeCls
         )}>
           {cfg.label}
@@ -86,59 +86,89 @@ export default function ViajeCard({ viaje, onAbrir }: ViajeCardProps) {
       </div>
 
       {/* Contenedor flex horizontal */}
-      <div className="flex flex-col md:flex-row items-stretch p-4 pt-6">
+      <div className="flex flex-col md:flex-row items-stretch p-5 pt-7 gap-0">
 
         {/* Columna izquierda: Avatar + ID + Cliente */}
-        <div className="w-full md:w-1/4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-primary-hover pb-4 md:pb-0 md:pr-4 gap-2">
-          <div className="bg-blue-400 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-md border-2 border-white">
-            <User size={28} />
+        <div className="w-full md:w-1/4 flex flex-col items-center justify-center
+                        border-b-2 md:border-b-0 md:border-r-2 border-white/20
+                        pb-4 md:pb-0 md:pr-5 gap-3">
+
+          {/* Avatar con anillo */}
+          <div className="bg-white/20 text-white rounded-full w-16 h-16 flex items-center
+                          justify-center shadow-lg border-2 border-white/40 backdrop-blur-sm">
+            <User size={30} className="text-white" />
           </div>
-          <span className="text-white font-bold text-sm tracking-wide">
+
+          {/* Número de orden */}
+          <span className="text-white font-black text-sm tracking-widest uppercase">
             {viaje.orderNumber}
           </span>
-          <div className="w-full bg-surface text-primary font-black py-2 px-3 rounded text-center text-sm shadow-inner">
+
+          {/* Nombre del cliente — fondo surface para contraste */}
+          <div className="w-full bg-surface text-primary font-black py-2.5 px-3
+                          rounded-lg text-center text-sm shadow-inner border border-surface">
             {viaje.clientName ?? "Cliente"}
           </div>
         </div>
 
         {/* Columna derecha: datos de ruta + botón */}
-        <div className="w-full md:w-3/4 flex flex-wrap md:flex-nowrap justify-between items-center text-white px-2 md:px-6 pt-4 md:pt-0 gap-4 text-center">
+        <div className="w-full md:w-3/4 flex flex-wrap md:flex-nowrap justify-between
+                        items-center text-white px-2 md:px-6 pt-4 md:pt-0 gap-3 text-center">
 
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <CalendarDays size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Fecha</p>
-            <p className="font-semibold text-sm">{fechaFormateada}</p>
+          {/* Fecha */}
+          <div className="flex flex-col items-center gap-1 min-w-[65px]">
+            <CalendarDays size={16} className="text-accent" />
+            <p className="text-[10px] text-accent tracking-widest font-black uppercase">Fecha</p>
+            <p className="font-bold text-sm text-white">{fechaFormateada}</p>
           </div>
 
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <MapPin size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Origen</p>
-            <p className="font-semibold text-sm leading-tight">{viaje.origin}</p>
+          {/* Separador vertical */}
+          <div className="hidden md:block w-px h-10 bg-white/20" />
+
+          {/* Origen */}
+          <div className="flex flex-col items-center gap-1 min-w-[70px]">
+            <MapPin size={16} className="text-accent" />
+            <p className="text-[10px] text-accent tracking-widest font-black uppercase">Origen</p>
+            <p className="font-bold text-sm leading-tight text-white">{viaje.origin}</p>
           </div>
 
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <MapPin size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Destino</p>
-            <p className="font-semibold text-sm leading-tight">{viaje.destination}</p>
+          {/* Separador */}
+          <div className="hidden md:block w-px h-10 bg-white/20" />
+
+          {/* Destino */}
+          <div className="flex flex-col items-center gap-1 min-w-[70px]">
+            <MapPin size={16} className="text-accent" />
+            <p className="text-[10px] text-accent tracking-widest font-black uppercase">Destino</p>
+            <p className="font-bold text-sm leading-tight text-white">{viaje.destination}</p>
           </div>
 
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <Package size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Tipo</p>
-            <p className="font-semibold text-sm leading-tight">{viaje.cargoType ?? "—"}</p>
+          {/* Separador */}
+          <div className="hidden md:block w-px h-10 bg-white/20" />
+
+          {/* Tipo */}
+          <div className="flex flex-col items-center gap-1 min-w-[70px]">
+            <Package size={16} className="text-accent" />
+            <p className="text-[10px] text-accent tracking-widest font-black uppercase">Tipo</p>
+            <p className="font-bold text-sm leading-tight text-white">{viaje.cargoType ?? "—"}</p>
           </div>
 
-          <div className="flex flex-col items-center gap-1 min-w-[50px]">
-            <Weight size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Peso</p>
-            <p className="font-semibold text-lg">{pesoDisplay}</p>
+          {/* Separador */}
+          <div className="hidden md:block w-px h-10 bg-white/20" />
+
+          {/* Peso */}
+          <div className="flex flex-col items-center gap-1 min-w-[55px]">
+            <Weight size={16} className="text-accent" />
+            <p className="text-[10px] text-accent tracking-widest font-black uppercase">Peso</p>
+            <p className="font-black text-xl text-white">{pesoDisplay}</p>
           </div>
 
-          <div className="flex items-center">
+          {/* Botón de acción — bien diferenciado del fondo */}
+          <div className="flex items-center ml-auto">
             <button
               onClick={onAbrir}
               className={cn(
-                "font-bold py-2 px-4 rounded text-sm shadow-md transition-all hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap",
+                "py-2.5 px-5 rounded-xl text-sm transition-all hover:-translate-y-0.5",
+                "active:translate-y-0 whitespace-nowrap",
                 cfg.btnCls
               )}
             >
