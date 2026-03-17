@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils/cn"
+import { useAuth } from "@/hooks/useAuth"
 import type { NavItem } from "@/types"
 
 /** Configuración de navegación por rol */
@@ -37,6 +38,7 @@ const NAV_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
 export default function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { logout } = useAuth()
 
   // Detectar rol activo por la URL
   const activeRole = Object.keys(NAV_CONFIG).find((role) => pathname.startsWith(`/${role}`))
@@ -78,6 +80,7 @@ export default function Navbar() {
             )}
             {/** Aquí implementar UserMenu con nombre del usuario logueado */}
             <button
+              onClick={() => void logout()}
               className="text-white/80 hover:text-white transition-colors cursor-pointer"
               title="Cerrar sesión"
             >
@@ -113,7 +116,10 @@ export default function Navbar() {
               {item.label}
             </Link>
           ))}
-          <button className="w-full text-left px-4 py-2 text-white/80 hover:text-white text-sm cursor-pointer">
+          <button
+            onClick={() => void logout()}
+            className="w-full text-left px-4 py-2 text-white/80 hover:text-white text-sm cursor-pointer"
+          >
             Cerrar sesión
           </button>
         </div>

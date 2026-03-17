@@ -11,7 +11,7 @@ export default function EncargadoPatioPage() {
 
   // Fake fallback name just in case the backend hasn't loaded 
   // or user obj is slightly different shape
-  const fallbackName = user ? (user.nombre || user.email?.split("@")[0] || "Encargado") : "Marcos Bukele"
+  const fallbackName = user ? (user.fullName || user.email?.split("@")[0] || "Encargado") : "Marcos Bukele"
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] w-full max-w-4xl mx-auto px-4 py-8 relative">

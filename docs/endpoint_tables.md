@@ -81,12 +81,12 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   }
 }</pre></td>
       <td><pre>{
-  "message": "Correo con token unico enviado correctamente",
+  "message": "Correo con token unico enviado correctamente (via Resend)",
   "data": {
     "expiresInMinutes": 30
   }
 }</pre></td>
-      <td>Busca el usuario por <strong>USERS.EMAIL</strong>.<br>Inserta un registro en <strong>PASSWORD_RECOVERY_TOKENS</strong> con <strong>TOKEN_HASH</strong>, <strong>EXPIRES_AT</strong> y <strong>USER_ID</strong>.<br>El token real se envia por correo; no se guarda en texto plano.</td>
+      <td>Busca el usuario por <strong>USERS.EMAIL</strong>.<br>Inserta un registro en <strong>PASSWORD_RECOVERY_TOKENS</strong> con <strong>TOKEN_HASH</strong>, <strong>EXPIRES_AT</strong> y <strong>USER_ID</strong>.<br>El token real se envia por correo mediante <strong>Resend</strong>; no se guarda en texto plano.</td>
     </tr>
     <tr>
       <td>POST</td>
@@ -1492,7 +1492,8 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_certificador&gt;"
   },
   "body": {
-    "felUuid": "3C7D8A4E-3D23-4ED8-B410-ABC123456789"
+    "felUuid": "3C7D8A4E-3D23-4ED8-B410-ABC123456789",
+    "clientNit": "1234567890123"
   }
 }</pre></td>
       <td><pre>{
@@ -1504,7 +1505,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "certifiedAt": "2026-04-02T08:40:00Z"
   }
 }</pre></td>
-      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Debe ejecutarse solo despues de validar el NIT del receptor.<br>Es la base para el KPI del panel FEL.</td>
+      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Requiere <strong>clientNit</strong> valido y coincidente con la factura para poder certificar.<br>Es la base para el KPI del panel FEL.</td>
     </tr>
     <tr>
       <td>PATCH</td>

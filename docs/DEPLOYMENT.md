@@ -115,6 +115,10 @@ JWT_SECRET=generate_with_openssl_rand_base64_32
 # CORS (For your production domain)
 CORS_ORIGINS=https://app.example.com,https://www.example.com
 
+# Transactional Email (Resend)
+RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
+EMAIL_FROM=no-reply@logitrans.gt
+
 # Logging
 DB_LOGGING=false
 ```

@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
 import { DataSource, EntityManager, In } from 'typeorm';
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
@@ -306,6 +307,16 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
     phone: '+50241000114',
     role: UserRole.PILOTO,
   },
+];
+
+const MVP_PRIORITY_USER_EMAILS: string[] = [
+  'admin@logitrans.gt',
+  'operativo.1@logitrans.gt',
+  'logistica.1@logitrans.gt',
+  'patio.1@logitrans.gt',
+  'finanzas.1@logitrans.gt',
+  'gerencia@logitrans.gt',
+  'piloto.01@logitrans.gt',
 ];
 
 const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
@@ -1101,8 +1112,8 @@ export class DatabaseSeeder {
         counts: {
           clients: clients.length,
           users: internalUsers.length + clientUsers.length,
-          sessions: Math.min(internalUsers.length + clientUsers.length, 24),
-          recoveryTokens: 10,
+          sessions: await manager.getRepository(UserSession).count(),
+          recoveryTokens: await manager.getRepository(PasswordRecoveryToken).count(),
           contacts: CLIENT_BLUEPRINTS.reduce(
             (total, blueprint) => total + blueprint.contactPeople.length,
             0,
@@ -1159,18 +1170,20 @@ export class DatabaseSeeder {
 
   private async seedInternalUsers(manager: EntityManager): Promise<User[]> {
     const repository = manager.getRepository(User);
-    await repository.save(
-      INTERNAL_USERS.map((user) =>
-        repository.create({
+    const usersToCreate = await Promise.all(
+      INTERNAL_USERS.map(async (user) => {
+        const passwordHash = await bcrypt.hash(`seed$${user.email}`, 10);
+        return repository.create({
           role: user.role,
           fullName: user.fullName,
           email: user.email,
-          passwordHash: `seed$${user.email}`,
+          passwordHash,
           phone: user.phone,
           isActive: true,
-        }),
-      ),
+        });
+      }),
     );
+    await repository.save(usersToCreate);
 
     return repository.find({
       where: { email: In(INTERNAL_USERS.map((user) => user.email)) },
@@ -1212,18 +1225,21 @@ export class DatabaseSeeder {
     const repository = manager.getRepository(User);
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
 
-    const clientUsers = CLIENT_BLUEPRINTS.map((client) => {
-      const entity = mustFind(clientByNit.get(client.nit), client.legalName);
-      return repository.create({
-        clientId: entity.clientId,
-        role: UserRole.CLIENTE,
-        fullName: `${client.primaryContactName} Portal`,
-        email: `portal.${client.key}@clientes.logitrans.gt`,
-        passwordHash: `seed$portal.${client.key}`,
-        phone: client.primaryContactPhone,
-        isActive: true,
-      });
-    });
+    const clientUsers = await Promise.all(
+      CLIENT_BLUEPRINTS.map(async (client) => {
+        const entity = mustFind(clientByNit.get(client.nit), client.legalName);
+        const passwordHash = await bcrypt.hash(`seed$portal.${client.key}`, 10);
+        return repository.create({
+          clientId: entity.clientId,
+          role: UserRole.CLIENTE,
+          fullName: `${client.primaryContactName} Portal`,
+          email: `portal.${client.key}@clientes.logitrans.gt`,
+          passwordHash,
+          phone: client.primaryContactPhone,
+          isActive: true,
+        });
+      })
+    );
 
     await repository.save(clientUsers);
 
@@ -1411,7 +1427,7 @@ export class DatabaseSeeder {
   ): Promise<void> {
     const repository = manager.getRepository(UserSession);
     const sessionUsers = users.slice(0, 24);
-    const sessions = sessionUsers.map((user, index) => {
+    const baseSessions = sessionUsers.map((user, index) => {
       const createdAt = daysFromNow(-(index + 2));
       const lastUsedAt = hoursAfter(createdAt, 12 + index);
       const deletedAt = index % 7 === 0 ? hoursAfter(lastUsedAt, 6) : null;
@@ -1433,7 +1449,53 @@ export class DatabaseSeeder {
       });
     });
 
-    await repository.save(sessions);
+    const priorityUsers = users.filter((user) =>
+      MVP_PRIORITY_USER_EMAILS.includes(user.email),
+    );
+
+    const prioritySessions = priorityUsers.flatMap((user, index) => {
+      const activeCreatedAt = daysFromNow(-(index + 1));
+      const activeLastUsedAt = hoursAfter(activeCreatedAt, 3 + index);
+
+      const closedCreatedAt = hoursAfter(activeCreatedAt, -8);
+      const closedLastUsedAt = hoursAfter(closedCreatedAt, 9);
+      const closedDeletedAt = hoursAfter(closedLastUsedAt, 1);
+
+      return [
+        repository.create({
+          userId: user.userId,
+          userRemote: `172.16.${(index % 6) + 1}.${140 + index}`,
+          userAgent: 'Chrome/LogiTrans MVP Session',
+          userUuid: user.userId,
+          sessionUuid: randomUUID(),
+          sessionToken: `seed-mvp-active-${index + 1}-${user.userId}`,
+          sessionSource: 'WEB_PORTAL',
+          usageCount: 12 + index,
+          lastUsedAt: activeLastUsedAt,
+          expirationAt: daysFromNow(35 - index),
+          deletedAt: null,
+          createdAt: activeCreatedAt,
+          updatedAt: activeLastUsedAt,
+        }),
+        repository.create({
+          userId: user.userId,
+          userRemote: `172.18.${(index % 5) + 1}.${170 + index}`,
+          userAgent: 'MobileApp/LogiTrans MVP Session',
+          userUuid: user.userId,
+          sessionUuid: randomUUID(),
+          sessionToken: `seed-mvp-closed-${index + 1}-${user.userId}`,
+          sessionSource: 'MOBILE_APP',
+          usageCount: 6 + index,
+          lastUsedAt: closedLastUsedAt,
+          expirationAt: daysFromNow(12 - index),
+          deletedAt: closedDeletedAt,
+          createdAt: closedCreatedAt,
+          updatedAt: closedDeletedAt,
+        }),
+      ];
+    });
+
+    await repository.save([...baseSessions, ...prioritySessions]);
   }
 
   private async seedPasswordRecoveryTokens(
@@ -1442,7 +1504,7 @@ export class DatabaseSeeder {
   ): Promise<void> {
     const repository = manager.getRepository(PasswordRecoveryToken);
     const selectedUsers = users.slice(3, 13);
-    const tokens = selectedUsers.map((user, index) => {
+    const baseTokens = selectedUsers.map((user, index) => {
       const expiresAt = daysFromNow(2 + index);
       const usedAt = index % 3 === 0 ? daysFromNow(-(index + 1)) : null;
 
@@ -1454,7 +1516,28 @@ export class DatabaseSeeder {
       });
     });
 
-    await repository.save(tokens);
+    const priorityUsers = users.filter((user) =>
+      MVP_PRIORITY_USER_EMAILS.includes(user.email),
+    );
+
+    const priorityTokens = priorityUsers.flatMap((user, index) => {
+      return [
+        repository.create({
+          userId: user.userId,
+          tokenHash: `mvp-recovery-active-${index + 1}-${randomUUID()}`,
+          expiresAt: daysFromNow(7 + index),
+          usedAt: null,
+        }),
+        repository.create({
+          userId: user.userId,
+          tokenHash: `mvp-recovery-used-${index + 1}-${randomUUID()}`,
+          expiresAt: daysFromNow(3 + index),
+          usedAt: daysFromNow(-(index + 2)),
+        }),
+      ];
+    });
+
+    await repository.save([...baseTokens, ...priorityTokens]);
   }
 
   private async seedOrders(

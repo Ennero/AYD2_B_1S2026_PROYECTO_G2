@@ -20,6 +20,9 @@ import { Roles } from '../../../auth/presentation/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/presentation/decorators/current-user.decorator';
 import { USER_ROLE } from '../../../auth/domain/enums/user-role.enum';
 import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.interface';
+import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
+import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
+import { CreateClientDto } from '../dtos/create-client.dto';
 
 /**
  * OperationsController — Endpoints del Agente Operativo.

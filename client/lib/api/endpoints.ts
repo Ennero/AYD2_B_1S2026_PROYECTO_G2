@@ -10,6 +10,7 @@ export const ENDPOINTS = {
   // ── Auth ──────────────────────────────────
   AUTH: {
     LOGIN: `${API_VERSION}/auth/login`,
+    LOGOUT: `${API_VERSION}/auth/logout`,
     REGISTER: `${API_VERSION}/auth/register`,
     FORGOT_PASSWORD: `${API_VERSION}/auth/forgot-password`,
     REFRESH: `${API_VERSION}/auth/refresh`,
@@ -18,17 +19,15 @@ export const ENDPOINTS = {
 
   // ── Agente Operativo ─────────────────────
   CLIENTES: {
-    LIST: `${API_VERSION}/clientes`,
-    CREATE: `${API_VERSION}/clientes`,
-    GET: (id: string) => `${API_VERSION}/clientes/${id}`,
-    UPDATE: (id: string) => `${API_VERSION}/clientes/${id}`,
+    LIST: `/api/operations/clients`,
+    CREATE: `/api/operations/clients`,
+    GET: (id: string) => `/api/operations/clients/${id}`,
   },
 
   CONTRATOS: {
-    LIST: `${API_VERSION}/contratos`,
-    CREATE: `${API_VERSION}/contratos`,
-    GET: (id: string) => `${API_VERSION}/contratos/${id}`,
-    FORMALIZAR: (id: string) => `${API_VERSION}/contratos/${id}/formalizar`,
+    LIST: `/api/operations/contracts`,
+    CREATE: `/api/operations/contracts`,
+    GET: (id: string) => `/api/operations/contracts/${id}`,
   },
 
   // ── Piloto ───────────────────────────────
@@ -86,10 +85,11 @@ export const ENDPOINTS = {
   },
 
   // ── Certificador FEL ─────────────────────
-  FACTURAS: {
-    LIST: `${API_VERSION}/facturas`,
-    GET: (id: string) => `${API_VERSION}/facturas/${id}`,
-    CERTIFICAR: (id: string) => `${API_VERSION}/facturas/${id}/certificar`,
-    RECHAZAR: (id: string) => `${API_VERSION}/facturas/${id}/rechazar`,
+  CERTIFIER: {
+    SUMMARY: `/api/certifier/dashboard/summary`,
+    INVOICES: `/api/certifier/invoices`,
+    VALIDATE_NIT: (id: string) => `/api/certifier/invoices/${id}/validate-nit`,
+    CERTIFY: (id: string) => `/api/certifier/invoices/${id}/certify`,
+    REJECT: (id: string) => `/api/certifier/invoices/${id}/reject`,
   },
 } as const

@@ -19,6 +19,8 @@ import { LoginDto } from '../dtos/login.dto';
 import { RecoveryRequestDto } from '../dtos/recovery-request.dto';
 import { ResetPasswordDto } from '../dtos/reset-password.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import type { JwtPayload } from '../../domain/interfaces/jwt-payload.interface';
 
 const SESSION_COOKIE = 'sessionToken';
 const COOKIE_OPTIONS = {
@@ -83,12 +85,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(
     @Req() req: Request,
+    @CurrentUser() user: JwtPayload,
     @Res({ passthrough: true }) res: Response,
   ) {
     const sessionToken = (req.cookies as Record<string, string>)?.[SESSION_COOKIE];
-    if (sessionToken) {
-      await this.logoutUseCase.execute(sessionToken);
-    }
+    await this.logoutUseCase.execute({
+      sessionToken,
+      sessionUuid: user?.sessionUuid,
+    });
     res.clearCookie(SESSION_COOKIE);
     return { message: 'Sesion cerrada correctamente', data: {} };
   }

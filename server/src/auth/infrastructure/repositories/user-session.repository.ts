@@ -39,6 +39,16 @@ export class UserSessionRepository implements IUserSessionRepository {
     });
   }
 
+  findActiveBySessionUuid(sessionUuid: string): Promise<UserSession | null> {
+    return this.repo.findOne({
+      where: {
+        sessionUuid,
+        deletedAt: IsNull(),
+        expirationAt: MoreThan(new Date()),
+      },
+    });
+  }
+
   async softDelete(sessionId: string): Promise<void> {
     await this.repo.update({ sessionId }, { deletedAt: new Date() });
   }

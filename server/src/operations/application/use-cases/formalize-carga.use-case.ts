@@ -22,6 +22,12 @@ export class FormalizeCargaUseCase {
         throw new NotFoundException(`Orden ${orderId} no encontrada.`);
       }
 
+      if (!order.unitId) {
+        throw new BadRequestException(
+          `La orden ${order.orderNumber} no tiene una unidad asignada (unit_id).`,
+        );
+      }
+
       if (order.status === OrderStatus.LISTA_PARA_DESPACHO) {
         throw new BadRequestException(`La orden ${order.orderNumber} ya está formalizada y lista para despacho.`);
       }

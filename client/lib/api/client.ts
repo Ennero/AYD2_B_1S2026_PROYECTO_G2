@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 /* ---------- Tipos ---------- */
 
 interface ApiRequestOptions extends Omit<RequestInit, "body"> {
-  body?: Record<string, unknown> | FormData
+  body?: unknown | FormData
   /** Si true, no agrega Authorization header */
   skipAuth?: boolean
   /** Si true, no muestra toast de error */
@@ -82,6 +82,7 @@ async function request<T>(
   try {
     const response = await fetch(url, {
       ...fetchOptions,
+      credentials: "include",
       headers,
       body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     })
@@ -136,13 +137,13 @@ export const api = {
   get: <T>(endpoint: string, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "GET" }),
 
-  post: <T>(endpoint: string, body?: Record<string, unknown>, options?: ApiRequestOptions) =>
+  post: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "POST", body }),
 
-  put: <T>(endpoint: string, body?: Record<string, unknown>, options?: ApiRequestOptions) =>
+  put: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "PUT", body }),
 
-  patch: <T>(endpoint: string, body?: Record<string, unknown>, options?: ApiRequestOptions) =>
+  patch: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "PATCH", body }),
 
   delete: <T>(endpoint: string, options?: ApiRequestOptions) =>
