@@ -14,6 +14,12 @@ interface DashboardSummaryFilters {
   month?: number;
 }
 
+interface SubmitForCertificationPayload {
+  serviceDescription: string;
+  dueDate: string;
+  reviewConfirmed: boolean;
+}
+
 function toNumber(value: unknown): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -127,7 +133,11 @@ export class FinanceService {
     };
   }
 
-  async submitForCertification(invoiceId: string, reviewedByUserId: string) {
+  async submitForCertification(
+    invoiceId: string,
+    reviewedByUserId: string,
+    payload: SubmitForCertificationPayload,
+  ) {
     return this.dataSource.transaction(async (manager) => {
       const invoiceRepo = manager.getRepository(Invoice);
       const logRepo = manager.getRepository(OrderRouteLog);
@@ -141,13 +151,38 @@ export class FinanceService {
         throw new BadRequestException('Solo se puede enviar a certificacion una factura en estado BORRADOR');
       }
 
+      if (!payload.reviewConfirmed) {
+        throw new BadRequestException('Debes confirmar la revision del borrador antes de enviarlo a certificacion');
+      }
+
+      const normalizedDescription = payload.serviceDescription.trim();
+      if (!normalizedDescription) {
+        throw new BadRequestException('La descripcion del servicio es obligatoria');
+      }
+
+      const dueDate = new Date(payload.dueDate);
+      if (Number.isNaN(dueDate.getTime())) {
+        throw new BadRequestException('La fecha de vencimiento es invalida');
+      }
+
+      const issueDate = new Date(invoice.issueDate);
+      const issueDateUtc = Date.UTC(issueDate.getUTCFullYear(), issueDate.getUTCMonth(), issueDate.getUTCDate());
+      const dueDateUtc = Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate());
+      if (dueDateUtc < issueDateUtc) {
+        throw new BadRequestException('La fecha de vencimiento no puede ser anterior a la fecha de emision');
+      }
+
+      invoice.serviceDescription = normalizedDescription;
+      invoice.dueDate = payload.dueDate;
+      await invoiceRepo.save(invoice);
+
       const reviewTimestamp = new Date();
 
       const auditLog = logRepo.create({
         orderId: invoice.orderId,
         eventType: RouteEventType.OTRO,
         eventTime: reviewTimestamp,
-        description: `Revision financiera completada para ${invoice.invoiceNumber}. Lista para certificacion FEL.`,
+        description: `Revision financiera confirmada para ${invoice.invoiceNumber}. Borrador listo para certificacion FEL.`,
       });
       await logRepo.save(auditLog);
 
@@ -155,6 +190,8 @@ export class FinanceService {
         invoiceId: invoice.invoiceId,
         invoiceNumber: invoice.invoiceNumber,
         status: invoice.status,
+        serviceDescription: invoice.serviceDescription,
+        dueDate: invoice.dueDate,
         reviewedAt: reviewTimestamp,
         reviewedByUserId,
         nextStep: `/api/certifier/invoices/${invoice.invoiceId}/certify`,

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { FileSearch, Send, Plus, Mail } from "lucide-react"
+import { FileSearch, Send, Mail } from "lucide-react"
 import { toast } from "sonner"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
@@ -93,11 +93,6 @@ export default function FinanceBillingPage() {
     <FinancePageShell
       title="Bandeja de Facturacion"
       subtitle="Revision de BORRADOR autogenerado y envio de certificadas"
-      rightSlot={
-        <Button variant="outline" className="w-full md:w-auto" onClick={() => toast.info("Flujo de contingencia disponible en la siguiente fase")}> 
-          <Plus size={16} /> Crear Manual (Contingencia)
-        </Button>
-      }
     >
       <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
         En esta vista conviven dos bandejas: primero los BORRADOR generados al entregar la orden y despues

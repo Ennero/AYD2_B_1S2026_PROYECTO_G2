@@ -56,7 +56,11 @@ export default function FinanceInvoiceReviewPage() {
 
     setSubmitting(true)
     try {
-      await submitFinanceInvoiceForCertification(invoice.invoiceId)
+      await submitFinanceInvoiceForCertification(invoice.invoiceId, {
+        serviceDescription: invoice.serviceDescription,
+        dueDate: invoice.dueDate,
+        reviewConfirmed: true,
+      })
       toast.success(`Factura ${invoice.invoiceNumber} enviada al flujo FEL`)
       setShowSubmitModal(false)
       router.push("/finances/facturacion")

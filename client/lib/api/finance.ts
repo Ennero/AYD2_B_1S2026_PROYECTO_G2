@@ -13,6 +13,12 @@ interface FinanceSummaryQuery {
   month?: number
 }
 
+interface SubmitForCertificationBody {
+  serviceDescription: string
+  dueDate: string
+  reviewConfirmed: boolean
+}
+
 interface FinanceInvoiceApi {
   invoiceId: string
   invoiceNumber: string
@@ -150,8 +156,11 @@ export async function fetchFinanceInvoiceById(invoiceId: string): Promise<Financ
   return toFinanceInvoice(response.data.data)
 }
 
-export async function submitFinanceInvoiceForCertification(invoiceId: string): Promise<void> {
-  await api.patch<BackendResponse<unknown>>(ENDPOINTS.FINANCE.SUBMIT_FOR_CERTIFICATION(invoiceId), undefined, {
+export async function submitFinanceInvoiceForCertification(
+  invoiceId: string,
+  payload: SubmitForCertificationBody,
+): Promise<void> {
+  await api.patch<BackendResponse<unknown>>(ENDPOINTS.FINANCE.SUBMIT_FOR_CERTIFICATION(invoiceId), payload, {
     silentError: true,
   })
 }

@@ -1,5 +1,8 @@
 import { Type } from 'class-transformer';
 import {
+  Equals,
+  IsBoolean,
+  IsDateString,
   IsIn,
   IsNotEmpty,
   IsNumber,
@@ -47,6 +50,19 @@ export class FinancePaymentsQueryDto {
   @IsOptional()
   @IsIn([PaymentStatus.PENDIENTE, PaymentStatus.APROBADO, PaymentStatus.RECHAZADO])
   status?: PaymentStatus;
+}
+
+export class SubmitForCertificationDto {
+  @IsString()
+  @IsNotEmpty()
+  serviceDescription: string;
+
+  @IsDateString()
+  dueDate: string;
+
+  @IsBoolean()
+  @Equals(true)
+  reviewConfirmed: boolean;
 }
 
 export class SendInvoiceDto {

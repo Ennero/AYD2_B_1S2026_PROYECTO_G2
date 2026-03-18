@@ -20,6 +20,7 @@ import {
   FinancePaymentsQueryDto,
   FinanceSummaryQueryDto,
   SendInvoiceDto,
+  SubmitForCertificationDto,
   UpdateRateDto,
 } from '../dto/finance.dto';
 
@@ -48,9 +49,13 @@ export class FinanceController {
   }
 
   @Patch('invoices/:id/submit-for-certification')
-  async submitForCertification(@Param('id') invoiceId: string, @CurrentUser() user: JwtPayload) {
-    const data = await this.financeService.submitForCertification(invoiceId, user.sub);
-    return { message: 'Factura enviada al flujo de certificacion correctamente', data };
+  async submitForCertification(
+    @Param('id') invoiceId: string,
+    @Body() dto: SubmitForCertificationDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    const data = await this.financeService.submitForCertification(invoiceId, user.sub, dto);
+    return { message: 'Factura borrador enviada a certificacion correctamente', data };
   }
 
   @Patch('invoices/:id/send')
