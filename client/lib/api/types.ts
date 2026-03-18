@@ -38,6 +38,7 @@ export type UserRole =
   | "PILOTO"
   | "AGENTE_LOGISTICO"
   | "ENCARGADO_PATIO"
+  | "AGENTE_FINANCIERO"
   | "CLIENTE"
 
 /** Datos de Factura para Certificador */

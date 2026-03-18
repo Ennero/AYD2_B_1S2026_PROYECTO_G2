@@ -92,4 +92,17 @@ export const ENDPOINTS = {
     CERTIFY: (id: string) => `/api/certifier/invoices/${id}/certify`,
     REJECT: (id: string) => `/api/certifier/invoices/${id}/reject`,
   },
+
+  // ── Agente Financiero ───────────────────
+  FINANCE: {
+    SUMMARY: `/api/finance/dashboard/summary`,
+    INVOICES: `/api/finance/invoices`,
+    INVOICE_DETAIL: (id: string) => `/api/finance/invoices/${id}`,
+    SUBMIT_FOR_CERTIFICATION: (id: string) => `/api/finance/invoices/${id}/submit-for-certification`,
+    SEND_INVOICE: (id: string) => `/api/finance/invoices/${id}/send`,
+    PAYMENTS: `/api/finance/payments`,
+    APPROVE_PAYMENT: (id: string) => `/api/finance/payments/${id}/approve`,
+    RATES: `/api/finance/rates`,
+    UPDATE_RATE: (id: string | number) => `/api/finance/rates/${id}`,
+  },
 } as const

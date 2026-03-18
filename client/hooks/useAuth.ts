@@ -72,6 +72,7 @@ export function useAuth() {
       PILOTO: "/piloto",
       AGENTE_LOGISTICO: "/agente-logistico",
       ENCARGADO_PATIO: "/encargado-patio",
+      AGENTE_FINANCIERO: "/finances",
       CLIENTE: "/cliente",
     }
     router.push(roleRoutes[userProfile.role] || "/")

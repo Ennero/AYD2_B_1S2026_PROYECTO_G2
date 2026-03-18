@@ -47,6 +47,15 @@ const SIDEBAR_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
       { label: "Bandeja de Aprobación", href: "/certificador-fel/bandeja" },
     ],
   },
+  finances: {
+    title: "Agente Financiero",
+    items: [
+      { label: "Inicio", href: "/finances" },
+      { label: "Bandeja de Facturacion", href: "/finances/facturacion" },
+      { label: "Conciliar Pagos", href: "/finances/pagos" },
+      { label: "Tarifario Base", href: "/finances/tarifario" },
+    ],
+  },
 }
 
 export default function Sidebar() {
