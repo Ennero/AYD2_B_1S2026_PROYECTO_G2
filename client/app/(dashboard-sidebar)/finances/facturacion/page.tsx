@@ -10,15 +10,11 @@ import Modal from "@/components/ui/Modal"
 import StatusBadge from "@/components/shared/StatusBadge"
 import FinancePageShell from "@/components/finance/FinancePageShell"
 import EndpointChip from "@/components/finance/EndpointChip"
-import { listInvoicesByStatus, sendCertifiedInvoice } from "@/lib/mocks/financeStore"
+import { fetchFinanceInvoices, sendFinanceInvoice } from "@/lib/api/finance"
 import type { FinanceInvoice } from "@/types/finance"
 
 function normalize(value: string): string {
   return value.trim().toLowerCase()
-}
-
-function formatAmount(value: number): string {
-  return `Q ${value.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function FinanceBillingPage() {
@@ -26,15 +22,28 @@ export default function FinanceBillingPage() {
   const [draftInvoices, setDraftInvoices] = useState<FinanceInvoice[]>([])
   const [certifiedInvoices, setCertifiedInvoices] = useState<FinanceInvoice[]>([])
   const [selectedCertified, setSelectedCertified] = useState<FinanceInvoice | null>(null)
+  const [loadingData, setLoadingData] = useState(false)
   const [sendingInvoice, setSendingInvoice] = useState(false)
 
-  const refreshData = useCallback(() => {
-    setDraftInvoices(listInvoicesByStatus("BORRADOR"))
-    setCertifiedInvoices(listInvoicesByStatus("CERTIFICADA"))
+  const refreshData = useCallback(async () => {
+    setLoadingData(true)
+    try {
+      const [draft, certified] = await Promise.all([
+        fetchFinanceInvoices("BORRADOR"),
+        fetchFinanceInvoices("CERTIFICADA"),
+      ])
+      setDraftInvoices(draft)
+      setCertifiedInvoices(certified)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No fue posible cargar la bandeja de facturacion"
+      toast.error(message)
+    } finally {
+      setLoadingData(false)
+    }
   }, [])
 
   useEffect(() => {
-    refreshData()
+    void refreshData()
   }, [refreshData])
 
   const searchValue = normalize(search)
@@ -68,10 +77,10 @@ export default function FinanceBillingPage() {
 
     setSendingInvoice(true)
     try {
-      sendCertifiedInvoice(selectedCertified.invoiceId)
+      await sendFinanceInvoice(selectedCertified.invoiceId)
       toast.success(`Factura ${selectedCertified.invoiceNumber} enviada al cliente`)
       setSelectedCertified(null)
-      refreshData()
+      await refreshData()
     } catch (error) {
       const message = error instanceof Error ? error.message : "No fue posible enviar la factura"
       toast.error(message)
@@ -116,7 +125,9 @@ export default function FinanceBillingPage() {
           <div className="col-span-1 text-right">Acciones</div>
         </div>
 
-        {filteredDraftInvoices.length === 0 ? (
+        {loadingData ? (
+          <div className="p-8 text-center text-[#64748B]">Cargando facturas...</div>
+        ) : filteredDraftInvoices.length === 0 ? (
           <div className="p-8 text-center text-[#64748B]">No hay facturas BORRADOR para mostrar.</div>
         ) : (
           filteredDraftInvoices.map((invoice) => (
@@ -127,7 +138,7 @@ export default function FinanceBillingPage() {
               <div className="font-bold text-[#0A3B7C]">{invoice.invoiceNumber}</div>
               <div className="font-semibold text-[#1A202C]">{invoice.orderNumber}</div>
               <div className="text-[#1A202C]">{invoice.clientName}</div>
-              <div className="text-[#64748B] text-sm">{new Date(invoice.deliveredAt).toLocaleDateString("es-GT")}</div>
+              <div className="text-[#64748B] text-sm">{invoice.deliveredAt ? new Date(invoice.deliveredAt).toLocaleDateString("es-GT") : "-"}</div>
               <div>
                 <StatusBadge variant="warning">Borrador</StatusBadge>
               </div>
@@ -161,7 +172,9 @@ export default function FinanceBillingPage() {
           <div className="col-span-1 text-right">Acciones</div>
         </div>
 
-        {filteredCertifiedInvoices.length === 0 ? (
+        {loadingData ? (
+          <div className="p-8 text-center text-[#64748B]">Cargando facturas...</div>
+        ) : filteredCertifiedInvoices.length === 0 ? (
           <div className="p-8 text-center text-[#64748B]">No hay facturas CERTIFICADA pendientes de envio.</div>
         ) : (
           filteredCertifiedInvoices.map((invoice) => (

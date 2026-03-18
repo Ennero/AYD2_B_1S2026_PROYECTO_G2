@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Save, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import EndpointChip from "@/components/finance/EndpointChip"
 import FinancePageShell from "@/components/finance/FinancePageShell"
-import { listRates, updateRate } from "@/lib/mocks/financeStore"
+import { fetchFinanceRates, updateFinanceRate } from "@/lib/api/finance"
 import type { FinanceRate } from "@/types/finance"
 
 function formatRange(rate: FinanceRate): string {
@@ -20,21 +20,10 @@ function formatRange(rate: FinanceRate): string {
 export default function FinanceRatesPage() {
   const [rates, setRates] = useState<FinanceRate[]>([])
   const [editedRates, setEditedRates] = useState<Record<number, string>>({})
+  const [loadingRates, setLoadingRates] = useState(false)
   const [savingRateId, setSavingRateId] = useState<number | null>(null)
 
-  useEffect(() => {
-    const currentRates = listRates()
-    setRates(currentRates)
-
-    const defaults = currentRates.reduce<Record<number, string>>((acc, rate) => {
-      acc[rate.vehicleTypeId] = rate.ratePerKm.toFixed(2)
-      return acc
-    }, {})
-    setEditedRates(defaults)
-  }, [])
-
-  const refreshRates = () => {
-    const currentRates = listRates()
+  const hydrateRates = (currentRates: FinanceRate[]) => {
     setRates(currentRates)
     setEditedRates(
       currentRates.reduce<Record<number, string>>((acc, rate) => {
@@ -43,6 +32,23 @@ export default function FinanceRatesPage() {
       }, {}),
     )
   }
+
+  const refreshRates = useCallback(async () => {
+    setLoadingRates(true)
+    try {
+      const currentRates = await fetchFinanceRates()
+      hydrateRates(currentRates)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No fue posible cargar el tarifario"
+      toast.error(message)
+    } finally {
+      setLoadingRates(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshRates()
+  }, [refreshRates])
 
   const handleSaveRate = async (vehicleTypeId: number) => {
     const rawValue = editedRates[vehicleTypeId]
@@ -55,9 +61,9 @@ export default function FinanceRatesPage() {
 
     setSavingRateId(vehicleTypeId)
     try {
-      const updated = updateRate(vehicleTypeId, parsed)
+      const updated = await updateFinanceRate(vehicleTypeId, parsed)
       toast.success(`Tarifa ${updated.typeName} actualizada a Q ${updated.ratePerKm.toFixed(2)}`)
-      refreshRates()
+      await refreshRates()
     } catch (error) {
       const message = error instanceof Error ? error.message : "No fue posible actualizar la tarifa"
       toast.error(message)
@@ -72,6 +78,12 @@ export default function FinanceRatesPage() {
       subtitle="Tarifas base por tipo de unidad para contratos y ordenes futuras"
       rightSlot={<EndpointChip endpoint="GET /api/finance/rates" />}
     >
+      {loadingRates && rates.length === 0 ? (
+        <Card className="rounded-3xl bg-white/95 border-black/5">
+          <p className="text-[#64748B]">Cargando tarifario...</p>
+        </Card>
+      ) : null}
+
       <div className="space-y-5">
         {rates.map((rate) => (
           <Card key={rate.vehicleTypeId} className="rounded-3xl bg-white/95 border-black/5">

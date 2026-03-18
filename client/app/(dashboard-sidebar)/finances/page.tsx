@@ -16,7 +16,7 @@ import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import FinancePageShell from "@/components/finance/FinancePageShell"
 import EndpointChip from "@/components/finance/EndpointChip"
-import { getFinanceSummary, resetFinanceState } from "@/lib/mocks/financeStore"
+import { fetchFinanceSummary } from "@/lib/api/finance"
 import type { FinanceSummary } from "@/types/finance"
 
 function formatCurrency(value: number): string {
@@ -24,7 +24,13 @@ function formatCurrency(value: number): string {
 }
 
 export default function FinanceDashboardPage() {
-  const [summary, setSummary] = useState<FinanceSummary>(() => getFinanceSummary())
+  const [summary, setSummary] = useState<FinanceSummary>({
+    draftInvoicesPendingReview: 0,
+    certifiedInvoicesPendingSend: 0,
+    pendingPayments: 0,
+    collectedAmount: 0,
+  })
+  const [loadingSummary, setLoadingSummary] = useState(false)
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -32,15 +38,23 @@ export default function FinanceDashboardPage() {
     return () => clearInterval(timer)
   }, [])
 
-  const refreshSummary = () => {
-    setSummary(getFinanceSummary())
+  const refreshSummary = async () => {
+    setLoadingSummary(true)
+    try {
+      const nextSummary = await fetchFinanceSummary({ period: "MONTHLY" })
+      setSummary(nextSummary)
+      toast.success("Indicadores actualizados")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No fue posible cargar el resumen financiero"
+      toast.error(message)
+    } finally {
+      setLoadingSummary(false)
+    }
   }
 
-  const handleResetMock = () => {
-    resetFinanceState()
-    setSummary(getFinanceSummary())
-    toast.success("Datos mock reiniciados")
-  }
+  useEffect(() => {
+    void refreshSummary()
+  }, [])
 
   return (
     <FinancePageShell
@@ -148,7 +162,7 @@ export default function FinanceDashboardPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75" />
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-[#53B73E]" />
               </span>
-              <p className="text-sm text-[#1A202C] font-semibold">Simulador financiero activo</p>
+              <p className="text-sm text-[#1A202C] font-semibold">Backend financiero conectado</p>
             </div>
 
             <div className="flex items-center gap-2 text-sm text-[#64748B]">
@@ -159,11 +173,8 @@ export default function FinanceDashboardPage() {
             </div>
 
             <div className="pt-2 space-y-3">
-              <Button variant="outline" className="w-full" onClick={refreshSummary}>
+              <Button variant="outline" className="w-full" onClick={() => void refreshSummary()} loading={loadingSummary}>
                 <RefreshCcw size={16} /> Refrescar indicadores
-              </Button>
-              <Button variant="ghost" className="w-full" onClick={handleResetMock}>
-                Restaurar datos mock
               </Button>
             </div>
           </div>

@@ -11,7 +11,7 @@ import Modal from "@/components/ui/Modal"
 import StatusBadge from "@/components/shared/StatusBadge"
 import FinancePageShell from "@/components/finance/FinancePageShell"
 import EndpointChip from "@/components/finance/EndpointChip"
-import { getInvoiceById, submitInvoiceForCertification } from "@/lib/mocks/financeStore"
+import { fetchFinanceInvoiceById, submitFinanceInvoiceForCertification } from "@/lib/api/finance"
 import type { FinanceInvoice } from "@/types/finance"
 
 function formatAmount(value: number): string {
@@ -22,14 +22,31 @@ export default function FinanceInvoiceReviewPage() {
   const params = useParams<{ invoiceId: string }>()
   const router = useRouter()
   const [invoice, setInvoice] = useState<FinanceInvoice | null>(null)
+  const [loadingInvoice, setLoadingInvoice] = useState(true)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!params.invoiceId) {
-      return
+    const loadInvoice = async () => {
+      if (!params.invoiceId) {
+        setLoadingInvoice(false)
+        return
+      }
+
+      setLoadingInvoice(true)
+      try {
+        const current = await fetchFinanceInvoiceById(params.invoiceId)
+        setInvoice(current)
+      } catch (error) {
+        setInvoice(null)
+        const message = error instanceof Error ? error.message : "No fue posible cargar el detalle de factura"
+        toast.error(message)
+      } finally {
+        setLoadingInvoice(false)
+      }
     }
-    setInvoice(getInvoiceById(params.invoiceId))
+
+    void loadInvoice()
   }, [params.invoiceId])
 
   const handleSubmitForCertification = async () => {
@@ -39,7 +56,7 @@ export default function FinanceInvoiceReviewPage() {
 
     setSubmitting(true)
     try {
-      submitInvoiceForCertification(invoice.invoiceId)
+      await submitFinanceInvoiceForCertification(invoice.invoiceId)
       toast.success(`Factura ${invoice.invoiceNumber} enviada al flujo FEL`)
       setShowSubmitModal(false)
       router.push("/finances/facturacion")
@@ -51,11 +68,21 @@ export default function FinanceInvoiceReviewPage() {
     }
   }
 
+  if (loadingInvoice) {
+    return (
+      <FinancePageShell title="Cargando factura" subtitle="Obteniendo detalle desde el backend financiero.">
+        <Card className="rounded-3xl bg-white/95 border-black/5">
+          <p className="text-[#64748B]">Cargando informacion de la factura...</p>
+        </Card>
+      </FinancePageShell>
+    )
+  }
+
   if (!invoice) {
     return (
       <FinancePageShell title="Factura no encontrada" subtitle="No se encontro el borrador solicitado.">
         <Card className="rounded-3xl bg-white/95 border-black/5">
-          <p className="text-[#64748B] mb-6">El identificador de factura no existe en el mock actual.</p>
+          <p className="text-[#64748B] mb-6">El identificador de factura no existe o no esta disponible.</p>
           <Link href="/finances/facturacion">
             <Button variant="outline">
               <ArrowLeft size={16} /> Volver a bandeja
@@ -104,11 +131,13 @@ export default function FinanceInvoiceReviewPage() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">Direccion fiscal</p>
-              <p className="text-[#1A202C] font-semibold mt-1">{invoice.clientAddress}</p>
+              <p className="text-[#1A202C] font-semibold mt-1">{invoice.clientAddress || "-"}</p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">Fecha entrega orden</p>
-              <p className="text-[#1A202C] font-semibold mt-1">{new Date(invoice.deliveredAt).toLocaleString("es-GT")}</p>
+              <p className="text-[#1A202C] font-semibold mt-1">
+                {invoice.deliveredAt ? new Date(invoice.deliveredAt).toLocaleString("es-GT") : "-"}
+              </p>
             </div>
           </div>
 
@@ -116,7 +145,7 @@ export default function FinanceInvoiceReviewPage() {
             <h3 className="text-xl font-bold text-[#0A3B7C]">Concepto y totales</h3>
             <div>
               <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">Descripcion servicio</p>
-              <p className="text-[#1A202C] font-semibold mt-1">{invoice.serviceDescription}</p>
+              <p className="text-[#1A202C] font-semibold mt-1">{invoice.serviceDescription || "-"}</p>
             </div>
             <div className="rounded-2xl bg-[#0A3B7C] text-white p-5 mt-4 shadow-inner">
               <div className="flex items-center justify-between mb-2">

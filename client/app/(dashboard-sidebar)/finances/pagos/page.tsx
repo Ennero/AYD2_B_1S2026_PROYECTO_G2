@@ -9,7 +9,7 @@ import Modal from "@/components/ui/Modal"
 import StatusBadge from "@/components/shared/StatusBadge"
 import FinancePageShell from "@/components/finance/FinancePageShell"
 import EndpointChip from "@/components/finance/EndpointChip"
-import { approvePayment, listPaymentsByStatus } from "@/lib/mocks/financeStore"
+import { approveFinancePayment, fetchFinancePayments } from "@/lib/api/finance"
 import type { FinancePayment } from "@/types/finance"
 
 function formatAmount(value: number): string {
@@ -19,11 +19,25 @@ function formatAmount(value: number): string {
 export default function FinancePaymentsPage() {
   const [search, setSearch] = useState("")
   const [pendingPayments, setPendingPayments] = useState<FinancePayment[]>([])
+  const [loadingPayments, setLoadingPayments] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<FinancePayment | null>(null)
   const [approving, setApproving] = useState(false)
 
+  const refreshPendingPayments = async () => {
+    setLoadingPayments(true)
+    try {
+      const payments = await fetchFinancePayments("PENDIENTE")
+      setPendingPayments(payments)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No fue posible cargar los pagos pendientes"
+      toast.error(message)
+    } finally {
+      setLoadingPayments(false)
+    }
+  }
+
   useEffect(() => {
-    setPendingPayments(listPaymentsByStatus("PENDIENTE"))
+    void refreshPendingPayments()
   }, [])
 
   const filteredPayments = useMemo(() => {
@@ -45,10 +59,10 @@ export default function FinancePaymentsPage() {
 
     setApproving(true)
     try {
-      approvePayment(selectedPayment.paymentId)
+      await approveFinancePayment(selectedPayment.paymentId)
       toast.success(`Pago ${selectedPayment.bankReference ?? selectedPayment.paymentId} aprobado`)
       setSelectedPayment(null)
-      setPendingPayments(listPaymentsByStatus("PENDIENTE"))
+      await refreshPendingPayments()
     } catch (error) {
       const message = error instanceof Error ? error.message : "No fue posible aprobar el pago"
       toast.error(message)
@@ -92,7 +106,9 @@ export default function FinancePaymentsPage() {
           <div className="text-right">Accion</div>
         </div>
 
-        {filteredPayments.length === 0 ? (
+        {loadingPayments ? (
+          <div className="p-8 text-center text-[#64748B]">Cargando pagos pendientes...</div>
+        ) : filteredPayments.length === 0 ? (
           <div className="p-8 text-center text-[#64748B]">No hay pagos pendientes por conciliar.</div>
         ) : (
           filteredPayments.map((payment) => (
