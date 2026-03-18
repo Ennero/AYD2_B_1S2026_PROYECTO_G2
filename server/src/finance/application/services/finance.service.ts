@@ -50,11 +50,11 @@ export class FinanceService {
 
     const collectedRow = await paymentRepo
       .createQueryBuilder('payment')
-      .select('COALESCE(SUM(payment.amount), 0)', 'collectedAmount')
+      .select('COALESCE(SUM(payment.amount), 0)', 'collected_amount')
       .where('payment.status = :status', { status: PaymentStatus.APROBADO })
       .andWhere('payment.paymentDate >= :start', { start: startOfMonth })
       .andWhere('payment.paymentDate < :end', { end: endOfMonth })
-      .getRawOne<{ collectedAmount: string }>();
+      .getRawOne<{ collected_amount: string }>();
 
     return {
       period: filters.period ?? 'MONTHLY',
@@ -63,148 +63,67 @@ export class FinanceService {
       draftInvoicesPendingReview,
       certifiedInvoicesPendingSend,
       pendingPayments,
-      collectedAmount: toNumber(collectedRow?.collectedAmount),
+      collectedAmount: toNumber(collectedRow?.collected_amount),
     };
   }
 
   async getInvoices(status?: InvoiceStatus) {
-    const qb = this.dataSource
-      .getRepository(Invoice)
-      .createQueryBuilder('invoice')
-      .leftJoin('invoice.order', 'order')
-      .select([
-        'invoice.invoiceId AS invoiceId',
-        'invoice.invoiceNumber AS invoiceNumber',
-        'invoice.orderId AS orderId',
-        'order.orderNumber AS orderNumber',
-        'invoice.clientId AS clientId',
-        'invoice.clientName AS clientName',
-        'invoice.clientNit AS clientNit',
-        'invoice.issueDate AS issueDate',
-        'order.deliveredAt AS deliveredAt',
-        'invoice.status AS status',
-        'invoice.totalAmount AS totalAmount',
-        'invoice.felUuid AS felUuid',
-        'invoice.certifiedAt AS certifiedAt',
-        'invoice.sentAt AS sentAt',
-      ])
-      .orderBy('invoice.issueDate', 'DESC');
+    const invoiceRepo = this.dataSource.getRepository(Invoice);
+    const invoices = await invoiceRepo.find({
+      where: status ? { status } : {},
+      relations: { order: true },
+      order: { issueDate: 'DESC' },
+    });
 
-    if (status) {
-      qb.where('invoice.status = :status', { status });
-    }
-
-    const rows = await qb.getRawMany<{
-      invoiceId: string;
-      invoiceNumber: string;
-      orderId: string;
-      orderNumber: string | null;
-      clientId: string;
-      clientName: string;
-      clientNit: string;
-      issueDate: Date;
-      deliveredAt: Date | null;
-      status: InvoiceStatus;
-      totalAmount: string;
-      felUuid: string | null;
-      certifiedAt: Date | null;
-      sentAt: Date | null;
-    }>();
-
-    return rows.map((row) => ({
-      invoiceId: row.invoiceId,
-      invoiceNumber: row.invoiceNumber,
-      orderId: row.orderId,
-      orderNumber: row.orderNumber,
-      clientId: row.clientId,
-      clientName: row.clientName,
-      clientNit: row.clientNit,
-      issueDate: row.issueDate,
-      deliveredAt: row.deliveredAt,
-      status: row.status,
-      totalAmount: toNumber(row.totalAmount),
-      felUuid: row.felUuid,
-      certifiedAt: row.certifiedAt,
-      sentAt: row.sentAt,
+    return invoices.map((invoice) => ({
+      invoiceId: invoice.invoiceId,
+      invoiceNumber: invoice.invoiceNumber,
+      orderId: invoice.orderId,
+      orderNumber: invoice.order?.orderNumber ?? null,
+      clientId: invoice.clientId,
+      clientName: invoice.clientName,
+      clientNit: invoice.clientNit,
+      issueDate: invoice.issueDate,
+      deliveredAt: invoice.order?.deliveredAt ?? null,
+      status: invoice.status,
+      totalAmount: toNumber(invoice.totalAmount),
+      felUuid: invoice.felUuid,
+      certifiedAt: invoice.certifiedAt,
+      sentAt: invoice.sentAt,
     }));
   }
 
   async getInvoiceById(invoiceId: string) {
-    const row = await this.dataSource
-      .getRepository(Invoice)
-      .createQueryBuilder('invoice')
-      .leftJoin('invoice.order', 'order')
-      .select([
-        'invoice.invoiceId AS invoiceId',
-        'invoice.invoiceNumber AS invoiceNumber',
-        'invoice.orderId AS orderId',
-        'order.orderNumber AS orderNumber',
-        'invoice.clientId AS clientId',
-        'invoice.clientName AS clientName',
-        'invoice.clientNit AS clientNit',
-        'invoice.clientAddress AS clientAddress',
-        'invoice.serviceDescription AS serviceDescription',
-        'invoice.issueDate AS issueDate',
-        'invoice.dueDate AS dueDate',
-        'order.deliveredAt AS deliveredAt',
-        'invoice.status AS status',
-        'invoice.subtotalAmount AS subtotalAmount',
-        'invoice.taxAmount AS taxAmount',
-        'invoice.totalAmount AS totalAmount',
-        'invoice.felUuid AS felUuid',
-        'invoice.certifiedAt AS certifiedAt',
-        'invoice.sentAt AS sentAt',
-        'invoice.pdfPath AS pdfPath',
-      ])
-      .where('invoice.invoiceId = :invoiceId', { invoiceId })
-      .getRawOne<{
-        invoiceId: string;
-        invoiceNumber: string;
-        orderId: string;
-        orderNumber: string | null;
-        clientId: string;
-        clientName: string;
-        clientNit: string;
-        clientAddress: string;
-        serviceDescription: string;
-        issueDate: Date;
-        dueDate: string;
-        deliveredAt: Date | null;
-        status: InvoiceStatus;
-        subtotalAmount: string;
-        taxAmount: string;
-        totalAmount: string;
-        felUuid: string | null;
-        certifiedAt: Date | null;
-        sentAt: Date | null;
-        pdfPath: string | null;
-      }>();
+    const invoice = await this.dataSource.getRepository(Invoice).findOne({
+      where: { invoiceId },
+      relations: { order: true },
+    });
 
-    if (!row) {
+    if (!invoice) {
       throw new NotFoundException('Factura no encontrada');
     }
 
     return {
-      invoiceId: row.invoiceId,
-      invoiceNumber: row.invoiceNumber,
-      orderId: row.orderId,
-      orderNumber: row.orderNumber,
-      clientId: row.clientId,
-      clientName: row.clientName,
-      clientNit: row.clientNit,
-      clientAddress: row.clientAddress,
-      serviceDescription: row.serviceDescription,
-      issueDate: row.issueDate,
-      dueDate: row.dueDate,
-      deliveredAt: row.deliveredAt,
-      status: row.status,
-      subtotalAmount: toNumber(row.subtotalAmount),
-      taxAmount: toNumber(row.taxAmount),
-      totalAmount: toNumber(row.totalAmount),
-      felUuid: row.felUuid,
-      certifiedAt: row.certifiedAt,
-      sentAt: row.sentAt,
-      pdfPath: row.pdfPath,
+      invoiceId: invoice.invoiceId,
+      invoiceNumber: invoice.invoiceNumber,
+      orderId: invoice.orderId,
+      orderNumber: invoice.order?.orderNumber ?? null,
+      clientId: invoice.clientId,
+      clientName: invoice.clientName,
+      clientNit: invoice.clientNit,
+      clientAddress: invoice.clientAddress,
+      serviceDescription: invoice.serviceDescription,
+      issueDate: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      deliveredAt: invoice.order?.deliveredAt ?? null,
+      status: invoice.status,
+      subtotalAmount: toNumber(invoice.subtotalAmount),
+      taxAmount: toNumber(invoice.taxAmount),
+      totalAmount: toNumber(invoice.totalAmount),
+      felUuid: invoice.felUuid,
+      certifiedAt: invoice.certifiedAt,
+      sentAt: invoice.sentAt,
+      pdfPath: invoice.pdfPath,
     };
   }
 
@@ -274,58 +193,25 @@ export class FinanceService {
   }
 
   async getPayments(status?: PaymentStatus) {
-    const qb = this.dataSource
-      .getRepository(Payment)
-      .createQueryBuilder('payment')
-      .leftJoin('payment.invoice', 'invoice')
-      .select([
-        'payment.paymentId AS paymentId',
-        'payment.invoiceId AS invoiceId',
-        'payment.method AS method',
-        'payment.status AS status',
-        'payment.bankName AS bankName',
-        'payment.bankReference AS bankReference',
-        'payment.amount AS amount',
-        'payment.paymentDate AS paymentDate',
-        'payment.reviewedByUserId AS reviewedByUserId',
-        'invoice.invoiceNumber AS invoiceNumber',
-        'invoice.clientName AS clientName',
-        'invoice.status AS invoiceStatus',
-      ])
-      .orderBy('payment.paymentDate', 'DESC');
+    const payments = await this.dataSource.getRepository(Payment).find({
+      where: status ? { status } : {},
+      relations: { invoice: true },
+      order: { paymentDate: 'DESC' },
+    });
 
-    if (status) {
-      qb.where('payment.status = :status', { status });
-    }
-
-    const rows = await qb.getRawMany<{
-      paymentId: string;
-      invoiceId: string;
-      method: string;
-      status: PaymentStatus;
-      bankName: string | null;
-      bankReference: string | null;
-      amount: string;
-      paymentDate: Date;
-      reviewedByUserId: string | null;
-      invoiceNumber: string | null;
-      clientName: string | null;
-      invoiceStatus: InvoiceStatus | null;
-    }>();
-
-    return rows.map((row) => ({
-      paymentId: row.paymentId,
-      invoiceId: row.invoiceId,
-      invoiceNumber: row.invoiceNumber,
-      clientName: row.clientName,
-      method: row.method,
-      status: row.status,
-      bankName: row.bankName,
-      bankReference: row.bankReference,
-      amount: toNumber(row.amount),
-      paymentDate: row.paymentDate,
-      reviewedByUserId: row.reviewedByUserId,
-      invoiceStatus: row.invoiceStatus,
+    return payments.map((payment) => ({
+      paymentId: payment.paymentId,
+      invoiceId: payment.invoiceId,
+      invoiceNumber: payment.invoice?.invoiceNumber ?? null,
+      clientName: payment.invoice?.clientName ?? null,
+      method: payment.method,
+      status: payment.status,
+      bankName: payment.bankName,
+      bankReference: payment.bankReference,
+      amount: toNumber(payment.amount),
+      paymentDate: payment.paymentDate,
+      reviewedByUserId: payment.reviewedByUserId,
+      invoiceStatus: payment.invoice?.status ?? null,
     }));
   }
 
