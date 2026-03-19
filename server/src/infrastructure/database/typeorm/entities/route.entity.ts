@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
+import { PrimaryColumn,  Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
 import { ContractRoute } from './contract-route.entity';
 
 @Entity('routes')

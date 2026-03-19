@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { PrimaryColumn,  Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ContractRate } from './contract-rate.entity';
 import { TransportUnit } from './transport-unit.entity';
 
@@ -21,8 +21,7 @@ export class VehicleType {
     type: 'numeric',
     precision: 6,
     scale: 2,
-    nullable: true,
-  })
+    nullable: true })
   maxCapacityTon: number;
 
   @Column({ name: 'rate_per_km', type: 'numeric', precision: 12, scale: 2 })

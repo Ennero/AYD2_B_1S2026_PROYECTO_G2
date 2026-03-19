@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { PaymentMethod } from '../../../../domain/enums/payment-method.enum';
 import { PaymentStatus } from '../../../../domain/enums/payment-status.enum';
 import { Invoice } from './invoice.entity';
@@ -13,10 +7,10 @@ import { User } from './user.entity';
 
 @Entity('payments')
 export class Payment {
-  @PrimaryGeneratedColumn('uuid', { name: 'payment_id' })
+  @PrimaryColumn({ type: 'varchar', length: 36, name: 'payment_id' })
   paymentId: string;
 
-  @Column({ name: 'invoice_id', type: 'uuid' })
+  @Column({ name: 'invoice_id', type: 'varchar', length: 36 })
   invoiceId: string;
 
   @Column({ name: 'method', type: 'enum', enum: PaymentMethod })
@@ -26,11 +20,10 @@ export class Payment {
     name: 'status',
     type: 'enum',
     enum: PaymentStatus,
-    default: PaymentStatus.PENDIENTE,
-  })
+    default: PaymentStatus.PENDIENTE })
   status: PaymentStatus;
 
-  @Column({ name: 'card_id', type: 'uuid', nullable: true })
+  @Column({ name: 'card_id', type: 'varchar', length: 36, nullable: true })
   cardId: string | null;
 
   @Column({ name: 'bank_name', type: 'varchar', length: 120, nullable: true })
@@ -40,16 +33,14 @@ export class Payment {
     name: 'bank_account_number',
     type: 'varchar',
     length: 50,
-    nullable: true,
-  })
+    nullable: true })
   bankAccountNumber: string | null;
 
   @Column({
     name: 'bank_reference',
     type: 'varchar',
     length: 80,
-    nullable: true,
-  })
+    nullable: true })
   bankReference: string | null;
 
   @Column({ name: 'support_document_path', type: 'text', nullable: true })
@@ -61,7 +52,7 @@ export class Payment {
   @Column({ name: 'payment_date', type: 'timestamptz', default: () => 'NOW()' })
   paymentDate: Date;
 
-  @Column({ name: 'reviewed_by_user_id', type: 'uuid', nullable: true })
+  @Column({ name: 'reviewed_by_user_id', type: 'varchar', length: 36, nullable: true })
   reviewedByUserId: string | null;
 
   @ManyToOne(() => Invoice, (invoice) => invoice.payments)

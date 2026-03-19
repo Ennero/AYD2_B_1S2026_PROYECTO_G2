@@ -1,16 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index, OneToMany, Check } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, OneToMany, PrimaryColumn } from 'typeorm';
 import { Client } from './client.entity';
 import { Payment } from './payment.entity';
 
 @Entity('client_cards')
 @Index(['clientId', 'cardAlias'], { unique: true })
-@Check('expiration_month BETWEEN 1 AND 12')
-@Check('expiration_year BETWEEN 2025 AND 2100')
+
+
 export class ClientCard {
-  @PrimaryGeneratedColumn('uuid', { name: 'card_id' })
+  @PrimaryColumn({ type: 'varchar', length: 36, name: 'card_id' })
   cardId: string;
 
-  @Column({ name: 'client_id', type: 'uuid' })
+  @Column({ name: 'client_id', type: 'varchar', length: 36 })
   clientId: string;
 
   @Column({ name: 'card_alias', type: 'varchar', length: 80 })

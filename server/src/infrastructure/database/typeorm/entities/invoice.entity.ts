@@ -1,11 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
 import { InvoiceStatus } from '../../../../domain/enums/invoice-status.enum';
 import { Order } from './order.entity';
 import { Client } from './client.entity';
@@ -13,24 +6,23 @@ import { Payment } from './payment.entity';
 
 @Entity('invoices')
 export class Invoice {
-  @PrimaryGeneratedColumn('uuid', { name: 'invoice_id' })
+  @PrimaryColumn({ type: 'varchar', length: 36, name: 'invoice_id' })
   invoiceId: string;
 
   @Column({ name: 'invoice_number', type: 'varchar', length: 40, unique: true })
   invoiceNumber: string;
 
-  @Column({ name: 'order_id', type: 'uuid', unique: true })
+  @Column({ name: 'order_id', type: 'varchar', length: 36, unique: true })
   orderId: string;
 
-  @Column({ name: 'client_id', type: 'uuid' })
+  @Column({ name: 'client_id', type: 'varchar', length: 36 })
   clientId: string;
 
   @Column({
     name: 'status',
     type: 'enum',
     enum: InvoiceStatus,
-    default: InvoiceStatus.BORRADOR,
-  })
+    default: InvoiceStatus.BORRADOR })
   status: InvoiceStatus;
 
   @Column({ name: 'issue_date', type: 'timestamptz', default: () => 'NOW()' })
@@ -71,8 +63,7 @@ export class Invoice {
     type: 'varchar',
     length: 50,
     unique: true,
-    nullable: true,
-  })
+    nullable: true })
   felUuid: string | null;
 
   @Column({ name: 'pdf_path', type: 'text', nullable: true })

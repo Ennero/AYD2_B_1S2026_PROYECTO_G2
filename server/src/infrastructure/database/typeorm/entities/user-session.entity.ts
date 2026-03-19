@@ -1,20 +1,12 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('user_sessions')
 export class UserSession {
-  @PrimaryGeneratedColumn('uuid', { name: 'session_id' })
+  @PrimaryColumn({ type: 'varchar', length: 36, name: 'session_id' })
   sessionId: string;
 
-  @Column({ name: 'user_id', type: 'uuid' })
+  @Column({ name: 'user_id', type: 'varchar', length: 36 })
   userId: string;
 
   @Column({ name: 'user_remote', type: 'inet', nullable: true })

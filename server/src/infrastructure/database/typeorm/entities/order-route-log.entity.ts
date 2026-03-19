@@ -1,19 +1,13 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
 import { RouteEventType } from '../../../../domain/enums/route-event-type.enum';
 import { Order } from './order.entity';
 
 @Entity('order_route_logs')
 export class OrderRouteLog {
-  @PrimaryGeneratedColumn('uuid', { name: 'log_id' })
+  @PrimaryColumn({ type: 'varchar', length: 36, name: 'log_id' })
   logId: string;
 
-  @Column({ name: 'order_id', type: 'uuid' })
+  @Column({ name: 'order_id', type: 'varchar', length: 36 })
   orderId: string;
 
   @Column({ name: 'event_type', type: 'enum', enum: RouteEventType })
