@@ -33,13 +33,14 @@ export interface UserProfile {
 
 /** Roles del sistema (Mayúsculas para coincidir con DB) */
 export type UserRole =
-  | "ADMIN"
+  | "CERTIFICADOR_FEL"
   | "AGENTE_OPERATIVO"
   | "PILOTO"
   | "AGENTE_LOGISTICO"
   | "ENCARGADO_PATIO"
   | "AGENTE_FINANCIERO"
   | "CLIENTE"
+  | "GERENCIA"
 
 /** Datos de Factura para Certificador */
 export interface Invoice {

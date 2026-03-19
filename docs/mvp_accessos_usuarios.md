@@ -10,14 +10,14 @@ Para usuarios internos, la seed genera la contrasena con esta regla:
 
 Ejemplo:
 
-- email: `admin@logitrans.gt`
-- password: `seed$admin@logitrans.gt`
+- email: `certificador.fel@sat.gob.gt`
+- password: `seed$certificador.fel@sat.gob.gt`
 
 ## Top 7 usuarios recomendados para pruebas
 
 | Rol               | Nombre            | Email                    | Password seed                 | Uso sugerido MVP                                       |
 | ----------------- | ----------------- | ------------------------ | ----------------------------- | ------------------------------------------------------ |
-| ADMIN             | Sofia Calderon    | admin@logitrans.gt       | seed$admin@logitrans.gt       | Validaciones globales y diagnostico transversal        |
+| CERTIFICADOR_FEL  | Simulador FEL SAT | certificador.fel@sat.gob.gt| seed$certificador.fel@sat.gob.gt| Aprobacion y simulacion de SAT                         |
 | AGENTE_OPERATIVO  | Andrea Solares    | operativo.1@logitrans.gt | seed$operativo.1@logitrans.gt | Alta de clientes, contratos y flujo comercial          |
 | AGENTE_LOGISTICO  | Karla Menendez    | logistica.1@logitrans.gt | seed$logistica.1@logitrans.gt | Planificacion y asignacion de ordenes                  |
 | ENCARGADO_PATIO   | Mario Caal        | patio.1@logitrans.gt     | seed$patio.1@logitrans.gt     | Registro en patio, validacion y despacho               |

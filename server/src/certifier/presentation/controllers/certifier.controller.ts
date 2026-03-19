@@ -17,7 +17,7 @@ import {
  */
 @Controller('api/certifier')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(USER_ROLE.AGENTE_FINANCIERO, USER_ROLE.ADMIN)
+@Roles(USER_ROLE.CERTIFICADOR_FEL)
 export class CertifierController {
   constructor(private readonly certifierService: CertifierService) {}
 

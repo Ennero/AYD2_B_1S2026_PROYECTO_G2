@@ -67,7 +67,8 @@ export function useAuth() {
 
     // Redirigir según el rol
     const roleRoutes: Record<string, string> = {
-      ADMIN: "/certificador-fel",
+      CERTIFICADOR_FEL: "/certificador-fel",
+      GERENCIA: "/gerencia",
       AGENTE_OPERATIVO: "/agente-operativo",
       PILOTO: "/piloto",
       AGENTE_LOGISTICO: "/agente-logistico",

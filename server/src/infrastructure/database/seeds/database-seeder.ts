@@ -156,10 +156,10 @@ const EXTRA_CARGO_TYPES = [
 
 const INTERNAL_USERS: InternalUserBlueprint[] = [
   {
-    fullName: 'Sofia Calderon',
-    email: 'admin@logitrans.gt',
+    fullName: 'Simulador FEL SAT',
+    email: 'certificador.fel@sat.gob.gt',
     phone: '+50241000001',
-    role: UserRole.ADMIN,
+    role: UserRole.CERTIFICADOR_FEL,
   },
   {
     fullName: 'Andrea Solares',
@@ -314,7 +314,7 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
 ];
 
 const MVP_PRIORITY_USER_EMAILS: string[] = [
-  'admin@logitrans.gt',
+  'certificador.fel@sat.gob.gt',
   'operativo.1@logitrans.gt',
   'logistica.1@logitrans.gt',
   'patio.1@logitrans.gt',
