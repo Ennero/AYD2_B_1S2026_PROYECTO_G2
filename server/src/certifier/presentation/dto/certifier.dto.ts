@@ -37,7 +37,7 @@ export class ValidateNitDto {
 }
 
 export class CertifyInvoiceDto {
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   felUuid: string;
 
