@@ -30,6 +30,11 @@ export const ENDPOINTS = {
     GET: (id: string) => `/api/operations/contracts/${id}`,
   },
 
+  OPERATIONS: {
+    ROUTES: `/api/operations/routes`,
+    CARGO_TYPES: `/api/operations/cargo-types`,
+  },
+
   // ── Piloto ───────────────────────────────
   VIAJES: {
     /**

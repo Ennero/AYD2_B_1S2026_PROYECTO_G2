@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -13,20 +13,27 @@ import { toast } from "sonner"
 
 type PlazoPago = 15 | 30 | 45
 
-const cargaOptions = [
-  { id: 1, name: "Carga General" },
-  { id: 2, name: "Perecederos" },
-  { id: 3, name: "Construcción" },
-  { id: 4, name: "Peligrosa" }
-] as const
-
-type CargaOption = typeof cargaOptions[number]
-
 export interface Client {
   clientId: string
   legalName: string
   commercialName: string
   nit: string
+}
+
+type RouteItem = {
+  routeId: string
+  routeCode: string
+  origin: string
+  destination: string
+  distanceKm: number
+  estimatedHours: number
+  isInternational: boolean
+}
+
+type CargoTypeItem = {
+  cargoTypeId: number
+  cargoName: string
+  requiresRefrigeration: boolean
 }
 
 export default function FormalizarContratoPage() {
@@ -35,17 +42,61 @@ export default function FormalizarContratoPage() {
   const [clients, setClients] = useState<Client[]>([])
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [searching, setSearching] = useState(false)
-  
+
   const [limiteCredito, setLimiteCredito] = useState("")
-  const [rutasAutorizadas, setRutasAutorizadas] = useState("")
+  const [routeQuery, setRouteQuery] = useState("")
+  const [routesCatalog, setRoutesCatalog] = useState<RouteItem[]>([])
+  const [selectedRouteIds, setSelectedRouteIds] = useState<string[]>([])
   const [plazoPago, setPlazoPago] = useState<PlazoPago>(30)
-  const [cargasPermitidas, setCargasPermitidas] = useState<number[]>([1])
+  const [cargoTypes, setCargoTypes] = useState<CargoTypeItem[]>([])
+  const [cargasPermitidas, setCargasPermitidas] = useState<number[]>([])
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState("")
   const [descuentoJustificacion, setDescuentoJustificacion] = useState("")
   const [successOpen, setSuccessOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [catalogLoading, setCatalogLoading] = useState(true)
 
-  // Búsqueda de clientes (Debounce simplificado con useEffect)
+  // Cargar catálogos desde DB: rutas y tipos de carga válidos.
+  useEffect(() => {
+    let mounted = true
+
+    async function loadCatalogs() {
+      setCatalogLoading(true)
+      try {
+        const [routesResponse, cargoTypesResponse] = await Promise.all([
+          api.get<{ data: RouteItem[] }>(ENDPOINTS.OPERATIONS.ROUTES),
+          api.get<{ data: CargoTypeItem[] }>(ENDPOINTS.OPERATIONS.CARGO_TYPES),
+        ])
+
+        if (!mounted) return
+
+        const routesData = routesResponse.data.data ?? []
+        const cargoTypesData = cargoTypesResponse.data.data ?? []
+
+        setRoutesCatalog(routesData)
+        setCargoTypes(cargoTypesData)
+
+        if (cargoTypesData.length > 0) {
+          setCargasPermitidas([cargoTypesData[0].cargoTypeId])
+        }
+      } catch {
+        if (mounted) {
+          toast.error("No se pudo cargar el catálogo de rutas y tipos de carga.")
+        }
+      } finally {
+        if (mounted) {
+          setCatalogLoading(false)
+        }
+      }
+    }
+
+    loadCatalogs()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  // Búsqueda de clientes con debounce.
   useEffect(() => {
     if (clienteQuery.length < 3) {
       setClients([])
@@ -57,8 +108,6 @@ export default function FormalizarContratoPage() {
       try {
         const response = await api.get<{ data: Client[] }>(`${ENDPOINTS.CLIENTES.LIST}?search=${clienteQuery}`)
         setClients(response.data.data)
-      } catch (e) {
-        console.error("Search failed", e)
       } finally {
         setSearching(false)
       }
@@ -67,29 +116,59 @@ export default function FormalizarContratoPage() {
     return () => clearTimeout(timer)
   }, [clienteQuery])
 
+  const selectedRoutes = routesCatalog.filter((route) => selectedRouteIds.includes(route.routeId))
+
+  const filteredRoutes = routesCatalog.filter((route) => {
+    const matchesQuery = `${route.routeCode} ${route.origin} ${route.destination}`
+      .toLowerCase()
+      .includes(routeQuery.toLowerCase())
+
+    return matchesQuery && !selectedRouteIds.includes(route.routeId)
+  })
+
   function toggleCarga(id: number) {
     setCargasPermitidas((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  function addRoute(routeId: string) {
+    setSelectedRouteIds((prev) => (prev.includes(routeId) ? prev : [...prev, routeId]))
+    setRouteQuery("")
+  }
+
+  function removeRoute(routeId: string) {
+    setSelectedRouteIds((prev) => prev.filter((id) => id !== routeId))
   }
 
   async function handleSubmit() {
     if (!selectedClient) return toast.error("Debe seleccionar un cliente")
     if (!limiteCredito) return toast.error("Debe definir un límite de crédito")
 
+    const parsedCreditLimit = Number.parseFloat(limiteCredito.replace(/,/g, ""))
+    if (!Number.isFinite(parsedCreditLimit) || parsedCreditLimit <= 0) {
+      return toast.error("El límite de crédito debe ser un número mayor a 0")
+    }
+
+    if (selectedRouteIds.length === 0) {
+      return toast.error("Debe seleccionar al menos una ruta autorizada")
+    }
+
+    if (cargasPermitidas.length === 0) {
+      return toast.error("Debe seleccionar al menos un tipo de carga permitido")
+    }
+
     setLoading(true)
     try {
       const payload = {
         clientId: selectedClient.clientId,
-        creditLimit: parseFloat(limiteCredito),
+        creditLimit: parsedCreditLimit,
         paymentTermDays: plazoPago,
-        discountPercentage: parseFloat(descuentoPorcentaje) || 0,
-        routeIds: [1, 2], // Hardcoded por ahora ya que no hay CRUD de rutas en frontend
-        cargoTypeIds: cargasPermitidas
+        discountPercentage: Number.parseFloat(descuentoPorcentaje) || 0,
+        routeIds: selectedRouteIds.map(Number),
+        cargoTypeIds: cargasPermitidas,
       }
-      
+
       await api.post(ENDPOINTS.CONTRATOS.CREATE, payload)
       setSuccessOpen(true)
-    } catch (error) {
-      console.error("Failed to create contract:", error)
     } finally {
       setLoading(false)
     }
@@ -97,25 +176,19 @@ export default function FormalizarContratoPage() {
 
   return (
     <div className="min-h-screen relative animate-in fade-in duration-700 font-body">
-      {/* HD Minimalist Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 pointer-events-none"
         style={{ backgroundImage: "url('/images/agente-minimal-hd.png')" }}
       />
-      
+
       <div className="relative z-10 w-full h-full min-h-screen px-6 py-12 md:p-16 flex flex-col max-w-7xl mx-auto">
-        
-        {/* Header */}
         <div className="mb-10">
           <h1 className="text-4xl font-heading font-extrabold text-[#0A3B7C]">Formalización de Contrato</h1>
           <p className="text-[#64748B] mt-2 text-lg">Configura los términos operativos y financieros para el nuevo cliente.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-          
-          {/* Left Column (Main Form) */}
           <div className="lg:col-span-2 space-y-10">
-            
             <Card className="p-10 rounded-3xl shadow-xl bg-white/95 backdrop-blur-md border-black/5">
               <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] flex items-center gap-3 mb-8 border-b border-black/5 pb-4">
                 <Search className="text-[#53B73E]" size={28} />
@@ -135,7 +208,7 @@ export default function FormalizarContratoPage() {
                   }}
                   className="pl-14 py-4 bg-surface/30 border-none shadow-inner text-lg rounded-2xl"
                 />
-                
+
                 {searching && (
                   <div className="absolute right-5 top-1/2 -translate-y-1/2">
                     <Loader2 className="animate-spin text-[#0A3B7C]" size={20} />
@@ -143,7 +216,6 @@ export default function FormalizarContratoPage() {
                 )}
               </div>
 
-              {/* Resultados de búsqueda */}
               {clients.length > 0 && !selectedClient && (
                 <div className="mt-4 bg-white border border-black/5 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
                   {clients.map((c) => (
@@ -177,11 +249,11 @@ export default function FormalizarContratoPage() {
                       <div className="font-bold text-[#0A3B7C]">{selectedClient.legalName}</div>
                     </div>
                   </div>
-                  <button 
+                  <button
                     className="text-[#64748B] hover:text-[#E53E3E] p-2"
                     onClick={() => {
-                        setSelectedClient(null)
-                        setClienteQuery("")
+                      setSelectedClient(null)
+                      setClienteQuery("")
                     }}
                   >
                     <X size={20} />
@@ -217,7 +289,7 @@ export default function FormalizarContratoPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Plazo de Pago</label>
                   <div className="flex bg-surface/40 p-1.5 rounded-2xl border border-black/5">
@@ -246,34 +318,76 @@ export default function FormalizarContratoPage() {
               <div className="space-y-10">
                 <div className="space-y-4">
                   <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Rutas Autorizadas</label>
-                  <Input
-                    label=""
-                    placeholder="Ej. GT-Puerto Quetzal, GT-Tecún Umán, SV-Acajutla"
-                    value={rutasAutorizadas}
-                    onChange={(e) => setRutasAutorizadas(e.target.value)}
-                    className="py-4 bg-surface/30 border-none shadow-inner text-lg rounded-2xl"
-                  />
+                  <div className="relative">
+                    <Input
+                      label=""
+                      placeholder={catalogLoading ? "Cargando rutas..." : "Buscar por código, origen o destino"}
+                      value={routeQuery}
+                      onChange={(e) => setRouteQuery(e.target.value)}
+                      className="py-4 bg-surface/30 border-none shadow-inner text-lg rounded-2xl"
+                      disabled={catalogLoading}
+                    />
+                    {catalogLoading && (
+                      <div className="absolute right-5 top-1/2 -translate-y-1/2">
+                        <Loader2 className="animate-spin text-[#0A3B7C]" size={20} />
+                      </div>
+                    )}
+                  </div>
+
+                  {routeQuery.trim().length > 0 && filteredRoutes.length > 0 && (
+                    <div className="bg-white border border-black/5 rounded-2xl shadow-xl max-h-52 overflow-auto">
+                      {filteredRoutes.map((route) => (
+                        <button
+                          key={route.routeId}
+                          type="button"
+                          className="w-full text-left p-3 hover:bg-[#0A3B7C]/5 transition-colors"
+                          onClick={() => addRoute(route.routeId)}
+                        >
+                          <div className="font-bold text-[#0A3B7C]">{route.routeCode}</div>
+                          <div className="text-sm text-[#64748B]">
+                            {route.origin} - {route.destination}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedRoutes.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedRoutes.map((route) => (
+                        <button
+                          key={route.routeId}
+                          type="button"
+                          onClick={() => removeRoute(route.routeId)}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0A3B7C]/10 text-[#0A3B7C] font-semibold"
+                        >
+                          <span>{route.routeCode}</span>
+                          <X size={14} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-4">
-                  <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
+                  <label className="text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
                     <Truck size={18} className="text-[#53B73E]" /> Tipos de Carga Permitida
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    {cargaOptions.map((opt) => {
-                      const selected = cargasPermitidas.includes(opt.id)
+                    {cargoTypes.map((opt) => {
+                      const selected = cargasPermitidas.includes(opt.cargoTypeId)
                       return (
                         <button
-                          key={opt.id}
+                          key={opt.cargoTypeId}
                           type="button"
-                          onClick={() => toggleCarga(opt.id)}
+                          onClick={() => toggleCarga(opt.cargoTypeId)}
                           className={`p-4 text-xs font-bold rounded-2xl border-2 transition-all uppercase tracking-wider ${
-                            selected 
-                              ? "border-[#53B73E] bg-[#53B73E]/10 text-[#53B73E] shadow-sm" 
+                            selected
+                              ? "border-[#53B73E] bg-[#53B73E]/10 text-[#53B73E] shadow-sm"
                               : "border-black/5 text-[#64748B] hover:border-[#0A3B7C]/40 hover:bg-surface/50"
                           }`}
                         >
-                          {opt.name}
+                          {opt.cargoName}
                         </button>
                       )
                     })}
@@ -281,10 +395,8 @@ export default function FormalizarContratoPage() {
                 </div>
               </div>
             </Card>
-
           </div>
 
-          {/* Right Column (Sidebar form & Submit) */}
           <div className="space-y-10">
             <Card className="bg-[#f0f4f8] border-none shadow-md p-10 rounded-3xl">
               <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] flex items-center gap-3 mb-6">
@@ -294,7 +406,7 @@ export default function FormalizarContratoPage() {
               <p className="text-sm text-[#64748B] mb-8 font-medium leading-relaxed">
                 Aplica beneficios contractuales especiales por volumen de carga o fidelidad.
               </p>
-              
+
               <div className="space-y-8">
                 <div className="space-y-4">
                   <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Porcentaje (%)</label>
@@ -309,7 +421,7 @@ export default function FormalizarContratoPage() {
                 </div>
                 <div className="space-y-4">
                   <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Justificación</label>
-                  <textarea 
+                  <textarea
                     className="w-full bg-white border-none rounded-2xl p-6 text-base font-medium focus:outline-none focus:ring-4 focus:ring-[#0A3B7C]/10 min-h-[140px] shadow-inner"
                     placeholder="Motivo del descuento especial..."
                     value={descuentoJustificacion}
@@ -321,12 +433,12 @@ export default function FormalizarContratoPage() {
 
             <Card className="bg-[#0A3B7C] text-white p-10 border-none shadow-2xl rounded-3xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-              
+
               <h3 className="font-heading font-extrabold text-2xl mb-8 flex items-center gap-3 !text-white">
                 <FileText size={28} className="text-[#53B73E]" />
                 Resumen Final
               </h3>
-              
+
               <div className="space-y-6 text-base mb-10 border-b border-white/10 pb-8">
                 <div className="flex justify-between items-center">
                   <span className="text-white/60 font-bold uppercase tracking-widest text-xs">Límite:</span>
@@ -337,16 +449,21 @@ export default function FormalizarContratoPage() {
                   <span className="font-extrabold text-xl text-white">{plazoPago} Días</span>
                 </div>
                 <div className="flex justify-between items-center">
+                  <span className="text-white/60 font-bold uppercase tracking-widest text-xs">Rutas:</span>
+                  <span className="font-extrabold text-xl text-white">{selectedRoutes.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
                   <span className="text-white/60 font-bold uppercase tracking-widest text-xs">Descuento:</span>
                   <span className="font-extrabold text-xl text-[#53B73E]">{descuentoPorcentaje || "0"}%</span>
                 </div>
               </div>
-              
-              <Button 
-                type="button" 
-                className="w-full bg-[#53B73E] text-white hover:bg-[#3A8E2A] border-none shadow-xl py-6 rounded-2xl font-bold flex items-center justify-center gap-3 group" 
+
+              <Button
+                type="button"
+                className="w-full bg-[#53B73E] text-white hover:bg-[#3A8E2A] border-none shadow-xl py-6 rounded-2xl font-bold flex items-center justify-center gap-3 group"
                 size="lg"
                 onClick={handleSubmit}
+                loading={loading}
               >
                 Generar Propuesta
                 <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -363,7 +480,7 @@ export default function FormalizarContratoPage() {
 
             <h2 className="text-3xl font-heading font-extrabold text-[#0A3B7C]">¡Contrato Formalizado!</h2>
             <p className="text-[#64748B] mt-5 max-w-sm mx-auto text-lg leading-relaxed">
-              El contrato comercial ha sido generado y se encuentra en estado <span className="font-extrabold text-[#0A3B7C]">PENDIENTE DE FIRMA</span>. 
+              El contrato comercial ha sido generado y se encuentra en estado <span className="font-extrabold text-[#0A3B7C]">PENDIENTE DE FIRMA</span>.
             </p>
 
             <div className="mt-12">
