@@ -106,7 +106,25 @@ function extractRoutine(sql: string, functionName: string): string {
 
 async function refreshCanonicalRoutines(dataSource: DataSource): Promise<void> {
   const sql = await readCanonicalSql();
-  await dataSource.query(extractRoutine(sql, 'POPULATE_INVOICE_FROM_ORDER'));
+  const routines = [
+    'SYNC_CONTRACT_DEFAULTS',
+    'VALIDATE_TRANSPORT_UNIT',
+    'VALIDATE_ORDER_ASSIGNMENT',
+    'VALIDATE_ORDER_COMMERCIAL_RULES',
+    'POPULATE_INVOICE_FROM_ORDER',
+    'AUTO_CREATE_DRAFT_INVOICE',
+    'VALIDATE_PAYMENT_AMOUNT',
+    'SYNC_INVOICE_PAYMENT',
+  ];
+
+  for (const name of routines) {
+    try {
+      const routineSql = extractRoutine(sql, name);
+      await dataSource.query(routineSql);
+    } catch (err) {
+      console.warn(`No se pudo refrescar la rutina ${name}:`, (err as Error).message);
+    }
+  }
 }
 
 export async function ensureCanonicalSchema(

@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -22,12 +23,15 @@ import { Roles } from '../../../auth/presentation/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/presentation/decorators/current-user.decorator';
 import { USER_ROLE } from '../../../auth/domain/enums/user-role.enum';
 import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.interface';
+import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
+import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
+import { CreateClientDto } from '../dtos/create-client.dto';
 
 /**
- * OperationsController — Endpoints del Agente Operativo.
+ * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
  *
- * Requiere autenticación JWT y rol AGENTE_OPERATIVO en todos sus endpoints.
- * Patrón a seguir para nuevos módulos de agente.
+ * Requiere autenticación JWT.
+ * Los roles se validan a nivel de método para permitir acceso diferenciado.
  */
 @Controller('api/operations')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,7 +42,35 @@ export class OperationsController {
     private readonly createClientUseCase: CreateClientUseCase,
     private readonly listCargasUseCase: ListCargasUseCase,
     private readonly formalizeCargaUseCase: FormalizeCargaUseCase,
+    private readonly createClientUseCase: CreateClientUseCase,
+    private readonly getClientsUseCase: GetClientsUseCase,
   ) {}
+
+  // ─── Endpoints del Agente Operativo ────────────────────────────────────
+
+  /**
+   * GET /api/operations/clients?search=...
+   * Listar clientes con búsqueda opcional.
+   */
+  @Get('clients')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async listClients(@Query('search') search?: string) {
+    const data = await this.getClientsUseCase.execute(search);
+    return { message: 'Clientes obtenidos', data };
+  }
+
+  /**
+   * POST /api/operations/clients
+   * Registrar un nuevo cliente.
+   */
+  @Post('clients')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.CREATED)
+  async createClient(@Body() dto: CreateClientDto) {
+    const data = await this.createClientUseCase.execute(dto);
+    return { message: 'Cliente registrado correctamente', data };
+  }
 
   /**
    * POST /api/operations/clients
@@ -68,14 +100,10 @@ export class OperationsController {
 
   /**
    * POST /api/operations/contracts
-   *
-   * Crea un contrato en estado PENDIENTE y envía la propuesta por email
-   * al contacto primario del cliente usando Resend (NotificationsModule).
-   *
-   * Body: { clientId, creditLimit, paymentTermDays, discountPercentage, routeIds[], cargoTypeIds[] }
-   * Response: { contractId, contractNumber, status: "PENDIENTE" }
+   * Crear contrato en estado PENDIENTE y enviar propuesta por email.
    */
   @Post('contracts')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
   @HttpCode(HttpStatus.CREATED)
   async createContract(
     @Body() dto: CreateContractDto,
@@ -95,6 +123,8 @@ export class OperationsController {
 
     return { message: 'Contrato generado correctamente', data };
   }
+
+  // ─── Endpoints del Encargado de Patio ──────────────────────────────────
 
   /**
    * GET /api/operations/cargas
@@ -120,12 +150,10 @@ export class OperationsController {
     @Body() dto: FormalizeCargaDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    // DTO validation is handled globally if using ValidationPipe
-    // Fallbacks just in case
     const data = await this.formalizeCargaUseCase.execute(
       orderId,
-      dto.loadedWeightTon || 1,
-      dto.stowageConfirmed ?? true,
+      dto.loadedWeightTon,
+      dto.stowageConfirmed,
       user.fullName,
     );
 

@@ -13,12 +13,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Prevent authenticated users from accessing login page again
-  if (request.nextUrl.pathname.startsWith('/login') && token) {
-    // Ideally we would decode token to see their role, but here we can just redirect to dashboard
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
   return NextResponse.next()
 }
 

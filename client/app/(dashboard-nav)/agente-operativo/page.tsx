@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 
 export default function AgenteOperativoPage() {
   const { user, loading } = useAuth()
-  const userName = loading ? "..." : (user?.nombre ?? "Agente")
+  const userName = loading ? "..." : (user?.fullName ?? "Agente")
   
   const [mounted, setMounted] = useState(false)
 

@@ -67,7 +67,7 @@ export default function BitacoraTimeLine({
     logs,
     newLogIds = new Set(),
 }: BitacoraTimelineProps) {
-    if (logs.length === 0) {
+    if (!logs || logs.length === 0) {
         return (
             <p className="text-text-muted text-sm italic text-center py-6">
                 No hay eventos registrados aún.

@@ -46,7 +46,7 @@ export class CreateContractUseCase {
     // ── 2. Cargar rutas para datos del email ──────────────────────────────────
     const routes = await this.dataSource
       .getRepository(Route)
-      .findBy({ routeId: In(input.routeIds.map(String)) });
+      .findBy({ routeId: In(input.routeIds.map(Number)) });
 
     // ── 3. Transacción: CONTRACTS + CONTRACT_ROUTES + CONTRACT_CARGO_TYPES ────
     const savedContract = await this.dataSource.transaction(async (em) => {

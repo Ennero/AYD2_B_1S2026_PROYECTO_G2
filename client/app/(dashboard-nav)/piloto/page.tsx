@@ -58,8 +58,9 @@ export default function PilotoDashboardPage() {
         ? `${ENDPOINTS.VIAJES.LIST}?${queryString}`
         : ENDPOINTS.VIAJES.LIST
   
-      const { data } = await api.get<ViajeResumen[]>(url)
-      setViajes(data)
+      const response = await api.get<{ message: string; data: ViajeResumen[] }>(url)
+      const viajesToSet = (response.data as any).data
+      setViajes(Array.isArray(viajesToSet) ? viajesToSet : [])
     } catch {
       // El cliente api ya muestra el toast de error automáticamente
     } finally {
@@ -83,7 +84,7 @@ export default function PilotoDashboardPage() {
       <main className="w-full max-w-7xl mx-auto px-6 py-8">
         {/* ── Bienvenida ──────────────────────────────────────────── */}
         <h1 className="font-heading text-4xl font-extrabold text-center text-text-primary mb-8">
-          ¡Bienvenido{user ? `, ${user}` : ""}!
+          ¡Bienvenido{user?.fullName ? `, ${user.fullName}` : ""}!
         </h1>
 
         {/* ── Layout principal: Sidebar + Lista ────────────────────── */}

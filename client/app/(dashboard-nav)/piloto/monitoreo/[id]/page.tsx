@@ -76,9 +76,11 @@ export default function MonitoreoPage() {
   }, [orderId])
 
   async function fetchDetalle() {
+    setLoading(true)
     try {
-      const { data } = await api.get<ViajeDetalle>(ENDPOINTS.VIAJES.GET(orderId))
-      setViaje(data)
+      const response = await api.get<{ message: string; data: ViajeDetalle }>(ENDPOINTS.VIAJES.GET(orderId))
+      const viajeData = (response.data as any)?.data ?? (response.data as any)
+      setViaje(viajeData)
     } catch {
       setError("No se pudo cargar el viaje.")
     } finally {
@@ -104,34 +106,31 @@ export default function MonitoreoPage() {
   async function handleRegistrarEvento(payload: RegistrarLogPayload) {
     setSavingLog(true)
     try {
-      const { data } = await api.post<LogEvento>(
+      const response = await api.post<{ message: string; data: LogEvento }>(
       ENDPOINTS.VIAJES.ADD_LOG(orderId),
       payload as unknown as Record<string, unknown>
     )
-      toast.success("Evento registrado en la bitácora.")
+    const logData = (response.data as any)?.data ?? response.data
+    const nuevoLog: LogEvento = {
+      logId:       logData.logId,
+      eventType:   payload.eventType,
+      eventTime:   logData.eventTime,
+      description: payload.description,
+    }
 
-      // Agregar el nuevo log localmente sin refetch completo
-      const nuevoLog: LogEvento = {
-        logId:       data.logId,
-        eventType:   payload.eventType,
-        eventTime:   data.eventTime,
-        description: payload.description,
-      }
+    setViaje((prev) =>
+      prev ? { ...prev, logs: [...(prev.logs ?? []), nuevoLog] } : prev
+    )
+    setNewLogIds((prev) => new Set(prev).add(logData.logId))
+    setModalOpen(false)
 
-      setViaje((prev) =>
-        prev ? { ...prev, logs: [...prev.logs, nuevoLog] } : prev
-      )
-      setNewLogIds((prev) => new Set(prev).add(data.logId))
-      setModalOpen(false)
-
-      // Quitar la animación después de 2 s
-      setTimeout(() => {
-        setNewLogIds((prev) => {
-          const next = new Set(prev)
-          next.delete(data.logId)
-          return next
-        })
-      }, 2000)
+    setTimeout(() => {
+      setNewLogIds((prev) => {
+        const next = new Set(prev)
+        next.delete(logData.logId)
+        return next
+      })
+    }, 2000)
     } finally {
       setSavingLog(false)
     }
@@ -340,7 +339,7 @@ export default function MonitoreoPage() {
           </div>
 
           <div className="mt-6">
-            <BitacoraTimeline logs={viaje.logs} newLogIds={newLogIds} />
+            <BitacoraTimeline logs={viaje.logs ?? []} newLogIds={newLogIds} />
           </div>
         </div>
 

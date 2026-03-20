@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
 import { DataSource, EntityManager, In } from 'typeorm';
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
@@ -30,6 +31,10 @@ import { VehicleType } from '../typeorm/entities/vehicle-type.entity';
 interface SeedSummary {
   seeded: boolean;
   counts: Record<string, number>;
+}
+
+export function getShortId(index: number): string {
+  return String(index);
 }
 
 interface ClientBlueprint {
@@ -151,10 +156,10 @@ const EXTRA_CARGO_TYPES = [
 
 const INTERNAL_USERS: InternalUserBlueprint[] = [
   {
-    fullName: 'Sofia Calderon',
-    email: 'admin@logitrans.gt',
+    fullName: 'Simulador FEL SAT',
+    email: 'certificador.fel@sat.gob.gt',
     phone: '+50241000001',
-    role: UserRole.ADMIN,
+    role: UserRole.CERTIFICADOR_FEL,
   },
   {
     fullName: 'Andrea Solares',
@@ -306,6 +311,16 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
     phone: '+50241000114',
     role: UserRole.PILOTO,
   },
+];
+
+const MVP_PRIORITY_USER_EMAILS: string[] = [
+  'certificador.fel@sat.gob.gt',
+  'operativo.1@logitrans.gt',
+  'logistica.1@logitrans.gt',
+  'patio.1@logitrans.gt',
+  'finanzas.1@logitrans.gt',
+  'gerencia@logitrans.gt',
+  'piloto.01@logitrans.gt',
 ];
 
 const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
@@ -1101,8 +1116,8 @@ export class DatabaseSeeder {
         counts: {
           clients: clients.length,
           users: internalUsers.length + clientUsers.length,
-          sessions: Math.min(internalUsers.length + clientUsers.length, 24),
-          recoveryTokens: 10,
+          sessions: await manager.getRepository(UserSession).count(),
+          recoveryTokens: await manager.getRepository(PasswordRecoveryToken).count(),
           contacts: CLIENT_BLUEPRINTS.reduce(
             (total, blueprint) => total + blueprint.contactPeople.length,
             0,
@@ -1159,18 +1174,21 @@ export class DatabaseSeeder {
 
   private async seedInternalUsers(manager: EntityManager): Promise<User[]> {
     const repository = manager.getRepository(User);
-    await repository.save(
-      INTERNAL_USERS.map((user) =>
-        repository.create({
+    const usersToCreate = await Promise.all(
+      INTERNAL_USERS.map(async (user, index) => {
+        const passwordHash = await bcrypt.hash(`seed$${user.email}`, 10);
+        return repository.create({
+          userId: getShortId(index + 1),
           role: user.role,
           fullName: user.fullName,
           email: user.email,
-          passwordHash: `seed$${user.email}`,
+          passwordHash,
           phone: user.phone,
           isActive: true,
-        }),
-      ),
+        });
+      }),
     );
+    await repository.save(usersToCreate);
 
     return repository.find({
       where: { email: In(INTERNAL_USERS.map((user) => user.email)) },
@@ -1180,8 +1198,9 @@ export class DatabaseSeeder {
   private async seedClients(manager: EntityManager): Promise<Client[]> {
     const repository = manager.getRepository(Client);
     await repository.save(
-      CLIENT_BLUEPRINTS.map((client) =>
+      CLIENT_BLUEPRINTS.map((client, index) =>
         repository.create({
+          clientId: getShortId(index + 1),
           legalName: client.legalName,
           commercialName: client.commercialName,
           nit: client.nit,
@@ -1212,18 +1231,22 @@ export class DatabaseSeeder {
     const repository = manager.getRepository(User);
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
 
-    const clientUsers = CLIENT_BLUEPRINTS.map((client) => {
-      const entity = mustFind(clientByNit.get(client.nit), client.legalName);
-      return repository.create({
-        clientId: entity.clientId,
-        role: UserRole.CLIENTE,
-        fullName: `${client.primaryContactName} Portal`,
-        email: `portal.${client.key}@clientes.logitrans.gt`,
-        passwordHash: `seed$portal.${client.key}`,
-        phone: client.primaryContactPhone,
-        isActive: true,
-      });
-    });
+    const clientUsers = await Promise.all(
+      CLIENT_BLUEPRINTS.map(async (client, index) => {
+        const entity = mustFind(clientByNit.get(client.nit), client.legalName);
+        const passwordHash = await bcrypt.hash(`seed$portal.${client.key}`, 10);
+        return repository.create({
+          userId: getShortId(50 + index),
+          clientId: entity.clientId,
+          role: UserRole.CLIENTE,
+          fullName: `${client.primaryContactName} Portal`,
+          email: `portal.${client.key}@clientes.logitrans.gt`,
+          passwordHash,
+          phone: client.primaryContactPhone,
+          isActive: true,
+        });
+      })
+    );
 
     await repository.save(clientUsers);
 
@@ -1239,18 +1262,21 @@ export class DatabaseSeeder {
     const repository = manager.getRepository(ClientContact);
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
 
+    let contactCounter = 0;
     const contacts = CLIENT_BLUEPRINTS.flatMap((blueprint) => {
       const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
-      return blueprint.contactPeople.map((contact) =>
-        repository.create({
+      return blueprint.contactPeople.map((contact) => {
+        contactCounter++;
+        return repository.create({
+          contactId: getShortId(contactCounter),
           clientId: client.clientId,
           contactName: contact.name,
           contactEmail: contact.email,
           contactPhone: contact.phone,
           positionTitle: contact.title,
           isActive: contact.isActive ?? true,
-        }),
-      );
+        });
+      });
     });
 
     await repository.save(contacts);
@@ -1263,10 +1289,13 @@ export class DatabaseSeeder {
     const repository = manager.getRepository(ClientCard);
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
 
+    let cardCounter = 0;
     const cards = CLIENT_BLUEPRINTS.flatMap((blueprint) => {
       const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
-      return blueprint.cards.map((card) =>
-        repository.create({
+      return blueprint.cards.map((card) => {
+        cardCounter++;
+        return repository.create({
+          cardId: getShortId(cardCounter),
           clientId: client.clientId,
           cardAlias: card.alias,
           cardholderName: card.cardholderName,
@@ -1275,8 +1304,8 @@ export class DatabaseSeeder {
           expirationMonth: card.expirationMonth,
           expirationYear: card.expirationYear,
           isActive: true,
-        }),
-      );
+        });
+      });
     });
 
     await repository.save(cards);
@@ -1292,9 +1321,10 @@ export class DatabaseSeeder {
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
     const cargoByName = new Map(cargoTypes.map((cargo) => [cargo.cargoName, cargo]));
 
-    const contracts = CLIENT_BLUEPRINTS.map((blueprint) => {
+    const contracts = CLIENT_BLUEPRINTS.map((blueprint, index) => {
       const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
       return repository.create({
+        contractId: getShortId(index + 1),
         clientId: client.clientId,
         status: blueprint.contractStatus,
         startDate: toDateOnly(daysFromNow(blueprint.contractStartOffsetDays)),
@@ -1331,6 +1361,7 @@ export class DatabaseSeeder {
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
     const contractByClientId = new Map(contracts.map((contract) => [contract.clientId, contract]));
 
+    let routeCounter = 0;
     const records = CLIENT_BLUEPRINTS.flatMap((blueprint) => {
       const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
       const contract = mustFind(
@@ -1339,10 +1370,12 @@ export class DatabaseSeeder {
       );
 
       return blueprint.routeCodes.map((routeCode, index) => {
+        routeCounter++;
         const route = mustFind(routeByCode.get(routeCode), routeCode);
         const estimatedHours = Number(route.estimatedHours);
 
         return repository.create({
+          contractRouteId: getShortId(routeCounter),
           contractId: contract.contractId,
           routeId: route.routeId,
           promisedDeliveryHours: roundCurrency(estimatedHours + 0.5 + index * 0.25),
@@ -1387,6 +1420,7 @@ export class DatabaseSeeder {
       const pilot = mustFind(userByEmail.get(blueprint.pilotEmail), blueprint.pilotEmail);
 
       return repository.create({
+        unitId: getShortId(index + 1),
         branchId: branch.branchId,
         vehicleTypeId: vehicleType.vehicleTypeId,
         pilotUserId: pilot.userId,
@@ -1411,12 +1445,13 @@ export class DatabaseSeeder {
   ): Promise<void> {
     const repository = manager.getRepository(UserSession);
     const sessionUsers = users.slice(0, 24);
-    const sessions = sessionUsers.map((user, index) => {
+    const baseSessions = sessionUsers.map((user, index) => {
       const createdAt = daysFromNow(-(index + 2));
       const lastUsedAt = hoursAfter(createdAt, 12 + index);
       const deletedAt = index % 7 === 0 ? hoursAfter(lastUsedAt, 6) : null;
 
       return repository.create({
+        sessionId: getShortId(index + 1),
         userId: user.userId,
         userRemote: `10.0.${(index % 8) + 1}.${20 + index}`,
         userAgent: index % 2 === 0 ? 'Chrome/LogiTrans Seed' : 'MobileApp/LogiTrans Seed',
@@ -1433,7 +1468,55 @@ export class DatabaseSeeder {
       });
     });
 
-    await repository.save(sessions);
+    const priorityUsers = users.filter((user) =>
+      MVP_PRIORITY_USER_EMAILS.includes(user.email),
+    );
+
+    const prioritySessions = priorityUsers.flatMap((user, index) => {
+      const activeCreatedAt = daysFromNow(-(index + 1));
+      const activeLastUsedAt = hoursAfter(activeCreatedAt, 3 + index);
+
+      const closedCreatedAt = hoursAfter(activeCreatedAt, -8);
+      const closedLastUsedAt = hoursAfter(closedCreatedAt, 9);
+      const closedDeletedAt = hoursAfter(closedLastUsedAt, 1);
+
+      return [
+        repository.create({
+          sessionId: getShortId(24 + index * 2 + 1),
+          userId: user.userId,
+          userRemote: `172.16.${(index % 6) + 1}.${140 + index}`,
+          userAgent: 'Chrome/LogiTrans MVP Session',
+          userUuid: user.userId,
+          sessionUuid: randomUUID(),
+          sessionToken: `seed-mvp-active-${index + 1}-${user.userId}`,
+          sessionSource: 'WEB_PORTAL',
+          usageCount: 12 + index,
+          lastUsedAt: activeLastUsedAt,
+          expirationAt: daysFromNow(35 - index),
+          deletedAt: null,
+          createdAt: activeCreatedAt,
+          updatedAt: activeLastUsedAt,
+        }),
+        repository.create({
+          sessionId: getShortId(24 + index * 2 + 2),
+          userId: user.userId,
+          userRemote: `172.18.${(index % 5) + 1}.${170 + index}`,
+          userAgent: 'MobileApp/LogiTrans MVP Session',
+          userUuid: user.userId,
+          sessionUuid: randomUUID(),
+          sessionToken: `seed-mvp-closed-${index + 1}-${user.userId}`,
+          sessionSource: 'MOBILE_APP',
+          usageCount: 6 + index,
+          lastUsedAt: closedLastUsedAt,
+          expirationAt: daysFromNow(12 - index),
+          deletedAt: closedDeletedAt,
+          createdAt: closedCreatedAt,
+          updatedAt: closedDeletedAt,
+        }),
+      ];
+    });
+
+    await repository.save([...baseSessions, ...prioritySessions]);
   }
 
   private async seedPasswordRecoveryTokens(
@@ -1442,11 +1525,12 @@ export class DatabaseSeeder {
   ): Promise<void> {
     const repository = manager.getRepository(PasswordRecoveryToken);
     const selectedUsers = users.slice(3, 13);
-    const tokens = selectedUsers.map((user, index) => {
+    const baseTokens = selectedUsers.map((user, index) => {
       const expiresAt = daysFromNow(2 + index);
       const usedAt = index % 3 === 0 ? daysFromNow(-(index + 1)) : null;
 
       return repository.create({
+        tokenId: getShortId(index + 1),
         userId: user.userId,
         tokenHash: `recovery-token-${index + 1}-${user.userId}`,
         expiresAt,
@@ -1454,7 +1538,30 @@ export class DatabaseSeeder {
       });
     });
 
-    await repository.save(tokens);
+    const priorityUsers = users.filter((user) =>
+      MVP_PRIORITY_USER_EMAILS.includes(user.email),
+    );
+
+    const priorityTokens = priorityUsers.flatMap((user, index) => {
+      return [
+        repository.create({
+          tokenId: getShortId(10 + index * 2 + 1),
+          userId: user.userId,
+          tokenHash: `mvp-recovery-active-${index + 1}-${randomUUID()}`,
+          expiresAt: daysFromNow(7 + index),
+          usedAt: null,
+        }),
+        repository.create({
+          tokenId: getShortId(10 + index * 2 + 2),
+          userId: user.userId,
+          tokenHash: `mvp-recovery-used-${index + 1}-${randomUUID()}`,
+          expiresAt: daysFromNow(3 + index),
+          usedAt: daysFromNow(-(index + 2)),
+        }),
+      ];
+    });
+
+    await repository.save([...baseTokens, ...priorityTokens]);
   }
 
   private async seedOrders(
@@ -1498,6 +1605,7 @@ export class DatabaseSeeder {
 
     const createdOrders: CreatedOrderRecord[] = [];
     const orderRepository = manager.getRepository(Order);
+    let orderCounter = 0;
 
     for (const [clientIndex, blueprint] of activeBlueprints.entries()) {
       const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
@@ -1565,8 +1673,10 @@ export class DatabaseSeeder {
         const maintenanceCost = unit && distance > 0 ? roundCurrency(distance * 0.28) : 0;
         const initialStatus = this.resolveInitialStatus(plan.stage);
 
+        orderCounter++;
         const order = await orderRepository.save(
           orderRepository.create({
+            orderId: getShortId(orderCounter),
             contractId: contract.contractId,
             requestedByUserId: portalUser.userId,
             branchId: unit?.branchId ?? null,
@@ -1655,12 +1765,15 @@ export class DatabaseSeeder {
     orders: CreatedOrderRecord[],
   ): Promise<void> {
     const repository = manager.getRepository(OrderRouteLog);
+    let logCounter = 0;
     const logs = orders.flatMap((record, index) => {
       const entries: OrderRouteLog[] = [];
 
       if (record.finalStage === 'LISTA' && record.scheduledPickupAt) {
+        logCounter++;
         entries.push(
           repository.create({
+            logId: getShortId(logCounter),
             orderId: record.order.orderId,
             eventType: RouteEventType.OTRO,
             eventTime: hoursAfter(record.scheduledPickupAt, -1),
@@ -1673,8 +1786,10 @@ export class DatabaseSeeder {
         (record.finalStage === 'TRANSITO' || record.finalStage === 'ENTREGADA') &&
         record.dispatchedAt
       ) {
+        logCounter++;
         entries.push(
           repository.create({
+            logId: getShortId(logCounter),
             orderId: record.order.orderId,
             eventType: RouteEventType.SALIDA,
             eventTime: record.dispatchedAt,
@@ -1682,8 +1797,10 @@ export class DatabaseSeeder {
           }),
         );
 
+        logCounter++;
         entries.push(
           repository.create({
+            logId: getShortId(logCounter),
             orderId: record.order.orderId,
             eventType: RouteEventType.PUNTO_CONTROL,
             eventTime: hoursAfter(record.dispatchedAt, 2.5),
@@ -1692,8 +1809,10 @@ export class DatabaseSeeder {
         );
 
         if (record.route?.isInternational) {
+          logCounter++;
           entries.push(
             repository.create({
+              logId: getShortId(logCounter),
               orderId: record.order.orderId,
               eventType: RouteEventType.ADUANA,
               eventTime: hoursAfter(record.dispatchedAt, 4.5),
@@ -1703,8 +1822,10 @@ export class DatabaseSeeder {
         }
 
         if (index % 4 === 0) {
+          logCounter++;
           entries.push(
             repository.create({
+              logId: getShortId(logCounter),
               orderId: record.order.orderId,
               eventType: RouteEventType.INCIDENTE,
               eventTime: hoursAfter(record.dispatchedAt, 5.5),
@@ -1715,8 +1836,10 @@ export class DatabaseSeeder {
       }
 
       if (record.finalStage === 'ENTREGADA' && record.deliveredAt) {
+        logCounter++;
         entries.push(
           repository.create({
+            logId: getShortId(logCounter),
             orderId: record.order.orderId,
             eventType: RouteEventType.LLEGADA,
             eventTime: record.deliveredAt,
@@ -1856,6 +1979,7 @@ export class DatabaseSeeder {
 
       await repository.save(
         repository.create({
+          paymentId: getShortId(index + 1),
           invoiceId: invoice.invoiceId,
           method,
           status: PaymentStatus.APROBADO,
@@ -1881,6 +2005,7 @@ export class DatabaseSeeder {
 
       await repository.save(
         repository.create({
+          paymentId: getShortId(invoicesForApprovedPayments.length + index + 1),
           invoiceId: invoice.invoiceId,
           method: index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE,
           status,

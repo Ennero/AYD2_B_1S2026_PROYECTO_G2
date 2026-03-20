@@ -1,11 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
 import { Branch } from './branch.entity';
 import { VehicleType } from './vehicle-type.entity';
 import { User } from './user.entity';
@@ -13,7 +6,7 @@ import { Order } from './order.entity';
 
 @Entity('transport_units')
 export class TransportUnit {
-  @PrimaryGeneratedColumn('uuid', { name: 'unit_id' })
+  @PrimaryColumn({ type: 'varchar', length: 36, name: 'unit_id' })
   unitId: string;
 
   @Column({ name: 'branch_id', type: 'smallint' })
@@ -22,7 +15,7 @@ export class TransportUnit {
   @Column({ name: 'vehicle_type_id', type: 'smallint' })
   vehicleTypeId: number;
 
-  @Column({ name: 'pilot_user_id', type: 'uuid', unique: true, nullable: true })
+  @Column({ name: 'pilot_user_id', type: 'varchar', length: 36, unique: true, nullable: true })
   pilotUserId: string | null;
 
   @Column({ name: 'plate_number', type: 'varchar', length: 20, unique: true })
@@ -32,8 +25,7 @@ export class TransportUnit {
     name: 'vehicle_model',
     type: 'varchar',
     length: 80,
-    nullable: true,
-  })
+    nullable: true })
   vehicleModel: string | null;
 
   @Column({ name: 'capacity_ton', type: 'numeric', precision: 6, scale: 2 })
@@ -46,8 +38,7 @@ export class TransportUnit {
     name: 'pilot_license_number',
     type: 'varchar',
     length: 40,
-    unique: true,
-  })
+    unique: true })
   pilotLicenseNumber: string;
 
   @Column({ name: 'pilot_license_expiration', type: 'date' })

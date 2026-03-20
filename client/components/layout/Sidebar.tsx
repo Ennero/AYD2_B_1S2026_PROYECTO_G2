@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { LogOut, ChevronLeft, ChevronRight, Clock as ClockIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils/cn"
+import { useAuth } from "@/hooks/useAuth"
 import type { NavItem } from "@/types"
 
 /** Configuración completa de navegación por rol con sidebar */
@@ -46,6 +47,15 @@ const SIDEBAR_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
       { label: "Bandeja de Aprobación", href: "/certificador-fel/bandeja" },
     ],
   },
+  finances: {
+    title: "Agente Financiero",
+    items: [
+      { label: "Inicio", href: "/finances" },
+      { label: "Bandeja de Facturacion", href: "/finances/facturacion" },
+      { label: "Conciliar Pagos", href: "/finances/pagos" },
+      { label: "Tarifario Base", href: "/finances/tarifario" },
+    ],
+  },
 }
 
 export default function Sidebar() {
@@ -53,6 +63,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [time, setTime] = useState(new Date())
   const [mounted, setMounted] = useState(false)
+  const { logout } = useAuth()
 
   // Prevent hydration mismatch for the Clock
   useEffect(() => {
@@ -159,6 +170,7 @@ export default function Sidebar() {
         {/* Footer — logout */}
         <div className="p-4 border-t border-white/5">
           <button
+            onClick={() => void logout()}
             className={cn(
               "flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 p-3 rounded-lg transition-colors text-sm w-full cursor-pointer",
               collapsed && "justify-center"

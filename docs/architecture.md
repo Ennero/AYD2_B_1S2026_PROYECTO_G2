@@ -187,6 +187,7 @@ Componentes que aíslan la lógica de negocio de las dependencias externas:
 
 - **Adapter FEL:** Encapsula la comunicación con el Certificador FEL (SAT). Maneja reintentos y errores de indisponibilidad del servicio externo.
 - **Adapter ERP:** Expone endpoints públicos documentados (REST/JSON) para el consumo por parte de ERPs de clientes.
+- **Adapter de Notificaciones (Resend):** Encapsula el envío de correos transaccionales (credenciales, recuperación de contraseña y envío de factura certificada) usando Resend como proveedor del MVP.
 
 ### Capa de Persistencia
 

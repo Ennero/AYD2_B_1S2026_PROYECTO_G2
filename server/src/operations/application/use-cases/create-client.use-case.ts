@@ -1,8 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { ClientFactory } from '../factories/client.factory';
-import { RiskLevel } from '../../../domain/enums/risk-level.enum';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
+import { RiskLevel } from '../../../domain/enums/risk-level.enum';
+import { ClientFactory } from '../factories/client.factory';
 
 export interface CreateClientInput {
   legalName: string;
@@ -29,10 +29,7 @@ export interface CreateClientOutput {
 
 @Injectable()
 export class CreateClientUseCase {
-  constructor(
-    private readonly dataSource: DataSource,
-    private readonly clientFactory: ClientFactory,
-  ) {}
+  constructor(private readonly dataSource: DataSource, private readonly clientFactory: ClientFactory) {}
 
   async execute(input: CreateClientInput): Promise<CreateClientOutput> {
     const nit = input.nit.trim();

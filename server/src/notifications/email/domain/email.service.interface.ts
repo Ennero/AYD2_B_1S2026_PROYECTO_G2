@@ -2,7 +2,7 @@
  * Puerto (port) del servicio de email — capa de dominio.
  *
  * Define el contrato que cualquier adaptador de envío debe cumplir,
- * desacoplando la lógica de negocio de la implementación concreta (SES, SMTP, etc.)
+ * desacoplando la lógica de negocio de la implementación concreta (Resend, SMTP, etc.)
  */
 
 export interface SendEmailOptions {

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Check } from 'typeorm';
+import { Entity, Column, OneToMany, PrimaryColumn } from 'typeorm';
 import { RiskLevel } from '../../../../domain/enums/risk-level.enum';
 import { User } from './user.entity';
 import { ClientContact } from './client-contact.entity';
@@ -7,9 +7,8 @@ import { Contract } from './contract.entity';
 import { Invoice } from './invoice.entity';
 
 @Entity('clients')
-@Check("nit ~ '^[0-9]{13}$'")
 export class Client {
-  @PrimaryGeneratedColumn('uuid', { name: 'client_id' })
+  @PrimaryColumn({ type: 'varchar', length: 36, name: 'client_id' })
   clientId: string;
 
   @Column({ name: 'client_code', type: 'varchar', length: 30, unique: true })
@@ -37,8 +36,7 @@ export class Client {
     name: 'primary_contact_phone',
     type: 'varchar',
     length: 30,
-    nullable: true,
-  })
+    nullable: true })
   primaryContactPhone: string | null;
 
   @Column({ name: 'credit_limit', type: 'numeric', precision: 14, scale: 2, default: 0 })

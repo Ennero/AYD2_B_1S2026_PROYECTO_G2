@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
@@ -12,6 +13,11 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
   const dataSource = app.get(DataSource);
   const databaseConfig = getDatabaseRuntimeConfig();
 
@@ -29,7 +35,7 @@ async function bootstrap() {
   }
 
   const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  console.log(`Server running on port ${port}`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`Server running on port ${port} (0.0.0.0)`);
 }
 bootstrap();

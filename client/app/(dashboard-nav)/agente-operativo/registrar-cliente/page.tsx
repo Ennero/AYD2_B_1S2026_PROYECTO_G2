@@ -74,9 +74,9 @@ export default function RegistrarClientePage() {
 
   const capacidadPagoOptions = useMemo(
     () => [
-      { value: "baja", label: "Baja" },
-      { value: "media", label: "Media" },
-      { value: "alta", label: "Alta" },
+      { value: "bajo", label: "Baja" },
+      { value: "medio", label: "Media" },
+      { value: "alto", label: "Alta" },
     ],
     []
   )
@@ -129,6 +129,8 @@ export default function RegistrarClientePage() {
       })
 
       setSuccessOpen(true)
+    } catch {
+      toast.error("No se pudo registrar el cliente. Intenta nuevamente.")
     } finally {
       setIsSubmitting(false)
     }
@@ -286,7 +288,12 @@ export default function RegistrarClientePage() {
                   Siguiente
                 </Button>
               ) : (
-                <Button type="button" onClick={handleSubmit} className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] px-10">
+                <Button 
+                  type="button" 
+                  onClick={handleSubmit} 
+                  className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] px-10"
+                  loading={isSubmitting}
+                >
                   Registrar Cliente
                 </Button>
               )}

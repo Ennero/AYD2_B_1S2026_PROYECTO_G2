@@ -1,7 +1,8 @@
-import { IsUUID, IsNumber, IsBoolean, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsBoolean, Min } from 'class-validator';
 
 export class FormalizeCargaDto {
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   orderId: string;
 
   @IsNumber()

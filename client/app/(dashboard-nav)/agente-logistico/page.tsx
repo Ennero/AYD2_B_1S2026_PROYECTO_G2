@@ -10,7 +10,7 @@ import { ClipboardList, Truck, MapPin, ArrowRight } from "lucide-react"
 
 export default function AgenteLogisticoPage() {
   const { user, loading: authLoading } = useAuth()
-  const userName = authLoading ? "..." : (user?.nombre ?? "Agente")
+  const userName = authLoading ? "..." : (user?.fullName ?? "Agente")
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(true)

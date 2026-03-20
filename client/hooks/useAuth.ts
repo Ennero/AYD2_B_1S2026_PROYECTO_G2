@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useCallback } from "react"
 import { api, setToken, removeToken } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
-import type { UserProfile, LoginResponse } from "@/lib/api/types"
+import type { UserProfile, UserRole } from "@/lib/api/types"
 
 /**
  * Hook de autenticación.
@@ -26,10 +26,10 @@ export function useAuth() {
       if (token) {
         const payload = JSON.parse(atob(token.split('.')[1]))
         setUser({
-          id: payload.sub,
-          nombre: payload.fullName,
+          userId: payload.sub,
+          fullName: payload.fullName,
           email: payload.email,
-          rol: payload.role.toLowerCase() as any
+          role: payload.role as UserRole,
         })
       } else {
         setUser(null)
@@ -48,7 +48,7 @@ export function useAuth() {
   /** Login con email y contraseña */
   const login = async (email: string, password: string) => {
     // La respuesta real del backend es { message: string, data: { token, role, fullName, userId, sessionUuid } }
-    const response = await api.post<{ data: { token: string, role: string, fullName: string, userId: string } }>(
+    const response = await api.post<{ data: { token: string, role: UserRole, fullName: string, userId: string } }>(
       ENDPOINTS.AUTH.LOGIN, 
       { email, password }, 
       { skipAuth: true }
@@ -58,29 +58,38 @@ export function useAuth() {
     setToken(backendData.token)
     
     const userProfile = {
-      id: backendData.userId,
-      nombre: backendData.fullName,
+      userId: backendData.userId,
+      fullName: backendData.fullName,
       email,
-      rol: backendData.role.toLowerCase() as any
+      role: backendData.role,
     }
     setUser(userProfile)
 
     // Redirigir según el rol
     const roleRoutes: Record<string, string> = {
-      agente_operativo: "/agente-operativo",
-      piloto: "/piloto",
-      agente_logistico: "/agente-logistico",
-      encargado_patio: "/encargado-patio",
-      certificador_fel: "/certificador-fel",
+      CERTIFICADOR_FEL: "/certificador-fel",
+      GERENCIA: "/gerencia",
+      AGENTE_OPERATIVO: "/agente-operativo",
+      PILOTO: "/piloto",
+      AGENTE_LOGISTICO: "/agente-logistico",
+      ENCARGADO_PATIO: "/encargado-patio",
+      AGENTE_FINANCIERO: "/finances",
+      CLIENTE: "/cliente",
     }
-    router.push(roleRoutes[userProfile.rol] || "/")
+    router.push(roleRoutes[userProfile.role] || "/")
   }
 
   /** Cerrar sesión */
-  const logout = () => {
-    removeToken()
-    setUser(null)
-    router.push("/login")
+  const logout = async () => {
+    try {
+      await api.post(ENDPOINTS.AUTH.LOGOUT, {}, { silentError: true })
+    } catch {
+      // No bloqueamos el cierre local si la revocación remota falla.
+    } finally {
+      removeToken()
+      setUser(null)
+      router.push("/login")
+    }
   }
 
   return { user, loading, login, logout, refetch: fetchUser }

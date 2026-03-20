@@ -3,25 +3,25 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { ClientFactory } from './application/factories/client.factory';
 import { CreateClientUseCase } from './application/use-cases/create-client.use-case';
 import { CreateContractUseCase } from './application/use-cases/create-contract.use-case';
+import { GetClientsUseCase } from './application/use-cases/get-clients.use-case';
 import { ClientsController } from './presentation/controllers/clients.controller';
 import { ListCargasUseCase } from './application/use-cases/list-cargas.use-case';
 import { FormalizeCargaUseCase } from './application/use-cases/formalize-carga.use-case';
 import { OperationsController } from './presentation/controllers/operations.controller';
 
 /**
- * OperationsModule — Agente Operativo.
- *
- * Usa DataSource (inyectado por TypeOrmModule.forRoot en AppModule) para
- * transacciones multi-entidad y NotificationsModule para envío de emails.
- *
- * Patrón de referencia para módulos de negocio futuros:
- *   1. Importar NotificationsModule si el módulo envía emails.
- *   2. Inyectar DataSource en use-cases con transacciones multi-tabla.
- *   3. Registrar use-cases en providers y el controller en controllers.
+ * OperationsModule — Agente Operativo + Encargado de Patio.
  */
 @Module({
   imports: [NotificationsModule],
-  providers: [CreateContractUseCase, ListCargasUseCase, FormalizeCargaUseCase, CreateClientUseCase, ClientFactory],
+  providers: [
+    CreateContractUseCase,
+    ListCargasUseCase,
+    FormalizeCargaUseCase,
+    CreateClientUseCase,
+    GetClientsUseCase,
+    ClientFactory,
+  ],
   controllers: [OperationsController, ClientsController],
 })
 export class OperationsModule {}

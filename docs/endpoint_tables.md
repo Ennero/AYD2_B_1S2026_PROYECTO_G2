@@ -81,12 +81,12 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   }
 }</pre></td>
       <td><pre>{
-  "message": "Correo con token unico enviado correctamente",
+  "message": "Correo con token unico enviado correctamente (via Resend)",
   "data": {
     "expiresInMinutes": 30
   }
 }</pre></td>
-      <td>Busca el usuario por <strong>USERS.EMAIL</strong>.<br>Inserta un registro en <strong>PASSWORD_RECOVERY_TOKENS</strong> con <strong>TOKEN_HASH</strong>, <strong>EXPIRES_AT</strong> y <strong>USER_ID</strong>.<br>El token real se envia por correo; no se guarda en texto plano.</td>
+      <td>Busca el usuario por <strong>USERS.EMAIL</strong>.<br>Inserta un registro en <strong>PASSWORD_RECOVERY_TOKENS</strong> con <strong>TOKEN_HASH</strong>, <strong>EXPIRES_AT</strong> y <strong>USER_ID</strong>.<br>El token real se envia por correo mediante <strong>Resend</strong>; no se guarda en texto plano.</td>
     </tr>
     <tr>
       <td>POST</td>
@@ -992,7 +992,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>GET</td>
-      <td>/api/patio/orders</td>
+      <td>/api/operations/cargas</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_encargado_patio&gt;"
@@ -1004,16 +1004,17 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   }
 }</pre></td>
       <td><pre>{
-  "message": "Ordenes obtenidas correctamente",
+  "message": "Cargas obtenidas",
   "data": [
     {
-      "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
-      "orderNumber": "ORD-000085",
+      "id": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+      "codigo": "ORD-000085",
+      "unitId": "fbf1d967-9cde-4a10-b728-0e9493190a14",
+      "vehicleModel": "Hino 500 2021",
       "plateNumber": "HT44343",
-      "fullName": "Pablo Perez",
-      "origin": "Planta 3",
-      "destination": "Bodega Central",
-      "status": "ASIGNADA"
+      "origen": "Planta 3",
+      "destino": "Bodega Central",
+      "estado": "PENDIENTE"
     }
   ]
 }</pre></td>
@@ -1021,21 +1022,22 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/patio/orders/{ORDER_ID}/formalize</td>
+      <td>/api/operations/cargas/{ORDER_ID}/formalizar</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_encargado_patio&gt;"
   },
   "body": {
+    "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
     "loadedWeightTon": 10.2,
-    "stowageConfirmed": true,
-    "status": "LISTA_PARA_DESPACHO"
+    "stowageConfirmed": true
   }
 }</pre></td>
       <td><pre>{
-  "message": "Despacho autorizado",
+  "message": "Carga formalizada correctamente",
   "data": {
     "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+    "orderNumber": "ORD-000085",
     "status": "LISTA_PARA_DESPACHO"
   }
 }</pre></td>
@@ -1492,7 +1494,8 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_certificador&gt;"
   },
   "body": {
-    "felUuid": "3C7D8A4E-3D23-4ED8-B410-ABC123456789"
+    "felUuid": "3C7D8A4E-3D23-4ED8-B410-ABC123456789",
+    "clientNit": "1234567890123"
   }
 }</pre></td>
       <td><pre>{
@@ -1504,7 +1507,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "certifiedAt": "2026-04-02T08:40:00Z"
   }
 }</pre></td>
-      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Debe ejecutarse solo despues de validar el NIT del receptor.<br>Es la base para el KPI del panel FEL.</td>
+      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Requiere <strong>clientNit</strong> valido y coincidente con la factura para poder certificar.<br>Es la base para el KPI del panel FEL.</td>
     </tr>
     <tr>
       <td>PATCH</td>

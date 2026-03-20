@@ -1,49 +1,142 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
 import { Check, X, FileText, AlertTriangle } from "lucide-react"
-
-// Datos simulados
-const mockInvoices = [
-  { id: "inv-001", number: "DTE-001", client: "Transportes El Rápido", nit: "1234567-8", amount: 15400.00, date: "2026-03-15" },
-  { id: "inv-002", number: "DTE-002", client: "Distribuidora Central", nit: "9876543-2", amount: 8250.50, date: "2026-03-15" },
-  { id: "inv-003", number: "DTE-003", client: "Logística del Norte", nit: "4567891-3", amount: 22100.00, date: "2026-03-14" },
-]
+import { api } from "@/lib/api/client"
+import { ENDPOINTS } from "@/lib/api/endpoints"
+import { Invoice } from "@/lib/api/types"
+import { toast } from "sonner"
 
 export default function BandejaAprobacionPage() {
-  const [invoices, setInvoices] = useState(mockInvoices)
-  const [selectedInvoice, setSelectedInvoice] = useState<any>(null)
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
+  const [rejectReason, setRejectReason] = useState("")
   
   // Modals
   const [showCertifyModal, setShowCertifyModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [nitToValidate, setNitToValidate] = useState("")
+  const [nitIsValid, setNitIsValid] = useState(false)
+  const [nitValidatedForInvoiceId, setNitValidatedForInvoiceId] = useState<string | null>(null)
+  const [isValidatingNit, setIsValidatingNit] = useState(false)
 
-  const handleAction = (invoice: any, action: "certify" | "reject") => {
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true)
+      const response = await api.get<{ data: Invoice[] }>(ENDPOINTS.CERTIFIER.INVOICES)
+      setInvoices(response.data.data)
+    } catch (error) {
+      console.error("Failed to fetch invoices:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchInvoices()
+  }, [])
+
+  const handleAction = (invoice: Invoice, action: "certify" | "reject") => {
     setSelectedInvoice(invoice)
-    if (action === "certify") setShowCertifyModal(true)
-    if (action === "reject") setShowRejectModal(true)
+    if (action === "certify") {
+      setNitToValidate(invoice.clientNit ?? "")
+      setNitIsValid(false)
+      setNitValidatedForInvoiceId(null)
+      setShowCertifyModal(true)
+    }
+    if (action === "reject") {
+        setRejectReason("")
+        setShowRejectModal(true)
+    }
   }
 
-  const confirmCertify = () => {
+  const validateNit = async () => {
+    if (!selectedInvoice) return
+
+    const nitValue = nitToValidate.trim()
+    if (!nitValue) {
+      toast.error("Debe ingresar un NIT para validar")
+      return
+    }
+
+    setIsValidatingNit(true)
+    try {
+      const response = await api.post<{ data: { invoiceId: string; clientNit: string; isValid: boolean } }>(
+        ENDPOINTS.CERTIFIER.VALIDATE_NIT(selectedInvoice.invoiceId),
+        { clientNit: nitValue },
+      )
+
+      const isValid = response.data.data.isValid
+      setNitIsValid(isValid)
+      setNitValidatedForInvoiceId(isValid ? selectedInvoice.invoiceId : null)
+
+      if (isValid) {
+        toast.success("NIT validado correctamente")
+      } else {
+        toast.error("El NIT no coincide con el receptor de la factura")
+      }
+    } catch (error) {
+      setNitIsValid(false)
+      setNitValidatedForInvoiceId(null)
+      console.error("NIT validation error:", error)
+    } finally {
+      setIsValidatingNit(false)
+    }
+  }
+
+  const confirmCertify = async () => {
+    if (!selectedInvoice) return
+
+    if (!nitIsValid || nitValidatedForInvoiceId !== selectedInvoice.invoiceId) {
+      toast.error("Primero debe validar correctamente el NIT del receptor")
+      return
+    }
+
     setIsProcessing(true)
-    setTimeout(() => {
-      setInvoices(prev => prev.filter(inv => inv.id !== selectedInvoice.id))
-      setIsProcessing(false)
+    try {
+      // Simulamos la generación de un UUID de FEL que normalmente vendría de SAT
+      const pseudoFelUuid = crypto.randomUUID().toUpperCase()
+      await api.patch(ENDPOINTS.CERTIFIER.CERTIFY(selectedInvoice.invoiceId), {
+        felUuid: pseudoFelUuid,
+        clientNit: nitToValidate.trim(),
+      })
+      
+      toast.success(`Factura ${selectedInvoice.invoiceNumber} certificada con éxito`)
+      await fetchInvoices()
       setShowCertifyModal(false)
-    }, 800)
+      setNitIsValid(false)
+      setNitValidatedForInvoiceId(null)
+    } catch (error) {
+      console.error("Certification error:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
+    if (!selectedInvoice) return
+    if (!rejectReason.trim()) {
+        toast.error("Debe proporcionar un motivo de rechazo")
+        return
+    }
+
     setIsProcessing(true)
-    setTimeout(() => {
-      setInvoices(prev => prev.filter(inv => inv.id !== selectedInvoice.id))
-      setIsProcessing(false)
+    try {
+      await api.patch(ENDPOINTS.CERTIFIER.REJECT(selectedInvoice.invoiceId), { reason: rejectReason })
+      
+      toast.success(`Documento ${selectedInvoice.invoiceNumber} rechazado correctamente`)
+      await fetchInvoices()
       setShowRejectModal(false)
-    }, 800)
+    } catch (error) {
+      console.error("Rejection error:", error)
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -81,20 +174,31 @@ export default function BandejaAprobacionPage() {
                   </tr>
                 ) : (
                   invoices.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-black/[0.02] transition-colors">
+                    <tr key={inv.invoiceId} className="hover:bg-black/[0.02] transition-colors">
+                      {(() => {
+                        const emissionDate =
+                          inv.issueDate ||
+                          (inv as Invoice & { issue_date?: string }).issue_date ||
+                          null
+
+                        return (
                       <td className="p-6">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-[#0A3B7C]/10 rounded-lg">
                             <FileText size={20} className="text-[#0A3B7C]" />
                           </div>
-                          <span className="font-bold text-[#0A3B7C]">{inv.number}</span>
+                          <span className="font-bold text-[#0A3B7C]">{inv.invoiceNumber}</span>
                         </div>
-                        <div className="text-xs text-[#64748B] mt-1 ml-11">{inv.date}</div>
+                        <div className="text-xs text-[#64748B] mt-1 ml-11">
+                          {emissionDate ? new Date(emissionDate).toLocaleDateString() : "Sin fecha"}
+                        </div>
                       </td>
-                      <td className="p-6 font-semibold text-[#1A202C]">{inv.client}</td>
-                      <td className="p-6 text-[#64748B]">{inv.nit}</td>
+                        )
+                      })()}
+                      <td className="p-6 font-semibold text-[#1A202C]">{inv.clientName}</td>
+                      <td className="p-6 text-[#64748B]">{inv.clientNit}</td>
                       <td className="p-6 font-extrabold text-lg text-[#0A3B7C] tracking-tight">
-                        Q {inv.amount.toLocaleString('es-GT', { minimumFractionDigits: 2 })}
+                        {inv.currency || "GTQ"} {Number(inv.totalAmount).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="p-6 text-right space-x-3">
                         <Button 
@@ -134,11 +238,44 @@ export default function BandejaAprobacionPage() {
               </div>
             </div>
             <p className="text-center font-bold text-xl mb-3 text-[#0A3B7C]">
-              ¿Confirmas la certificación de {selectedInvoice?.number}?
+              ¿Confirmas la certificación de {selectedInvoice?.invoiceNumber}?
             </p>
             <p className="text-center text-[#64748B] text-base mb-10 max-w-sm mx-auto">
               Se generará un UUID de FEL y el documento será válido ante la SAT de forma inmediata.
             </p>
+
+            <div className="space-y-3 mb-8">
+              <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-widest pl-1">
+                Validación de NIT (simulada)
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  className="w-full border border-black/10 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-4 focus:ring-[#0A3B7C]/10 bg-surface/50"
+                  placeholder="Ingrese NIT a validar"
+                  value={nitToValidate}
+                  onChange={(e) => {
+                    setNitToValidate(e.target.value)
+                    setNitIsValid(false)
+                    setNitValidatedForInvoiceId(null)
+                  }}
+                  disabled={isProcessing}
+                />
+                <Button
+                  variant="outline"
+                  className="whitespace-nowrap"
+                  onClick={validateNit}
+                  loading={isValidatingNit}
+                  disabled={isProcessing || !nitToValidate.trim()}
+                >
+                  Verificar NIT
+                </Button>
+              </div>
+              <p className={`text-sm font-semibold ${nitIsValid ? "text-[#3A8E2A]" : "text-[#64748B]"}`}>
+                {nitIsValid
+                  ? "NIT validado. Ya puede certificar este documento."
+                  : "Debe validar el NIT correctamente antes de certificar."}
+              </p>
+            </div>
             
             <div className="flex gap-4 justify-end border-t border-black/5 pt-8">
               <Button variant="ghost" onClick={() => setShowCertifyModal(false)} disabled={isProcessing} className="font-bold">
@@ -147,6 +284,7 @@ export default function BandejaAprobacionPage() {
               <Button 
                 className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] border-none shadow-lg px-8" 
                 onClick={confirmCertify} 
+                disabled={!nitIsValid || nitValidatedForInvoiceId !== selectedInvoice?.invoiceId}
                 loading={isProcessing}
               >
                 Confirmar y Certificar
@@ -172,6 +310,8 @@ export default function BandejaAprobacionPage() {
               <textarea 
                 className="w-full border border-black/10 rounded-2xl p-5 text-base focus:outline-none focus:ring-4 focus:ring-[#E53E3E]/10 min-h-[120px] bg-surface/50"
                 placeholder="Ej. NIT inválido, montos no coinciden con la orden de servicio..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
               ></textarea>
             </div>
             
