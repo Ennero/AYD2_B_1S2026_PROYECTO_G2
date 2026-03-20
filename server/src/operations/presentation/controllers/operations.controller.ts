@@ -23,7 +23,9 @@ import { Roles } from '../../../auth/presentation/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/presentation/decorators/current-user.decorator';
 import { USER_ROLE } from '../../../auth/domain/enums/user-role.enum';
 import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.interface';
+import { GetCargoTypesUseCase } from '../../application/use-cases/get-cargo-types.use-case';
 import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
+import { GetRoutesUseCase } from '../../application/use-cases/get-routes.use-case';
 
 /**
  * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
@@ -41,6 +43,8 @@ export class OperationsController {
     private readonly listCargasUseCase: ListCargasUseCase,
     private readonly formalizeCargaUseCase: FormalizeCargaUseCase,
     private readonly getClientsUseCase: GetClientsUseCase,
+    private readonly getRoutesUseCase: GetRoutesUseCase,
+    private readonly getCargoTypesUseCase: GetCargoTypesUseCase,
   ) {}
 
   // ─── Endpoints del Agente Operativo ────────────────────────────────────
@@ -55,6 +59,30 @@ export class OperationsController {
   async listClients(@Query('search') search?: string) {
     const data = await this.getClientsUseCase.execute(search);
     return { message: 'Clientes obtenidos', data };
+  }
+
+  /**
+   * GET /api/operations/routes
+   * Catálogo de rutas activas para formalización de contratos.
+   */
+  @Get('routes')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async listRoutes() {
+    const data = await this.getRoutesUseCase.execute();
+    return { message: 'Rutas obtenidas', data };
+  }
+
+  /**
+   * GET /api/operations/cargo-types
+   * Catálogo de tipos de carga para contratos.
+   */
+  @Get('cargo-types')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async listCargoTypes() {
+    const data = await this.getCargoTypesUseCase.execute();
+    return { message: 'Tipos de carga obtenidos', data };
   }
 
   /**
