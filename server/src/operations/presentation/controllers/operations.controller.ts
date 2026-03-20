@@ -23,9 +23,7 @@ import { Roles } from '../../../auth/presentation/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/presentation/decorators/current-user.decorator';
 import { USER_ROLE } from '../../../auth/domain/enums/user-role.enum';
 import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.interface';
-import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
 import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
-import { CreateClientDto } from '../dtos/create-client.dto';
 
 /**
  * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
@@ -42,7 +40,6 @@ export class OperationsController {
     private readonly createClientUseCase: CreateClientUseCase,
     private readonly listCargasUseCase: ListCargasUseCase,
     private readonly formalizeCargaUseCase: FormalizeCargaUseCase,
-    private readonly createClientUseCase: CreateClientUseCase,
     private readonly getClientsUseCase: GetClientsUseCase,
   ) {}
 
@@ -66,18 +63,6 @@ export class OperationsController {
    */
   @Post('clients')
   @Roles(USER_ROLE.AGENTE_OPERATIVO)
-  @HttpCode(HttpStatus.CREATED)
-  async createClient(@Body() dto: CreateClientDto) {
-    const data = await this.createClientUseCase.execute(dto);
-    return { message: 'Cliente registrado correctamente', data };
-  }
-
-  /**
-   * POST /api/operations/clients
-   *
-   * Registra un nuevo cliente para iniciar su ciclo comercial.
-   */
-  @Post('clients')
   @HttpCode(HttpStatus.CREATED)
   async createClient(@Body() dto: CreateClientDto) {
     const data = await this.createClientUseCase.execute({
