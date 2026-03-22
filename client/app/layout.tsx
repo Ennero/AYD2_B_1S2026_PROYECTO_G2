@@ -1,25 +1,11 @@
 import type { Metadata } from "next";
-import { Montserrat_Alternates, Lora, Hind_Madurai } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const montserratAlternates = Montserrat_Alternates({
-  variable: "--font-montserrat-alternates",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-})
-
-const lora = Lora({
-  variable: "--font-lora",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-})
-
-const hindMadurai = Hind_Madurai({
-  variable: "--font-hind-madurai",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -36,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${montserratAlternates.variable} ${lora.variable} ${hindMadurai.variable} antialiased`}
+        className={`${inter.variable} antialiased`}
       >
         {children}
       </body>

@@ -13,6 +13,8 @@ export const ENDPOINTS = {
     LOGOUT: `${API_VERSION}/auth/logout`,
     REGISTER: `${API_VERSION}/auth/register`,
     FORGOT_PASSWORD: `${API_VERSION}/auth/forgot-password`,
+    RECOVERY: `${API_VERSION}/auth/recovery`,
+    RESET_PASSWORD: `${API_VERSION}/auth/password`,
     REFRESH: `${API_VERSION}/auth/refresh`,
     ME: `${API_VERSION}/auth/me`,
   },
@@ -91,6 +93,28 @@ export const ENDPOINTS = {
     VALIDATE_NIT: (id: string) => `/api/certifier/invoices/${id}/validate-nit`,
     CERTIFY: (id: string) => `/api/certifier/invoices/${id}/certify`,
     REJECT: (id: string) => `/api/certifier/invoices/${id}/reject`,
+  },
+
+  // ── Portal Cliente ───────────────────────
+  CLIENT: {
+    DASHBOARD_SUMMARY: `/api/client/dashboard/summary`,
+    PROFILE: `/api/client/profile`,
+    CHANGE_PASSWORD: `/api/client/profile/password`,
+    ACCOUNT_STATEMENT: `/api/client/account-statement`,
+    CARGO_TYPES: `/api/client/cargo-types`,
+    CONTRACTS: `/api/client/contracts`,
+    ACTIVE_CONTRACTS: `/api/client/contracts/active`,
+    CONTRACT_DETAIL: (id: string) => `/api/client/contracts/${id}`,
+    CONTRACT_ACCEPT: (id: string) => `/api/client/contracts/${id}/accept`,
+    CONTRACT_REJECT: (id: string) => `/api/client/contracts/${id}/reject`,
+    ORDERS: `/api/client/orders`,
+    ORDER_TRACKING: (id: string) => `/api/client/orders/${id}/tracking`,
+    INVOICES: `/api/client/invoices`,
+    CARDS: `/api/client/cards`,
+    CARD: (id: string) => `/api/client/cards/${id}`,
+    PAYMENTS: `/api/client/payments`,
+    CONTACTS: `/api/client/contacts`,
+    CONTACT: (id: string) => `/api/client/contacts/${id}`,
   },
 
   // ── Agente Financiero ───────────────────

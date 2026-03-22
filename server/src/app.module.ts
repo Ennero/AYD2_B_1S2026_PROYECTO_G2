@@ -13,6 +13,7 @@ import { LogisticsModule } from './logistics/logistics.module';
 import { CertifierModule } from './certifier/certifier.module';
 import { PilotModule } from './pilot/pilot.module';
 import { FinanceModule } from './finance/finance.module';
+import { ClientPortalModule } from './client/client.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { FinanceModule } from './finance/finance.module';
     CertifierModule,
     PilotModule,
     FinanceModule,
+    ClientPortalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
