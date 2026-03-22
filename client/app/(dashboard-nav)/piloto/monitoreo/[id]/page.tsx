@@ -224,11 +224,6 @@ export default function MonitoreoPage() {
           </p>
         </div>
 
-        {/* ── Endpoint badge ────────────────────────────────── */}
-        <div className="inline-flex items-center gap-2 bg-teal-50 text-primary border border-teal-200 rounded-full px-3 py-1 text-xs font-bold mb-6">
-          GET /api/pilot/orders/{"{ORDER_ID}"}
-        </div>
-
         {/* ── Resumen del viaje ─────────────────────────────── */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
           <h2 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-4">
