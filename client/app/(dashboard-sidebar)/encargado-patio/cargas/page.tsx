@@ -105,7 +105,6 @@ export default function FormalizarCargasPage() {
 
     try {
       const response = await api.patch(`/api/operations/cargas/${id}/formalizar`, {
-        orderId: id,
         loadedWeightTon: weight,
         stowageConfirmed: carga.estibaValida
       })
@@ -131,7 +130,7 @@ export default function FormalizarCargasPage() {
           Cargas a Formalizar
         </h1>
         {/* Adorno superior central para simular el wireframe */}
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-[80%] h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-[80%] h-1 bg-linear-to-r from-transparent via-primary/20 to-transparent" />
       </div>
 
       {/* Filter Options */}
@@ -281,7 +280,7 @@ export default function FormalizarCargasPage() {
                     </div>
 
                     <div className="flex items-center gap-3 ml-0 sm:ml-auto">
-                      <span className="text-sm font-medium font-bold">Estiba Válida:</span>
+                      <span className="text-sm font-bold">Estiba Válida:</span>
                       <button 
                          type="button" 
                          disabled={isFormalizado}

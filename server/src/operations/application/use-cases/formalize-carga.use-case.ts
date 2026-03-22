@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryFailedError } from 'typeorm';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
@@ -42,8 +42,15 @@ export class FormalizeCargaUseCase {
       order.loadedWeightTon = loadedWeightTon;
       order.stowageConfirmed = stowageConfirmed;
       order.status = OrderStatus.LISTA_PARA_DESPACHO;
-      
-      await orderRepo.save(order);
+
+      try {
+        await orderRepo.save(order);
+      } catch (err) {
+        if (err instanceof QueryFailedError) {
+          throw new BadRequestException((err as any).message);
+        }
+        throw err;
+      }
 
       // Log the event
       const logRepo = manager.getRepository(OrderRouteLog);
