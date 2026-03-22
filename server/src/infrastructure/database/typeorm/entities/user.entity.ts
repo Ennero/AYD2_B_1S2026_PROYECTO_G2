@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserRole } from '../../../../domain/enums/user-role.enum';
 import { Client } from './client.entity';
 import { PasswordRecoveryToken } from './password-recovery-token.entity';
@@ -9,11 +9,11 @@ import { UserSession } from './user-session.entity';
 
 @Entity('users')
 export class User {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'user_id' })
-  userId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'user_id' })
+  userId: number;
 
-  @Column({ name: 'client_id', type: 'varchar', length: 36, nullable: true })
-  clientId: string | null;
+  @Column({ name: 'client_id', type: 'integer', nullable: true })
+  clientId: number | null;
 
   @Column({ name: 'role', type: 'enum', enum: UserRole })
   role: UserRole;

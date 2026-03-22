@@ -1,11 +1,11 @@
-import { PrimaryColumn,  Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, Index } from 'typeorm';
 import { ContractRoute } from './contract-route.entity';
 
 @Entity('routes')
 @Index(['origin', 'destination'], { unique: true })
 export class Route {
-  @PrimaryGeneratedColumn({ type: 'bigint', name: 'route_id' })
-  routeId: string; // bigint is represented as string in JS/TS to avoid precision loss
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'route_id' })
+  routeId: number;
 
   @Column({ name: 'route_code', type: 'varchar', length: 30, unique: true })
   routeCode: string;

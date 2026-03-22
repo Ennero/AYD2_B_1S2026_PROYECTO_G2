@@ -4,6 +4,7 @@ import {
   Patch,
   Body,
   Param,
+  ParseIntPipe,
   Query,
   HttpCode,
   HttpStatus,
@@ -64,7 +65,7 @@ export class LogisticsController {
    * Detalle completo de una orden.
    */
   @Get('orders/:id')
-  async orderDetail(@Param('id') id: string) {
+  async orderDetail(@Param('id', ParseIntPipe) id: number) {
     const data = await this.getOrderDetail.execute(id);
     return { message: 'Detalle de orden obtenido correctamente', data };
   }
@@ -74,7 +75,7 @@ export class LogisticsController {
    * Binomios piloto+vehículo compatibles con la orden indicada.
    */
   @Get('unit-binomials')
-  async unitBinomials(@Query('orderId') orderId: string) {
+  async unitBinomials(@Query('orderId', ParseIntPipe) orderId: number) {
     const data = await this.getUnitBinomials.execute(orderId);
     return { message: 'Binomios obtenidos correctamente', data };
   }
@@ -97,7 +98,7 @@ export class LogisticsController {
    */
   @Patch('orders/:id/assignment')
   @HttpCode(HttpStatus.OK)
-  async assign(@Param('id') id: string, @Body() dto: AssignOrderDto) {
+  async assign(@Param('id', ParseIntPipe) id: number, @Body() dto: AssignOrderDto) {
     const data = await this.assignOrder.execute({
       orderId: id,
       contractRouteId: dto.contractRouteId,

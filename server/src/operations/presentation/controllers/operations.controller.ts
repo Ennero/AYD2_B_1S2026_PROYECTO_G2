@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  ParseIntPipe,
   Query,
   HttpCode,
   HttpStatus,
@@ -117,7 +118,7 @@ export class OperationsController {
   @Roles(USER_ROLE.ENCARGADO_PATIO)
   @HttpCode(HttpStatus.OK)
   async formalizeCarga(
-    @Param('id') orderId: string,
+    @Param('id', ParseIntPipe) orderId: number,
     @Body() dto: FormalizeCargaDto,
     @CurrentUser() user: JwtPayload,
   ) {

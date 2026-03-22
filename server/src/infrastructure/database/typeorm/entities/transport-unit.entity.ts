@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Branch } from './branch.entity';
 import { VehicleType } from './vehicle-type.entity';
 import { User } from './user.entity';
@@ -6,8 +6,8 @@ import { Order } from './order.entity';
 
 @Entity('transport_units')
 export class TransportUnit {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'unit_id' })
-  unitId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'unit_id' })
+  unitId: number;
 
   @Column({ name: 'branch_id', type: 'smallint' })
   branchId: number;
@@ -15,8 +15,8 @@ export class TransportUnit {
   @Column({ name: 'vehicle_type_id', type: 'smallint' })
   vehicleTypeId: number;
 
-  @Column({ name: 'pilot_user_id', type: 'varchar', length: 36, unique: true, nullable: true })
-  pilotUserId: string | null;
+  @Column({ name: 'pilot_user_id', type: 'integer', unique: true, nullable: true })
+  pilotUserId: number | null;
 
   @Column({ name: 'plate_number', type: 'varchar', length: 20, unique: true })
   plateNumber: string;

@@ -61,9 +61,9 @@ export class AddCardDto {
 }
 
 export class CreateOrderDto {
-  @IsNotEmpty()
-  @IsString()
-  contractId: string;
+  @IsInt()
+  @Min(1)
+  contractId: number;
 
   @IsInt()
   @Min(1)
@@ -133,9 +133,9 @@ export class UpdateContactDto {
 }
 
 export class RegisterPaymentDto {
-  @IsNotEmpty()
-  @IsString()
-  invoiceId: string;
+  @IsInt()
+  @Min(1)
+  invoiceId: number;
 
   @IsNotEmpty()
   @IsIn(['TARJETA', 'TRANSFERENCIA'])
@@ -143,8 +143,9 @@ export class RegisterPaymentDto {
 
   /** Requerido si method = TARJETA */
   @IsOptional()
-  @IsString()
-  cardId?: string;
+  @IsInt()
+  @Min(1)
+  cardId?: number;
 
   /** Requerido si method = TRANSFERENCIA */
   @IsOptional()

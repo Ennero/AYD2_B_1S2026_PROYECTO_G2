@@ -9,7 +9,7 @@ export interface CreateUserDto {
   passwordHash: string;
   role: UserRole;
   phone?: string;
-  clientId?: string;
+  clientId?: number;
 }
 
 @Injectable()

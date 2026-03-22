@@ -99,7 +99,7 @@ export class FinanceService {
     }));
   }
 
-  async getInvoiceById(invoiceId: string) {
+  async getInvoiceById(invoiceId: number) {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({
       where: { invoiceId },
       relations: { order: true },
@@ -134,8 +134,8 @@ export class FinanceService {
   }
 
   async submitForCertification(
-    invoiceId: string,
-    reviewedByUserId: string,
+    invoiceId: number,
+    reviewedByUserId: number,
     payload: SubmitForCertificationPayload,
   ) {
     return this.dataSource.transaction(async (manager) => {
@@ -199,7 +199,7 @@ export class FinanceService {
     });
   }
 
-  async sendInvoice(invoiceId: string, pdfPath?: string) {
+  async sendInvoice(invoiceId: number, pdfPath?: string) {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
     const invoice = await invoiceRepo.findOne({ where: { invoiceId } });
 
@@ -252,7 +252,7 @@ export class FinanceService {
     }));
   }
 
-  async approvePayment(paymentId: string, reviewedByUserId: string) {
+  async approvePayment(paymentId: number, reviewedByUserId: number) {
     return this.dataSource.transaction(async (manager) => {
       const paymentRepo = manager.getRepository(Payment);
       const invoiceRepo = manager.getRepository(Invoice);

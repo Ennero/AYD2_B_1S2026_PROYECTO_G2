@@ -1,4 +1,4 @@
-import { Entity, Column, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { RiskLevel } from '../../../../domain/enums/risk-level.enum';
 import { User } from './user.entity';
 import { ClientContact } from './client-contact.entity';
@@ -8,8 +8,8 @@ import { Invoice } from './invoice.entity';
 
 @Entity('clients')
 export class Client {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'client_id' })
-  clientId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'client_id' })
+  clientId: number;
 
   @Column({ name: 'client_code', type: 'varchar', length: 30, unique: true })
   clientCode: string;

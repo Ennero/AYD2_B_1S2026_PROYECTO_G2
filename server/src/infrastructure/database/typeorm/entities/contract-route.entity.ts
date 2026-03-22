@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Contract } from './contract.entity';
 import { Route } from './route.entity';
 import { Order } from './order.entity';
@@ -7,14 +7,14 @@ import { Order } from './order.entity';
 @Index(['contractId', 'routeId'], { unique: true })
 @Index(['contractRouteId', 'contractId'], { unique: true })
 export class ContractRoute {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'contract_route_id' })
-  contractRouteId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'contract_route_id' })
+  contractRouteId: number;
 
-  @Column({ name: 'contract_id', type: 'varchar', length: 36 })
-  contractId: string;
+  @Column({ name: 'contract_id', type: 'integer' })
+  contractId: number;
 
-  @Column({ name: 'route_id', type: 'bigint' })
-  routeId: string;
+  @Column({ name: 'route_id', type: 'integer' })
+  routeId: number;
 
   @Column({
     name: 'promised_delivery_hours',

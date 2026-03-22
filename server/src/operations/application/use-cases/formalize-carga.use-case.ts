@@ -9,7 +9,7 @@ import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities
 export class FormalizeCargaUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(orderId: string, loadedWeightTon: number, stowageConfirmed: boolean, userFullName: string): Promise<any> {
+  async execute(orderId: number, loadedWeightTon: number, stowageConfirmed: boolean, userFullName: string): Promise<any> {
     if (!stowageConfirmed) {
       throw new BadRequestException('La estiba debe ser validada para formalizar la carga.');
     }

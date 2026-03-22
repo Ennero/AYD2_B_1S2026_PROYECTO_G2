@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  ParseIntPipe,
   Query,
   HttpCode,
   HttpStatus,
@@ -71,7 +72,7 @@ export class PilotController {
   @Get('orders/:id')
   @HttpCode(HttpStatus.OK)
   async getOrder(
-    @Param('id') orderId: string,
+    @Param('id', ParseIntPipe) orderId: number,
     @CurrentUser() user: JwtPayload,
   ) {
     const data = await this.getOrderUseCase.execute(orderId, user.sub);
@@ -82,7 +83,7 @@ export class PilotController {
   @Patch('orders/:id/status')
   @HttpCode(HttpStatus.OK)
   async startTrip(
-    @Param('id') orderId: string,
+    @Param('id', ParseIntPipe) orderId: number,
     @CurrentUser() user: JwtPayload,
   ) {
     const data = await this.startTripUseCase.execute(orderId, user.sub);
@@ -93,7 +94,7 @@ export class PilotController {
   @Post('orders/:id/logs')
   @HttpCode(HttpStatus.CREATED)
   async addLog(
-    @Param('id') orderId: string,
+    @Param('id', ParseIntPipe) orderId: number,
     @Body() dto: AddLogDto,
     @CurrentUser() user: JwtPayload,
   ) {
@@ -108,7 +109,7 @@ export class PilotController {
   @Patch('orders/:id/deliver')
   @HttpCode(HttpStatus.OK)
   async deliverOrder(
-    @Param('id') orderId: string,
+    @Param('id', ParseIntPipe) orderId: number,
     @Body() dto: DeliverOrderDto,
     @CurrentUser() user: JwtPayload,
   ) {

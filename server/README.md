@@ -2,6 +2,18 @@
 
 Sistema backend para gestión logística, construido con **NestJS**, **TypeORM** y **PostgreSQL**, siguiendo **Clean Architecture** (DDD 4 capas).
 
+> Quick start
+```bash
+docker-compose down -v 
+cd ./server && docker compose down -v && cd ..
+docker-compose up -d db
+cd server
+npm install
+npm run seed
+npm run start:dev
+```
+
+
 ---
 
 ## Requisitos Previos

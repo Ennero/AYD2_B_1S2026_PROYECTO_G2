@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { PaymentMethod } from '../../../../domain/enums/payment-method.enum';
 import { PaymentStatus } from '../../../../domain/enums/payment-status.enum';
 import { Invoice } from './invoice.entity';
@@ -7,11 +7,11 @@ import { User } from './user.entity';
 
 @Entity('payments')
 export class Payment {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'payment_id' })
-  paymentId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'payment_id' })
+  paymentId: number;
 
-  @Column({ name: 'invoice_id', type: 'varchar', length: 36 })
-  invoiceId: string;
+  @Column({ name: 'invoice_id', type: 'integer' })
+  invoiceId: number;
 
   @Column({ name: 'method', type: 'enum', enum: PaymentMethod })
   method: PaymentMethod;
@@ -23,8 +23,8 @@ export class Payment {
     default: PaymentStatus.PENDIENTE })
   status: PaymentStatus;
 
-  @Column({ name: 'card_id', type: 'varchar', length: 36, nullable: true })
-  cardId: string | null;
+  @Column({ name: 'card_id', type: 'integer', nullable: true })
+  cardId: number | null;
 
   @Column({ name: 'bank_name', type: 'varchar', length: 120, nullable: true })
   bankName: string | null;
@@ -52,8 +52,8 @@ export class Payment {
   @Column({ name: 'payment_date', type: 'timestamptz', default: () => 'NOW()' })
   paymentDate: Date;
 
-  @Column({ name: 'reviewed_by_user_id', type: 'varchar', length: 36, nullable: true })
-  reviewedByUserId: string | null;
+  @Column({ name: 'reviewed_by_user_id', type: 'integer', nullable: true })
+  reviewedByUserId: number | null;
 
   @ManyToOne(() => Invoice, (invoice) => invoice.payments)
   @JoinColumn({ name: 'invoice_id' })

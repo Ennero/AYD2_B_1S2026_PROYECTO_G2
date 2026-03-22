@@ -1,5 +1,5 @@
 export class CreateContractDto {
-  clientId: string;
+  clientId: number;
   creditLimit: number;
   paymentTermDays: number;
   discountPercentage: number;

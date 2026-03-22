@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { OrderStatus } from '../../../../domain/enums/order-status.enum';
 import { Contract } from './contract.entity';
 import { User } from './user.entity';
@@ -12,32 +12,32 @@ import { Invoice } from './invoice.entity';
 
 @Entity('orders')
 export class Order {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'order_id' })
-  orderId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'order_id' })
+  orderId: number;
 
   @Column({ name: 'order_number', type: 'varchar', length: 40, unique: true })
   orderNumber: string;
 
-  @Column({ name: 'contract_id', type: 'varchar', length: 36 })
-  contractId: string;
+  @Column({ name: 'contract_id', type: 'integer' })
+  contractId: number;
 
-  @Column({ name: 'requested_by_user_id', type: 'varchar', length: 36 })
-  requestedByUserId: string;
+  @Column({ name: 'requested_by_user_id', type: 'integer' })
+  requestedByUserId: number;
 
   @Column({ name: 'branch_id', type: 'smallint', nullable: true })
   branchId: number | null;
 
-  @Column({ name: 'contract_route_id', type: 'varchar', length: 36, nullable: true })
-  contractRouteId: string | null;
+  @Column({ name: 'contract_route_id', type: 'integer', nullable: true })
+  contractRouteId: number | null;
 
-  @Column({ name: 'contract_rate_id', type: 'varchar', length: 36, nullable: true })
-  contractRateId: string | null;
+  @Column({ name: 'contract_rate_id', type: 'integer', nullable: true })
+  contractRateId: number | null;
 
   @Column({ name: 'cargo_type_id', type: 'smallint' })
   cargoTypeId: number;
 
-  @Column({ name: 'unit_id', type: 'varchar', length: 36, nullable: true })
-  unitId: string | null;
+  @Column({ name: 'unit_id', type: 'integer', nullable: true })
+  unitId: number | null;
 
   @Column({
     name: 'status',
