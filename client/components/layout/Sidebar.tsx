@@ -56,6 +56,14 @@ const SIDEBAR_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
       { label: "Tarifario Base", href: "/finances/tarifario" },
     ],
   },
+  gerencia: {
+    title: "Gerencia Operativa",
+    items: [
+      { label: "Operaciones y KPIs", href: "/gerencia" },
+      { label: "Rentabilidad", href: "/gerencia/rentabilidad" },
+      { label: "Alertas y Proyecciones", href: "/gerencia/alertas" },
+    ],
+  },
 }
 
 export default function Sidebar() {
@@ -117,7 +125,7 @@ export default function Sidebar() {
             href={item.href}
             className={cn(
               "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-              pathname === item.href
+              pathname === item.href || (item.href !== `/${activeRole}` && pathname.startsWith(item.href))
                 ? "bg-[#53B73E] text-white shadow-md shadow-[#53B73E]/20"
                 : "text-white/70 hover:bg-white/10 hover:text-white"
             )}

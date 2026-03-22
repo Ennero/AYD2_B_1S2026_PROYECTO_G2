@@ -33,6 +33,14 @@ const NAV_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
       { label: "Órdenes de Servicio", href: "/agente-logistico/ordenes" },
     ],
   },
+  gerencia: {
+    title: "Gerencia Operativa",
+    items: [
+      { label: "Operaciones y KPIs", href: "/gerencia" },
+      { label: "Rentabilidad", href: "/gerencia/rentabilidad" },
+      { label: "Alertas y Proyecciones", href: "/gerencia/alertas" },
+    ],
+  },
 }
 
 export default function Navbar() {
