@@ -5,8 +5,8 @@ import { TransportUnit } from '../../../infrastructure/database/typeorm/entities
 
 export interface UnitBinomial {
   binomialId: string;
-  unitId: string;
-  pilotUserId: string | null;
+  unitId: number;
+  pilotUserId: number | null;
   pilotName: string | null;
   plateNumber: string;
   vehicleType: string;
@@ -18,7 +18,7 @@ export interface UnitBinomial {
 export class GetUnitBinomialsUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(orderId: string): Promise<UnitBinomial[]> {
+  async execute(orderId: number): Promise<UnitBinomial[]> {
     // Cargar la orden para saber peso y tipo de carga
     const order = await this.dataSource
       .getRepository(Order)

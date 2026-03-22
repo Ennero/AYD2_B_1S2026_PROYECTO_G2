@@ -16,7 +16,7 @@ export interface ListOrdersFilters {
 }
 
 export interface ListOrdersOutput {
-  orderId: string;
+  orderId: number;
   orderNumber: string;
   origin: string;
   destination: string;
@@ -32,7 +32,7 @@ export class ListOrdersUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
   async execute(
-    pilotUserId: string,
+    pilotUserId: number,
     filters: ListOrdersFilters = {},
   ): Promise<ListOrdersOutput[]> {
     // 1. Buscar la unidad del piloto

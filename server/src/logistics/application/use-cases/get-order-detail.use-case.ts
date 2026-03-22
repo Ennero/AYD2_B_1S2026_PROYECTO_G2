@@ -6,7 +6,7 @@ import { Order } from '../../../infrastructure/database/typeorm/entities/order.e
 export class GetOrderDetailUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(orderId: string): Promise<Order> {
+  async execute(orderId: number): Promise<Order> {
     const order = await this.dataSource
       .getRepository(Order)
       .createQueryBuilder('o')

@@ -51,11 +51,15 @@ export class ResendAdapter implements IEmailService, OnModuleInit {
     });
 
     if (error) {
+      // Resend devuelve un objeto con `name` y `message` (ver https://resend.com/docs/api-reference/errors)
+      const name = (error as { name?: string }).name ?? 'ResendError';
       const message = error.message ?? 'Unknown Resend error';
       this.logger.error(
-        `Error al enviar email — to: ${toAddresses.join(', ')}, subject: "${options.subject}" — ${message}`,
+        `[Resend] ${name}: ${message} — from: ${this.fromAddress}, to: ${toAddresses.join(', ')}, subject: "${options.subject}"\n` +
+          `  💡 Asegúrate de que SES_FROM_EMAIL pertenece a un dominio verificado en resend.com/domains\n` +
+          `     o usa onboarding@resend.dev para pruebas (solo envía al email de tu cuenta Resend).`,
       );
-      return { success: false, error: message };
+      return { success: false, error: `${name}: ${message}` };
     }
 
     const messageId = data?.id ?? 'unknown';

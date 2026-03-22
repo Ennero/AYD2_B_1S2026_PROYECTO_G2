@@ -12,7 +12,7 @@ export interface AddLogInput {
 }
 
 export interface AddLogOutput {
-    logId: string;
+    logId: number;
     eventTime: string;
 }
 
@@ -21,8 +21,8 @@ export class AddLogUseCase {
     constructor(private readonly dataSource: DataSource) {}
 
     async execute(
-        orderId: string,
-        pilotUserId: string,
+        orderId: number,
+        pilotUserId: number,
         input: AddLogInput,
     ): Promise<AddLogOutput> {
         // 1. Verificar unidad del piloto

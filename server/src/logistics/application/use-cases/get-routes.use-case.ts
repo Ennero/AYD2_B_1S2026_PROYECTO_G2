@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { Route } from '../../../infrastructure/database/typeorm/entities/route.entity';
 
 export interface RouteItem {
-  routeId: string;
+  routeId: number;
   routeCode: string;
   origin: string;
   destination: string;

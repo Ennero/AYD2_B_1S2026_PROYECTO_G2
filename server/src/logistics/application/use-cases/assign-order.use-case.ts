@@ -8,16 +8,16 @@ import { Order } from '../../../infrastructure/database/typeorm/entities/order.e
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
 
 export interface AssignOrderInput {
-  orderId: string;
-  contractRouteId: string;
+  orderId: number;
+  contractRouteId: number;
   binomialId: string;
   scheduledDeparture: string;
 }
 
 export interface AssignOrderOutput {
-  orderId: string;
+  orderId: number;
   status: OrderStatus;
-  unitId: string;
+  unitId: number;
   scheduledPickupAt: Date;
 }
 
@@ -26,10 +26,11 @@ export class AssignOrderUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
   async execute(input: AssignOrderInput): Promise<AssignOrderOutput> {
-    // Parsear unitId desde el binomialId "unit:<uuid>"
-    const unitId = input.binomialId.startsWith('unit:')
+    // Parsear unitId desde el binomialId "unit:<id>"
+    const unitIdStr = input.binomialId.startsWith('unit:')
       ? input.binomialId.slice(5)
       : input.binomialId;
+    const unitId = parseInt(unitIdStr, 10);
 
     const orderRepo = this.dataSource.getRepository(Order);
 

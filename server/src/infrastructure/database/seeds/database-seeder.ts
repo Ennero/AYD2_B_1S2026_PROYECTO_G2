@@ -1178,7 +1178,6 @@ export class DatabaseSeeder {
       INTERNAL_USERS.map(async (user, index) => {
         const passwordHash = await bcrypt.hash(`seed$${user.email}`, 10);
         return repository.create({
-          userId: getShortId(index + 1),
           role: user.role,
           fullName: user.fullName,
           email: user.email,
@@ -1200,7 +1199,6 @@ export class DatabaseSeeder {
     await repository.save(
       CLIENT_BLUEPRINTS.map((client, index) =>
         repository.create({
-          clientId: getShortId(index + 1),
           legalName: client.legalName,
           commercialName: client.commercialName,
           nit: client.nit,
@@ -1236,7 +1234,6 @@ export class DatabaseSeeder {
         const entity = mustFind(clientByNit.get(client.nit), client.legalName);
         const passwordHash = await bcrypt.hash(`seed$portal.${client.key}`, 10);
         return repository.create({
-          userId: getShortId(50 + index),
           clientId: entity.clientId,
           role: UserRole.CLIENTE,
           fullName: `${client.primaryContactName} Portal`,
@@ -1268,7 +1265,6 @@ export class DatabaseSeeder {
       return blueprint.contactPeople.map((contact) => {
         contactCounter++;
         return repository.create({
-          contactId: getShortId(contactCounter),
           clientId: client.clientId,
           contactName: contact.name,
           contactEmail: contact.email,
@@ -1295,7 +1291,6 @@ export class DatabaseSeeder {
       return blueprint.cards.map((card) => {
         cardCounter++;
         return repository.create({
-          cardId: getShortId(cardCounter),
           clientId: client.clientId,
           cardAlias: card.alias,
           cardholderName: card.cardholderName,
@@ -1321,10 +1316,9 @@ export class DatabaseSeeder {
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
     const cargoByName = new Map(cargoTypes.map((cargo) => [cargo.cargoName, cargo]));
 
-    const contracts = CLIENT_BLUEPRINTS.map((blueprint, index) => {
+    const contracts = CLIENT_BLUEPRINTS.map((blueprint) => {
       const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
       return repository.create({
-        contractId: getShortId(index + 1),
         clientId: client.clientId,
         status: blueprint.contractStatus,
         startDate: toDateOnly(daysFromNow(blueprint.contractStartOffsetDays)),
@@ -1375,7 +1369,6 @@ export class DatabaseSeeder {
         const estimatedHours = Number(route.estimatedHours);
 
         return repository.create({
-          contractRouteId: getShortId(routeCounter),
           contractId: contract.contractId,
           routeId: route.routeId,
           promisedDeliveryHours: roundCurrency(estimatedHours + 0.5 + index * 0.25),
@@ -1420,7 +1413,6 @@ export class DatabaseSeeder {
       const pilot = mustFind(userByEmail.get(blueprint.pilotEmail), blueprint.pilotEmail);
 
       return repository.create({
-        unitId: getShortId(index + 1),
         branchId: branch.branchId,
         vehicleTypeId: vehicleType.vehicleTypeId,
         pilotUserId: pilot.userId,
@@ -1451,11 +1443,10 @@ export class DatabaseSeeder {
       const deletedAt = index % 7 === 0 ? hoursAfter(lastUsedAt, 6) : null;
 
       return repository.create({
-        sessionId: getShortId(index + 1),
         userId: user.userId,
         userRemote: `10.0.${(index % 8) + 1}.${20 + index}`,
         userAgent: index % 2 === 0 ? 'Chrome/LogiTrans Seed' : 'MobileApp/LogiTrans Seed',
-        userUuid: user.userId,
+        userUuid: String(user.userId),
         sessionUuid: randomUUID(),
         sessionToken: `seed-session-token-${index + 1}-${user.userId}`,
         sessionSource: index % 2 === 0 ? 'WEB_PORTAL' : 'MOBILE_APP',
@@ -1482,11 +1473,10 @@ export class DatabaseSeeder {
 
       return [
         repository.create({
-          sessionId: getShortId(24 + index * 2 + 1),
           userId: user.userId,
           userRemote: `172.16.${(index % 6) + 1}.${140 + index}`,
           userAgent: 'Chrome/LogiTrans MVP Session',
-          userUuid: user.userId,
+          userUuid: String(user.userId),
           sessionUuid: randomUUID(),
           sessionToken: `seed-mvp-active-${index + 1}-${user.userId}`,
           sessionSource: 'WEB_PORTAL',
@@ -1498,11 +1488,10 @@ export class DatabaseSeeder {
           updatedAt: activeLastUsedAt,
         }),
         repository.create({
-          sessionId: getShortId(24 + index * 2 + 2),
           userId: user.userId,
           userRemote: `172.18.${(index % 5) + 1}.${170 + index}`,
           userAgent: 'MobileApp/LogiTrans MVP Session',
-          userUuid: user.userId,
+          userUuid: String(user.userId),
           sessionUuid: randomUUID(),
           sessionToken: `seed-mvp-closed-${index + 1}-${user.userId}`,
           sessionSource: 'MOBILE_APP',
@@ -1530,7 +1519,6 @@ export class DatabaseSeeder {
       const usedAt = index % 3 === 0 ? daysFromNow(-(index + 1)) : null;
 
       return repository.create({
-        tokenId: getShortId(index + 1),
         userId: user.userId,
         tokenHash: `recovery-token-${index + 1}-${user.userId}`,
         expiresAt,
@@ -1545,14 +1533,12 @@ export class DatabaseSeeder {
     const priorityTokens = priorityUsers.flatMap((user, index) => {
       return [
         repository.create({
-          tokenId: getShortId(10 + index * 2 + 1),
           userId: user.userId,
           tokenHash: `mvp-recovery-active-${index + 1}-${randomUUID()}`,
           expiresAt: daysFromNow(7 + index),
           usedAt: null,
         }),
         repository.create({
-          tokenId: getShortId(10 + index * 2 + 2),
           userId: user.userId,
           tokenHash: `mvp-recovery-used-${index + 1}-${randomUUID()}`,
           expiresAt: daysFromNow(3 + index),
@@ -1580,13 +1566,13 @@ export class DatabaseSeeder {
     const contractByClientId = new Map(contracts.map((contract) => [contract.clientId, contract]));
     const routeById = new Map(routes.map((route) => [route.routeId, route]));
     const cargoByName = new Map(cargoTypes.map((cargo) => [cargo.cargoName, cargo]));
-    const ratesByContractId = new Map<string, ContractRate[]>(
+    const ratesByContractId = new Map<number, ContractRate[]>(
       contracts.map((contract) => [
         contract.contractId,
         contractRates.filter((rate) => rate.contractId === contract.contractId),
       ]),
     );
-    const contractRoutesByContractId = new Map<string, ContractRoute[]>(
+    const contractRoutesByContractId = new Map<number, ContractRoute[]>(
       contracts.map((contract) => [
         contract.contractId,
         contractRoutes.filter((route) => route.contractId === contract.contractId),
@@ -1676,7 +1662,6 @@ export class DatabaseSeeder {
         orderCounter++;
         const order = await orderRepository.save(
           orderRepository.create({
-            orderId: getShortId(orderCounter),
             contractId: contract.contractId,
             requestedByUserId: portalUser.userId,
             branchId: unit?.branchId ?? null,
@@ -1773,7 +1758,7 @@ export class DatabaseSeeder {
         logCounter++;
         entries.push(
           repository.create({
-            logId: getShortId(logCounter),
+
             orderId: record.order.orderId,
             eventType: RouteEventType.OTRO,
             eventTime: hoursAfter(record.scheduledPickupAt, -1),
@@ -1789,7 +1774,7 @@ export class DatabaseSeeder {
         logCounter++;
         entries.push(
           repository.create({
-            logId: getShortId(logCounter),
+
             orderId: record.order.orderId,
             eventType: RouteEventType.SALIDA,
             eventTime: record.dispatchedAt,
@@ -1800,7 +1785,7 @@ export class DatabaseSeeder {
         logCounter++;
         entries.push(
           repository.create({
-            logId: getShortId(logCounter),
+
             orderId: record.order.orderId,
             eventType: RouteEventType.PUNTO_CONTROL,
             eventTime: hoursAfter(record.dispatchedAt, 2.5),
@@ -1812,7 +1797,7 @@ export class DatabaseSeeder {
           logCounter++;
           entries.push(
             repository.create({
-              logId: getShortId(logCounter),
+  
               orderId: record.order.orderId,
               eventType: RouteEventType.ADUANA,
               eventTime: hoursAfter(record.dispatchedAt, 4.5),
@@ -1825,7 +1810,7 @@ export class DatabaseSeeder {
           logCounter++;
           entries.push(
             repository.create({
-              logId: getShortId(logCounter),
+  
               orderId: record.order.orderId,
               eventType: RouteEventType.INCIDENTE,
               eventTime: hoursAfter(record.dispatchedAt, 5.5),
@@ -1839,7 +1824,7 @@ export class DatabaseSeeder {
         logCounter++;
         entries.push(
           repository.create({
-            logId: getShortId(logCounter),
+
             orderId: record.order.orderId,
             eventType: RouteEventType.LLEGADA,
             eventTime: record.deliveredAt,
@@ -1882,7 +1867,7 @@ export class DatabaseSeeder {
 
       const contract = mustFind(
         contractById.get(String(record.contract.contractId)),
-        record.contract.contractId,
+        String(record.contract.contractId),
       );
       const issueDate = hoursAfter(record.deliveredAt ?? daysFromNow(-2), 2);
       const dueDate = toDateOnly(
@@ -1935,11 +1920,11 @@ export class DatabaseSeeder {
     for (const [index, record] of deliveredOrders.entries()) {
       const invoice = mustFind(
         invoiceByOrderId.get(String(record.order.orderId)),
-        record.order.orderId,
+        String(record.order.orderId),
       );
       const contract = mustFind(
         contractById.get(String(record.contract.contractId)),
-        record.contract.contractId,
+        String(record.contract.contractId),
       );
       const subtotalAmount = Number(record.order.subtotalAmount ?? 0);
       const taxAmount = Number(record.order.taxAmount ?? 0);
@@ -2017,7 +2002,7 @@ export class DatabaseSeeder {
     const financeUsers = internalUsers.filter(
       (user) => user.role === UserRole.AGENTE_FINANCIERO,
     );
-    const cardByClientId = new Map<string, ClientCard>();
+    const cardByClientId = new Map<number, ClientCard>();
 
     for (const card of clientCards) {
       if (!cardByClientId.has(card.clientId)) {
@@ -2049,7 +2034,6 @@ export class DatabaseSeeder {
 
       await repository.save(
         repository.create({
-          paymentId: getShortId(index + 1),
           invoiceId: invoice.invoiceId,
           method,
           status: PaymentStatus.APROBADO,
@@ -2075,7 +2059,6 @@ export class DatabaseSeeder {
 
       await repository.save(
         repository.create({
-          paymentId: getShortId(invoicesForApprovedPayments.length + index + 1),
           invoiceId: invoice.invoiceId,
           method: index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE,
           status,

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
@@ -63,7 +64,7 @@ export class ClientController {
   @Get('contracts/:contractId')
   async getContractDetail(
     @CurrentUser() user: JwtPayload,
-    @Param('contractId') contractId: string,
+    @Param('contractId', ParseIntPipe) contractId: number,
   ) {
     const data = await this.clientService.getContractDetail(user.sub, contractId);
     return { message: 'Detalle del contrato obtenido', data };
@@ -72,7 +73,7 @@ export class ClientController {
   @Patch('contracts/:contractId/accept')
   async acceptContract(
     @CurrentUser() user: JwtPayload,
-    @Param('contractId') contractId: string,
+    @Param('contractId', ParseIntPipe) contractId: number,
   ) {
     const data = await this.clientService.acceptContract(user.sub, contractId);
     return { message: 'Contrato aceptado correctamente', data };
@@ -81,7 +82,7 @@ export class ClientController {
   @Patch('contracts/:contractId/reject')
   async rejectContract(
     @CurrentUser() user: JwtPayload,
-    @Param('contractId') contractId: string,
+    @Param('contractId', ParseIntPipe) contractId: number,
   ) {
     const data = await this.clientService.rejectContract(user.sub, contractId);
     return { message: 'Contrato rechazado correctamente', data };
@@ -108,7 +109,7 @@ export class ClientController {
   @Get('orders/:orderId/tracking')
   async getOrderTracking(
     @CurrentUser() user: JwtPayload,
-    @Param('orderId') orderId: string,
+    @Param('orderId', ParseIntPipe) orderId: number,
   ) {
     const data = await this.clientService.getOrderTracking(user.sub, orderId);
     return { message: 'Tracking obtenido correctamente', data };
@@ -161,7 +162,7 @@ export class ClientController {
   @Delete('cards/:cardId')
   async removeCard(
     @CurrentUser() user: JwtPayload,
-    @Param('cardId') cardId: string,
+    @Param('cardId', ParseIntPipe) cardId: number,
   ) {
     const data = await this.clientService.removeCard(user.sub, cardId);
     return data;
@@ -187,7 +188,7 @@ export class ClientController {
   @Patch('contacts/:contactId')
   async updateContact(
     @CurrentUser() user: JwtPayload,
-    @Param('contactId') contactId: string,
+    @Param('contactId', ParseIntPipe) contactId: number,
     @Body() dto: UpdateContactDto,
   ) {
     const data = await this.clientService.updateContact(user.sub, contactId, dto);
@@ -197,7 +198,7 @@ export class ClientController {
   @Delete('contacts/:contactId')
   async removeContact(
     @CurrentUser() user: JwtPayload,
-    @Param('contactId') contactId: string,
+    @Param('contactId', ParseIntPipe) contactId: number,
   ) {
     const data = await this.clientService.removeContact(user.sub, contactId);
     return data;

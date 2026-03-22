@@ -33,7 +33,7 @@ export class PasswordRecoveryRepository implements IPasswordRecoveryRepository {
     });
   }
 
-  async markAsUsed(tokenId: string): Promise<void> {
+  async markAsUsed(tokenId: number): Promise<void> {
     await this.repo.update({ tokenId }, { usedAt: new Date() });
   }
 }

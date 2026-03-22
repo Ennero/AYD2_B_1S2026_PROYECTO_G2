@@ -20,7 +20,7 @@ export interface LoginInput {
 }
 
 export interface LoginOutput {
-  userId: string;
+  userId: number;
   sessionUuid: string;
   role: string;
   fullName: string;

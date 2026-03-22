@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { DataSource, In, QueryFailedError } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
 import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
@@ -31,7 +30,7 @@ export class ClientService {
 
   // ── Helpers ────────────────────────────────────────────────────────────
 
-  private async resolveClient(userId: string) {
+  private async resolveClient(userId: number) {
     const user = await this.dataSource.getRepository(User).findOne({
       where: { userId },
       relations: ['client'],
@@ -48,7 +47,7 @@ export class ClientService {
       .find({ order: { cargoName: 'ASC' } });
   }
 
-  async getActiveContracts(userId: string) {
+  async getActiveContracts(userId: number) {
     const client = await this.resolveClient(userId);
     const contracts = await this.dataSource.getRepository(Contract).find({
       where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
@@ -66,7 +65,7 @@ export class ClientService {
 
   // ── Órdenes ────────────────────────────────────────────────────────────
 
-  async createOrder(userId: string, dto: CreateOrderDto) {
+  async createOrder(userId: number, dto: CreateOrderDto) {
     const client = await this.resolveClient(userId);
 
     // Verificar contrato vigente y que pertenezca al cliente
@@ -104,7 +103,6 @@ export class ClientService {
     const orderNumber = `ORD-${year}-${String(count + 1).padStart(4, '0')}`;
 
     const order = this.dataSource.getRepository(Order).create({
-      orderId: uuidv4(),
       orderNumber,
       contractId: dto.contractId,
       requestedByUserId: userId,
@@ -140,7 +138,7 @@ export class ClientService {
   }
 
   async getOrders(
-    userId: string,
+    userId: number,
     search?: string,
     status?: string,
     page = 1,
@@ -223,7 +221,7 @@ export class ClientService {
     };
   }
 
-  async getOrderTracking(userId: string, orderId: string) {
+  async getOrderTracking(userId: number, orderId: number) {
     const client = await this.resolveClient(userId);
 
     const order = await this.dataSource
@@ -281,7 +279,7 @@ export class ClientService {
   // ── Facturas ───────────────────────────────────────────────────────────
 
   async getInvoices(
-    userId: string,
+    userId: number,
     search?: string,
     page = 1,
     limit = 10,
@@ -340,7 +338,7 @@ export class ClientService {
 
   // ── Tarjetas ───────────────────────────────────────────────────────────
 
-  async getCards(userId: string) {
+  async getCards(userId: number) {
     const client = await this.resolveClient(userId);
     const cards = await this.dataSource
       .getRepository(ClientCard)
@@ -359,7 +357,7 @@ export class ClientService {
     }));
   }
 
-  async addCard(userId: string, dto: AddCardDto) {
+  async addCard(userId: number, dto: AddCardDto) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(ClientCard);
 
@@ -373,7 +371,6 @@ export class ClientService {
     }
 
     const card = repo.create({
-      cardId: uuidv4(),
       clientId: client.clientId,
       cardAlias: dto.cardAlias,
       cardholderName: dto.cardholderName,
@@ -396,7 +393,7 @@ export class ClientService {
     };
   }
 
-  async removeCard(userId: string, cardId: string) {
+  async removeCard(userId: number, cardId: number) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(ClientCard);
 
@@ -412,7 +409,7 @@ export class ClientService {
 
   // ── Pagos ──────────────────────────────────────────────────────────────
 
-  async registerPayment(userId: string, dto: RegisterPaymentDto) {
+  async registerPayment(userId: number, dto: RegisterPaymentDto) {
     const client = await this.resolveClient(userId);
 
     // Verificar que la factura pertenece al cliente y está pendiente de pago
@@ -454,7 +451,6 @@ export class ClientService {
     }
 
     const payment = this.dataSource.getRepository(Payment).create({
-      paymentId: uuidv4(),
       invoiceId: dto.invoiceId,
       method: dto.method as PaymentMethod,
       status: PaymentStatus.PENDIENTE,
@@ -476,7 +472,7 @@ export class ClientService {
     };
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: number) {
     const user = await this.dataSource.getRepository(User).findOne({
       where: { userId },
       relations: ['client'],
@@ -510,7 +506,7 @@ export class ClientService {
     };
   }
 
-  async updateProfile(userId: string, phone: string | undefined) {
+  async updateProfile(userId: number, phone: string | undefined) {
     const repo = this.dataSource.getRepository(User);
     const user = await repo.findOne({ where: { userId } });
 
@@ -528,7 +524,7 @@ export class ClientService {
     };
   }
 
-  async getDashboardSummary(userId: string) {
+  async getDashboardSummary(userId: number) {
     const user = await this.dataSource.getRepository(User).findOne({
       where: { userId },
       relations: ['client'],
@@ -598,7 +594,7 @@ export class ClientService {
     };
   }
 
-  async getAccountStatement(userId: string) {
+  async getAccountStatement(userId: number) {
     const user = await this.dataSource.getRepository(User).findOne({
       where: { userId },
       relations: ['client'],
@@ -649,7 +645,7 @@ export class ClientService {
 
   // ── Contratos (vista cliente) ──────────────────────────────────────────
 
-  async getAllContracts(userId: string) {
+  async getAllContracts(userId: number) {
     const client = await this.resolveClient(userId);
     const contracts = await this.dataSource.getRepository(Contract).find({
       where: { clientId: client.clientId },
@@ -669,7 +665,7 @@ export class ClientService {
     }));
   }
 
-  async getContractDetail(userId: string, contractId: string) {
+  async getContractDetail(userId: number, contractId: number) {
     const client = await this.resolveClient(userId);
 
     const contract = await this.dataSource.getRepository(Contract).findOne({
@@ -734,7 +730,7 @@ export class ClientService {
     };
   }
 
-  async acceptContract(userId: string, contractId: string) {
+  async acceptContract(userId: number, contractId: number) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(Contract);
 
@@ -760,7 +756,7 @@ export class ClientService {
     };
   }
 
-  async rejectContract(userId: string, contractId: string) {
+  async rejectContract(userId: number, contractId: number) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(Contract);
 
@@ -786,7 +782,7 @@ export class ClientService {
 
   // ── Contactos ──────────────────────────────────────────────────────────
 
-  async getContacts(userId: string) {
+  async getContacts(userId: number) {
     const client = await this.resolveClient(userId);
     const contacts = await this.dataSource
       .getRepository(ClientContact)
@@ -803,7 +799,7 @@ export class ClientService {
     }));
   }
 
-  async createContact(userId: string, dto: CreateContactDto) {
+  async createContact(userId: number, dto: CreateContactDto) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(ClientContact);
 
@@ -817,7 +813,6 @@ export class ClientService {
     }
 
     const contact = repo.create({
-      contactId: uuidv4(),
       clientId: client.clientId,
       contactName: dto.contactName,
       contactEmail: dto.contactEmail,
@@ -836,7 +831,7 @@ export class ClientService {
     };
   }
 
-  async updateContact(userId: string, contactId: string, dto: UpdateContactDto) {
+  async updateContact(userId: number, contactId: number, dto: UpdateContactDto) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(ClientContact);
 
@@ -872,7 +867,7 @@ export class ClientService {
     };
   }
 
-  async removeContact(userId: string, contactId: string) {
+  async removeContact(userId: number, contactId: number) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(ClientContact);
 
@@ -887,7 +882,7 @@ export class ClientService {
   }
 
   async changePassword(
-    userId: string,
+    userId: number,
     currentPassword: string,
     newPassword: string,
   ) {

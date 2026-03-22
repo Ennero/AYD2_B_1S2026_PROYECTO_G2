@@ -9,7 +9,7 @@ import { ContractStatus } from '../../../domain/enums/contract-status.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
 
 export interface CreateContractInput {
-  clientId: string;
+  clientId: number;
   creditLimit: number;
   paymentTermDays: number;
   discountPercentage: number;
@@ -18,7 +18,7 @@ export interface CreateContractInput {
 }
 
 export interface CreateContractOutput {
-  contractId: string;
+  contractId: number;
   contractNumber: string;
   status: ContractStatus;
 }

@@ -50,7 +50,7 @@ export class CertifierService {
     });
   }
 
-  async validateNit(invoiceId: string, clientNit: string) {
+  async validateNit(invoiceId: number, clientNit: string) {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
 
@@ -66,7 +66,7 @@ export class CertifierService {
     };
   }
 
-  async certifyInvoice(invoiceId: string, felUuid: string, clientNit: string) {
+  async certifyInvoice(invoiceId: number, felUuid: string, clientNit: string) {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
     if (invoice.status !== InvoiceStatus.BORRADOR) {
@@ -94,7 +94,7 @@ export class CertifierService {
     };
   }
 
-  async rejectInvoice(invoiceId: string, reason: string) {
+  async rejectInvoice(invoiceId: number, reason: string) {
     const normalizedReason = reason.trim();
     if (!normalizedReason) {
       throw new BadRequestException('Debe ingresar un motivo de rechazo valido');

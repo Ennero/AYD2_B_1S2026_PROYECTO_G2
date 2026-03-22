@@ -1,5 +1,5 @@
 export class AssignOrderDto {
-  contractRouteId: string;
+  contractRouteId: number;
   binomialId: string;
   scheduledDeparture: string;
 }

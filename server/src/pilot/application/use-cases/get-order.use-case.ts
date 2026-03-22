@@ -6,14 +6,14 @@ import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 
 export interface LogOutput {
-    logId: string;
+    logId: number;
     eventType: RouteEventType;
     eventTime: string;
     description: string;
 }
 
 export interface GetOrderOutput {
-    orderId: string;
+    orderId: number;
     orderNumber: string;
     origin: string;
     destination: string;
@@ -33,7 +33,7 @@ export interface GetOrderOutput {
 export class GetOrderUseCase {
     constructor(private readonly dataSource: DataSource) {}
 
-    async execute(orderId: string, pilotUserId: string): Promise<GetOrderOutput> {
+    async execute(orderId: number, pilotUserId: number): Promise<GetOrderOutput> {
         // 1. Verificar que el piloto tiene una unidad activa
         const unit = await this.dataSource
         .getRepository(TransportUnit)

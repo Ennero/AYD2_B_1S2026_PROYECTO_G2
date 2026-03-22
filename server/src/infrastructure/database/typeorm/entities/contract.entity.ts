@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
 import { ContractStatus } from '../../../../domain/enums/contract-status.enum';
 import { Client } from './client.entity';
 import { ContractRoute } from './contract-route.entity';
@@ -8,8 +8,8 @@ import { Order } from './order.entity';
 
 @Entity('contracts')
 export class Contract {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'contract_id' })
-  contractId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'contract_id' })
+  contractId: number;
 
   @Column({
     name: 'contract_number',
@@ -18,8 +18,8 @@ export class Contract {
     unique: true })
   contractNumber: string;
 
-  @Column({ name: 'client_id', type: 'varchar', length: 36 })
-  clientId: string;
+  @Column({ name: 'client_id', type: 'integer' })
+  clientId: number;
 
   @Column({
     name: 'status',

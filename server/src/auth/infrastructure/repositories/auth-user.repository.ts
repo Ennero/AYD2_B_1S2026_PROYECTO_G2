@@ -15,11 +15,11 @@ export class AuthUserRepository implements IAuthUserRepository {
     return this.repo.findOne({ where: { email } });
   }
 
-  findById(id: string): Promise<User | null> {
+  findById(id: number): Promise<User | null> {
     return this.repo.findOne({ where: { userId: id } });
   }
 
-  async updatePassword(userId: string, passwordHash: string): Promise<void> {
+  async updatePassword(userId: number, passwordHash: string): Promise<void> {
     await this.repo.update({ userId }, { passwordHash });
   }
 }

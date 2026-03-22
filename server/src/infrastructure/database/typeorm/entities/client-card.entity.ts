@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Client } from './client.entity';
 import { Payment } from './payment.entity';
 
@@ -7,11 +7,11 @@ import { Payment } from './payment.entity';
 
 
 export class ClientCard {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'card_id' })
-  cardId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'card_id' })
+  cardId: number;
 
-  @Column({ name: 'client_id', type: 'varchar', length: 36 })
-  clientId: string;
+  @Column({ name: 'client_id', type: 'integer' })
+  clientId: number;
 
   @Column({ name: 'card_alias', type: 'varchar', length: 80 })
   cardAlias: string;

@@ -23,7 +23,7 @@ export interface DeliverOrderInput {
 }
 
 export interface DeliverOrderOutput {
-    orderId: string;
+    orderId: number;
     status: OrderStatus;
     deliveredAt: string;
     receiverSignaturePath: string;
@@ -36,8 +36,8 @@ export class DeliverOrderUseCase {
     constructor(private readonly dataSource: DataSource) {}
 
     async execute(
-        orderId: string,
-        pilotUserId: string,
+        orderId: number,
+        pilotUserId: number,
         input: DeliverOrderInput,
     ): Promise<DeliverOrderOutput> {
         // 1. Verificar unidad del piloto

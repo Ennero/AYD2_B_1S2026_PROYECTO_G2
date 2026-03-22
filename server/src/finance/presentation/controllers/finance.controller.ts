@@ -43,14 +43,14 @@ export class FinanceController {
   }
 
   @Get('invoices/:id')
-  async getInvoiceById(@Param('id') invoiceId: string) {
+  async getInvoiceById(@Param('id', ParseIntPipe) invoiceId: number) {
     const data = await this.financeService.getInvoiceById(invoiceId);
     return { message: 'Detalle de factura obtenido correctamente', data };
   }
 
   @Patch('invoices/:id/submit-for-certification')
   async submitForCertification(
-    @Param('id') invoiceId: string,
+    @Param('id', ParseIntPipe) invoiceId: number,
     @Body() dto: SubmitForCertificationDto,
     @CurrentUser() user: JwtPayload,
   ) {
@@ -59,7 +59,7 @@ export class FinanceController {
   }
 
   @Patch('invoices/:id/send')
-  async sendInvoice(@Param('id') invoiceId: string, @Body() dto: SendInvoiceDto) {
+  async sendInvoice(@Param('id', ParseIntPipe) invoiceId: number, @Body() dto: SendInvoiceDto) {
     const data = await this.financeService.sendInvoice(invoiceId, dto.pdfPath);
     return { message: 'Factura enviada al cliente correctamente', data };
   }
@@ -71,7 +71,7 @@ export class FinanceController {
   }
 
   @Patch('payments/:id/approve')
-  async approvePayment(@Param('id') paymentId: string, @CurrentUser() user: JwtPayload) {
+  async approvePayment(@Param('id', ParseIntPipe) paymentId: number, @CurrentUser() user: JwtPayload) {
     const data = await this.financeService.approvePayment(paymentId, user.sub);
     return { message: 'Pago aprobado correctamente', data };
   }

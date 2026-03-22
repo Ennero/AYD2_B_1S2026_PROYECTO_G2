@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { InvoiceStatus } from '../../../../domain/enums/invoice-status.enum';
 import { Order } from './order.entity';
 import { Client } from './client.entity';
@@ -6,17 +6,17 @@ import { Payment } from './payment.entity';
 
 @Entity('invoices')
 export class Invoice {
-  @PrimaryColumn({ type: 'varchar', length: 36, name: 'invoice_id' })
-  invoiceId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'invoice_id' })
+  invoiceId: number;
 
   @Column({ name: 'invoice_number', type: 'varchar', length: 40, unique: true })
   invoiceNumber: string;
 
-  @Column({ name: 'order_id', type: 'varchar', length: 36, unique: true })
-  orderId: string;
+  @Column({ name: 'order_id', type: 'integer', unique: true })
+  orderId: number;
 
-  @Column({ name: 'client_id', type: 'varchar', length: 36 })
-  clientId: string;
+  @Column({ name: 'client_id', type: 'integer' })
+  clientId: number;
 
   @Column({
     name: 'status',
