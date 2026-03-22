@@ -19,24 +19,36 @@ export function passwordRecoveryTemplate(
 
   const html = baseTemplate(
     `
-    <h2>Solicitud de recuperación de contraseña</h2>
-    <p>Hola <strong>${data.clientName}</strong>,</p>
-    <p>Recibimos una solicitud para restablecer la contraseña asociada a su cuenta de LogiTrans.</p>
+    <h2 style="color:#0A3B7C; margin-top:0;">Recuperación de contraseña</h2>
 
-    <p style="text-align:center;">
-      <a class="btn" href="${data.recoveryUrl}">Restablecer contraseña</a>
+    <p>Hola <strong>${data.clientName}</strong>,</p>
+    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en el
+       <strong>Portal de Clientes LogiTrans</strong>.
+    </p>
+
+    <p style="text-align:center; margin:28px 0;">
+      <a class="btn" href="${data.recoveryUrl}">Restablecer mi contraseña</a>
     </p>
 
     <div class="info-box">
-      <p><strong>Este enlace es válido por ${data.expiresInMinutes} minutos</strong> y expirará tras su primer uso.</p>
-      ${data.ipAddress ? `<p style="font-size:12px; color:#888;">Solicitud originada desde: ${data.ipAddress}</p>` : ''}
+      <p style="margin:0 0 6px;">
+        <strong>⏱ Enlace válido por ${data.expiresInMinutes} minutos.</strong><br/>
+        Por seguridad, este enlace expira una vez utilizado o transcurrido el tiempo indicado.
+      </p>
+      ${
+        data.ipAddress
+          ? `<p style="font-size:12px; color:#888; margin:8px 0 0;">Solicitud originada desde: <code>${data.ipAddress}</code></p>`
+          : ''
+      }
     </div>
 
     <hr class="divider" />
 
     <p style="font-size:13px; color:#888888;">
-      Si usted no solicitó este restablecimiento, ignore este correo. Su contraseña actual permanece sin cambios.
-      Si sospecha de actividad no autorizada, contáctenos en <a href="mailto:soporte@logitrans.com">soporte@logitrans.com</a>.
+      Si <strong>no solicitaste</strong> este restablecimiento, ignora este mensaje.
+      Tu contraseña actual permanece sin cambios.<br/><br/>
+      ¿Sospechas de actividad no autorizada? Escríbenos a
+      <a href="mailto:soporte@logitrans.gt" style="color:#0A3B7C;">soporte@logitrans.gt</a>.
     </p>
     `,
     subject,
@@ -45,12 +57,12 @@ export function passwordRecoveryTemplate(
   const text = `
 Hola ${data.clientName},
 
-Recibimos una solicitud para restablecer su contraseña de LogiTrans.
+Recibimos una solicitud para restablecer tu contraseña en el Portal de Clientes LogiTrans.
 
-Haga clic en el siguiente enlace para continuar (válido por ${data.expiresInMinutes} minutos):
+Haz clic en el siguiente enlace para continuar (válido por ${data.expiresInMinutes} minutos):
 ${data.recoveryUrl}
 
-Si usted no solicitó este restablecimiento, ignore este correo.
+Si no solicitaste este restablecimiento, ignora este mensaje.
   `.trim();
 
   return { subject, html, text };

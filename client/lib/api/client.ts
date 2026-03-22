@@ -87,8 +87,8 @@ async function request<T>(
       body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     })
 
-    // Handle 401 — Token expirado
-    if (response.status === 401) {
+    // Handle 401 — Token expirado (solo redirige si era una petición autenticada)
+    if (response.status === 401 && !skipAuth) {
       removeToken()
       if (typeof window !== "undefined") {
         window.location.href = "/login"
