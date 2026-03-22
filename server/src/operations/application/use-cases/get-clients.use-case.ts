@@ -19,7 +19,7 @@ export class GetClientsUseCase {
     const clients = await queryBuilder.getMany();
 
     return clients.map((client) => ({
-      clientId: client.clientId,
+      clientId: Number(client.clientId),
       clientCode: client.clientCode,
       legalName: client.legalName,
       nit: client.nit,

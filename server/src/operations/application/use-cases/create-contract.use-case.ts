@@ -1,17 +1,15 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'crypto';
 import { DataSource, In } from 'typeorm';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 import { CargoType } from '../../../infrastructure/database/typeorm/entities/cargo-type.entity';
 import { Contract } from '../../../infrastructure/database/typeorm/entities/contract.entity';
-import { ContractRoute } from '../../../infrastructure/database/typeorm/entities/contract-route.entity';
 import { Route } from '../../../infrastructure/database/typeorm/entities/route.entity';
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
 
 export interface CreateContractInput {
-  clientId: string;
+  clientId: number;
   creditLimit: number;
   paymentTermDays: number;
   discountPercentage: number;
@@ -20,7 +18,7 @@ export interface CreateContractInput {
 }
 
 export interface CreateContractOutput {
-  contractId: string;
+  contractId: number;
   contractNumber: string;
   status: ContractStatus;
 }
@@ -36,6 +34,11 @@ export class CreateContractUseCase {
   ) {}
 
   async execute(input: CreateContractInput, agentName: string): Promise<CreateContractOutput> {
+    const normalizedClientId = Number(input.clientId);
+    if (!Number.isInteger(normalizedClientId) || normalizedClientId <= 0) {
+      throw new BadRequestException('El cliente seleccionado no es valido.');
+    }
+
     const normalizedRouteIds = [...new Set((input.routeIds ?? []).map(Number).filter((id) => Number.isInteger(id) && id > 0))];
     if (normalizedRouteIds.length === 0) {
       throw new BadRequestException('Debe seleccionar al menos una ruta autorizada.');
@@ -46,7 +49,9 @@ export class CreateContractUseCase {
     // ── 1. Validar que el cliente existe ─────────────────────────────────────
     const client = await this.dataSource
       .getRepository(Client)
-      .findOne({ where: { clientId: input.clientId } });
+      .createQueryBuilder('client')
+      .where('client.clientId = :clientId', { clientId: normalizedClientId })
+      .getOne();
 
     if (!client) {
       throw new NotFoundException(`Cliente ${input.clientId} no encontrado.`);
@@ -76,27 +81,47 @@ export class CreateContractUseCase {
       // Número de contrato secuencial (el trigger de DB también puede generarlo)
       const count = await em.count(Contract);
       const contractNumber = `CONT-${String(count + 1).padStart(5, '0')}`;
-      const contractId = randomUUID();
 
-      const contract = em.create(Contract, {
-        contractId,
-        contractNumber,
-        clientId: input.clientId,
-        status: ContractStatus.PENDIENTE,
-        creditLimit: input.creditLimit,
-        paymentTermDays: input.paymentTermDays,
-        discountPercentage: input.discountPercentage ?? 0,
-      });
-      const saved = await em.save(contract);
+      const insertedContracts = await em.query<{
+        contract_id: number;
+        contract_number: string;
+        status: ContractStatus;
+        end_date: string;
+      }>(
+        `INSERT INTO contracts (
+            contract_number,
+            client_id,
+            status,
+            credit_limit,
+            payment_term_days,
+            discount_percentage
+          )
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING contract_id, contract_number, status, end_date`,
+        [
+          contractNumber,
+          normalizedClientId,
+          ContractStatus.PENDIENTE,
+          input.creditLimit,
+          input.paymentTermDays,
+          input.discountPercentage ?? 0,
+        ],
+      );
+
+      const inserted = insertedContracts[0];
+      if (!inserted) {
+        throw new BadRequestException('No fue posible crear el contrato.');
+      }
+
+      const createdContractId = Number(inserted.contract_id);
 
       // CONTRACT_ROUTES — una fila por ruta incluida
       for (const route of routes) {
-        const cr = em.create(ContractRoute, {
-          contractId: saved.contractId,
-          routeId: route.routeId,
-          promisedDeliveryHours: route.estimatedHours,
-        });
-        await em.save(cr);
+        await em.query(
+          `INSERT INTO contract_routes (contract_id, route_id, promised_delivery_hours)
+            VALUES ($1, $2, $3)`,
+          [createdContractId, Number(route.routeId), Number(route.estimatedHours)],
+        );
       }
 
       // CONTRACT_CARGO_TYPES — tabla de unión directa por insert
@@ -107,14 +132,19 @@ export class CreateContractUseCase {
           .into('contract_cargo_types')
           .values(
             validCargoTypes.map((cargoType) => ({
-              contract_id: saved.contractId,
+              contract_id: createdContractId,
               cargo_type_id: cargoType.cargoTypeId,
             })),
           )
           .execute();
       }
 
-      return saved;
+      return {
+        contractId: createdContractId,
+        contractNumber: inserted.contract_number,
+        status: inserted.status,
+        endDate: inserted.end_date,
+      };
     });
 
     // ── 4. Notificación al cliente (fire-and-forget) ──────────────────────────

@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm';
 import { Route } from '../../../infrastructure/database/typeorm/entities/route.entity';
 
 export interface OperationRouteItem {
-  routeId: string;
+  routeId: number;
   routeCode: string;
   origin: string;
   destination: string;
@@ -26,7 +26,7 @@ export class GetRoutesUseCase {
       .getMany();
 
     return routes.map((route) => ({
-      routeId: route.routeId,
+      routeId: Number(route.routeId),
       routeCode: route.routeCode,
       origin: route.origin,
       destination: route.destination,

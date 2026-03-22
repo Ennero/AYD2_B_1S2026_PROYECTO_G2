@@ -20,7 +20,7 @@ export interface CreateClientInput {
 }
 
 export interface CreateClientOutput {
-  clientId: string;
+  clientId: number;
   clientCode: string;
   legalName: string;
   nit: string;
@@ -57,7 +57,7 @@ export class CreateClientUseCase {
     const savedClient = await repository.save(client);
 
     return {
-      clientId: savedClient.clientId,
+      clientId: Number(savedClient.clientId),
       clientCode: savedClient.clientCode,
       legalName: savedClient.legalName,
       nit: savedClient.nit,

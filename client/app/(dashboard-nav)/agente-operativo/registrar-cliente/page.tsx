@@ -31,7 +31,7 @@ type RiskLevel = "BAJO" | "MEDIO" | "ALTO" | "CRITICO"
 type CreateClientResponse = {
   message: string
   data: {
-    clientId: string
+    clientId: number
     clientCode: string
     legalName: string
     nit: string

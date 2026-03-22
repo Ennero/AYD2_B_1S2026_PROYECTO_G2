@@ -14,14 +14,14 @@ import { toast } from "sonner"
 type PlazoPago = 15 | 30 | 45
 
 export interface Client {
-  clientId: string
+  clientId: number
   legalName: string
   commercialName: string
   nit: string
 }
 
 type RouteItem = {
-  routeId: string
+  routeId: number
   routeCode: string
   origin: string
   destination: string
@@ -46,7 +46,7 @@ export default function FormalizarContratoPage() {
   const [limiteCredito, setLimiteCredito] = useState("")
   const [routeQuery, setRouteQuery] = useState("")
   const [routesCatalog, setRoutesCatalog] = useState<RouteItem[]>([])
-  const [selectedRouteIds, setSelectedRouteIds] = useState<string[]>([])
+  const [selectedRouteIds, setSelectedRouteIds] = useState<number[]>([])
   const [plazoPago, setPlazoPago] = useState<PlazoPago>(30)
   const [cargoTypes, setCargoTypes] = useState<CargoTypeItem[]>([])
   const [cargasPermitidas, setCargasPermitidas] = useState<number[]>([])
@@ -130,12 +130,12 @@ export default function FormalizarContratoPage() {
     setCargasPermitidas((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
   }
 
-  function addRoute(routeId: string) {
+  function addRoute(routeId: number) {
     setSelectedRouteIds((prev) => (prev.includes(routeId) ? prev : [...prev, routeId]))
     setRouteQuery("")
   }
 
-  function removeRoute(routeId: string) {
+  function removeRoute(routeId: number) {
     setSelectedRouteIds((prev) => prev.filter((id) => id !== routeId))
   }
 
@@ -163,7 +163,7 @@ export default function FormalizarContratoPage() {
         creditLimit: parsedCreditLimit,
         paymentTermDays: plazoPago,
         discountPercentage: Number.parseFloat(descuentoPorcentaje) || 0,
-        routeIds: selectedRouteIds.map(Number),
+        routeIds: selectedRouteIds,
         cargoTypeIds: cargasPermitidas,
       }
 
