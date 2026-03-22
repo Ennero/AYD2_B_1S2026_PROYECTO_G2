@@ -14,6 +14,7 @@ import { CertifierModule } from './certifier/certifier.module';
 import { PilotModule } from './pilot/pilot.module';
 import { FinanceModule } from './finance/finance.module';
 import { ClientPortalModule } from './client/client.module';
+import { BiModule } from './bi/bi.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ClientPortalModule } from './client/client.module';
     PilotModule,
     FinanceModule,
     ClientPortalModule,
+    BiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
