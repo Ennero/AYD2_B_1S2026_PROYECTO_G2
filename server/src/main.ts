@@ -4,7 +4,10 @@ import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { ensureDatabaseExists } from './infrastructure/database/bootstrap/ensure-database';
-import { ensureCanonicalSchema } from './infrastructure/database/bootstrap/initialize-schema';
+import {
+  alignIdentitySequences,
+  ensureCanonicalSchema,
+} from './infrastructure/database/bootstrap/initialize-schema';
 import { getDatabaseRuntimeConfig } from './infrastructure/database/config/database-env';
 import { runInitialSeed } from './infrastructure/database/seeds/database-seeder';
 
@@ -33,6 +36,8 @@ async function bootstrap() {
   if (databaseConfig.autoSeed) {
     await runInitialSeed(dataSource);
   }
+
+  await alignIdentitySequences(dataSource);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
