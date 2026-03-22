@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import StatusBadge from "@/components/shared/StatusBadge"
-import { Search, CheckCircle2, Circle } from "lucide-react"
+import { CheckCircle2, Circle } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils/cn"
 import { api } from "@/lib/api/client"
@@ -25,9 +25,9 @@ type CargaReal = {
 }
 
 export default function FormalizarCargasPage() {
-  const [cargas, setCargas] = useState<CargaReal[]>([])
+  const [allCargas, setAllCargas] = useState<CargaReal[]>([])
   const [loading, setLoading] = useState(true)
-  
+
   // Filtros state
   const [piloto, setPiloto] = useState("")
   const [placa, setPlaca] = useState("")
@@ -41,7 +41,7 @@ export default function FormalizarCargasPage() {
         setLoading(true)
         const response = await api.get<{ message: string, data: CargaReal[] }>('/api/operations/cargas')
         if (response.ok) {
-          setCargas(response.data.data)
+          setAllCargas(response.data.data)
         }
       } catch (error) {
         toast.error("Error cargando las órdenes del servidor")
@@ -51,6 +51,50 @@ export default function FormalizarCargasPage() {
     }
     fetchCargas()
   }, [])
+
+  const cargas = useMemo(() => {
+    let filtered = [...allCargas]
+
+    if (piloto.trim()) {
+      const term = piloto.trim().toLowerCase()
+      filtered = filtered.filter(c =>
+        c.codigo.toLowerCase().includes(term) ||
+        c.vehicleModel.toLowerCase().includes(term) ||
+        c.plateNumber.toLowerCase().includes(term) ||
+        c.origen.toLowerCase().includes(term) ||
+        c.destino.toLowerCase().includes(term)
+      )
+    }
+
+    if (placa.trim()) {
+      const term = placa.trim().toLowerCase()
+      filtered = filtered.filter(c => c.plateNumber.toLowerCase().includes(term))
+    }
+
+    if (fechaInicio) {
+      filtered = filtered.filter(c => c.fecha >= fechaInicio)
+    }
+
+    if (fechaFin) {
+      filtered = filtered.filter(c => c.fecha <= fechaFin)
+    }
+
+    filtered.sort((a, b) =>
+      orden === "asc"
+        ? a.fecha.localeCompare(b.fecha)
+        : b.fecha.localeCompare(a.fecha)
+    )
+
+    return filtered
+  }, [allCargas, piloto, placa, fechaInicio, fechaFin, orden])
+
+  const handleClearFilters = () => {
+    setPiloto("")
+    setPlaca("")
+    setFechaInicio("")
+    setFechaFin("")
+    setOrden("desc")
+  }
 
   const handleFormalizar = async (id: string, carga: CargaReal) => {
     const weight = Number(carga.peso)
@@ -67,7 +111,7 @@ export default function FormalizarCargasPage() {
       })
 
       if (response.ok) {
-        setCargas(prev => prev.map(c => c.id === id ? { ...c, estado: "FORMALIZADO" } : c))
+        setAllCargas(prev => prev.map(c => c.id === id ? { ...c, estado: "FORMALIZADO" as const } : c))
         toast.success(`Carga ${carga.codigo} formalizada correctamente`)
       }
     } catch (error) {
@@ -76,7 +120,7 @@ export default function FormalizarCargasPage() {
   }
 
   const updateCargaField = (id: string, field: keyof CargaReal, value: any) => {
-    setCargas(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
+    setAllCargas(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
   }
 
   return (
@@ -145,8 +189,11 @@ export default function FormalizarCargasPage() {
             </label>
           </div>
 
-          <Button className="rounded-full w-12 h-12 p-0 flex items-center justify-center bg-primary hover:bg-primary-active text-white shadow-md">
-            <Search size={20} />
+          <Button
+            onClick={handleClearFilters}
+            className="rounded-full px-4 h-10 text-sm bg-black/10 hover:bg-black/20 text-text-primary shadow-sm"
+          >
+            Limpiar
           </Button>
         </div>
       </Card>
