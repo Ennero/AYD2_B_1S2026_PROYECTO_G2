@@ -1863,15 +1863,84 @@ export class DatabaseSeeder {
   ): Promise<Invoice[]> {
     const repository = manager.getRepository(Invoice);
     const deliveredOrders = orders.filter((order) => order.finalStage === 'ENTREGADA');
-    const invoices = await repository.find({
+    let invoices = await repository.find({
       where: { orderId: In(deliveredOrders.map((record) => record.order.orderId)) },
     });
-    const invoiceByOrderId = new Map(invoices.map((invoice) => [invoice.orderId, invoice]));
-    const contractById = new Map(contracts.map((contract) => [contract.contractId, contract]));
+    const contractById = new Map(
+      contracts.map((contract) => [String(contract.contractId), contract]),
+    );
+
+    // Fallback for environments where trigger-based draft invoice creation is missing.
+    for (const record of deliveredOrders) {
+      const recordOrderId = String(record.order.orderId);
+      const existing = invoices.find(
+        (invoice) => String(invoice.orderId) === recordOrderId,
+      );
+      if (existing) {
+        continue;
+      }
+
+      const contract = mustFind(
+        contractById.get(String(record.contract.contractId)),
+        record.contract.contractId,
+      );
+      const issueDate = hoursAfter(record.deliveredAt ?? daysFromNow(-2), 2);
+      const dueDate = toDateOnly(
+        hoursAfter(issueDate, Number(contract.paymentTermDays) * 24),
+      );
+
+      await repository.query(
+        `INSERT INTO invoices (
+          order_id,
+          client_id,
+          status,
+          issue_date,
+          due_date,
+          client_name,
+          client_nit,
+          client_address,
+          service_description,
+          subtotal_amount,
+          tax_amount,
+          total_amount,
+          pdf_path
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ON CONFLICT (order_id) DO NOTHING`,
+        [
+          record.order.orderId,
+          record.contract.clientId,
+          InvoiceStatus.BORRADOR,
+          issueDate,
+          dueDate,
+          record.blueprint.legalName,
+          record.blueprint.nit,
+          record.blueprint.taxAddress,
+          `SERVICIO LOGISTICO DE LA ORDEN ${recordOrderId}`,
+          Number(record.order.subtotalAmount ?? 0),
+          Number(record.order.taxAmount ?? 0),
+          Number(record.order.totalAmount ?? 0),
+          `/seed/invoices/${record.order.orderId}-draft.pdf`,
+        ],
+      );
+    }
+
+    invoices = await repository.find({
+      where: { orderId: In(deliveredOrders.map((record) => record.order.orderId)) },
+    });
+    const invoiceByOrderId = new Map(
+      invoices.map((invoice) => [String(invoice.orderId), invoice]),
+    );
 
     for (const [index, record] of deliveredOrders.entries()) {
-      const invoice = mustFind(invoiceByOrderId.get(record.order.orderId), record.order.orderId);
-      const contract = mustFind(contractById.get(record.contract.contractId), record.contract.contractId);
+      const invoice = mustFind(
+        invoiceByOrderId.get(String(record.order.orderId)),
+        record.order.orderId,
+      );
+      const contract = mustFind(
+        contractById.get(String(record.contract.contractId)),
+        record.contract.contractId,
+      );
       const subtotalAmount = Number(record.order.subtotalAmount ?? 0);
       const taxAmount = Number(record.order.taxAmount ?? 0);
       const totalAmount = Number(record.order.totalAmount ?? 0);
@@ -1890,6 +1959,7 @@ export class DatabaseSeeder {
         taxAmount,
         totalAmount,
       };
+      const invoiceSeedId = String(invoice.invoiceId);
 
       if (index < 8) {
         await repository.update(invoice.invoiceId, {
@@ -1902,7 +1972,7 @@ export class DatabaseSeeder {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.CERTIFICADA,
           certifiedAt: hoursAfter(issueDate, 5),
-          felUuid: `FEL-${invoice.invoiceId.slice(0, 8).toUpperCase()}`,
+          felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
           pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
         });
       } else if (index < 17) {
@@ -1911,7 +1981,7 @@ export class DatabaseSeeder {
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 4),
           sentAt: hoursAfter(issueDate, 8),
-          felUuid: `FEL-${invoice.invoiceId.slice(0, 8).toUpperCase()}`,
+          felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
           pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
         });
       } else if (index < 22) {
@@ -1920,7 +1990,7 @@ export class DatabaseSeeder {
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 3),
           sentAt: hoursAfter(issueDate, 7),
-          felUuid: `FEL-${invoice.invoiceId.slice(0, 8).toUpperCase()}`,
+          felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
           pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
         });
       } else {
