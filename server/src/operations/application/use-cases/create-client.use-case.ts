@@ -6,7 +6,6 @@ import { ClientFactory } from '../factories/client.factory';
 
 export interface CreateClientInput {
   legalName: string;
-  commercialName?: string;
   nit: string;
   taxAddress: string;
   primaryContactName: string;

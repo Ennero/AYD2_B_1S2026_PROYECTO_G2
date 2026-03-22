@@ -7,10 +7,6 @@ export class CreateClientDto {
   legalName: string;
 
   @IsString()
-  @IsOptional()
-  commercialName?: string;
-
-  @IsString()
   @IsNotEmpty()
   nit: string;
 

@@ -24,7 +24,6 @@ export class ClientsController {
   async createClient(@Body() dto: CreateClientDto) {
     const data = await this.createClientUseCase.execute({
       legalName: dto.legalName,
-      commercialName: dto.commercialName,
       nit: dto.nit,
       taxAddress: dto.taxAddress,
       primaryContactName: dto.primaryContactName,

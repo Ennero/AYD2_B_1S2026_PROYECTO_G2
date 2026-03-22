@@ -4,7 +4,6 @@ import { Client } from '../../../infrastructure/database/typeorm/entities/client
 
 export interface ClientFactoryInput {
   legalName: string;
-  commercialName?: string;
   nit: string;
   taxAddress: string;
   primaryContactName: string;
@@ -27,7 +26,6 @@ export class ClientFactory {
     const client = new Client();
 
     client.legalName = input.legalName.trim();
-    client.commercialName = this.toNullable(input.commercialName);
     client.nit = input.nit.trim();
     client.taxAddress = input.taxAddress.trim();
     client.primaryContactName = input.primaryContactName.trim();

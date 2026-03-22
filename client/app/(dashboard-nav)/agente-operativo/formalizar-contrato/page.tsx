@@ -16,7 +16,6 @@ type PlazoPago = 15 | 30 | 45
 export interface Client {
   clientId: number
   legalName: string
-  commercialName: string
   nit: string
 }
 
