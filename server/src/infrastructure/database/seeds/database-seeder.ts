@@ -2020,55 +2020,54 @@ export class DatabaseSeeder {
         taxAmount,
         totalAmount,
       };
-      const invoiceSeedId = String(invoice.invoiceId);
+      const invoiceSeedId = String((invoice as Invoice).invoiceId);
 
       if (index < 4) {
         // Empty drafts needing finance review
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           serviceDescription: '',
-          dueDate: new Date().toISOString().split('T')[0],
           status: InvoiceStatus.BORRADOR,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}-draft.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-draft.pdf`,
         });
       } else if (index < 8) {
         // Drafts reviewed by finance, ready for certifier
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.BORRADOR,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}-draft.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-draft.pdf`,
         });
       } else if (index < 13) {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.CERTIFICADA,
           certifiedAt: hoursAfter(issueDate, 5),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
         });
       } else if (index < 17) {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 4),
           sentAt: hoursAfter(issueDate, 8),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
         });
       } else if (index < 22) {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 3),
           sentAt: hoursAfter(issueDate, 7),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
         });
       } else {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.RECHAZADA,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}-rejected.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-rejected.pdf`,
         });
       }
     }
