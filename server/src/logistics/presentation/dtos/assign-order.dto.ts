@@ -1,5 +1,10 @@
+import { Type } from 'class-transformer';
+
 export class AssignOrderDto {
-  contractRouteId: string;
+  @Type(() => Number)
+  contractRouteId: number;
+
+
   binomialId: string;
   scheduledDeparture: string;
 }

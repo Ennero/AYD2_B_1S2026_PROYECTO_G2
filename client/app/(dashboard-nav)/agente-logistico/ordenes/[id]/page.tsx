@@ -52,8 +52,8 @@ function ModalAsignacion({
 
   useEffect(() => {
     api
-      .get<UnitBinomial[]>(`${ENDPOINTS.LOGISTICS.UNIT_BINOMIALS}?orderId=${orden.orderId}`)
-      .then(({ data }) => setBinomials(data))
+      .get<{ data: UnitBinomial[] }>(`${ENDPOINTS.LOGISTICS.UNIT_BINOMIALS}?orderId=${orden.orderId}`)
+      .then(({ data }) => setBinomials(data.data))
       .catch(() => setBinomials([]))
       .finally(() => setLoadingBinomials(false))
   }, [orden.orderId])
@@ -232,8 +232,8 @@ export default function OrdenDetallePage({ params }: PageProps<{ id: string }>) 
 
   useEffect(() => {
     api
-      .get<OrdenDetalle>(ENDPOINTS.LOGISTICS.ORDER_DETAIL(id))
-      .then(({ data }) => setOrden(data))
+      .get<{ data: OrdenDetalle }>(ENDPOINTS.LOGISTICS.ORDER_DETAIL(id))
+      .then(({ data }) => setOrden(data.data))
       .catch(() => setOrden(null))
       .finally(() => setLoading(false))
   }, [id])

@@ -8,7 +8,8 @@ export interface UnitBinomial {
   unitId: string;
   pilotUserId: string | null;
   pilotName: string | null;
-  plateNumber: string;
+  plate: string;
+  pilotLicense: string;
   vehicleType: string;
   capacityTon: number;
   hasRefrigeration: boolean;
@@ -57,7 +58,8 @@ export class GetUnitBinomialsUseCase {
       unitId: u.unitId,
       pilotUserId: u.pilotUserId,
       pilotName: u.pilotUser?.fullName ?? null,
-      plateNumber: u.plateNumber,
+      plate: u.plateNumber,
+      pilotLicense: u.pilotLicenseNumber,
       vehicleType: u.vehicleType?.typeName ?? '',
       capacityTon: Number(u.capacityTon),
       hasRefrigeration: u.hasRefrigeration,
