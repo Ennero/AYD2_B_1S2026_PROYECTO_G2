@@ -2022,7 +2022,17 @@ export class DatabaseSeeder {
       };
       const invoiceSeedId = String(invoice.invoiceId);
 
-      if (index < 8) {
+      if (index < 4) {
+        // Empty drafts needing finance review
+        await repository.update(invoice.invoiceId, {
+          ...invoiceBaseUpdate,
+          serviceDescription: '',
+          dueDate: new Date().toISOString().split('T')[0],
+          status: InvoiceStatus.BORRADOR,
+          pdfPath: `/seed/invoices/${invoice.invoiceId}-draft.pdf`,
+        });
+      } else if (index < 8) {
+        // Drafts reviewed by finance, ready for certifier
         await repository.update(invoice.invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.BORRADOR,

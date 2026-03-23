@@ -9,7 +9,6 @@ import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
 import StatusBadge from "@/components/shared/StatusBadge"
 import FinancePageShell from "@/components/finance/FinancePageShell"
-import InvoiceCard from "@/components/finance/InvoiceCard"
 import { fetchFinanceInvoices, sendFinanceInvoice } from "@/lib/api/finance"
 import type { FinanceInvoice } from "@/types/finance"
 
@@ -150,11 +149,6 @@ export default function FinanceBillingPage() {
 
       <div className="mt-2 mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <div className="mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold tracking-tight text-slate-800">
-            Pendientes de revisión
-          </h2></div>
           <h2 className="text-2xl font-bold text-[#0A3B7C]">Facturas Certificadas por FEL</h2>
           <p className="text-sm text-[#64748B]">Luego de la aprobacion fiscal, quedan listas para envio.</p>
         </div>
