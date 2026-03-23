@@ -81,6 +81,7 @@ interface InternalUserBlueprint {
   email: string;
   phone: string;
   role: UserRole;
+  password?: string;
 }
 
 interface OrderPlan {
@@ -156,15 +157,17 @@ const EXTRA_CARGO_TYPES = [
 const INTERNAL_USERS: InternalUserBlueprint[] = [
   {
     fullName: 'Simulador FEL SAT',
-    email: '2895884051401+certificador.fel@ingenieria.usac.edu.gt',
+    email: '2895884051401+s@ingenieria.usac.edu.gt',
     phone: '+50241000001',
     role: UserRole.CERTIFICADOR_FEL,
+    password: 'LogiSAT',
   },
   {
     fullName: 'Andrea Solares',
-    email: '2895884051401+operativo.1@ingenieria.usac.edu.gt',
+    email: '2895884051401+v@ingenieria.usac.edu.gt',
     phone: '+50241000002',
     role: UserRole.AGENTE_OPERATIVO,
+    password: 'LogiVentas',
   },
   {
     fullName: 'Luis Argueta',
@@ -174,9 +177,10 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Karla Menendez',
-    email: '2895884051401+logistica.1@ingenieria.usac.edu.gt',
+    email: '2895884051401+l@ingenieria.usac.edu.gt',
     phone: '+50241000004',
     role: UserRole.AGENTE_LOGISTICO,
+    password: 'LogiLogistica',
   },
   {
     fullName: 'Diego Paredes',
@@ -192,9 +196,10 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Mario Caal',
-    email: '2895884051401+patio.1@ingenieria.usac.edu.gt',
+    email: '2895884051401+p@ingenieria.usac.edu.gt',
     phone: '+50241000007',
     role: UserRole.ENCARGADO_PATIO,
+    password: 'LogiPatio',
   },
   {
     fullName: 'Julio Macz',
@@ -204,9 +209,10 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Silvia Monterroso',
-    email: '2895884051401+finanzas.1@ingenieria.usac.edu.gt',
+    email: '2895884051401+f@ingenieria.usac.edu.gt',
     phone: '+50241000009',
     role: UserRole.AGENTE_FINANCIERO,
+    password: 'LogiFinanzas',
   },
   {
     fullName: 'Pamela Castellanos',
@@ -222,15 +228,17 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Ricardo Solis',
-    email: '2895884051401+gerencia@ingenieria.usac.edu.gt',
+    email: '2895884051401@ingenieria.usac.edu.gt',
     phone: '+50241000012',
     role: UserRole.GERENCIA,
+    password: 'LogiGerencia',
   },
   {
     fullName: 'Carlos Mendez',
-    email: '2895884051401+piloto.01@ingenieria.usac.edu.gt',
+    email: '2895884051401+t@ingenieria.usac.edu.gt',
     phone: '+50241000101',
     role: UserRole.PILOTO,
+    password: 'LogiPiloto',
   },
   {
     fullName: 'Edgar Choc',
@@ -313,13 +321,14 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
 ];
 
 const MVP_PRIORITY_USER_EMAILS: string[] = [
-  '2895884051401+certificador.fel@ingenieria.usac.edu.gt',
-  '2895884051401+operativo.1@ingenieria.usac.edu.gt',
-  '2895884051401+logistica.1@ingenieria.usac.edu.gt',
-  '2895884051401+patio.1@ingenieria.usac.edu.gt',
-  '2895884051401+finanzas.1@ingenieria.usac.edu.gt',
-  '2895884051401+gerencia@ingenieria.usac.edu.gt',
-  '2895884051401+piloto.01@ingenieria.usac.edu.gt',
+  '2895884051401@ingenieria.usac.edu.gt',
+  '2895884051401+v@ingenieria.usac.edu.gt',
+  '2895884051401+f@ingenieria.usac.edu.gt',
+  '2895884051401+l@ingenieria.usac.edu.gt',
+  '2895884051401+p@ingenieria.usac.edu.gt',
+  '2895884051401+s@ingenieria.usac.edu.gt',
+  '2895884051401+t@ingenieria.usac.edu.gt',
+  '2895884051401+c@ingenieria.usac.edu.gt',
 ];
 
 const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
@@ -866,7 +875,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
   {
     branchCode: 'GUA',
     vehicleTypeCode: 'LIGHT',
-    pilotEmail: '2895884051401+piloto.01@ingenieria.usac.edu.gt',
+    pilotEmail: '2895884051401+t@ingenieria.usac.edu.gt',
     plateNumber: 'C-310BHQ',
     vehicleModel: 'Hyundai H100 2023',
     capacityTon: 3.2,
@@ -1162,8 +1171,8 @@ export class DatabaseSeeder {
   private async seedInternalUsers(manager: EntityManager): Promise<User[]> {
     const repository = manager.getRepository(User);
     const usersToCreate = await Promise.all(
-      INTERNAL_USERS.map(async (user, index) => {
-        const passwordHash = await bcrypt.hash(`seed$${user.email}`, 10);
+      INTERNAL_USERS.map(async (user) => {
+        const passwordHash = await bcrypt.hash(user.password ?? 'Logi2026', 10);
         return repository.create({
           role: user.role,
           fullName: user.fullName,
@@ -1218,12 +1227,13 @@ export class DatabaseSeeder {
     const clientUsers = await Promise.all(
       CLIENT_BLUEPRINTS.map(async (client, index) => {
         const entity = mustFind(clientByNit.get(client.nit), client.legalName);
-        const passwordHash = await bcrypt.hash(`seed$portal.${client.key}`, 10);
+        const passwordHash = await bcrypt.hash('Logi2026', 10);
+        const email = index === 0 ? '2895884051401+c@ingenieria.usac.edu.gt' : `2895884051401+c${index}@ingenieria.usac.edu.gt`;
         return repository.create({
           clientId: entity.clientId,
           role: UserRole.CLIENTE,
           fullName: `${client.primaryContactName} Portal`,
-          email: `2895884051401+portal.${client.key}@ingenieria.usac.edu.gt`,
+          email,
           passwordHash,
           phone: client.primaryContactPhone,
           isActive: true,

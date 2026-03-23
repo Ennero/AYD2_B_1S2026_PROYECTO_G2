@@ -82,7 +82,7 @@ export class BiService {
     >(`
       SELECT
         o.order_number,
-        c.commercial_name AS client_name,
+        c.legal_name AS client_name,
         r.origin          AS origin,
         r.destination     AS destination,
         o.status,
