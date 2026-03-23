@@ -5,7 +5,6 @@ import { Save, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
-import EndpointChip from "@/components/finance/EndpointChip"
 import FinancePageShell from "@/components/finance/FinancePageShell"
 import { fetchFinanceRates, updateFinanceRate } from "@/lib/api/finance"
 import type { FinanceRate } from "@/types/finance"
@@ -74,9 +73,8 @@ export default function FinanceRatesPage() {
 
   return (
     <FinancePageShell
-      title="Configuracion Tarifario Base"
-      subtitle="Tarifas base por tipo de unidad para contratos y ordenes futuras"
-      rightSlot={<EndpointChip endpoint="GET /api/finance/rates" />}
+      title="Tarifario Base"
+      subtitle="Actualización de tarifas mínimas por tipo de unidad"
     >
       {loadingRates && rates.length === 0 ? (
         <Card className="rounded-3xl bg-white/95 border-black/5">
@@ -122,8 +120,7 @@ export default function FinanceRatesPage() {
               </div>
             </div>
 
-            <div className="mt-5 pt-4 border-t border-black/5 flex items-center justify-between gap-4 flex-wrap">
-              <EndpointChip endpoint={`PATCH /api/finance/rates/${rate.vehicleTypeId}`} />
+            <div className="flex items-center justify-between pl-6 py-4">
               <p className="text-xs text-[#64748B]">Los cambios aplican solo para documentos futuros.</p>
             </div>
           </Card>

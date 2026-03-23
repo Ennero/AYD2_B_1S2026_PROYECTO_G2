@@ -10,7 +10,6 @@ import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
 import StatusBadge from "@/components/shared/StatusBadge"
 import FinancePageShell from "@/components/finance/FinancePageShell"
-import EndpointChip from "@/components/finance/EndpointChip"
 import { fetchFinanceInvoiceById, submitFinanceInvoiceForCertification } from "@/lib/api/finance"
 import type { FinanceInvoice } from "@/types/finance"
 
@@ -25,6 +24,8 @@ export default function FinanceInvoiceReviewPage() {
   const [loadingInvoice, setLoadingInvoice] = useState(true)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [descriptionInput, setDescriptionInput] = useState("")
+  const [dueDateInput, setDueDateInput] = useState("")
 
   useEffect(() => {
     const loadInvoice = async () => {
@@ -37,6 +38,12 @@ export default function FinanceInvoiceReviewPage() {
       try {
         const current = await fetchFinanceInvoiceById(params.invoiceId)
         setInvoice(current)
+        setDescriptionInput(current.serviceDescription || "")
+        setDueDateInput(
+          current.dueDate 
+            ? new Date(current.dueDate).toISOString().split('T')[0] 
+            : new Date().toISOString().split('T')[0]
+        )
       } catch (error) {
         setInvoice(null)
         const message = error instanceof Error ? error.message : "No fue posible cargar el detalle de factura"
@@ -57,8 +64,8 @@ export default function FinanceInvoiceReviewPage() {
     setSubmitting(true)
     try {
       await submitFinanceInvoiceForCertification(invoice.invoiceId, {
-        serviceDescription: invoice.serviceDescription,
-        dueDate: invoice.dueDate,
+        serviceDescription: descriptionInput,
+        dueDate: new Date(dueDateInput).toISOString(),
         reviewConfirmed: true,
       })
       toast.success(`Factura ${invoice.invoiceNumber} enviada al flujo FEL`)
@@ -101,7 +108,6 @@ export default function FinanceInvoiceReviewPage() {
     <FinancePageShell
       title="Revision de factura borrador"
       subtitle={`Factura ${invoice.invoiceNumber} asociada a ${invoice.orderNumber}`}
-      rightSlot={<EndpointChip endpoint="GET /api/finance/invoices/{INVOICE_ID}" />}
     >
       <Link href="/finances/facturacion" className="inline-flex items-center gap-2 text-[#0A3B7C] font-bold mb-6 hover:text-[#083066]">
         <ArrowLeft size={16} /> Volver a bandeja
@@ -170,7 +176,6 @@ export default function FinanceInvoiceReviewPage() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-black/5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <EndpointChip endpoint="PATCH /api/finance/invoices/{INVOICE_ID}/submit-for-certification" />
           <Button className="md:w-auto" onClick={() => setShowSubmitModal(true)}>
             <Send size={16} /> Enviar a certificador FEL
           </Button>
@@ -192,10 +197,32 @@ export default function FinanceInvoiceReviewPage() {
             <p className="font-semibold">Se enviara el borrador para validacion fiscal del certificador.</p>
           </div>
 
-          <p className="text-[#1A202C] mb-8">
+          <p className="text-[#1A202C] mb-6">
             Factura: <strong>{invoice.invoiceNumber}</strong><br />
             Cliente: <strong>{invoice.clientName}</strong>
           </p>
+
+          <div className="space-y-4 mb-8">
+            <div>
+              <label className="block text-sm font-semibold text-[#1A202C] mb-1">Concepto / Descripcion servicio</label>
+              <textarea
+                className="w-full border border-black/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3B7C]"
+                rows={3}
+                value={descriptionInput}
+                onChange={(e: any) => setDescriptionInput(e.target.value)}
+                placeholder="Ej. Servicios de transporte de carga..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-[#1A202C] mb-1">Fecha de vencimiento</label>
+              <input
+                type="date"
+                className="w-full border border-black/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3B7C]"
+                value={dueDateInput}
+                onChange={(e: any) => setDueDateInput(e.target.value)}
+              />
+            </div>
+          </div>
 
           <div className="flex justify-end gap-3">
             <Button variant="ghost" onClick={() => setShowSubmitModal(false)} disabled={submitting}>
