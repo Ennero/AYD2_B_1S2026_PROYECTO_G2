@@ -149,7 +149,7 @@ function TabResumen({
   onSwitchTab,
 }: {
   data: DashboardSummary
-  onSwitchTab: (tab: string) => void
+  onSwitchTab: (tab: Tab) => void
 }) {
   const creditUsedPct = data.creditLimit > 0
     ? Math.min((data.totalOwed / data.creditLimit) * 100, 100)
