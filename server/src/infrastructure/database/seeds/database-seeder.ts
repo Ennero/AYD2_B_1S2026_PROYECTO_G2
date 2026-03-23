@@ -1022,6 +1022,9 @@ const ORDER_PLANS: OrderPlan[] = [
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY' },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'TRAILER', requiresRefrigeration: true },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'TRAILER' },
+  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'LIGHT' },
+  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY', requiresRefrigeration: true },
+  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY' },
 ];
 
 function daysFromNow(offsetDays: number): Date {
@@ -1603,12 +1606,55 @@ export class DatabaseSeeder {
       );
 
       for (const [planIndex, plan] of ORDER_PLANS.entries()) {
-        const requestedAt = hoursAfter(daysFromNow(-(75 - clientIndex * 5 - planIndex * 2)), planIndex * 4);
+        // ── Resolve route and contractRoute first ───────────────────────────────
         const contractRoute =
           plan.stage === 'REGISTRADA'
             ? null
             : availableContractRoutes[planIndex % availableContractRoutes.length];
         const route = contractRoute ? mustFind(routeById.get(contractRoute.routeId), `${contractRoute.routeId}`) : null;
+
+        // ── Timing por stage, centrado en 11 de Abril de 2026 ──────────────────
+        // daysFromNow(0) = 2026-04-11T12:00:00Z (mediodía demo)
+        let requestedAt: Date;
+        let scheduledPickupAt: Date | null = null;
+        let promisedDeliveryAt: Date | null = null;
+        let dispatchedAt: Date | null = null;
+
+        if (plan.stage === 'REGISTRADA') {
+          // Recién creada esta mañana
+          requestedAt = hoursAfter(daysFromNow(0), -4 - clientIndex * 0.3);
+        } else if (plan.stage === 'ASIGNADA') {
+          // Solicitada hace 2-4 días, asignada hoy
+          requestedAt = hoursAfter(daysFromNow(-2 - clientIndex % 3), clientIndex * 1.2);
+          if (route) {
+            scheduledPickupAt = hoursAfter(requestedAt, 10 + clientIndex);
+            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+          }
+        } else if (plan.stage === 'LISTA') {
+          // Lista para despacho: solicitada hace 4 días, pickup esta madrugada
+          requestedAt = hoursAfter(daysFromNow(-4 - clientIndex % 2), 8 + clientIndex);
+          if (route) {
+            scheduledPickupAt = hoursAfter(daysFromNow(0), -6 - clientIndex * 0.5);
+            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+          }
+        } else if (plan.stage === 'TRANSITO') {
+          // En tránsito AHORA (11 abril): despachado esta mañana, entrega prometida esta tarde
+          requestedAt = hoursAfter(daysFromNow(-3 - clientIndex % 3), 6 + clientIndex * 0.5);
+          if (route) {
+            scheduledPickupAt = hoursAfter(daysFromNow(0), -8 - clientIndex);
+            promisedDeliveryAt = hoursAfter(daysFromNow(0), 4 + clientIndex * 0.5);
+            dispatchedAt = hoursAfter(scheduledPickupAt, 1.5);
+          }
+        } else {
+          // ENTREGADA: dispersas en los últimos 3 meses (rango -90 a -5 días)
+          const historyOffset = -(5 + clientIndex * 7 + planIndex * 3);
+          requestedAt = hoursAfter(daysFromNow(historyOffset), planIndex * 4);
+          if (route) {
+            scheduledPickupAt = hoursAfter(requestedAt, 10 + planIndex);
+            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+            dispatchedAt = hoursAfter(scheduledPickupAt, 1.5);
+          }
+        }
         const preferredCargoName =
           plan.requiresRefrigeration && blueprint.cargoNames.includes('CARGA REFRIGERADA')
             ? 'CARGA REFRIGERADA'
@@ -1636,15 +1682,6 @@ export class DatabaseSeeder {
         const subtotalAmount = route ? roundCurrency(distance * finalRatePerKm) : 0;
         const taxAmount = route ? roundCurrency(subtotalAmount * 0.12) : 0;
         const totalAmount = route ? roundCurrency(subtotalAmount + taxAmount) : 0;
-        const scheduledPickupAt = route ? hoursAfter(requestedAt, 10 + planIndex) : null;
-        const promisedDeliveryAt =
-          route && scheduledPickupAt
-            ? hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours))
-            : null;
-        const dispatchedAt =
-          plan.stage === 'TRANSITO' || plan.stage === 'ENTREGADA'
-            ? hoursAfter(scheduledPickupAt ?? requestedAt, 1.5)
-            : null;
 
         const declaredWeight = unit
           ? this.calculateDeclaredWeight(Number(unit.capacityTon), plan.preferredVehicleTypeCode)
@@ -1720,10 +1757,33 @@ export class DatabaseSeeder {
       }
     }
 
-    for (const record of createdOrders.filter((order) => order.finalStage === 'ENTREGADA')) {
+    const deliveredOrders = createdOrders.filter((order) => order.finalStage === 'ENTREGADA');
+    for (const [deliveryIdx, record] of deliveredOrders.entries()) {
+      const promisedHours = Number(record.contractRoute?.promisedDeliveryHours ?? 8);
+      // Ensure at least three explicit late deliveries for the demo
+      let offsetHrs: number;
+      if (deliveryIdx < 3) {
+        // Force a clear delay of 2 hours
+        offsetHrs = 2.0;
+      } else {
+        // Pattern: 0=early(-2h), 1=ontime(-0.5h), 2=ontime(0h), 3=ontime(+0.3h), 4=late(+1.5h)
+        const pattern = deliveryIdx % 5;
+        if (pattern === 0) {
+          offsetHrs = -2.0;
+        } else if (pattern === 1) {
+          offsetHrs = -0.5;
+        } else if (pattern === 2) {
+          offsetHrs = 0.0;
+        } else if (pattern === 3) {
+          offsetHrs = 0.3;
+        } else {
+          offsetHrs = 1.5;
+        }
+      }
+
       const deliveredAt = hoursAfter(
         record.dispatchedAt ?? record.scheduledPickupAt ?? record.requestedAt,
-        Number(record.contractRoute?.promisedDeliveryHours ?? 8) + 1,
+        promisedHours + offsetHrs,
       );
 
       await orderRepository.update(record.order.orderId, {
@@ -1802,15 +1862,35 @@ export class DatabaseSeeder {
           );
         }
 
-        if (index % 4 === 0) {
+        // Incidente activo: en órdenes EN_TRANSITO aparece en /api/bi/alerts (ORDER NOT IN 'ENTREGADA').
+        // En órdenes ENTREGADA aparece en historial pero NO en alertas activas.
+        if (record.finalStage === 'TRANSITO') {
+          // Todos los EN_TRANSITO tienen incidente activo -> visible en Dashboard Alertas
+          const incidentDescriptions = [
+            'Congestion vehicular en tramo principal, retraso estimado 1.5h.',
+            'Averia menor del vehiculo. Mecanico en camino. ETA 2h.',
+            'Control policial en carretera RN-1. Documentos en revision.',
+            'Accidente de terceros bloquea carril. Desvio en progreso.',
+            'Condiciones climaticas adversas: lluvia fuerte. Velocidad reducida.',
+          ];
           logCounter++;
           entries.push(
             repository.create({
-  
               orderId: record.order.orderId,
               eventType: RouteEventType.INCIDENTE,
               eventTime: hoursAfter(record.dispatchedAt, 5.5),
-              description: 'Ajuste menor de ruta por congestion vehicular.',
+              description: incidentDescriptions[index % incidentDescriptions.length],
+            }),
+          );
+        } else if (record.finalStage === 'ENTREGADA' && index % 4 === 0) {
+          // Incidente ya resuelto en órdenes entregadas -> aparece en historial pero no en alertas
+          logCounter++;
+          entries.push(
+            repository.create({
+              orderId: record.order.orderId,
+              eventType: RouteEventType.INCIDENTE,
+              eventTime: hoursAfter(record.dispatchedAt, 3.0),
+              description: 'Ajuste menor de ruta por congestion. Resuelto sin afectar entrega.',
             }),
           );
         }
