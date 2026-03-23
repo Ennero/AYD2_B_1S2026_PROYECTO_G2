@@ -40,7 +40,6 @@ export function getShortId(index: number): string {
 interface ClientBlueprint {
   key: string;
   legalName: string;
-  commercialName: string;
   nit: string;
   taxAddress: string;
   primaryContactName: string;
@@ -327,7 +326,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'alimentos-norte',
     legalName: 'ALIMENTOS DEL NORTE, S.A.',
-    commercialName: 'Alnorsa',
     nit: '1000000000001',
     taxAddress: '12 avenida 18-45 zona 10, Ciudad de Guatemala',
     primaryContactName: 'Paola Estrada',
@@ -387,7 +385,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'farmaceutica-maya',
     legalName: 'FARMACEUTICA MAYA, S.A.',
-    commercialName: 'FarmaMaya',
     nit: '1000000000002',
     taxAddress: '14 calle 6-20 zona 9, Ciudad de Guatemala',
     primaryContactName: 'Hector Figueroa',
@@ -439,7 +436,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'textiles-pacifico',
     legalName: 'TEXTILES DEL PACIFICO, S.A.',
-    commercialName: 'TexPac',
     nit: '1000000000003',
     taxAddress: 'Km 16.5 ruta al Pacifico, Villa Nueva, Guatemala',
     primaryContactName: 'Marcos Cifuentes',
@@ -485,7 +481,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'agroexportadora-verapaz',
     legalName: 'AGROEXPORTADORA VERAPAZ, S.A.',
-    commercialName: 'AgroVerapaz',
     nit: '1000000000004',
     taxAddress: 'Salida a Coban km 210, Alta Verapaz, Guatemala',
     primaryContactName: 'Carmen Orellana',
@@ -531,7 +526,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'electro-centroamerica',
     legalName: 'ELECTRO CENTROAMERICA, S.A.',
-    commercialName: 'ElectroCA',
     nit: '1000000000005',
     taxAddress: '4 avenida 9-18 zona 4, Mixco, Guatemala',
     primaryContactName: 'Pablo Cardona',
@@ -591,7 +585,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'aceros-istmo',
     legalName: 'ACEROS DEL ISTMO, S.A.',
-    commercialName: 'Aceros Istmo',
     nit: '1000000000006',
     taxAddress: 'Ruta al Atlantico km 14.5, zona 18, Guatemala',
     primaryContactName: 'Alejandro Chacon',
@@ -637,7 +630,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'supermercados-lago',
     legalName: 'SUPERMERCADOS DEL LAGO, S.A.',
-    commercialName: 'SuperLago',
     nit: '1000000000007',
     taxAddress: 'Boulevard principal 11-22, zona 1, Quetzaltenango',
     primaryContactName: 'Viviana Cuyun',
@@ -683,7 +675,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'quimicos-caribe',
     legalName: 'QUIMICOS DEL CARIBE, S.A.',
-    commercialName: 'Quimicar',
     nit: '1000000000008',
     taxAddress: 'Zona industrial 2, Puerto Barrios, Izabal',
     primaryContactName: 'Mario Vasquez',
@@ -729,7 +720,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'bebidas-occidente',
     legalName: 'BEBIDAS DEL OCCIDENTE, S.A.',
-    commercialName: 'Bebidas Occidente',
     nit: '1000000000009',
     taxAddress: 'Parque industrial, San Juan Ostuncalco, Quetzaltenango',
     primaryContactName: 'Javier Escobar',
@@ -766,7 +756,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'retail-portuario',
     legalName: 'RETAIL PORTUARIO, S.A.',
-    commercialName: 'Retail Portuario',
     nit: '1000000000010',
     taxAddress: 'Zona libre 4, Puerto Barrios, Izabal',
     primaryContactName: 'Natalia Solorzano',
@@ -797,7 +786,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'tecnologia-aduanera',
     legalName: 'TECNOLOGIA ADUANERA, S.A.',
-    commercialName: 'TecAduanas',
     nit: '1000000000011',
     taxAddress: 'Zona 13, edificio plataforma, Ciudad de Guatemala',
     primaryContactName: 'Erick Monterroso',
@@ -828,7 +816,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'importadora-oriental',
     legalName: 'IMPORTADORA ORIENTAL, S.A.',
-    commercialName: 'ImpOriental',
     nit: '1000000000012',
     taxAddress: 'Zona franca 1, Morales, Izabal',
     primaryContactName: 'Roxana Matias',
@@ -1200,7 +1187,6 @@ export class DatabaseSeeder {
       CLIENT_BLUEPRINTS.map((client, index) =>
         repository.create({
           legalName: client.legalName,
-          commercialName: client.commercialName,
           nit: client.nit,
           taxAddress: client.taxAddress,
           primaryContactName: client.primaryContactName,
@@ -1330,7 +1316,7 @@ export class DatabaseSeeder {
         creditLimit: blueprint.creditLimit,
         paymentTermDays: blueprint.paymentTermDays,
         discountPercentage: blueprint.discountPercentage,
-        notes: `Contrato marco para ${blueprint.commercialName}.`,
+        notes: `Contrato marco para ${blueprint.legalName}.`,
         cargoTypes: blueprint.cargoNames.map((cargoName) =>
           mustFind(cargoByName.get(cargoName), cargoName),
         ),
@@ -1670,7 +1656,7 @@ export class DatabaseSeeder {
             cargoTypeId: cargoType.cargoTypeId,
             unitId: unit?.unitId,
             status: initialStatus,
-            cargoDescription: `${cargoType.cargoName} para ${blueprint.commercialName}`,
+            cargoDescription: `${cargoType.cargoName} para ${blueprint.legalName}`,
             declaredWeightTon: declaredWeight,
             loadedWeightTon: loadedWeight,
             origin: route?.origin,
@@ -1703,7 +1689,7 @@ export class DatabaseSeeder {
             fuelCost,
             viaticsCost,
             maintenanceCost,
-            notes: `Orden seed ${plan.stage.toLowerCase()} para ${blueprint.commercialName}`,
+            notes: `Orden seed ${plan.stage.toLowerCase()} para ${blueprint.legalName}`,
           }),
         );
 
@@ -1733,7 +1719,7 @@ export class DatabaseSeeder {
       await orderRepository.update(record.order.orderId, {
         status: OrderStatus.ENTREGADA,
         deliveredAt,
-        receiverName: `Recibe ${record.blueprint.commercialName}`,
+        receiverName: `Recibe ${record.blueprint.legalName}`,
         receiverSignaturePath: `/seed/signatures/${record.order.orderId}.png`,
         deliveryEvidencePath: `/seed/evidence/${record.order.orderId}.png`,
       });
@@ -1939,7 +1925,7 @@ export class DatabaseSeeder {
         clientName: record.blueprint.legalName,
         clientNit: record.blueprint.nit,
         clientAddress: record.blueprint.taxAddress,
-        serviceDescription: `Servicio de transporte ${record.route?.origin ?? 'origen por definir'} -> ${record.route?.destination ?? 'destino por definir'} para ${record.blueprint.commercialName}`,
+        serviceDescription: `Servicio de transporte ${record.route?.origin ?? 'origen por definir'} -> ${record.route?.destination ?? 'destino por definir'} para ${record.blueprint.legalName}`,
         subtotalAmount,
         taxAmount,
         totalAmount,

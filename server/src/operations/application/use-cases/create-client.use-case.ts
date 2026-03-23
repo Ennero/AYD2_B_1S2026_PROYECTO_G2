@@ -2,58 +2,65 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
+import { ClientFactory } from '../factories/client.factory';
 
-export interface CreateClientCommand {
+export interface CreateClientInput {
   legalName: string;
-  commercialName?: string;
   nit: string;
   taxAddress: string;
   primaryContactName: string;
   primaryContactEmail: string;
   primaryContactPhone?: string;
+  creditLimit?: number;
   paymentRisk?: RiskLevel;
   customsRisk?: RiskLevel;
   cargoRisk?: RiskLevel;
   amlRisk?: RiskLevel;
 }
 
+export interface CreateClientOutput {
+  clientId: number;
+  clientCode: string;
+  legalName: string;
+  nit: string;
+  primaryContactEmail: string;
+}
+
 @Injectable()
 export class CreateClientUseCase {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly dataSource: DataSource, private readonly clientFactory: ClientFactory) {}
 
-  async execute(command: CreateClientCommand) {
-    const clientRepo = this.dataSource.getRepository(Client);
+  async execute(input: CreateClientInput): Promise<CreateClientOutput> {
+    const nit = input.nit.trim();
 
-    // Verify if NIT already exists
-    const existingClient = await clientRepo.findOne({ where: { nit: command.nit } });
-    if (existingClient) {
-      throw new BadRequestException('Ya existe un cliente con este NIT');
+    if (!/^\d{13}$/.test(nit)) {
+      throw new BadRequestException('El NIT debe contener exactamente 13 digitos.');
     }
 
-    // Generate a new client code (e.g. CLI-00012)
-    const count = await clientRepo.count();
-    const clientCode = `CLI-${(count + 1).toString().padStart(5, '0')}`;
+    if (input.creditLimit !== undefined && input.creditLimit < 0) {
+      throw new BadRequestException('El limite de credito no puede ser negativo.');
+    }
 
-    const client = clientRepo.create({
-      clientCode,
-      legalName: command.legalName,
-      commercialName: command.commercialName,
-      nit: command.nit,
-      taxAddress: command.taxAddress,
-      primaryContactName: command.primaryContactName,
-      primaryContactEmail: command.primaryContactEmail,
-      primaryContactPhone: command.primaryContactPhone,
-      paymentRisk: command.paymentRisk ?? RiskLevel.MEDIO,
-      customsRisk: command.customsRisk ?? RiskLevel.MEDIO,
-      cargoRisk: command.cargoRisk ?? RiskLevel.MEDIO,
-      amlRisk: command.amlRisk ?? RiskLevel.MEDIO,
+    const repository = this.dataSource.getRepository(Client);
+
+    const existingClient = await repository.findOne({ where: { nit } });
+    if (existingClient) {
+      throw new BadRequestException(`Ya existe un cliente con NIT ${nit}.`);
+    }
+
+    const client = this.clientFactory.create({
+      ...input,
+      nit,
     });
 
-    await clientRepo.save(client);
+    const savedClient = await repository.save(client);
 
     return {
-      clientId: client.clientId,
-      clientCode: client.clientCode,
+      clientId: Number(savedClient.clientId),
+      clientCode: savedClient.clientCode,
+      legalName: savedClient.legalName,
+      nit: savedClient.nit,
+      primaryContactEmail: savedClient.primaryContactEmail,
     };
   }
 }

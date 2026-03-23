@@ -7,17 +7,11 @@ import Input from "@/components/ui/Input"
 import Modal from "@/components/ui/Modal"
 import Select from "@/components/ui/Select"
 import { useMemo, useState } from "react"
-import { UserCheck, Loader2 } from "lucide-react"
+import { UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
-
-enum RiskLevel {
-  BAJO = 'BAJO',
-  MEDIO = 'MEDIO',
-  ALTO = 'ALTO',
-}
 
 type FormState = {
   nombre: string
@@ -32,11 +26,25 @@ type FormState = {
   lavadoDinero: string
 }
 
+type RiskLevel = "BAJO" | "MEDIO" | "ALTO" | "CRITICO"
+
+type CreateClientResponse = {
+  message: string
+  data: {
+    clientId: number
+    clientCode: string
+    legalName: string
+    nit: string
+    primaryContactEmail: string
+  }
+}
+
 export default function RegistrarClientePage() {
   const router = useRouter()
   const steps = useMemo(() => ["Datos Generales", "Datos Fiscales", "Perfil de Riesgo"], [])
   const [currentStep, setCurrentStep] = useState(0)
   const [successOpen, setSuccessOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState<FormState>({
     nombre: "",
@@ -73,34 +81,58 @@ export default function RegistrarClientePage() {
     []
   )
 
-  const [loading, setLoading] = useState(false)
+  function toRiskLevel(value: string): RiskLevel {
+    const normalized = value.toLowerCase()
+    if (normalized === "bajo") return "BAJO"
+    if (normalized === "alto") return "ALTO"
+    return "MEDIO"
+  }
+
+  function paymentCapacityToRisk(value: string): RiskLevel {
+    const normalized = value.toLowerCase()
+    if (normalized === "alta") return "BAJO"
+    if (normalized === "baja") return "ALTO"
+    return "MEDIO"
+  }
 
   async function handleSubmit() {
-    if (!form.razonSocial || !form.nit || !form.nombre || !form.correo) {
-        return toast.error("Por favor completa los campos obligatorios")
+    const nitSanitized = form.nit.replace(/\D/g, "")
+
+    if (!form.nombre || !form.correo || !form.razonSocial || !form.direccion) {
+      toast.error("Completa los campos obligatorios para registrar el cliente.")
+      return
     }
 
-    setLoading(true)
+    if (!/^\d{13}$/.test(nitSanitized)) {
+      toast.error("El NIT debe tener exactamente 13 dígitos.")
+      return
+    }
+
+    if (!form.capacidadPago || !form.riesgoMercancia || !form.riesgoAduanas || !form.lavadoDinero) {
+      toast.error("Completa el perfil de riesgo antes de continuar.")
+      return
+    }
+
+    setIsSubmitting(true)
     try {
-      const payload = {
+      await api.post<CreateClientResponse>(ENDPOINTS.CLIENTES.CREATE, {
         legalName: form.razonSocial,
-        nit: form.nit,
-        taxAddress: form.direccion || "Ciudad",
+        nit: nitSanitized,
+        taxAddress: form.direccion,
         primaryContactName: form.nombre,
         primaryContactEmail: form.correo,
-        primaryContactPhone: form.telefono,
-        paymentRisk: (form.capacidadPago || "medio").toUpperCase() as RiskLevel,
-        customsRisk: (form.riesgoAduanas || "medio").toUpperCase() as RiskLevel,
-        cargoRisk: (form.riesgoMercancia || "medio").toUpperCase() as RiskLevel,
-        amlRisk: (form.lavadoDinero || "medio").toUpperCase() as RiskLevel,
-      }
-      
-      await api.post(ENDPOINTS.CLIENTES.CREATE, payload)
+        primaryContactPhone: form.telefono || undefined,
+        paymentRisk: paymentCapacityToRisk(form.capacidadPago),
+        cargoRisk: toRiskLevel(form.riesgoMercancia),
+        customsRisk: toRiskLevel(form.riesgoAduanas),
+        amlRisk: toRiskLevel(form.lavadoDinero),
+      })
+
       setSuccessOpen(true)
-    } catch (error) {
-      console.error("Failed to register client:", error)
+    } catch {
+      toast.error("No se pudo registrar el cliente. Intenta nuevamente.")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -260,7 +292,7 @@ export default function RegistrarClientePage() {
                   type="button" 
                   onClick={handleSubmit} 
                   className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] px-10"
-                  loading={loading}
+                  loading={isSubmitting}
                 >
                   Registrar Cliente
                 </Button>
