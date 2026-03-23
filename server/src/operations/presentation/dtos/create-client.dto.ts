@@ -7,10 +7,6 @@ export class CreateClientDto {
   legalName: string;
 
   @IsString()
-  @IsOptional()
-  commercialName?: string;
-
-  @IsString()
   @IsNotEmpty()
   nit: string;
 
@@ -29,6 +25,9 @@ export class CreateClientDto {
   @IsString()
   @IsOptional()
   primaryContactPhone?: string;
+
+  @IsOptional()
+  creditLimit?: number;
 
   @IsEnum(RiskLevel)
   @IsOptional()

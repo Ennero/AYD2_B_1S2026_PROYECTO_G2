@@ -127,6 +127,14 @@ async function refreshCanonicalRoutines(dataSource: DataSource): Promise<void> {
   }
 }
 
+async function dropDeprecatedClientCommercialNameColumn(
+  dataSource: DataSource,
+): Promise<void> {
+  await dataSource.query(
+    'ALTER TABLE public."clients" DROP COLUMN IF EXISTS "commercial_name"',
+  );
+}
+
 type IdentityColumnRow = {
   table_name: string;
   column_name: string;
@@ -220,6 +228,7 @@ export async function ensureCanonicalSchema(
   }
 
   if (isCanonicalSchema(state)) {
+    await dropDeprecatedClientCommercialNameColumn(dataSource);
     await relaxIdentityColumnsToByDefault(dataSource);
     await alignIdentitySequences(dataSource);
     await refreshCanonicalRoutines(dataSource);
@@ -234,6 +243,7 @@ export async function ensureCanonicalSchema(
 
   const sql = await readCanonicalSql();
   await dataSource.query(sql);
+  await dropDeprecatedClientCommercialNameColumn(dataSource);
   await relaxIdentityColumnsToByDefault(dataSource);
   await alignIdentitySequences(dataSource);
 

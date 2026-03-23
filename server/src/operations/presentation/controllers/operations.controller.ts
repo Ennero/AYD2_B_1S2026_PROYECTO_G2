@@ -12,6 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CreateContractUseCase } from '../../application/use-cases/create-contract.use-case';
+import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
+import { CreateClientDto } from '../dtos/create-client.dto';
 import { ListCargasUseCase } from '../../application/use-cases/list-cargas.use-case';
 import { FormalizeCargaUseCase } from '../../application/use-cases/formalize-carga.use-case';
 import { CreateContractDto } from '../dtos/create-contract.dto';
@@ -22,9 +24,9 @@ import { Roles } from '../../../auth/presentation/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/presentation/decorators/current-user.decorator';
 import { USER_ROLE } from '../../../auth/domain/enums/user-role.enum';
 import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.interface';
-import { CreateClientUseCase } from '../../application/use-cases/create-client.use-case';
+import { GetCargoTypesUseCase } from '../../application/use-cases/get-cargo-types.use-case';
 import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
-import { CreateClientDto } from '../dtos/create-client.dto';
+import { GetRoutesUseCase } from '../../application/use-cases/get-routes.use-case';
 
 /**
  * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
@@ -38,10 +40,12 @@ import { CreateClientDto } from '../dtos/create-client.dto';
 export class OperationsController {
   constructor(
     private readonly createContractUseCase: CreateContractUseCase,
+    private readonly createClientUseCase: CreateClientUseCase,
     private readonly listCargasUseCase: ListCargasUseCase,
     private readonly formalizeCargaUseCase: FormalizeCargaUseCase,
-    private readonly createClientUseCase: CreateClientUseCase,
     private readonly getClientsUseCase: GetClientsUseCase,
+    private readonly getRoutesUseCase: GetRoutesUseCase,
+    private readonly getCargoTypesUseCase: GetCargoTypesUseCase,
   ) {}
 
   // ─── Endpoints del Agente Operativo ────────────────────────────────────
@@ -59,6 +63,30 @@ export class OperationsController {
   }
 
   /**
+   * GET /api/operations/routes
+   * Catálogo de rutas activas para formalización de contratos.
+   */
+  @Get('routes')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async listRoutes() {
+    const data = await this.getRoutesUseCase.execute();
+    return { message: 'Rutas obtenidas', data };
+  }
+
+  /**
+   * GET /api/operations/cargo-types
+   * Catálogo de tipos de carga para contratos.
+   */
+  @Get('cargo-types')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async listCargoTypes() {
+    const data = await this.getCargoTypesUseCase.execute();
+    return { message: 'Tipos de carga obtenidos', data };
+  }
+
+  /**
    * POST /api/operations/clients
    * Registrar un nuevo cliente.
    */
@@ -66,8 +94,21 @@ export class OperationsController {
   @Roles(USER_ROLE.AGENTE_OPERATIVO)
   @HttpCode(HttpStatus.CREATED)
   async createClient(@Body() dto: CreateClientDto) {
-    const data = await this.createClientUseCase.execute(dto);
-    return { message: 'Cliente registrado correctamente', data };
+    const data = await this.createClientUseCase.execute({
+      legalName: dto.legalName,
+      nit: dto.nit,
+      taxAddress: dto.taxAddress,
+      primaryContactName: dto.primaryContactName,
+      primaryContactEmail: dto.primaryContactEmail,
+      primaryContactPhone: dto.primaryContactPhone,
+      creditLimit: dto.creditLimit,
+      paymentRisk: dto.paymentRisk,
+      customsRisk: dto.customsRisk,
+      cargoRisk: dto.cargoRisk,
+      amlRisk: dto.amlRisk,
+    });
+
+    return { message: 'Cliente creado correctamente', data };
   }
 
   /**

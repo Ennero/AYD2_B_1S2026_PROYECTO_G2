@@ -1,9 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DataSource, In } from 'typeorm';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
+import { CargoType } from '../../../infrastructure/database/typeorm/entities/cargo-type.entity';
 import { Contract } from '../../../infrastructure/database/typeorm/entities/contract.entity';
-import { ContractRoute } from '../../../infrastructure/database/typeorm/entities/contract-route.entity';
 import { Route } from '../../../infrastructure/database/typeorm/entities/route.entity';
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
@@ -34,10 +34,24 @@ export class CreateContractUseCase {
   ) {}
 
   async execute(input: CreateContractInput, agentName: string): Promise<CreateContractOutput> {
+    const normalizedClientId = Number(input.clientId);
+    if (!Number.isInteger(normalizedClientId) || normalizedClientId <= 0) {
+      throw new BadRequestException('El cliente seleccionado no es valido.');
+    }
+
+    const normalizedRouteIds = [...new Set((input.routeIds ?? []).map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+    if (normalizedRouteIds.length === 0) {
+      throw new BadRequestException('Debe seleccionar al menos una ruta autorizada.');
+    }
+
+    const normalizedCargoTypeIds = [...new Set((input.cargoTypeIds ?? []).map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+
     // ── 1. Validar que el cliente existe ─────────────────────────────────────
     const client = await this.dataSource
       .getRepository(Client)
-      .findOne({ where: { clientId: input.clientId } });
+      .createQueryBuilder('client')
+      .where('client.clientId = :clientId', { clientId: normalizedClientId })
+      .getOne();
 
     if (!client) {
       throw new NotFoundException(`Cliente ${input.clientId} no encontrado.`);
@@ -46,7 +60,21 @@ export class CreateContractUseCase {
     // ── 2. Cargar rutas para datos del email ──────────────────────────────────
     const routes = await this.dataSource
       .getRepository(Route)
-      .findBy({ routeId: In(input.routeIds.map(Number)) });
+      .findBy({ routeId: In(normalizedRouteIds) });
+
+    if (routes.length !== normalizedRouteIds.length) {
+      throw new BadRequestException('Se enviaron rutas inválidas o inexistentes.');
+    }
+
+    const validCargoTypes = normalizedCargoTypeIds.length
+      ? await this.dataSource
+          .getRepository(CargoType)
+          .findBy({ cargoTypeId: In(normalizedCargoTypeIds) })
+      : [];
+
+    if (normalizedCargoTypeIds.length !== validCargoTypes.length) {
+      throw new BadRequestException('Se enviaron tipos de carga inválidos o inexistentes.');
+    }
 
     // ── 3. Transacción: CONTRACTS + CONTRACT_ROUTES + CONTRACT_CARGO_TYPES ────
     const savedContract = await this.dataSource.transaction(async (em) => {
@@ -54,42 +82,69 @@ export class CreateContractUseCase {
       const count = await em.count(Contract);
       const contractNumber = `CONT-${String(count + 1).padStart(5, '0')}`;
 
-      const contract = em.create(Contract, {
-        contractNumber,
-        clientId: input.clientId,
-        status: ContractStatus.PENDIENTE,
-        creditLimit: input.creditLimit,
-        paymentTermDays: input.paymentTermDays,
-        discountPercentage: input.discountPercentage ?? 0,
-      });
-      const saved = await em.save(contract);
+      const insertedContracts = await em.query<{
+        contract_id: number;
+        contract_number: string;
+        status: ContractStatus;
+        end_date: string;
+      }>(
+        `INSERT INTO contracts (
+            contract_number,
+            client_id,
+            status,
+            credit_limit,
+            payment_term_days,
+            discount_percentage
+          )
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING contract_id, contract_number, status, end_date`,
+        [
+          contractNumber,
+          normalizedClientId,
+          ContractStatus.PENDIENTE,
+          input.creditLimit,
+          input.paymentTermDays,
+          input.discountPercentage ?? 0,
+        ],
+      );
+
+      const inserted = insertedContracts[0];
+      if (!inserted) {
+        throw new BadRequestException('No fue posible crear el contrato.');
+      }
+
+      const createdContractId = Number(inserted.contract_id);
 
       // CONTRACT_ROUTES — una fila por ruta incluida
       for (const route of routes) {
-        const cr = em.create(ContractRoute, {
-          contractId: saved.contractId,
-          routeId: route.routeId,
-          promisedDeliveryHours: route.estimatedHours,
-        });
-        await em.save(cr);
+        await em.query(
+          `INSERT INTO contract_routes (contract_id, route_id, promised_delivery_hours)
+            VALUES ($1, $2, $3)`,
+          [createdContractId, Number(route.routeId), Number(route.estimatedHours)],
+        );
       }
 
       // CONTRACT_CARGO_TYPES — tabla de unión directa por insert
-      if (input.cargoTypeIds.length > 0) {
+      if (validCargoTypes.length > 0) {
         await em
           .createQueryBuilder()
           .insert()
           .into('contract_cargo_types')
           .values(
-            input.cargoTypeIds.map((id) => ({
-              contract_id: saved.contractId,
-              cargo_type_id: id,
+            validCargoTypes.map((cargoType) => ({
+              contract_id: createdContractId,
+              cargo_type_id: cargoType.cargoTypeId,
             })),
           )
           .execute();
       }
 
-      return saved;
+      return {
+        contractId: createdContractId,
+        contractNumber: inserted.contract_number,
+        status: inserted.status,
+        endDate: inserted.end_date,
+      };
     });
 
     // ── 4. Notificación al cliente (fire-and-forget) ──────────────────────────
