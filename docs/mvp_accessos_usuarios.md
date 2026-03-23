@@ -27,12 +27,22 @@ Todas las cuentas de prueba comparten la misma contrasena para facilitar la cali
 - **Otros Clientes**: `cliente.<key>@lt.com` con password `Logi123`.
 
 
-## Notas utiles para pruebas FEL
+## Notas utiles para pruebas FEL y Finanzas
 
-- El flujo FEL usa facturas en estado `BORRADOR`.
-- Antes de certificar, ahora es obligatorio validar NIT en la bandeja FEL.
+- **Pagos por conciliar**: El sistema toma como "Pagos por conciliar" aquellos pagos registrados por clientes que tienen el estado **`PENDIENTE`** (esperando aprobacion del Agente Financiero).
+- **Flujo de Facturacion (Finanzas)**:
+  - Las facturas nacen como `BORRADOR` automaticamente al entregar la orden.
+  - El Agente Financiero **debe** completar la *Descripcion del servicio* y *Fecha de vencimiento* al presionar "Enviar a certificador".
+  - Una vez procesada por Finanzas, desaparece de su bandeja y aparece en la del Certificador FEL.
+- **Flujo de Certificacion (FEL)**:
+  - Solo se muestran facturas `BORRADOR` que ya fueron revisadas por Finanzas (tienen descripcion).
+  - Antes de certificar, es obligatorio validar NIT en la bandeja FEL.
+- **Estado ENVIADA**: Significa que la factura ya fue **certificada** (tiene UUID FEL) y **enviada** por correo al cliente final.
+
+### Endpoints tecnicos (FEL)
 - Endpoint de validacion NIT: `POST /api/certifier/invoices/{INVOICE_ID}/validate-nit`.
 - Endpoint de rechazo FEL: `PATCH /api/certifier/invoices/{INVOICE_ID}/reject`.
+
 
 ## Advertencia
 

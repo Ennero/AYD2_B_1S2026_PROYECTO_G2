@@ -1219,7 +1219,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>INVOICES</strong> filtrando por <strong>STATUS = BORRADOR</strong>.<br>Esta es la bandeja principal de Finanzas despues de que la entrega genero automaticamente el borrador.</td>
+      <td>Consulta <strong>INVOICES</strong> filtrando por <strong>STATUS = BORRADOR</strong> y <strong>SERVICE_DESCRIPTION = ''</strong>.<br>Esta es la bandeja principal de Finanzas donde se revisan los borradores recién generados que aún no tienen detalle de cobro.</td>
     </tr>
       <tr>
         <td>GET</td>
@@ -1265,7 +1265,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "nextStep": "PATCH /api/certifier/invoices/{INVOICE_ID}/certify"
   }
 }</pre></td>
-      <td>No crea una nueva factura.<br>Confirma la revision financiera del borrador autogenerado y lo deja listo para que FEL lo procese sobre la misma tabla <strong>INVOICES</strong>.</td>
+      <td>No crea una nueva factura.<br>Confirma la revision financiera del borrador autogenerado, actualiza la descripción y fecha de vencimiento, y lo deja listo para que FEL lo procese (se vuelve visible para el certificador).</td>
     </tr>
     <tr>
       <td>PATCH</td>
@@ -1463,7 +1463,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>INVOICES</strong> en estado <strong>BORRADOR</strong>.<br>Esta es la bandeja operativa del certificador.</td>
+      <td>Consulta <strong>INVOICES</strong> en estado <strong>BORRADOR</strong> que ya tienen <strong>SERVICE_DESCRIPTION</strong> (procesadas por Finanzas).<br>Esta es la bandeja operativa del certificador.</td>
     </tr>
     <tr>
       <td>POST</td>
