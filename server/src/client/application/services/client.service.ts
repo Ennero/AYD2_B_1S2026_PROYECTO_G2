@@ -493,7 +493,6 @@ export class ClientService {
             clientId: user.client.clientId,
             clientCode: user.client.clientCode,
             legalName: user.client.legalName,
-            commercialName: user.client.commercialName,
             nit: user.client.nit,
             taxAddress: user.client.taxAddress,
             primaryContactName: user.client.primaryContactName,
