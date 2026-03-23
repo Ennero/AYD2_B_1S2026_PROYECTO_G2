@@ -156,13 +156,13 @@ const EXTRA_CARGO_TYPES = [
 const INTERNAL_USERS: InternalUserBlueprint[] = [
   {
     fullName: 'Simulador FEL SAT',
-    email: 'certificador.fel@sat.gob.gt',
+    email: '2895884051401+certificador.fel@ingenieria.usac.edu.gt',
     phone: '+50241000001',
     role: UserRole.CERTIFICADOR_FEL,
   },
   {
     fullName: 'Andrea Solares',
-    email: 'operativo.1@logitrans.gt',
+    email: '2895884051401+operativo.1@ingenieria.usac.edu.gt',
     phone: '+50241000002',
     role: UserRole.AGENTE_OPERATIVO,
   },
@@ -174,7 +174,7 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Karla Menendez',
-    email: 'logistica.1@logitrans.gt',
+    email: '2895884051401+logistica.1@ingenieria.usac.edu.gt',
     phone: '+50241000004',
     role: UserRole.AGENTE_LOGISTICO,
   },
@@ -192,7 +192,7 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Mario Caal',
-    email: 'patio.1@logitrans.gt',
+    email: '2895884051401+patio.1@ingenieria.usac.edu.gt',
     phone: '+50241000007',
     role: UserRole.ENCARGADO_PATIO,
   },
@@ -204,7 +204,7 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Silvia Monterroso',
-    email: 'finanzas.1@logitrans.gt',
+    email: '2895884051401+finanzas.1@ingenieria.usac.edu.gt',
     phone: '+50241000009',
     role: UserRole.AGENTE_FINANCIERO,
   },
@@ -222,13 +222,13 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Ricardo Solis',
-    email: 'gerencia@logitrans.gt',
+    email: '2895884051401+gerencia@ingenieria.usac.edu.gt',
     phone: '+50241000012',
     role: UserRole.GERENCIA,
   },
   {
     fullName: 'Carlos Mendez',
-    email: 'piloto.01@logitrans.gt',
+    email: '2895884051401+piloto.01@ingenieria.usac.edu.gt',
     phone: '+50241000101',
     role: UserRole.PILOTO,
   },
@@ -313,13 +313,13 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
 ];
 
 const MVP_PRIORITY_USER_EMAILS: string[] = [
-  'certificador.fel@sat.gob.gt',
-  'operativo.1@logitrans.gt',
-  'logistica.1@logitrans.gt',
-  'patio.1@logitrans.gt',
-  'finanzas.1@logitrans.gt',
-  'gerencia@logitrans.gt',
-  'piloto.01@logitrans.gt',
+  '2895884051401+certificador.fel@ingenieria.usac.edu.gt',
+  '2895884051401+operativo.1@ingenieria.usac.edu.gt',
+  '2895884051401+logistica.1@ingenieria.usac.edu.gt',
+  '2895884051401+patio.1@ingenieria.usac.edu.gt',
+  '2895884051401+finanzas.1@ingenieria.usac.edu.gt',
+  '2895884051401+gerencia@ingenieria.usac.edu.gt',
+  '2895884051401+piloto.01@ingenieria.usac.edu.gt',
 ];
 
 const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
@@ -866,7 +866,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
   {
     branchCode: 'GUA',
     vehicleTypeCode: 'LIGHT',
-    pilotEmail: 'piloto.01@logitrans.gt',
+    pilotEmail: '2895884051401+piloto.01@ingenieria.usac.edu.gt',
     plateNumber: 'C-310BHQ',
     vehicleModel: 'Hyundai H100 2023',
     capacityTon: 3.2,
@@ -1016,7 +1016,7 @@ const ORDER_PLANS: OrderPlan[] = [
 ];
 
 function daysFromNow(offsetDays: number): Date {
-  const value = new Date();
+  const value = new Date('2026-04-11T12:00:00Z');
   value.setUTCDate(value.getUTCDate() + offsetDays);
   return value;
 }
@@ -1223,7 +1223,7 @@ export class DatabaseSeeder {
           clientId: entity.clientId,
           role: UserRole.CLIENTE,
           fullName: `${client.primaryContactName} Portal`,
-          email: `portal.${client.key}@clientes.logitrans.gt`,
+          email: `2895884051401+portal.${client.key}@ingenieria.usac.edu.gt`,
           passwordHash,
           phone: client.primaryContactPhone,
           isActive: true,

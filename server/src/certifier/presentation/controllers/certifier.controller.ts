@@ -41,7 +41,7 @@ export class CertifierController {
 
   @Patch('invoices/:id/certify')
   async certifyInvoice(@Param('id', ParseIntPipe) invoiceId: number, @Body() dto: CertifyInvoiceDto) {
-    const data = await this.certifierService.certifyInvoice(invoiceId, dto.felUuid, dto.clientNit);
+    const data = await this.certifierService.certifyInvoice(invoiceId, dto.clientNit);
     return { message: 'Factura certificada correctamente', data };
   }
 

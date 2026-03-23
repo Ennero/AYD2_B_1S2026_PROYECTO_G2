@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils/cn"
 import { Calendar, RefreshCw, Clock, TrendingUp, CheckCircle2 } from "lucide-react"
 
 /* ─── Types ───────────────────────────────────────────── */
-type RevenueClient = { clientName: string; ingresos: number; subtotal: number }
+type RevenueClient = { clientName: string; ingresos: number; rentabilidad: number }
 type Compliance    = { onTimePct: number; onTime: number; total: number; avgDelayHrs: number }
 type DeliveryTime  = { orderNumber: string; prometidoHrs: number; realHrs: number }
 

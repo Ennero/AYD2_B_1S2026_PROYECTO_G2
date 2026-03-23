@@ -10,32 +10,32 @@ Para usuarios internos, la seed genera la contrasena con esta regla:
 
 Ejemplo:
 
-- email: `certificador.fel@sat.gob.gt`
-- password: `seed$certificador.fel@sat.gob.gt`
+- email: `2895884051401+certificador.fel@ingenieria.usac.edu.gt`
+- password: `seed$2895884051401+certificador.fel@ingenieria.usac.edu.gt`
 
 ## Top 7 usuarios recomendados para pruebas
 
 | Rol               | Nombre            | Email                    | Password seed                 | Uso sugerido MVP                                       |
 | ----------------- | ----------------- | ------------------------ | ----------------------------- | ------------------------------------------------------ |
-| CERTIFICADOR_FEL  | Simulador FEL SAT | certificador.fel@sat.gob.gt| seed$certificador.fel@sat.gob.gt| Aprobacion y simulacion de SAT                         |
-| AGENTE_OPERATIVO  | Andrea Solares    | operativo.1@logitrans.gt | seed$operativo.1@logitrans.gt | Alta de clientes, contratos y flujo comercial          |
-| AGENTE_LOGISTICO  | Karla Menendez    | logistica.1@logitrans.gt | seed$logistica.1@logitrans.gt | Planificacion y asignacion de ordenes                  |
-| ENCARGADO_PATIO   | Mario Caal        | patio.1@logitrans.gt     | seed$patio.1@logitrans.gt     | Registro en patio, validacion y despacho               |
-| AGENTE_FINANCIERO | Silvia Monterroso | finanzas.1@logitrans.gt  | seed$finanzas.1@logitrans.gt  | Flujo FEL (borrador, validar NIT, certificar/rechazar) |
-| GERENCIA          | Ricardo Solis     | gerencia@logitrans.gt    | seed$gerencia@logitrans.gt    | Dashboard BI y revision de KPIs                        |
-| PILOTO            | Carlos Mendez     | piloto.01@logitrans.gt   | seed$piloto.01@logitrans.gt   | Monitoreo de viaje, bitacora y entrega                 |
+| CERTIFICADOR_FEL  | Simulador FEL SAT | 2895884051401+certificador.fel@ingenieria.usac.edu.gt| seed$2895884051401+certificador.fel@...| Aprobacion y simulacion de SAT                         |
+| AGENTE_OPERATIVO  | Andrea Solares    | 2895884051401+operativo.1@ingenieria.usac.edu.gt | seed$2895884051401+operativo.1@... | Alta de clientes, contratos y flujo comercial          |
+| AGENTE_LOGISTICO  | Karla Menendez    | 2895884051401+logistica.1@ingenieria.usac.edu.gt | seed$2895884051401+logistica.1@... | Planificacion y asignacion de ordenes                  |
+| ENCARGADO_PATIO   | Mario Caal        | 2895884051401+patio.1@ingenieria.usac.edu.gt     | seed$2895884051401+patio.1@...     | Registro en patio, validacion y despacho               |
+| AGENTE_FINANCIERO | Silvia Monterroso | 2895884051401+finanzas.1@ingenieria.usac.edu.gt  | seed$2895884051401+finanzas.1@...  | Flujo FEL (borrador, validar NIT, certificar/rechazar) |
+| GERENCIA          | Ricardo Solis     | 2895884051401+gerencia@ingenieria.usac.edu.gt    | seed$2895884051401+gerencia@...    | Dashboard BI y revision de KPIs                        |
+| PILOTO            | Carlos Mendez     | 2895884051401+piloto.01@ingenieria.usac.edu.gt   | seed$2895884051401+piloto.01@...   | Monitoreo de viaje, bitacora y entrega                 |
 
 ## Usuario cliente recomendado
 
 La seed tambien crea usuarios cliente con este patron:
 
-- email: `portal.<client_key>@clientes.logitrans.gt`
-- password: `seed$portal.<client_key>`
+- email: `2895884051401+portal.<client_key>@ingenieria.usac.edu.gt`
+- password: `seed$2895884051401+portal.<client_key>`
 
 Ejemplo util:
 
-- email: `portal.alimentos-norte@clientes.logitrans.gt`
-- password: `seed$portal.alimentos-norte`
+- email: `2895884051401+portal.alimentos-norte@ingenieria.usac.edu.gt`
+- password: `seed$2895884051401+portal.alimentos-norte`
 
 ## Notas utiles para pruebas FEL
 

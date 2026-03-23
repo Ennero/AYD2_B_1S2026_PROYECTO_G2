@@ -279,7 +279,8 @@ export class FinanceService {
       payment.reviewedByUserId = reviewedByUserId;
       await paymentRepo.save(payment);
 
-      const refreshedInvoice = await invoiceRepo.findOne({ where: { invoiceId: payment.invoiceId } });
+      invoice.status = InvoiceStatus.PAGADA;
+      await invoiceRepo.save(invoice);
 
       return {
         paymentId: payment.paymentId,
@@ -287,7 +288,7 @@ export class FinanceService {
         status: payment.status,
         reviewedByUserId: payment.reviewedByUserId,
         approvedAt: new Date(),
-        invoiceStatus: refreshedInvoice?.status ?? invoice.status,
+        invoiceStatus: invoice.status,
       };
     });
   }

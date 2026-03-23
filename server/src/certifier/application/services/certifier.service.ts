@@ -66,7 +66,7 @@ export class CertifierService {
     };
   }
 
-  async certifyInvoice(invoiceId: number, felUuid: string, clientNit: string) {
+  async certifyInvoice(invoiceId: number, clientNit: string) {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
     if (invoice.status !== InvoiceStatus.BORRADOR) {
@@ -80,8 +80,11 @@ export class CertifierService {
       );
     }
 
+    const crypto = require('crypto');
+    const generatedFelUuid = crypto.randomUUID();
+
     invoice.status = InvoiceStatus.CERTIFICADA;
-    invoice.felUuid = felUuid;
+    invoice.felUuid = generatedFelUuid;
     invoice.certifiedAt = new Date();
 
     await this.dataSource.getRepository(Invoice).save(invoice);
