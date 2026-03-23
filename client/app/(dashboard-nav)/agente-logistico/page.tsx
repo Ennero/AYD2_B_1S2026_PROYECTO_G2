@@ -17,8 +17,8 @@ export default function AgenteLogisticoPage() {
 
   useEffect(() => {
     api
-      .get<DashboardSummary>(ENDPOINTS.LOGISTICS.DASHBOARD_SUMMARY)
-      .then(({ data }) => setSummary(data))
+      .get<{ data: DashboardSummary }>(ENDPOINTS.LOGISTICS.DASHBOARD_SUMMARY)
+      .then(({ data }) => setSummary(data.data))
       .catch(() => setSummary(null))
       .finally(() => setLoadingSummary(false))
   }, [])

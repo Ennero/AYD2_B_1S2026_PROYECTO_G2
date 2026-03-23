@@ -216,8 +216,8 @@ export default function OrdenesPage() {
 
       const qs = new URLSearchParams(query).toString()
       const url = qs ? `${ENDPOINTS.LOGISTICS.ORDERS_LIST}?${qs}` : ENDPOINTS.LOGISTICS.ORDERS_LIST
-      const { data } = await api.get<OrdenResumen[]>(url)
-      setOrdenes(data)
+      const { data } = await api.get<{ data: OrdenResumen[] }>(url)
+      setOrdenes(data.data)
     } catch {
       // api client ya muestra el toast
     } finally {
