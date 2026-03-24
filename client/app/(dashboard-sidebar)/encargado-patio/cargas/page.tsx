@@ -235,11 +235,15 @@ export default function FormalizarCargasPage() {
                   </div>
 
                   {/* Info Header */}
-                  <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 text-center sm:text-left mb-4 sm:mb-0">
+                  <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 text-center sm:text-left mb-4 sm:mb-0">
                     <div className="min-w-0">
                       <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Unidad Asignada</p>
                       <p className="font-bold text-lg wrap-break-word leading-tight">{carga.vehicleModel}</p>
                       <p className="text-xs text-white/70 break-all">Placa: {carga.plateNumber}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Piloto</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.pilotName}</p>
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Fecha</p>
