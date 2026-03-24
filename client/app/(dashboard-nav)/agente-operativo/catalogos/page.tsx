@@ -26,11 +26,13 @@ export default function GestionCatalogosPage() {
   const [estimatedHours, setEstimatedHours] = useState("")
   const [isInternational, setIsInternational] = useState(false)
   const [submittingRoute, setSubmittingRoute] = useState(false)
+  const [showRouteErrors, setShowRouteErrors] = useState(false)
 
   // Cargo Form
   const [newCargoName, setNewCargoName] = useState("")
   const [requiresRef, setRequiresRef] = useState(false)
   const [submittingCargo, setSubmittingCargo] = useState(false)
+  const [showCargoErrors, setShowCargoErrors] = useState(false)
 
   async function fetchCatalogs() {
     try {
@@ -53,6 +55,13 @@ export default function GestionCatalogosPage() {
 
   async function handleCreateRoute(e: React.FormEvent) {
     e.preventDefault()
+    setShowRouteErrors(true)
+
+    if (!newRoute || !origin || !destination || !distanceKm || !estimatedHours) {
+      toast.error("Por favor, complete todos los campos obligatorios de la ruta")
+      return
+    }
+
     setSubmittingRoute(true)
     try {
       await api.post(ENDPOINTS.OPERATIONS.ROUTES, {
@@ -70,6 +79,7 @@ export default function GestionCatalogosPage() {
       setDistanceKm("")
       setEstimatedHours("")
       setIsInternational(false)
+      setShowRouteErrors(false)
       fetchCatalogs()
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Hubo un error al agregar la ruta (posible duplicada)")
@@ -80,6 +90,13 @@ export default function GestionCatalogosPage() {
 
   async function handleCreateCargo(e: React.FormEvent) {
     e.preventDefault()
+    setShowCargoErrors(true)
+
+    if (!newCargoName) {
+      toast.error("Por favor, ingrese el nombre del tipo de carga")
+      return
+    }
+
     setSubmittingCargo(true)
     try {
       await api.post(ENDPOINTS.OPERATIONS.CARGO_TYPES, {
@@ -89,6 +106,7 @@ export default function GestionCatalogosPage() {
       toast.success("Tipo de carga añadida exitosamente")
       setNewCargoName("")
       setRequiresRef(false)
+      setShowCargoErrors(false)
       fetchCatalogs()
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Hubo un error al agregar el tipo de carga (posible duplicada)")
@@ -179,29 +197,33 @@ export default function GestionCatalogosPage() {
                     <input
                       type="text" value={newRoute} onChange={(e) => setNewRoute(e.target.value)}
                       placeholder="Ej. GUA-ZAC"
-                      className="w-full bg-[#FAF9F6] border border-[#E5E0D8] p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                      className={`w-full bg-[#FAF9F6] border ${showRouteErrors && !newRoute ? "border-red-500" : "border-[#E5E0D8]"} p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all`}
                       disabled={submittingRoute}
-                      required
                     />
+                    {showRouteErrors && !newRoute && <span className="text-[9px] text-red-500 font-bold uppercase ml-1">Campo requerido</span>}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] uppercase font-bold tracking-wider text-[#9A9489] ml-1">Origen</label>
-                      <input type="text" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="Ej. Guatemala" className="w-full bg-[#FAF9F6] border border-[#E5E0D8] p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all" disabled={submittingRoute} required />
+                      <input type="text" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="Ej. Guatemala" className={`w-full bg-[#FAF9F6] border ${showRouteErrors && !origin ? "border-red-500" : "border-[#E5E0D8]"} p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all`} disabled={submittingRoute} />
+                      {showRouteErrors && !origin && <span className="text-[9px] text-red-500 font-bold uppercase ml-1">Requerido</span>}
                     </div>
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] uppercase font-bold tracking-wider text-[#9A9489] ml-1">Destino</label>
-                      <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Ej. Zacapa" className="w-full bg-[#FAF9F6] border border-[#E5E0D8] p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all" disabled={submittingRoute} required />
+                      <input type="text" value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="Ej. Zacapa" className={`w-full bg-[#FAF9F6] border ${showRouteErrors && !destination ? "border-red-500" : "border-[#E5E0D8]"} p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all`} disabled={submittingRoute} />
+                      {showRouteErrors && !destination && <span className="text-[9px] text-red-500 font-bold uppercase ml-1">Requerido</span>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] uppercase font-bold tracking-wider text-[#9A9489] ml-1">Distancia (KM)</label>
-                      <input type="number" step="0.1" value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} placeholder="Ej. 150.5" className="w-full bg-[#FAF9F6] border border-[#E5E0D8] p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all" disabled={submittingRoute} required />
+                      <input type="number" step="0.1" value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)} placeholder="Ej. 150.5" className={`w-full bg-[#FAF9F6] border ${showRouteErrors && !distanceKm ? "border-red-500" : "border-[#E5E0D8]"} p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all`} disabled={submittingRoute} />
+                      {showRouteErrors && !distanceKm && <span className="text-[9px] text-red-500 font-bold uppercase ml-1">Requerido</span>}
                     </div>
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] uppercase font-bold tracking-wider text-[#9A9489] ml-1">Horas Est.</label>
-                      <input type="number" step="0.1" value={estimatedHours} onChange={(e) => setEstimatedHours(e.target.value)} placeholder="Ej. 3.5" className="w-full bg-[#FAF9F6] border border-[#E5E0D8] p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all" disabled={submittingRoute} required />
+                      <input type="number" step="0.1" value={estimatedHours} onChange={(e) => setEstimatedHours(e.target.value)} placeholder="Ej. 3.5" className={`w-full bg-[#FAF9F6] border ${showRouteErrors && !estimatedHours ? "border-red-500" : "border-[#E5E0D8]"} p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all`} disabled={submittingRoute} />
+                      {showRouteErrors && !estimatedHours && <span className="text-[9px] text-red-500 font-bold uppercase ml-1">Requerido</span>}
                     </div>
                   </div>
                   <div className="flex items-center justify-between mt-2">
@@ -211,7 +233,7 @@ export default function GestionCatalogosPage() {
                     </label>
                     <button
                       type="submit"
-                      disabled={submittingRoute || !newRoute || !origin || !destination || !distanceKm || !estimatedHours}
+                      disabled={submittingRoute}
                       style={{
                         padding: "0.5rem 1.25rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
                         letterSpacing: "0.1em", textTransform: "uppercase", cursor: submittingRoute ? "not-allowed" : "pointer",
@@ -272,10 +294,10 @@ export default function GestionCatalogosPage() {
                     <input
                       type="text" value={newCargoName} onChange={(e) => setNewCargoName(e.target.value)}
                       placeholder="Ej. Perecederos"
-                      className="w-full bg-[#FAF9F6] border border-[#E5E0D8] p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                      className={`w-full bg-[#FAF9F6] border ${showCargoErrors && !newCargoName ? "border-red-500" : "border-[#E5E0D8]"} p-3 text-sm focus:outline-none focus:border-[#C9924B] transition-all`}
                       disabled={submittingCargo}
-                      required
                     />
+                    {showCargoErrors && !newCargoName && <span className="text-[9px] text-red-500 font-bold uppercase ml-1">Campo requerido</span>}
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-[#84817A]">
@@ -284,7 +306,7 @@ export default function GestionCatalogosPage() {
                     </label>
                     <button
                       type="submit"
-                      disabled={submittingCargo || !newCargoName}
+                      disabled={submittingCargo}
                       style={{
                         padding: "0.5rem 1.25rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
                         letterSpacing: "0.1em", textTransform: "uppercase", cursor: submittingCargo ? "not-allowed" : "pointer",

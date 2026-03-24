@@ -118,6 +118,10 @@ Y también se mostrarán las opciones de editar y eliminar usuario. Asi de activ
 ![Edición de Usuario](imgs/happypath/12_editar_usuario_modal.jpeg)
 
 
+### 2.5 Gestión de catálogo
+
+
+
 
 ---
 
