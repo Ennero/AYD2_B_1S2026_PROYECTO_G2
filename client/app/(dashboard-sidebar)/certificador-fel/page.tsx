@@ -1,15 +1,16 @@
 "use client"
 
-import Link from "next/link";
-import { Clock as ClockIcon, ShieldCheck, CheckCircle, FileText } from 'lucide-react';
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api/client";
-import { ENDPOINTS } from "@/lib/api/endpoints";
-import { CertifierSummary } from "@/lib/api/types";
+import Link from "next/link"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { api } from "@/lib/api/client"
+import { ENDPOINTS } from "@/lib/api/endpoints"
+import { CertifierSummary } from "@/lib/api/types"
+import { FileText, CheckCircle, ShieldCheck, ArrowRight } from "lucide-react"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 export default function CertificadorFelPage() {
-  const [time, setTime] = useState(new Date())
-  const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [summary, setSummary] = useState<CertifierSummary>({
     pendingInvoices: 0,
@@ -17,9 +18,6 @@ export default function CertificadorFelPage() {
   })
 
   useEffect(() => {
-    setMounted(true)
-    const timer = setInterval(() => setTime(new Date()), 1000)
-    
     const fetchSummary = async () => {
       try {
         const response = await api.get<{ data: CertifierSummary }>(ENDPOINTS.CERTIFIER.SUMMARY)
@@ -30,96 +28,191 @@ export default function CertificadorFelPage() {
         setLoading(false)
       }
     }
-
     fetchSummary()
-    return () => clearInterval(timer)
   }, [])
 
   return (
-    <div className="min-h-screen relative animate-in fade-in duration-700 font-body">
-      {/* HD Minimalist Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 pointer-events-none"
-        style={{ backgroundImage: "url('/images/certificador-minimal-hd.png')" }}
-      />
-      
-      {/* Subtle Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-      {/* Content */}
-      <div className="relative z-10 w-full h-full min-h-screen px-6 py-12 md:p-20 flex flex-col items-center text-center max-w-7xl mx-auto">
-        
-        {/* Top Section - Welcome */}
-        <div className="max-w-4xl mb-16 mt-8">
-          <h1 className="text-5xl md:text-7xl font-heading font-extrabold text-[#0A3B7C] tracking-tight leading-tight">
-            Portal Tributario <br />
-            <span className="text-[#53B73E]">Certificador FEL</span>
-          </h1>
-          <p className="text-[#64748B] text-xl md:text-2xl mt-6 font-light max-w-3xl mx-auto">
-            Sistema de validación y certificación de Documentos Tributarios Electrónicos (DTE) para operaciones LogiTrans en cumplimiento con SAT.
+      {/* Ghost letters */}
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem, 30vw, 28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>CF</div>
+
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "3rem" }}>
+
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Portal Tributario
           </p>
-        </div>
 
-        {/* Action & Stats Section - Re-distributed */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 w-full max-w-6xl">
-          
-          {/* Main Action Card - Larger/Highlighted */}
-          <Link href="/certificador-fel/bandeja" className="lg:col-span-1 block outline-none group">
-            <div className="bg-white/90 backdrop-blur-md border border-black/5 hover:border-[#53B73E]/40 rounded-3xl p-10 h-full transition-all duration-300 transform group-hover:-translate-y-2 shadow-sm group-hover:shadow-[0_20px_50px_rgba(10,59,124,0.1)] flex flex-col items-center gap-6">
-              <div className="w-20 h-20 bg-[#53B73E]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#53B73E]/20 transition-colors">
-                <FileText size={40} className="text-[#53B73E]" />
-              </div>
-              <div>
-                <h3 className="text-3xl font-heading font-bold text-[#0A3B7C] mb-4">Ir a Bandeja</h3>
-                <p className="text-[#64748B] text-lg leading-relaxed">
-                  Acceso a documentos fiscales pendientes de aprobación y firma electrónica.
-                </p>
-              </div>
-              <div className="mt-4 text-[#53B73E] font-semibold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
-                Validar DTE <span>→</span>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Certificador FEL
+            </motion.h1>
+          </div>
+
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.7 }}
+            style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "52ch" }}>
+            Sistema de validación y certificación de Documentos Tributarios Electrónicos (DTE) en cumplimiento con SAT.
+          </motion.p>
+
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.5rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* KPI row */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.7, ease: EASE }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
+
+          {/* Pendientes — dark */}
+          <div style={{
+            background: "#1E1E1B", borderRadius: "6px", padding: "1.75rem 2rem",
+            display: "flex", flexDirection: "column", gap: "0.25rem",
+          }}>
+            <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>
+              Documentos Pendientes
+            </p>
+            {loading ? (
+              <div style={{ height: "52px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }} />
+            ) : (
+              <p style={{ fontSize: "clamp(2.8rem, 6vw, 4.5rem)", fontWeight: 900, letterSpacing: "-0.05em", color: "#C9924B", lineHeight: 1 }}>
+                {summary.pendingInvoices}
+              </p>
+            )}
+            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>En cola de revisión</p>
+          </div>
+
+          {/* Certificados — white */}
+          <div style={{
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "6px", padding: "1.75rem 2rem",
+            display: "flex", flexDirection: "column", gap: "0.25rem",
+          }}>
+            <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>
+              Certificados Hoy
+            </p>
+            {loading ? (
+              <div style={{ height: "52px", background: "rgba(12,12,10,0.04)", borderRadius: "3px" }} />
+            ) : (
+              <p style={{ fontSize: "clamp(2.8rem, 6vw, 4.5rem)", fontWeight: 900, letterSpacing: "-0.05em", color: "#3A8E2A", lineHeight: 1 }}>
+                {summary.certifiedCount}
+              </p>
+            )}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <CheckCircle size={12} style={{ color: "#3A8E2A" }} />
+              <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>DTE Emitidos</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Action card */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.7, ease: EASE }}>
+          <Link href="/certificador-fel/bandeja" style={{ display: "block", textDecoration: "none" }}>
+            <div
+              style={{
+                background: "#ffffff",
+                border: "1px solid rgba(12,12,10,0.07)",
+                borderRadius: "6px",
+                overflow: "hidden",
+                transition: "border-color 0.2s, transform 0.2s",
+              }}
+              onMouseOver={e => {
+                const el = e.currentTarget as HTMLDivElement
+                el.style.borderColor = "rgba(201,146,75,0.35)"
+                el.style.transform = "translateY(-2px)"
+              }}
+              onMouseOut={e => {
+                const el = e.currentTarget as HTMLDivElement
+                el.style.borderColor = "rgba(12,12,10,0.07)"
+                el.style.transform = "translateY(0)"
+              }}
+            >
+              <div style={{ height: "2px", background: "#C9924B" }} />
+              <div style={{ padding: "2rem 2rem 1.75rem", display: "flex", alignItems: "center", gap: "2rem" }}>
+                <div style={{
+                  width: "52px", height: "52px", borderRadius: "4px",
+                  background: "rgba(201,146,75,0.08)", border: "1px solid rgba(201,146,75,0.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <FileText size={22} style={{ color: "#C9924B" }} />
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: "0.5rem", letterSpacing: "0.3em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>01</p>
+                  <h3 style={{ fontSize: "1.3rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A", marginBottom: "0.4rem", lineHeight: 1.1 }}>
+                    Bandeja de Aprobación
+                  </h3>
+                  <p style={{ fontSize: "0.8rem", color: "#6B6260", lineHeight: 1.6 }}>
+                    Documentos fiscales pendientes de validación NIT, certificación y firma electrónica ante SAT.
+                  </p>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#C9924B", flexShrink: 0 }}>
+                  Validar DTE
+                  <ArrowRight size={12} />
+                </div>
               </div>
             </div>
           </Link>
+        </motion.div>
 
-          {/* Stats Cards */}
-          <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
-             <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Documentos Pendientes</div>
-             <div className="flex flex-col items-center">
-                 <div className="text-7xl font-heading font-extrabold text-[#0A3B7C]">{summary.pendingInvoices}</div>
-                 <div className="w-12 h-1.5 bg-[#53B73E]/20 rounded-full mt-4"></div>
-             </div>
-             <p className="text-[#64748B] text-base mt-2">En cola de revisión</p>
+        {/* Status indicators */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 0.65, duration: 0.7 }}
+          style={{ display: "flex", gap: "12px", marginTop: "2rem", flexWrap: "wrap" }}>
+
+          <div style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            padding: "0.55rem 1rem",
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "4px",
+          }}>
+            <span style={{ position: "relative", display: "inline-flex", width: "8px", height: "8px" }}>
+              <span style={{
+                position: "absolute", inset: 0, borderRadius: "50%",
+                background: "#3A8E2A", opacity: 0.6,
+                animation: "ping 2s cubic-bezier(0,0,0.2,1) infinite",
+              }} />
+              <span style={{ position: "relative", display: "inline-flex", width: "8px", height: "8px", borderRadius: "50%", background: "#3A8E2A" }} />
+            </span>
+            <span style={{ fontSize: "0.55rem", letterSpacing: "0.18em", color: "#6B6260", textTransform: "uppercase", fontWeight: 700 }}>
+              Conexión SAT Activa
+            </span>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
-             <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Certificados Hoy</div>
-             <div className="flex flex-col items-center">
-                 <div className="text-7xl font-heading font-extrabold text-[#53B73E]">{summary.certifiedCount}</div>
-                 <div className="w-12 h-1.5 bg-[#0A3B7C]/10 rounded-full mt-4"></div>
-             </div>
-             <div className="flex items-center gap-2 text-[#53B73E] font-medium text-base">
-               <CheckCircle size={24} />
-               DTE Emitidos
-             </div>
+          <div style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            padding: "0.55rem 1rem",
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "4px",
+          }}>
+            <ShieldCheck size={13} style={{ color: "#9A9489" }} />
+            <span style={{ fontSize: "0.55rem", letterSpacing: "0.18em", color: "#6B6260", textTransform: "uppercase", fontWeight: 700 }}>
+              Simulador Operativo
+            </span>
           </div>
-        </div>
-
-        {/* Footer Status Indicators - Minimalist */}
-        <div className="mt-16 flex flex-wrap justify-center gap-8">
-            <div className="flex items-center gap-4 px-8 py-4 bg-white/60 rounded-full border border-black/5 shadow-sm">
-                <span className="relative flex h-3.5 w-3.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#53B73E]"></span>
-                </span>
-                <span className="text-[#0A3B7C] text-sm font-bold tracking-widest uppercase">Conexión SAT Activa</span>
-            </div>
-            <div className="flex items-center gap-4 px-8 py-4 bg-white/60 rounded-full border border-black/5 shadow-sm">
-                <ShieldCheck size={24} className="text-[#0A3B7C]/60" />
-                <span className="text-[#0A3B7C] text-sm font-bold tracking-widest uppercase">Simulador Operativo</span>
-            </div>
-        </div>
+        </motion.div>
 
       </div>
+      <style>{`@keyframes ping { 75%,100%{transform:scale(2);opacity:0} }`}</style>
     </div>
   )
 }

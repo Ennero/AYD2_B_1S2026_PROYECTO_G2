@@ -1,37 +1,46 @@
 "use client"
-// ============================================================
-// app/(dashboard-nav)/agente-logistico/ordenes/[id]/page.tsx
-// Detalle de Orden + Modal de Asignación
-// ============================================================
-// Fetch: GET /api/logistics/orders/:id
-// Fetch binomios: GET /api/logistics/unit-binomials?orderId=:id
-// Asignar: PATCH /api/logistics/orders/:id/assignment
-// ============================================================
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import type { OrdenDetalle, UnitBinomial, AssignOrderPayload, ContractRouteInfo } from "@/types/logistics"
 import type { PageProps } from "@/types"
 import {
   ArrowLeft, MapPin, Package, Weight, User, Phone, Mail, Home,
-  Truck, CheckCircle, X, Calendar, AlertTriangle,
+  Truck, CheckCircle, X, Calendar, AlertTriangle, Clock,
 } from "lucide-react"
-import { cn } from "@/lib/utils/cn"
 
-// ── Status badge ─────────────────────────────────────────────
-const statusLabels: Record<string, { label: string; cls: string }> = {
-  REGISTRADA:          { label: "Registrada",           cls: "bg-gray-200 text-text-muted border border-gray-300" },
-  ASIGNADA:            { label: "Asignada",              cls: "bg-blue-100 text-blue-800 border border-blue-300" },
-  LISTA_PARA_DESPACHO: { label: "Lista para Despacho",   cls: "bg-yellow-100 text-yellow-800 border border-yellow-400" },
-  EN_TRANSITO:         { label: "En Tránsito",           cls: "bg-green-100 text-green-800 border border-green-300" },
-  ENTREGADA:           { label: "Entregada",             cls: "bg-emerald-100 text-emerald-800 border border-emerald-300" },
-  BLOQUEADA:           { label: "Bloqueada",             cls: "bg-red-100 text-red-800 border border-red-300" },
-  CANCELADA:           { label: "Cancelada",             cls: "bg-gray-200 text-text-muted border border-gray-400" },
+const EASE = [0.16, 1, 0.3, 1] as const
+
+// ── Status config ─────────────────────────────────────────────
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  REGISTRADA:          { label: "Registrada",         color: "#9A9489", bg: "rgba(154,148,137,0.1)" },
+  ASIGNADA:            { label: "Asignada",           color: "#C9924B", bg: "rgba(201,146,75,0.1)" },
+  LISTA_PARA_DESPACHO: { label: "Lista p/ Despacho",  color: "#C9924B", bg: "rgba(201,146,75,0.12)" },
+  EN_TRANSITO:         { label: "En Tránsito",        color: "#3A8E2A", bg: "rgba(58,142,42,0.1)" },
+  ENTREGADA:           { label: "Entregada",          color: "#3A8E2A", bg: "rgba(58,142,42,0.08)" },
+  BLOQUEADA:           { label: "Bloqueada",          color: "#E53E3E", bg: "rgba(229,62,62,0.1)" },
+  CANCELADA:           { label: "Cancelada",          color: "#6B6260", bg: "rgba(107,98,96,0.08)" },
 }
 
-// ── Modal de Asignación ──────────────────────────────────────
+// ── Detail field ──────────────────────────────────────────────
+function DetailField({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+      <div style={{ marginTop: "2px", color: "#9A9489", flexShrink: 0 }}>{icon}</div>
+      <div>
+        <p style={{ fontSize: "0.5rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+          {label}
+        </p>
+        <p style={{ fontSize: "0.82rem", color: "#0C0C0A", fontWeight: 600 }}>{value || "—"}</p>
+      </div>
+    </div>
+  )
+}
+
+// ── Modal de Asignación ───────────────────────────────────────
 function ModalAsignacion({
   orden,
   onClose,
@@ -80,58 +89,128 @@ function ModalAsignacion({
     }
   }
 
+  const selectStyle: React.CSSProperties = {
+    width: "100%", padding: "0.65rem 0.85rem",
+    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "4px", color: "#F5F2EC", fontSize: "0.82rem",
+    outline: "none", cursor: "pointer",
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "0.65rem 0.85rem",
+    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "4px", color: "#F5F2EC", fontSize: "0.82rem",
+    outline: "none", colorScheme: "dark",
+  }
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.5rem", letterSpacing: "0.22em", color: "#9A9489",
+    textTransform: "uppercase", fontWeight: 700, marginBottom: "6px",
+  }
+
   if (success) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-        <div className="bg-white rounded-3xl p-12 max-w-md w-full text-center shadow-2xl animate-in fade-in zoom-in duration-300">
-          <div className="w-24 h-24 bg-[#53B73E]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle size={52} className="text-[#53B73E]" />
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)",
+        padding: "1rem",
+      }}>
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: EASE }}
+          style={{
+            background: "#1E1E1B", borderRadius: "6px",
+            padding: "3rem 2.5rem", maxWidth: "420px", width: "100%",
+            textAlign: "center", border: "1px solid rgba(255,255,255,0.07)",
+          }}>
+          <div style={{
+            width: "56px", height: "56px", borderRadius: "50%",
+            background: "rgba(58,142,42,0.12)", border: "1px solid rgba(58,142,42,0.25)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 1.5rem",
+          }}>
+            <CheckCircle size={26} style={{ color: "#3A8E2A" }} />
           </div>
-          <h2 className="font-heading text-3xl font-bold text-[#0A3B7C] mb-3">¡Asignación Exitosa!</h2>
-          <p className="text-[#64748B] text-lg mb-8">
-            La orden <span className="font-bold text-[#0A3B7C]">{orden.orderNumber}</span> ha sido asignada correctamente.
+
+          <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.75rem" }}>
+            Asignación exitosa
+          </p>
+          <h2 style={{ fontSize: "1.6rem", fontWeight: 900, letterSpacing: "-0.03em", color: "#F5F2EC", marginBottom: "0.5rem" }}>
+            Orden {orden.orderNumber}
+          </h2>
+          <p style={{ fontSize: "0.82rem", color: "#9A9489", marginBottom: "2.5rem" }}>
+            La orden ha sido asignada correctamente.
           </p>
           <button
             onClick={onSuccess}
-            className="w-full bg-[#0A3B7C] hover:bg-[#083066] text-white font-bold py-3 px-6 rounded-xl transition-colors"
+            style={{
+              width: "100%", padding: "0.75rem",
+              background: "#C9924B", border: "none", borderRadius: "4px",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em",
+              textTransform: "uppercase", color: "#ffffff", cursor: "pointer",
+            }}
           >
-            Volver a Órdenes
+            Volver a órdenes
           </button>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-      <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 50,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)",
+      padding: "1rem",
+    }}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: EASE }}
+        style={{
+          background: "#1E1E1B", borderRadius: "6px",
+          padding: "2rem 2rem 2rem",
+          maxWidth: "500px", width: "100%",
+          border: "1px solid rgba(255,255,255,0.07)",
+          maxHeight: "90vh", overflowY: "auto",
+        }}>
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-heading text-2xl font-bold text-[#0A3B7C]">Asignar Piloto y Vehículo</h2>
-          <button onClick={onClose} className="text-text-muted hover:text-error transition-colors">
-            <X size={24} />
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+          <div>
+            <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
+              Asignar binomio
+            </p>
+            <h2 style={{ fontSize: "1.3rem", fontWeight: 900, letterSpacing: "-0.025em", color: "#F5F2EC" }}>
+              {orden.orderNumber}
+            </h2>
+            <p style={{ fontSize: "0.72rem", color: "#9A9489", marginTop: "2px" }}>
+              {orden.origin} → {orden.destination} · {orden.declaredWeightTon}T
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: "#9A9489", padding: "4px",
+            }}
+          >
+            <X size={18} />
           </button>
         </div>
 
-        <p className="text-text-muted text-sm mb-6">
-          Orden: <span className="font-bold text-text-primary">{orden.orderNumber}</span> —{" "}
-          {orden.origin} → {orden.destination} ({orden.declaredWeightTon}T)
-        </p>
+        <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", marginBottom: "1.5rem" }} />
 
-        {/* Ruta (contractRoute) */}
-        <div className="mb-4">
-          <label className="block text-sm font-bold text-[#0A3B7C] mb-2">Ruta del Contrato</label>
+        {/* Ruta del contrato */}
+        <div style={{ marginBottom: "1.25rem" }}>
+          <label style={labelStyle}>Ruta del Contrato</label>
           {orden.contractRoutes.length === 0 ? (
-            <p className="text-sm text-error">Este contrato no tiene rutas configuradas.</p>
+            <p style={{ fontSize: "0.78rem", color: "#E53E3E" }}>Este contrato no tiene rutas configuradas.</p>
           ) : (
-            <select
-              value={selectedRouteId}
-              onChange={(e) => setSelectedRouteId(e.target.value)}
-              className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3B7C]"
-            >
-              <option value="">Selecciona una ruta...</option>
+            <select value={selectedRouteId} onChange={(e) => setSelectedRouteId(e.target.value)} style={selectStyle}>
+              <option value="" style={{ background: "#1E1E1B" }}>Selecciona una ruta...</option>
               {orden.contractRoutes.map((cr: ContractRouteInfo) => (
-                <option key={cr.contractRouteId} value={cr.contractRouteId}>
+                <option key={cr.contractRouteId} value={cr.contractRouteId} style={{ background: "#1E1E1B" }}>
                   {cr.origin} → {cr.destination} ({cr.estimatedHours}h estimadas)
                 </option>
               ))}
@@ -139,89 +218,86 @@ function ModalAsignacion({
           )}
         </div>
 
-        {/* Binomio (unidad + piloto) */}
-        <div className="mb-4">
-          <label className="block text-sm font-bold text-[#0A3B7C] mb-2">Binomio (Vehículo + Piloto)</label>
+        {/* Binomio */}
+        <div style={{ marginBottom: "1.25rem" }}>
+          <label style={labelStyle}>Binomio (Vehículo + Piloto)</label>
           {loadingBinomials ? (
-            <p className="text-sm text-text-muted">Cargando unidades disponibles...</p>
+            <p style={{ fontSize: "0.78rem", color: "#9A9489" }}>Cargando unidades disponibles...</p>
           ) : binomials.length === 0 ? (
-            <p className="text-sm text-error">No hay unidades disponibles para esta orden.</p>
+            <p style={{ fontSize: "0.78rem", color: "#E53E3E" }}>No hay unidades disponibles para esta orden.</p>
           ) : (
-            <select
-              value={selectedBinomialId}
-              onChange={(e) => setSelectedBinomialId(e.target.value)}
-              className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3B7C]"
-            >
-              <option value="">Selecciona un binomio...</option>
+            <select value={selectedBinomialId} onChange={(e) => setSelectedBinomialId(e.target.value)} style={selectStyle}>
+              <option value="" style={{ background: "#1E1E1B" }}>Selecciona un binomio...</option>
               {binomials.map((b) => (
-                <option key={b.binomialId} value={b.binomialId}>
+                <option key={b.binomialId} value={b.binomialId} style={{ background: "#1E1E1B" }}>
                   {b.plate} — {b.vehicleType} ({b.capacityTon}T) — Piloto: {b.pilotName}
-                  {b.hasRefrigeration ? " ❄️" : ""}
+                  {b.hasRefrigeration ? " ❄" : ""}
                 </option>
               ))}
             </select>
           )}
         </div>
 
-        {/* Fecha programada */}
-        <div className="mb-6">
-          <label className="block text-sm font-bold text-[#0A3B7C] mb-2">Fecha y Hora de Salida Programada</label>
+        {/* Salida programada */}
+        <div style={{ marginBottom: "1.5rem" }}>
+          <label style={labelStyle}>Fecha y Hora de Salida Programada</label>
           <input
             type="datetime-local"
             value={scheduledDeparture}
             onChange={(e) => setScheduledDeparture(e.target.value)}
-            className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3B7C]"
+            style={inputStyle}
           />
         </div>
 
         {/* Error */}
         {error && (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 mb-4 text-sm">
-            <AlertTriangle size={16} />
+          <div style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            background: "rgba(229,62,62,0.08)", border: "1px solid rgba(229,62,62,0.2)",
+            borderRadius: "4px", padding: "0.65rem 0.85rem",
+            fontSize: "0.78rem", color: "#E53E3E", marginBottom: "1.25rem",
+          }}>
+            <AlertTriangle size={14} style={{ flexShrink: 0 }} />
             {error}
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={onClose}
-            className="flex-1 py-3 px-4 border border-gray-200 rounded-xl text-text-muted font-semibold text-sm hover:bg-gray-50 transition-colors"
+            style={{
+              flex: 1, padding: "0.65rem",
+              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+              letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "#9A9489", cursor: "pointer",
+            }}
           >
             Cancelar
           </button>
           <button
             onClick={handleAsignar}
             disabled={submitting}
-            className={cn(
-              "flex-1 py-3 px-4 rounded-xl text-white font-bold text-sm transition-colors",
-              submitting
-                ? "bg-text-muted cursor-not-allowed"
-                : "bg-[#0A3B7C] hover:bg-[#083066]"
-            )}
+            style={{
+              flex: 1, padding: "0.65rem",
+              background: submitting ? "rgba(201,146,75,0.4)" : "#C9924B",
+              border: "none", borderRadius: "4px",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "#ffffff",
+              cursor: submitting ? "not-allowed" : "pointer",
+              transition: "background 0.2s",
+            }}
           >
-            {submitting ? "Asignando..." : "Confirmar Asignación"}
+            {submitting ? "Asignando..." : "Confirmar asignación"}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
 
-// ── Detalle field helper ─────────────────────────────────────
-function DetailField({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="mt-0.5 text-[#0A3B7C]/50">{icon}</div>
-      <div>
-        <p className="text-xs font-bold text-[#64748B] uppercase tracking-wider">{label}</p>
-        <p className="text-[#1A202C] font-semibold">{value || "—"}</p>
-      </div>
-    </div>
-  )
-}
-
-// ── Page ─────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────
 export default function OrdenDetallePage({ params }: PageProps<{ id: string }>) {
   const { id } = use(params)
   const router = useRouter()
@@ -240,156 +316,260 @@ export default function OrdenDetallePage({ params }: PageProps<{ id: string }>) 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-text-muted">
-          <Truck size={48} className="animate-bounce text-primary" />
-          <p className="font-body text-lg">Cargando detalle...</p>
-        </div>
+      <div className="min-h-screen" style={{ background: "#F5F2EC", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ fontSize: "0.55rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+          Cargando detalle...
+        </p>
       </div>
     )
   }
 
   if (!orden) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="font-subheading text-xl text-text-primary mb-4">Orden no encontrada</p>
+      <div className="min-h-screen" style={{ background: "#F5F2EC", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1rem" }}>
+            Orden no encontrada
+          </p>
           <button
             onClick={() => router.push("/agente-logistico/ordenes")}
-            className="text-primary font-semibold hover:underline flex items-center gap-2 mx-auto"
+            style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.78rem", color: "#C9924B", background: "none", border: "none", cursor: "pointer", margin: "0 auto" }}
           >
-            <ArrowLeft size={16} /> Volver a órdenes
+            <ArrowLeft size={14} /> Volver a órdenes
           </button>
         </div>
       </div>
     )
   }
 
-  const statusInfo = statusLabels[orden.status] ?? statusLabels["REGISTRADA"]
+  const statusInfo = statusConfig[orden.status] ?? statusConfig["REGISTRADA"]
   const canAssign = orden.status === "REGISTRADA"
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="w-full max-w-5xl mx-auto px-6 py-8">
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-        {/* Back + title */}
-        <div className="mb-6 flex items-center gap-4">
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
+
+        {/* Back button */}
+        <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: EASE }} style={{ marginBottom: "2rem" }}>
           <button
             onClick={() => router.push("/agente-logistico/ordenes")}
-            className="text-text-muted hover:text-primary transition-colors"
+            style={{
+              display: "flex", alignItems: "center", gap: "8px",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+              textTransform: "uppercase", color: "#6B6260", background: "none", border: "none",
+              cursor: "pointer", transition: "color 0.2s",
+            }}
+            onMouseOver={e => (e.currentTarget.style.color = "#C9924B")}
+            onMouseOut={e => (e.currentTarget.style.color = "#6B6260")}
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft size={14} /> Órdenes
           </button>
-          <h1 className="font-heading text-3xl font-extrabold text-text-primary">
-            Detalle de Orden
-          </h1>
-          <span className={cn("px-4 py-1 rounded-full text-sm font-bold border", statusInfo.cls)}>
-            {statusInfo.label}
-          </span>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
 
-          {/* Card — Info de la Orden */}
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
-            <h2 className="font-heading text-xl font-bold text-[#0A3B7C] mb-6 flex items-center gap-2">
-              <Package size={20} /> Información de la Orden
-            </h2>
-            <div className="space-y-4">
-              <DetailField icon={<Package size={18} />} label="Número de Orden" value={orden.orderNumber} />
-              <DetailField
-                icon={<Calendar size={18} />}
-                label="Fecha de Solicitud"
-                value={new Date(orden.requestedAt).toLocaleDateString("es-GT", {
-                  day: "2-digit", month: "long", year: "numeric",
-                })}
-              />
-              <DetailField icon={<MapPin size={18} />} label="Origen" value={orden.origin} />
-              <DetailField icon={<MapPin size={18} />} label="Destino" value={orden.destination} />
-              <DetailField icon={<Weight size={18} />} label="Peso Declarado" value={`${orden.declaredWeightTon} toneladas`} />
-              <DetailField icon={<Package size={18} />} label="Tipo de Carga" value={orden.cargoType} />
-              {orden.requiresRefrigeration && (
-                <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm">
-                  ❄️ Requiere refrigeración
-                </div>
-              )}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "0.5rem" }}>
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+              Detalle de Orden
+            </p>
+            {/* Status badge */}
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: "5px",
+              background: statusInfo.bg, borderRadius: "3px", padding: "3px 9px",
+            }}>
+              <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: statusInfo.color }} />
+              <span style={{ fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: statusInfo.color }}>
+                {statusInfo.label}
+              </span>
             </div>
           </div>
 
-          {/* Card — Info del Cliente */}
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
-            <h2 className="font-heading text-xl font-bold text-[#0A3B7C] mb-6 flex items-center gap-2">
-              <User size={20} /> Información del Cliente
-            </h2>
-            <div className="space-y-4">
-              <DetailField icon={<User size={18} />} label="Nombre" value={orden.clientName} />
-              <DetailField icon={<Phone size={18} />} label="Teléfono" value={orden.clientPhone} />
-              <DetailField icon={<Mail size={18} />} label="Email" value={orden.clientEmail} />
-              <DetailField icon={<Home size={18} />} label="Dirección" value={orden.clientAddress} />
-            </div>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              {orden.orderNumber}
+            </motion.h1>
           </div>
 
-          {/* Card — Rutas del Contrato */}
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
-            <h2 className="font-heading text-xl font-bold text-[#0A3B7C] mb-6 flex items-center gap-2">
-              <MapPin size={20} /> Rutas del Contrato
-            </h2>
-            {orden.contractRoutes.length === 0 ? (
-              <p className="text-text-muted text-sm">No hay rutas configuradas en este contrato.</p>
-            ) : (
-              <div className="space-y-3">
-                {orden.contractRoutes.map((cr) => (
-                  <div key={cr.contractRouteId} className="flex items-center gap-3 p-3 bg-background rounded-xl">
-                    <div className="w-8 h-8 bg-[#0A3B7C]/10 rounded-lg flex items-center justify-center">
-                      <MapPin size={16} className="text-[#0A3B7C]" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-text-primary text-sm">
-                        {cr.origin} → {cr.destination}
-                      </p>
-                      <p className="text-xs text-text-muted">{cr.estimatedHours}h estimadas</p>
-                    </div>
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.35, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.5rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* Content grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "16px" }}>
+
+          {/* Info de la Orden */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: EASE }}
+            style={{
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "6px", overflow: "hidden",
+            }}>
+            <div style={{ height: "2px", background: "#C9924B" }} />
+            <div style={{ padding: "1.5rem 1.75rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1.25rem" }}>
+                Información de la Orden
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <DetailField icon={<Package size={14} />} label="Número de Orden" value={orden.orderNumber} />
+                <DetailField
+                  icon={<Calendar size={14} />}
+                  label="Fecha de Solicitud"
+                  value={new Date(orden.requestedAt).toLocaleDateString("es-GT", {
+                    day: "2-digit", month: "long", year: "numeric",
+                  })}
+                />
+                <DetailField icon={<MapPin size={14} />} label="Origen" value={orden.origin} />
+                <DetailField icon={<MapPin size={14} />} label="Destino" value={orden.destination} />
+                <DetailField icon={<Weight size={14} />} label="Peso Declarado" value={`${orden.declaredWeightTon} toneladas`} />
+                <DetailField icon={<Package size={14} />} label="Tipo de Carga" value={orden.cargoType} />
+                {orden.requiresRefrigeration && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#6B6260", fontWeight: 600 }}>
+                    <span>❄</span> Requiere refrigeración
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Card — Asignación actual (si ya tiene) */}
-          {orden.assignedUnit && (
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-black/5">
-              <h2 className="font-heading text-xl font-bold text-[#0A3B7C] mb-6 flex items-center gap-2">
-                <Truck size={20} /> Asignación Actual
-              </h2>
-              <div className="space-y-4">
-                <DetailField icon={<Truck size={18} />} label="Placa" value={orden.assignedUnit.plate} />
-                <DetailField icon={<Package size={18} />} label="Tipo de Vehículo" value={orden.assignedUnit.vehicleType} />
-                <DetailField icon={<User size={18} />} label="Piloto" value={orden.assignedUnit.pilotName} />
-                {orden.scheduledPickupAt && (
-                  <DetailField
-                    icon={<Calendar size={18} />}
-                    label="Salida Programada"
-                    value={new Date(orden.scheduledPickupAt).toLocaleString("es-GT")}
-                  />
                 )}
               </div>
             </div>
+          </motion.div>
+
+          {/* Info del Cliente */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.38, duration: 0.6, ease: EASE }}
+            style={{
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "6px", overflow: "hidden",
+            }}>
+            <div style={{ height: "2px", background: "rgba(12,12,10,0.1)" }} />
+            <div style={{ padding: "1.5rem 1.75rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1.25rem" }}>
+                Información del Cliente
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <DetailField icon={<User size={14} />} label="Nombre" value={orden.clientName} />
+                <DetailField icon={<Phone size={14} />} label="Teléfono" value={orden.clientPhone} />
+                <DetailField icon={<Mail size={14} />} label="Email" value={orden.clientEmail} />
+                <DetailField icon={<Home size={14} />} label="Dirección" value={orden.clientAddress} />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Rutas del Contrato */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.46, duration: 0.6, ease: EASE }}
+            style={{
+              background: "#1E1E1B", border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: "6px", overflow: "hidden",
+            }}>
+            <div style={{ height: "2px", background: "rgba(201,146,75,0.4)" }} />
+            <div style={{ padding: "1.5rem 1.75rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1.25rem" }}>
+                Rutas del Contrato
+              </p>
+              {orden.contractRoutes.length === 0 ? (
+                <p style={{ fontSize: "0.78rem", color: "#6B6260" }}>No hay rutas configuradas en este contrato.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {orden.contractRoutes.map((cr) => (
+                    <div key={cr.contractRouteId} style={{
+                      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)",
+                      borderRadius: "4px", padding: "0.75rem 1rem",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "3px" }}>
+                        <MapPin size={12} style={{ color: "#C9924B", flexShrink: 0 }} />
+                        <span style={{ fontSize: "0.78rem", color: "#F5F2EC", fontWeight: 600 }}>
+                          {cr.origin}
+                        </span>
+                        <span style={{ fontSize: "0.65rem", color: "#6B6260" }}>→</span>
+                        <span style={{ fontSize: "0.78rem", color: "#F5F2EC", fontWeight: 600 }}>
+                          {cr.destination}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "5px", paddingLeft: "18px" }}>
+                        <Clock size={10} style={{ color: "#6B6260" }} />
+                        <span style={{ fontSize: "0.68rem", color: "#6B6260" }}>{cr.estimatedHours}h estimadas</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Asignación actual */}
+          {orden.assignedUnit && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.54, duration: 0.6, ease: EASE }}
+              style={{
+                background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+                borderRadius: "6px", overflow: "hidden",
+              }}>
+              <div style={{ height: "2px", background: "#3A8E2A" }} />
+              <div style={{ padding: "1.5rem 1.75rem" }}>
+                <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1.25rem" }}>
+                  Asignación Actual
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <DetailField icon={<Truck size={14} />} label="Placa" value={orden.assignedUnit.plate} />
+                  <DetailField icon={<Package size={14} />} label="Tipo de Vehículo" value={orden.assignedUnit.vehicleType} />
+                  <DetailField icon={<User size={14} />} label="Piloto" value={orden.assignedUnit.pilotName} />
+                  {orden.scheduledPickupAt && (
+                    <DetailField
+                      icon={<Calendar size={14} />}
+                      label="Salida Programada"
+                      value={new Date(orden.scheduledPickupAt).toLocaleString("es-GT")}
+                    />
+                  )}
+                </div>
+              </div>
+            </motion.div>
           )}
         </div>
 
         {/* CTA — Asignar */}
         {canAssign && (
-          <div className="mt-8 flex justify-center">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6, ease: EASE }}
+            style={{ marginTop: "2rem", display: "flex", justifyContent: "center" }}>
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-3 bg-[#0A3B7C] hover:bg-[#083066] text-white font-bold py-4 px-10 rounded-2xl text-lg shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
+              style={{
+                display: "flex", alignItems: "center", gap: "10px",
+                padding: "0.85rem 2.5rem",
+                background: "#0C0C0A", border: "1px solid #0C0C0A", borderRadius: "4px",
+                fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.12em",
+                textTransform: "uppercase", color: "#F5F2EC", cursor: "pointer",
+                transition: "background 0.2s, border-color 0.2s, color 0.2s",
+              }}
+              onMouseOver={e => {
+                const el = e.currentTarget
+                el.style.background = "#C9924B"
+                el.style.borderColor = "#C9924B"
+              }}
+              onMouseOut={e => {
+                const el = e.currentTarget
+                el.style.background = "#0C0C0A"
+                el.style.borderColor = "#0C0C0A"
+              }}
             >
-              <Truck size={22} />
-              Asignar Piloto y Vehículo
+              <Truck size={15} />
+              Asignar piloto y vehículo
             </button>
-          </div>
+          </motion.div>
         )}
-      </main>
+
+      </div>
 
       {/* Modal */}
       {showModal && orden && (
