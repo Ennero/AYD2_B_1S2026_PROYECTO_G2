@@ -17,7 +17,7 @@ export class ListCargasUseCase {
         { status: OrderStatus.ASIGNADA },
         { status: OrderStatus.LISTA_PARA_DESPACHO },
       ],
-      relations: ['contractRoute', 'unit'],
+      relations: ['contractRoute', 'unit', 'unit.pilotUser'],
       order: {
         requestedAt: 'DESC'
       }
@@ -27,6 +27,7 @@ export class ListCargasUseCase {
       id: order.orderId,
       codigo: order.orderNumber,
       unitId: order.unitId,
+      pilotName: order.unit?.pilotUser?.fullName || 'Piloto no asignado',
       vehicleModel: order.unit?.vehicleModel || 'Modelo no disponible',
       plateNumber: order.unit?.plateNumber || 'Pendiente de Asignación',
       fecha: order.requestedAt.toLocaleDateString('es-GT'),

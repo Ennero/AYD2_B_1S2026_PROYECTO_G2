@@ -14,6 +14,7 @@ type CargaReal = {
   id: string
   codigo: string
   unitId: string | null
+  pilotName: string
   vehicleModel: string
   plateNumber: string
   fecha: string
@@ -58,6 +59,7 @@ export default function FormalizarCargasPage() {
     if (piloto.trim()) {
       const term = piloto.trim().toLowerCase()
       filtered = filtered.filter(c =>
+        c.pilotName.toLowerCase().includes(term) ||
         c.codigo.toLowerCase().includes(term) ||
         c.vehicleModel.toLowerCase().includes(term) ||
         c.plateNumber.toLowerCase().includes(term) ||
@@ -233,33 +235,33 @@ export default function FormalizarCargasPage() {
                   </div>
 
                   {/* Info Header */}
-                  <div className="lg:col-span-9 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left mb-4 sm:mb-0">
-                    <div>
+                  <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 text-center sm:text-left mb-4 sm:mb-0">
+                    <div className="min-w-0">
                       <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Unidad Asignada</p>
-                      <p className="font-bold text-lg">{carga.vehicleModel}</p>
-                      <p className="text-xs text-white/70">Placa: {carga.plateNumber}</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.vehicleModel}</p>
+                      <p className="text-xs text-white/70 break-all">Placa: {carga.plateNumber}</p>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Fecha</p>
                       <p className="font-bold text-lg whitespace-nowrap">{carga.fecha}</p>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Origen</p>
-                      <p className="font-bold text-lg">{carga.origen}</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.origen}</p>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Destino</p>
-                      <p className="font-bold text-lg">{carga.destino}</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.destino}</p>
                     </div>
                   </div>
 
                   {/* Action Row - Inputs and buttons */}
                   <div className="lg:col-span-12 flex flex-wrap items-center justify-center lg:justify-end gap-x-6 gap-y-4 pt-4 border-t border-white/10 mt-2">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">unit_id:</span>
+                      <span className="text-sm font-medium">ID de orden:</span>
                       <input 
                         type="text" 
-                        value={carga.unitId ?? "SIN ASIGNAR"}
+                        value={carga.id}
                         readOnly
                         className="w-48 px-3 py-1.5 text-center text-text-primary font-bold rounded bg-white shadow-inner disabled:opacity-80"
                       />
