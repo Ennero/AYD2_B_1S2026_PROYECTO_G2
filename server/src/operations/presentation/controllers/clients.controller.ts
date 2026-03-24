@@ -28,6 +28,7 @@ export class ClientsController {
       taxAddress: dto.taxAddress,
       primaryContactName: dto.primaryContactName,
       primaryContactEmail: dto.primaryContactEmail,
+      portalPassword: dto.portalPassword,
       primaryContactPhone: dto.primaryContactPhone,
       creditLimit: dto.creditLimit,
       paymentRisk: dto.paymentRisk,

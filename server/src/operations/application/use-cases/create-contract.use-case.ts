@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DataSource, In } from 'typeorm';
+import { DataSource, In, QueryFailedError } from 'typeorm';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 import { CargoType } from '../../../infrastructure/database/typeorm/entities/cargo-type.entity';
 import { Contract } from '../../../infrastructure/database/typeorm/entities/contract.entity';
@@ -57,6 +57,22 @@ export class CreateContractUseCase {
       throw new NotFoundException(`Cliente ${input.clientId} no encontrado.`);
     }
 
+    // Evitar múltiples contratos activos por cliente con un mensaje de negocio claro.
+    const existingActiveOrPending = await this.dataSource.getRepository(Contract).findOne({
+      where: {
+        clientId: normalizedClientId,
+        status: In([ContractStatus.PENDIENTE, ContractStatus.VIGENTE]),
+      },
+      order: { startDate: 'DESC' },
+    });
+
+    if (existingActiveOrPending) {
+      throw new BadRequestException(
+        `No se puede generar un nuevo contrato para este cliente porque ya tiene un contrato ${existingActiveOrPending.status} (${existingActiveOrPending.contractNumber}). ` +
+          'Para continuar, primero debe aceptarse, rechazarse o cerrarse el contrato actual.',
+      );
+    }
+
     // ── 2. Cargar rutas para datos del email ──────────────────────────────────
     const routes = await this.dataSource
       .getRepository(Route)
@@ -77,18 +93,26 @@ export class CreateContractUseCase {
     }
 
     // ── 3. Transacción: CONTRACTS + CONTRACT_ROUTES + CONTRACT_CARGO_TYPES ────
-    const savedContract = await this.dataSource.transaction(async (em) => {
-      // Número de contrato secuencial (el trigger de DB también puede generarlo)
-      const count = await em.count(Contract);
-      const contractNumber = `CONT-${String(count + 1).padStart(5, '0')}`;
+    let savedContract: {
+      contractId: number;
+      contractNumber: string;
+      status: ContractStatus;
+      endDate: string;
+    };
 
-      const insertedContracts = await em.query<{
-        contract_id: number;
-        contract_number: string;
-        status: ContractStatus;
-        end_date: string;
-      }>(
-        `INSERT INTO contracts (
+    try {
+      savedContract = await this.dataSource.transaction(async (em) => {
+        // Número de contrato secuencial (el trigger de DB también puede generarlo)
+        const count = await em.count(Contract);
+        const contractNumber = `CONT-${String(count + 1).padStart(5, '0')}`;
+
+        const insertedContracts = await em.query<{
+          contract_id: number;
+          contract_number: string;
+          status: ContractStatus;
+          end_date: string;
+        }>(
+          `INSERT INTO contracts (
             contract_number,
             client_id,
             status,
@@ -98,54 +122,69 @@ export class CreateContractUseCase {
           )
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING contract_id, contract_number, status, end_date`,
-        [
-          contractNumber,
-          normalizedClientId,
-          ContractStatus.PENDIENTE,
-          input.creditLimit,
-          input.paymentTermDays,
-          input.discountPercentage ?? 0,
-        ],
-      );
+          [
+            contractNumber,
+            normalizedClientId,
+            ContractStatus.PENDIENTE,
+            input.creditLimit,
+            input.paymentTermDays,
+            input.discountPercentage ?? 0,
+          ],
+        );
 
-      const inserted = insertedContracts[0];
-      if (!inserted) {
-        throw new BadRequestException('No fue posible crear el contrato.');
-      }
+        const inserted = insertedContracts[0];
+        if (!inserted) {
+          throw new BadRequestException('No fue posible crear el contrato.');
+        }
 
-      const createdContractId = Number(inserted.contract_id);
+        const createdContractId = Number(inserted.contract_id);
 
-      // CONTRACT_ROUTES — una fila por ruta incluida
-      for (const route of routes) {
-        await em.query(
-          `INSERT INTO contract_routes (contract_id, route_id, promised_delivery_hours)
+        // CONTRACT_ROUTES — una fila por ruta incluida
+        for (const route of routes) {
+          await em.query(
+            `INSERT INTO contract_routes (contract_id, route_id, promised_delivery_hours)
             VALUES ($1, $2, $3)`,
-          [createdContractId, Number(route.routeId), Number(route.estimatedHours)],
+            [createdContractId, Number(route.routeId), Number(route.estimatedHours)],
+          );
+        }
+
+        // CONTRACT_CARGO_TYPES — tabla de unión directa por insert
+        if (validCargoTypes.length > 0) {
+          await em
+            .createQueryBuilder()
+            .insert()
+            .into('contract_cargo_types')
+            .values(
+              validCargoTypes.map((cargoType) => ({
+                contract_id: createdContractId,
+                cargo_type_id: cargoType.cargoTypeId,
+              })),
+            )
+            .execute();
+        }
+
+        return {
+          contractId: createdContractId,
+          contractNumber: inserted.contract_number,
+          status: inserted.status,
+          endDate: inserted.end_date,
+        };
+      });
+    } catch (error) {
+      const dbError =
+        error instanceof QueryFailedError
+          ? (error.driverError as { code?: string; constraint?: string })
+          : undefined;
+
+      if (dbError?.code === '23505' && dbError.constraint === 'ux_client_active_contract') {
+        throw new BadRequestException(
+          'No se puede generar un nuevo contrato porque el cliente ya tiene un contrato pendiente o vigente. ' +
+            'Debe finalizarse ese contrato antes de crear otro.',
         );
       }
 
-      // CONTRACT_CARGO_TYPES — tabla de unión directa por insert
-      if (validCargoTypes.length > 0) {
-        await em
-          .createQueryBuilder()
-          .insert()
-          .into('contract_cargo_types')
-          .values(
-            validCargoTypes.map((cargoType) => ({
-              contract_id: createdContractId,
-              cargo_type_id: cargoType.cargoTypeId,
-            })),
-          )
-          .execute();
-      }
-
-      return {
-        contractId: createdContractId,
-        contractNumber: inserted.contract_number,
-        status: inserted.status,
-        endDate: inserted.end_date,
-      };
-    });
+      throw error;
+    }
 
     // ── 4. Notificación al cliente (fire-and-forget) ──────────────────────────
     const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3001');
