@@ -8,6 +8,8 @@ import { GetCargoTypesUseCase } from './application/use-cases/get-cargo-types.us
 import { GetRoutesUseCase } from './application/use-cases/get-routes.use-case';
 import { GetUsersUseCase } from './application/use-cases/get-users.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
+import { CreateRouteUseCase } from './application/use-cases/create-route.use-case';
+import { CreateCargoTypeUseCase } from './application/use-cases/create-cargo-type.use-case';
 import { ClientsController } from './presentation/controllers/clients.controller';
 import { ListCargasUseCase } from './application/use-cases/list-cargas.use-case';
 import { FormalizeCargaUseCase } from './application/use-cases/formalize-carga.use-case';
@@ -28,6 +30,8 @@ import { OperationsController } from './presentation/controllers/operations.cont
     GetCargoTypesUseCase,
     GetUsersUseCase,
     UpdateUserUseCase,
+    CreateRouteUseCase,
+    CreateCargoTypeUseCase,
     ClientFactory,
   ],
   controllers: [OperationsController, ClientsController],
