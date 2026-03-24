@@ -3,11 +3,15 @@
 import Input from "@/components/ui/Input"
 import Select from "@/components/ui/Select"
 import { useMemo, useState } from "react"
-import { UserCheck } from "lucide-react"
+import { UserCheck, Loader2, ArrowLeft, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
+import { motion, AnimatePresence } from "framer-motion"
+
+const EASE = [0.16, 1, 0.3, 1] as const
+const STEPS = ["Datos Generales", "Datos Fiscales", "Perfil de Riesgo"]
 
 type FormState = {
   nombre: string
@@ -43,52 +47,34 @@ export default function RegistrarClientePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState<FormState>({
-    nombre: "",
-    telefono: "",
-    correo: "",
-    contrasenaAcceso: "",
-    razonSocial: "",
-    direccion: "",
-    nit: "",
-    capacidadPago: "",
-    riesgoMercancia: "",
-    riesgoAduanas: "",
-    lavadoDinero: "",
+    nombre: "", telefono: "", correo: "", contrasenaAcceso: "",
+    razonSocial: "", direccion: "", nit: "",
+    capacidadPago: "", riesgoMercancia: "", riesgoAduanas: "", lavadoDinero: "",
   })
 
-  const canGoBack = currentStep > 0
-  const canGoNext = currentStep < steps.length - 1
-  const isLastStep = currentStep === steps.length - 1
+  const riskOptions = useMemo(() => [
+    { value: "bajo", label: "Bajo" },
+    { value: "medio", label: "Medio" },
+    { value: "alto", label: "Alto" },
+  ], [])
 
-  const riskOptions = useMemo(
-    () => [
-      { value: "bajo", label: "Bajo" },
-      { value: "medio", label: "Medio" },
-      { value: "alto", label: "Alto" },
-    ],
-    []
-  )
-
-  const capacidadPagoOptions = useMemo(
-    () => [
-      { value: "bajo", label: "Baja" },
-      { value: "medio", label: "Media" },
-      { value: "alto", label: "Alta" },
-    ],
-    []
-  )
+  const capacidadPagoOptions = useMemo(() => [
+    { value: "bajo", label: "Baja" },
+    { value: "medio", label: "Media" },
+    { value: "alto", label: "Alta" },
+  ], [])
 
   function toRiskLevel(value: string): RiskLevel {
-    const normalized = value.toLowerCase()
-    if (normalized === "bajo") return "BAJO"
-    if (normalized === "alto") return "ALTO"
+    const n = value.toLowerCase()
+    if (n === "bajo") return "BAJO"
+    if (n === "alto") return "ALTO"
     return "MEDIO"
   }
 
   function paymentCapacityToRisk(value: string): RiskLevel {
-    const normalized = value.toLowerCase()
-    if (normalized === "alta") return "BAJO"
-    if (normalized === "baja") return "ALTO"
+    const n = value.toLowerCase()
+    if (n === "alta") return "BAJO"
+    if (n === "baja") return "ALTO"
     return "MEDIO"
   }
 
@@ -98,59 +84,42 @@ export default function RegistrarClientePage() {
     const numbers = "23456789"
     const symbols = "!@#$%&*?-_"
     const charset = `${uppercase}${lowercase}${numbers}${symbols}`
-
     const bytes = new Uint32Array(length)
     crypto.getRandomValues(bytes)
-
     const required = [
       uppercase[bytes[0] % uppercase.length],
       lowercase[bytes[1] % lowercase.length],
       numbers[bytes[2] % numbers.length],
       symbols[bytes[3] % symbols.length],
     ]
-
-    const extra = Array.from(bytes)
-      .slice(4)
-      .map((n) => charset[n % charset.length])
-
+    const extra = Array.from(bytes).slice(4).map((n) => charset[n % charset.length])
     const mixed = [...required, ...extra]
     for (let i = mixed.length - 1; i > 0; i--) {
       const j = bytes[i % bytes.length] % (i + 1)
       ;[mixed[i], mixed[j]] = [mixed[j], mixed[i]]
     }
-
     return mixed.join("")
   }
 
   function handleGeneratePassword() {
-    const generated = generateSecurePassword(16)
-    setForm((s) => ({ ...s, contrasenaAcceso: generated }))
+    setForm((s) => ({ ...s, contrasenaAcceso: generateSecurePassword(16) }))
     toast.success("Se generó una contraseña segura.")
   }
 
   async function handleSubmit() {
     const nitSanitized = form.nit.replace(/\D/g, "")
-
     if (!form.nombre || !form.correo || !form.contrasenaAcceso || !form.razonSocial || !form.direccion) {
-      toast.error("Completa los campos obligatorios para registrar el cliente.")
-      return
+      return toast.error("Completa los campos obligatorios para registrar el cliente.")
     }
-
     if (form.contrasenaAcceso.length < 12) {
-      toast.error("La contraseña de acceso debe tener al menos 12 caracteres.")
-      return
+      return toast.error("La contraseña de acceso debe tener al menos 12 caracteres.")
     }
-
     if (!/^\d{13}$/.test(nitSanitized)) {
-      toast.error("El NIT debe tener exactamente 13 dígitos.")
-      return
+      return toast.error("El NIT debe tener exactamente 13 dígitos.")
     }
-
     if (!form.capacidadPago || !form.riesgoMercancia || !form.riesgoAduanas || !form.lavadoDinero) {
-      toast.error("Completa el perfil de riesgo antes de continuar.")
-      return
+      return toast.error("Completa el perfil de riesgo antes de continuar.")
     }
-
     setIsSubmitting(true)
     try {
       await api.post<CreateClientResponse>(ENDPOINTS.CLIENTES.CREATE, {
@@ -166,21 +135,12 @@ export default function RegistrarClientePage() {
         customsRisk: toRiskLevel(form.riesgoAduanas),
         amlRisk: toRiskLevel(form.lavadoDinero),
       })
-
       setSuccessOpen(true)
     } catch {
       toast.error("No se pudo registrar el cliente. Intenta nuevamente.")
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  function goBack() {
-    setCurrentStep((s) => Math.max(0, s - 1))
-  }
-
-  function goNext() {
-    setCurrentStep((s) => Math.min(steps.length - 1, s + 1))
   }
 
   return (
@@ -197,11 +157,9 @@ export default function RegistrarClientePage() {
           <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
             style={{ background: "#ffffff", borderRadius: "6px", padding: "3rem 2.5rem", maxWidth: "400px", width: "100%", textAlign: "center" }}>
-
             <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(201,146,75,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
               <UserCheck size={22} style={{ color: "#C9924B" }} />
             </div>
-
             <p style={{ fontSize: "0.52rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>
               Registro completado
             </p>
@@ -211,7 +169,6 @@ export default function RegistrarClientePage() {
             <p style={{ fontSize: "0.8rem", color: "#6B6260", lineHeight: 1.6, marginBottom: "2rem" }}>
               Se ha enviado un correo automático con las credenciales de acceso al portal.
             </p>
-
             <button
               onClick={() => { router.push("/agente-operativo"); setSuccessOpen(false) }}
               style={{
@@ -312,63 +269,60 @@ export default function RegistrarClientePage() {
             </span>
           </div>
 
-            <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] border-b border-black/5 pb-4 mb-8">
-              {currentStep + 1}. {steps[currentStep]}
-            </h2>
+          <div style={{ padding: "1.75rem" }}>
+            <AnimatePresence mode="wait">
+              <motion.div key={currentStep}
+                initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.22 }}>
 
-            <div className="mt-8">
-              {currentStep === 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <Input
-                    label="Nombre"
-                    placeholder="Ej. Henry Contreras"
-                    value={form.nombre}
-                    onChange={(e) => setForm((s) => ({ ...s, nombre: e.target.value }))}
-                  />
-                  <Input
-                    label="Teléfono"
-                    placeholder="Ej. 5555-5555"
-                    value={form.telefono}
-                    onChange={(e) => setForm((s) => ({ ...s, telefono: e.target.value }))}
-                  />
-                  <div className="md:col-span-2">
-                    <Input
-                      label="Correo de acceso"
-                      type="email"
-                      placeholder="portal@empresa.com"
-                      value={form.correo}
-                      onChange={(e) => setForm((s) => ({ ...s, correo: e.target.value }))}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-text-primary mb-1.5">Contraseña de acceso</label>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <Input
-                        type="text"
-                        placeholder="Genera una contraseña segura"
-                        value={form.contrasenaAcceso}
-                        onChange={(e) => setForm((s) => ({ ...s, contrasenaAcceso: e.target.value }))}
-                        className="flex-1"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-primary text-primary hover:bg-primary hover:text-white whitespace-nowrap"
-                        onClick={handleGeneratePassword}
-                      >
-                        Generar contraseña segura
-                      </Button>
+                {currentStep === 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
+                    <Input label="Nombre completo" placeholder="Ej. Henry Contreras"
+                      value={form.nombre} onChange={e => setForm(s => ({ ...s, nombre: e.target.value }))} />
+                    <Input label="Teléfono" placeholder="Ej. 5555-5555"
+                      value={form.telefono} onChange={e => setForm(s => ({ ...s, telefono: e.target.value }))} />
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <Input label="Correo de acceso" type="email" placeholder="portal@empresa.com"
+                        value={form.correo} onChange={e => setForm(s => ({ ...s, correo: e.target.value }))} />
                     </div>
-                    <p className="text-xs text-text-muted mt-2">Mínimo 12 caracteres. Se usará para crear el usuario del portal cliente.</p>
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#0C0C0A", letterSpacing: "0.01em" }}>
+                        Contraseña de acceso
+                      </label>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                        <Input label="" placeholder="Genera o escribe una contraseña segura"
+                          type="text" value={form.contrasenaAcceso}
+                          onChange={e => setForm(s => ({ ...s, contrasenaAcceso: e.target.value }))}
+                          className="flex-1" />
+                        <button
+                          type="button"
+                          onClick={handleGeneratePassword}
+                          title="Generar contraseña segura"
+                          style={{
+                            display: "flex", alignItems: "center", gap: "5px",
+                            padding: "0.55rem 0.9rem", borderRadius: "6px", flexShrink: 0,
+                            fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+                            border: "1px solid rgba(201,146,75,0.4)", color: "#C9924B", background: "transparent",
+                            cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
+                          }}
+                          onMouseOver={e => { e.currentTarget.style.background = "#C9924B"; e.currentTarget.style.color = "#0C0C0A"; e.currentTarget.style.borderColor = "#C9924B" }}
+                          onMouseOut={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#C9924B"; e.currentTarget.style.borderColor = "rgba(201,146,75,0.4)" }}
+                        >
+                          <RefreshCw size={11} /> Generar
+                        </button>
+                      </div>
+                      <p style={{ fontSize: "0.65rem", color: "#9A9489", marginTop: "6px" }}>
+                        Mínimo 12 caracteres. Se usará para el acceso al portal del cliente.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
                 {currentStep === 1 && (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
                     <Input label="Razón Social" placeholder="Ej. Logitrans S.A."
                       value={form.razonSocial} onChange={e => setForm(s => ({ ...s, razonSocial: e.target.value }))} />
-                    <Input label="NIT" placeholder="Ej. 1234567-8"
+                    <Input label="NIT (13 dígitos)" placeholder="Ej. 1234567890123"
                       value={form.nit} onChange={e => setForm(s => ({ ...s, nit: e.target.value }))} />
                     <div style={{ gridColumn: "1 / -1" }}>
                       <Input label="Dirección fiscal" placeholder="Ej. Zona 10, Ciudad de Guatemala"
@@ -398,28 +352,60 @@ export default function RegistrarClientePage() {
             </AnimatePresence>
           </div>
 
-            <div className="mt-12 flex items-center justify-between border-t border-black/5 pt-8">
-              <Button type="button" variant="outline" disabled={!canGoBack} onClick={goBack} className="border-black/10 hover:bg-black/5 px-8">
-                Atrás
-              </Button>
+          {/* Navigation */}
+          <div style={{ borderTop: "1px solid rgba(12,12,10,0.06)", padding: "1.25rem 1.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <button
+              onClick={() => setCurrentStep(s => Math.max(0, s - 1))}
+              disabled={currentStep === 0}
+              style={{
+                padding: "0.5rem 1.25rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                letterSpacing: "0.1em", textTransform: "uppercase",
+                cursor: currentStep === 0 ? "not-allowed" : "pointer",
+                border: "1px solid rgba(12,12,10,0.12)", background: "transparent",
+                color: currentStep === 0 ? "rgba(12,12,10,0.2)" : "rgba(12,12,10,0.45)",
+                transition: "all 0.15s",
+              }}
+              onMouseOver={e => { if (currentStep > 0) e.currentTarget.style.color = "#0C0C0A" }}
+              onMouseOut={e => { if (currentStep > 0) e.currentTarget.style.color = "rgba(12,12,10,0.45)" }}
+            >
+              ← Atrás
+            </button>
 
-              {!isLastStep ? (
-                <Button type="button" onClick={goNext} className="bg-[#0A3B7C] text-white hover:bg-[#083066] px-10">
-                  Siguiente
-                </Button>
-              ) : (
-                <Button 
-                  type="button" 
-                  onClick={handleSubmit} 
-                  className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] px-10"
-                  loading={isSubmitting}
-                >
-                  Registrar Cliente
-                </Button>
-              )}
-            </div>
-          </Card>
-        </div>
+            {currentStep < STEPS.length - 1 ? (
+              <button
+                onClick={() => setCurrentStep(s => Math.min(STEPS.length - 1, s + 1))}
+                style={{
+                  padding: "0.5rem 1.75rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                  letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer",
+                  background: "#0C0C0A", color: "#F5F2EC", border: "none", transition: "background 0.15s",
+                }}
+                onMouseOver={e => (e.currentTarget.style.background = "#C9924B")}
+                onMouseOut={e => (e.currentTarget.style.background = "#0C0C0A")}
+              >
+                Siguiente →
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                style={{
+                  padding: "0.5rem 1.75rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                  letterSpacing: "0.1em", textTransform: "uppercase",
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                  background: isSubmitting ? "#9A9489" : "#0C0C0A", color: "#F5F2EC",
+                  border: "none", transition: "background 0.15s",
+                  display: "flex", alignItems: "center", gap: "6px",
+                }}
+                onMouseOver={e => { if (!isSubmitting) e.currentTarget.style.background = "#C9924B" }}
+                onMouseOut={e => { if (!isSubmitting) e.currentTarget.style.background = "#0C0C0A" }}
+              >
+                {isSubmitting && <Loader2 size={11} className="animate-spin" />}
+                Registrar Cliente →
+              </button>
+            )}
+          </div>
+        </motion.div>
+
       </div>
     </div>
   )
