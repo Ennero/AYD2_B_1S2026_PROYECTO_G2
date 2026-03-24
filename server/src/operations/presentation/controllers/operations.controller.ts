@@ -27,6 +27,10 @@ import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.int
 import { GetCargoTypesUseCase } from '../../application/use-cases/get-cargo-types.use-case';
 import { GetClientsUseCase } from '../../application/use-cases/get-clients.use-case';
 import { GetRoutesUseCase } from '../../application/use-cases/get-routes.use-case';
+import { GetUsersUseCase } from '../../application/use-cases/get-users.use-case';
+import { UpdateUserUseCase } from '../../application/use-cases/update-user.use-case';
+import { UpdateUserDto } from '../dtos/update-user.dto';
+import { UserRole } from '../../../domain/enums/user-role.enum';
 
 /**
  * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
@@ -46,6 +50,8 @@ export class OperationsController {
     private readonly getClientsUseCase: GetClientsUseCase,
     private readonly getRoutesUseCase: GetRoutesUseCase,
     private readonly getCargoTypesUseCase: GetCargoTypesUseCase,
+    private readonly getUsersUseCase: GetUsersUseCase,
+    private readonly updateUserUseCase: UpdateUserUseCase,
   ) {}
 
   // ─── Endpoints del Agente Operativo ────────────────────────────────────
@@ -84,6 +90,42 @@ export class OperationsController {
   async listCargoTypes() {
     const data = await this.getCargoTypesUseCase.execute();
     return { message: 'Tipos de carga obtenidos', data };
+  }
+
+  /**
+   * GET /api/operations/users?search=...&role=...
+   * Listar usuarios del sistema para gestión operativa.
+   */
+  @Get('users')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async listUsers(
+    @Query('search') search?: string,
+    @Query('role') role?: UserRole,
+  ) {
+    const data = await this.getUsersUseCase.execute(search, role);
+    return { message: 'Usuarios obtenidos', data };
+  }
+
+  /**
+   * PATCH /api/operations/users/:id
+   * Editar datos básicos de un usuario del sistema.
+   */
+  @Patch('users/:id')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async updateUser(
+    @Param('id', ParseIntPipe) userId: number,
+    @Body() dto: UpdateUserDto,
+  ) {
+    const data = await this.updateUserUseCase.execute(userId, {
+      fullName: dto.fullName,
+      email: dto.email,
+      phone: dto.phone,
+      isActive: dto.isActive,
+    });
+
+    return { message: 'Usuario actualizado correctamente', data };
   }
 
   /**
