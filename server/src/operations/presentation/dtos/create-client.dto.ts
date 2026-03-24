@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsEmail, MinLength } from 'class-validator';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
 
 export class CreateClientDto {
@@ -20,7 +20,13 @@ export class CreateClientDto {
 
   @IsString()
   @IsNotEmpty()
+  @IsEmail()
   primaryContactEmail: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(12)
+  portalPassword: string;
 
   @IsString()
   @IsOptional()

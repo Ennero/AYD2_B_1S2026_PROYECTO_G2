@@ -17,6 +17,7 @@ type FormState = {
   nombre: string
   telefono: string
   correo: string
+  contrasenaAcceso: string
   razonSocial: string
   direccion: string
   nit: string
@@ -50,6 +51,7 @@ export default function RegistrarClientePage() {
     nombre: "",
     telefono: "",
     correo: "",
+    contrasenaAcceso: "",
     razonSocial: "",
     direccion: "",
     nit: "",
@@ -95,11 +97,52 @@ export default function RegistrarClientePage() {
     return "MEDIO"
   }
 
+  function generateSecurePassword(length = 16): string {
+    const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+    const lowercase = "abcdefghijkmnopqrstuvwxyz"
+    const numbers = "23456789"
+    const symbols = "!@#$%&*?-_"
+    const charset = `${uppercase}${lowercase}${numbers}${symbols}`
+
+    const bytes = new Uint32Array(length)
+    crypto.getRandomValues(bytes)
+
+    const required = [
+      uppercase[bytes[0] % uppercase.length],
+      lowercase[bytes[1] % lowercase.length],
+      numbers[bytes[2] % numbers.length],
+      symbols[bytes[3] % symbols.length],
+    ]
+
+    const extra = Array.from(bytes)
+      .slice(4)
+      .map((n) => charset[n % charset.length])
+
+    const mixed = [...required, ...extra]
+    for (let i = mixed.length - 1; i > 0; i--) {
+      const j = bytes[i % bytes.length] % (i + 1)
+      ;[mixed[i], mixed[j]] = [mixed[j], mixed[i]]
+    }
+
+    return mixed.join("")
+  }
+
+  function handleGeneratePassword() {
+    const generated = generateSecurePassword(16)
+    setForm((s) => ({ ...s, contrasenaAcceso: generated }))
+    toast.success("Se generó una contraseña segura.")
+  }
+
   async function handleSubmit() {
     const nitSanitized = form.nit.replace(/\D/g, "")
 
-    if (!form.nombre || !form.correo || !form.razonSocial || !form.direccion) {
+    if (!form.nombre || !form.correo || !form.contrasenaAcceso || !form.razonSocial || !form.direccion) {
       toast.error("Completa los campos obligatorios para registrar el cliente.")
+      return
+    }
+
+    if (form.contrasenaAcceso.length < 12) {
+      toast.error("La contraseña de acceso debe tener al menos 12 caracteres.")
       return
     }
 
@@ -121,6 +164,7 @@ export default function RegistrarClientePage() {
         taxAddress: form.direccion,
         primaryContactName: form.nombre,
         primaryContactEmail: form.correo,
+        portalPassword: form.contrasenaAcceso,
         primaryContactPhone: form.telefono || undefined,
         paymentRisk: paymentCapacityToRisk(form.capacidadPago),
         cargoRisk: toRiskLevel(form.riesgoMercancia),
@@ -211,12 +255,33 @@ export default function RegistrarClientePage() {
                   />
                   <div className="md:col-span-2">
                     <Input
-                      label="Correo"
+                      label="Correo de acceso"
                       type="email"
-                      placeholder="ejemplo@gmail.com"
+                      placeholder="portal@empresa.com"
                       value={form.correo}
                       onChange={(e) => setForm((s) => ({ ...s, correo: e.target.value }))}
                     />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-text-primary mb-1.5">Contraseña de acceso</label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Input
+                        type="text"
+                        placeholder="Genera una contraseña segura"
+                        value={form.contrasenaAcceso}
+                        onChange={(e) => setForm((s) => ({ ...s, contrasenaAcceso: e.target.value }))}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-primary text-primary hover:bg-primary hover:text-white whitespace-nowrap"
+                        onClick={handleGeneratePassword}
+                      >
+                        Generar contraseña segura
+                      </Button>
+                    </div>
+                    <p className="text-xs text-text-muted mt-2">Mínimo 12 caracteres. Se usará para crear el usuario del portal cliente.</p>
                   </div>
                 </div>
               )}
