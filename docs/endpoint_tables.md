@@ -652,27 +652,28 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
   },
   "body": {
-    "LEGAL_NAME": "Comercializadora Maya, S.A.",
-    "COMMERCIAL_NAME": "Maya Foods",
-    "NIT": "1234567-8",
-    "TAX_ADDRESS": "Zona 12, Ciudad de Guatemala",
-    "PRIMARY_CONTACT_NAME": "Ana Morales",
-    "PRIMARY_CONTACT_EMAIL": "ana.morales@empresa.com",
-    "PRIMARY_CONTACT_PHONE": "5566-7788",
-    "PAYMENT_RISK": "MEDIO",
-    "CUSTOMS_RISK": "MEDIO",
-    "CARGO_RISK": "BAJO",
-    "AML_RISK": "MEDIO"
+    "legalName": "Comercializadora Maya, S.A.",
+    "nit": "1234567890123",
+    "taxAddress": "Zona 12, Ciudad de Guatemala",
+    "primaryContactName": "Ana Morales",
+    "primaryContactEmail": "ana.morales@empresa.com",
+    "portalPassword": "#ClaveTemporal2026",
+    "primaryContactPhone": "5566-7788",
+    "paymentRisk": "MEDIO",
+    "customsRisk": "MEDIO",
+    "cargoRisk": "BAJO",
+    "amlRisk": "MEDIO"
   }
 }</pre></td>
       <td><pre>{
-  "message": "Cliente registrado correctamente",
+  "message": "Cliente creado correctamente",
   "data": {
-    "CLIENT_ID": "fe3fc5a5-7f42-48cf-963b-ea854aa0e2ff",
-    "CLIENT_CODE": "CLI-00012"
+    "clientId": 12,
+    "clientCode": "CLI-00012",
+    "portalUserEmail": "ana.morales@empresa.com"
   }
 }</pre></td>
-      <td>Inserta en <strong>CLIENTS</strong> usando <strong>PRIMARY_CONTACT_NAME</strong>, <strong>PRIMARY_CONTACT_EMAIL</strong> y <strong>PRIMARY_CONTACT_PHONE</strong>.<br>No crea usuarios de plataforma automaticamente.</td>
+      <td>Inserta en <strong>CLIENTS</strong> y crea un usuario en <strong>USERS</strong> con rol <strong>CLIENTE</strong> usando <strong>primaryContactEmail</strong> y <strong>portalPassword</strong>.<br>Dispara el envío de credenciales de bienvenida al correo del contacto principal.</td>
     </tr>
     <tr>
       <td>GET</td>
@@ -1219,7 +1220,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>INVOICES</strong> filtrando por <strong>STATUS = BORRADOR</strong>.<br>Esta es la bandeja principal de Finanzas despues de que la entrega genero automaticamente el borrador.</td>
+      <td>Consulta <strong>INVOICES</strong> filtrando por <strong>STATUS = BORRADOR</strong> y <strong>SERVICE_DESCRIPTION = ''</strong>.<br>Esta es la bandeja principal de Finanzas donde se revisan los borradores recién generados que aún no tienen detalle de cobro.</td>
     </tr>
       <tr>
         <td>GET</td>
@@ -1265,7 +1266,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "nextStep": "PATCH /api/certifier/invoices/{INVOICE_ID}/certify"
   }
 }</pre></td>
-      <td>No crea una nueva factura.<br>Confirma la revision financiera del borrador autogenerado y lo deja listo para que FEL lo procese sobre la misma tabla <strong>INVOICES</strong>.</td>
+      <td>No crea una nueva factura.<br>Confirma la revision financiera del borrador autogenerado, actualiza la descripción y fecha de vencimiento, y lo deja listo para que FEL lo procese (se vuelve visible para el certificador).</td>
     </tr>
     <tr>
       <td>PATCH</td>
@@ -1463,7 +1464,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>INVOICES</strong> en estado <strong>BORRADOR</strong>.<br>Esta es la bandeja operativa del certificador.</td>
+      <td>Consulta <strong>INVOICES</strong> en estado <strong>BORRADOR</strong> que ya tienen <strong>SERVICE_DESCRIPTION</strong> (procesadas por Finanzas).<br>Esta es la bandeja operativa del certificador.</td>
     </tr>
     <tr>
       <td>POST</td>

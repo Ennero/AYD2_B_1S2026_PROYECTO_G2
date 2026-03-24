@@ -50,7 +50,6 @@ Guarda la empresa cliente y sus datos comerciales básicos.
 | `CLIENT_ID` | Identificador principal del cliente. |
 | `CLIENT_CODE` | Código corto de negocio para búsqueda y referencia. Si backend no lo manda, la base puede generarlo. |
 | `LEGAL_NAME` | Razón social usada en contrato y factura. |
-| `COMMERCIAL_NAME` | Nombre comercial para operación diaria. |
 | `NIT` | Dato fiscal obligatorio para la factura. En este MVP se fuerza a 13 dígitos para alinearse con la validación simulada del certificador FEL. |
 | `TAX_ADDRESS` | Dirección fiscal del cliente. |
 | `PRIMARY_CONTACT_NAME` | Contacto principal administrativo del cliente. |

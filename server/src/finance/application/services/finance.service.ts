@@ -42,7 +42,7 @@ export class FinanceService {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
 
     const draftInvoicesPendingReview = await invoiceRepo.count({
-      where: { status: InvoiceStatus.BORRADOR },
+      where: { status: InvoiceStatus.BORRADOR, serviceDescription: '' },
     });
 
     const certifiedInvoicesPendingSend = await invoiceRepo.count({
@@ -75,8 +75,14 @@ export class FinanceService {
 
   async getInvoices(status?: InvoiceStatus) {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
+    const whereCondition: any = status ? { status } : {};
+
+    if (status === InvoiceStatus.BORRADOR) {
+      whereCondition.serviceDescription = '';
+    }
+
     const invoices = await invoiceRepo.find({
-      where: status ? { status } : {},
+      where: whereCondition,
       relations: { order: true },
       order: { issueDate: 'DESC' },
     });
@@ -279,7 +285,8 @@ export class FinanceService {
       payment.reviewedByUserId = reviewedByUserId;
       await paymentRepo.save(payment);
 
-      const refreshedInvoice = await invoiceRepo.findOne({ where: { invoiceId: payment.invoiceId } });
+      invoice.status = InvoiceStatus.PAGADA;
+      await invoiceRepo.save(invoice);
 
       return {
         paymentId: payment.paymentId,
@@ -287,7 +294,7 @@ export class FinanceService {
         status: payment.status,
         reviewedByUserId: payment.reviewedByUserId,
         approvedAt: new Date(),
-        invoiceStatus: refreshedInvoice?.status ?? invoice.status,
+        invoiceStatus: invoice.status,
       };
     });
   }

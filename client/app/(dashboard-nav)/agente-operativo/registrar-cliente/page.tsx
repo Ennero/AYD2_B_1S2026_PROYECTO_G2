@@ -3,25 +3,17 @@
 import Input from "@/components/ui/Input"
 import Select from "@/components/ui/Select"
 import { useMemo, useState } from "react"
-import { UserCheck, Loader2, ArrowLeft } from "lucide-react"
+import { UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
-import { motion, AnimatePresence } from "framer-motion"
-
-const EASE = [0.16, 1, 0.3, 1] as const
-
-enum RiskLevel {
-  BAJO = "BAJO",
-  MEDIO = "MEDIO",
-  ALTO = "ALTO",
-}
 
 type FormState = {
   nombre: string
   telefono: string
   correo: string
+  contrasenaAcceso: string
   razonSocial: string
   direccion: string
   nit: string
@@ -31,56 +23,164 @@ type FormState = {
   lavadoDinero: string
 }
 
-const STEPS = ["Datos Generales", "Datos Fiscales", "Perfil de Riesgo"]
+type RiskLevel = "BAJO" | "MEDIO" | "ALTO" | "CRITICO"
+
+type CreateClientResponse = {
+  message: string
+  data: {
+    clientId: number
+    clientCode: string
+    legalName: string
+    nit: string
+    primaryContactEmail: string
+  }
+}
 
 export default function RegistrarClientePage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
   const [successOpen, setSuccessOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState<FormState>({
-    nombre: "", telefono: "", correo: "",
-    razonSocial: "", direccion: "", nit: "",
-    capacidadPago: "", riesgoMercancia: "", riesgoAduanas: "", lavadoDinero: "",
+    nombre: "",
+    telefono: "",
+    correo: "",
+    contrasenaAcceso: "",
+    razonSocial: "",
+    direccion: "",
+    nit: "",
+    capacidadPago: "",
+    riesgoMercancia: "",
+    riesgoAduanas: "",
+    lavadoDinero: "",
   })
 
-  const riskOptions = useMemo(() => [
-    { value: "bajo", label: "Bajo" },
-    { value: "medio", label: "Medio" },
-    { value: "alto", label: "Alto" },
-  ], [])
+  const canGoBack = currentStep > 0
+  const canGoNext = currentStep < steps.length - 1
+  const isLastStep = currentStep === steps.length - 1
 
-  const capacidadPagoOptions = useMemo(() => [
-    { value: "bajo", label: "Baja" },
-    { value: "medio", label: "Media" },
-    { value: "alto", label: "Alta" },
-  ], [])
+  const riskOptions = useMemo(
+    () => [
+      { value: "bajo", label: "Bajo" },
+      { value: "medio", label: "Medio" },
+      { value: "alto", label: "Alto" },
+    ],
+    []
+  )
+
+  const capacidadPagoOptions = useMemo(
+    () => [
+      { value: "bajo", label: "Baja" },
+      { value: "medio", label: "Media" },
+      { value: "alto", label: "Alta" },
+    ],
+    []
+  )
+
+  function toRiskLevel(value: string): RiskLevel {
+    const normalized = value.toLowerCase()
+    if (normalized === "bajo") return "BAJO"
+    if (normalized === "alto") return "ALTO"
+    return "MEDIO"
+  }
+
+  function paymentCapacityToRisk(value: string): RiskLevel {
+    const normalized = value.toLowerCase()
+    if (normalized === "alta") return "BAJO"
+    if (normalized === "baja") return "ALTO"
+    return "MEDIO"
+  }
+
+  function generateSecurePassword(length = 16): string {
+    const uppercase = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+    const lowercase = "abcdefghijkmnopqrstuvwxyz"
+    const numbers = "23456789"
+    const symbols = "!@#$%&*?-_"
+    const charset = `${uppercase}${lowercase}${numbers}${symbols}`
+
+    const bytes = new Uint32Array(length)
+    crypto.getRandomValues(bytes)
+
+    const required = [
+      uppercase[bytes[0] % uppercase.length],
+      lowercase[bytes[1] % lowercase.length],
+      numbers[bytes[2] % numbers.length],
+      symbols[bytes[3] % symbols.length],
+    ]
+
+    const extra = Array.from(bytes)
+      .slice(4)
+      .map((n) => charset[n % charset.length])
+
+    const mixed = [...required, ...extra]
+    for (let i = mixed.length - 1; i > 0; i--) {
+      const j = bytes[i % bytes.length] % (i + 1)
+      ;[mixed[i], mixed[j]] = [mixed[j], mixed[i]]
+    }
+
+    return mixed.join("")
+  }
+
+  function handleGeneratePassword() {
+    const generated = generateSecurePassword(16)
+    setForm((s) => ({ ...s, contrasenaAcceso: generated }))
+    toast.success("Se generó una contraseña segura.")
+  }
 
   async function handleSubmit() {
-    if (!form.razonSocial || !form.nit || !form.nombre || !form.correo) {
-      return toast.error("Por favor completa los campos obligatorios")
+    const nitSanitized = form.nit.replace(/\D/g, "")
+
+    if (!form.nombre || !form.correo || !form.contrasenaAcceso || !form.razonSocial || !form.direccion) {
+      toast.error("Completa los campos obligatorios para registrar el cliente.")
+      return
     }
-    setLoading(true)
+
+    if (form.contrasenaAcceso.length < 12) {
+      toast.error("La contraseña de acceso debe tener al menos 12 caracteres.")
+      return
+    }
+
+    if (!/^\d{13}$/.test(nitSanitized)) {
+      toast.error("El NIT debe tener exactamente 13 dígitos.")
+      return
+    }
+
+    if (!form.capacidadPago || !form.riesgoMercancia || !form.riesgoAduanas || !form.lavadoDinero) {
+      toast.error("Completa el perfil de riesgo antes de continuar.")
+      return
+    }
+
+    setIsSubmitting(true)
     try {
-      await api.post(ENDPOINTS.CLIENTES.CREATE, {
+      await api.post<CreateClientResponse>(ENDPOINTS.CLIENTES.CREATE, {
         legalName: form.razonSocial,
-        nit: form.nit,
-        taxAddress: form.direccion || "Ciudad",
+        nit: nitSanitized,
+        taxAddress: form.direccion,
         primaryContactName: form.nombre,
         primaryContactEmail: form.correo,
-        primaryContactPhone: form.telefono,
-        paymentRisk: (form.capacidadPago || "medio").toUpperCase() as RiskLevel,
-        customsRisk: (form.riesgoAduanas || "medio").toUpperCase() as RiskLevel,
-        cargoRisk: (form.riesgoMercancia || "medio").toUpperCase() as RiskLevel,
-        amlRisk: (form.lavadoDinero || "medio").toUpperCase() as RiskLevel,
+        portalPassword: form.contrasenaAcceso,
+        primaryContactPhone: form.telefono || undefined,
+        paymentRisk: paymentCapacityToRisk(form.capacidadPago),
+        cargoRisk: toRiskLevel(form.riesgoMercancia),
+        customsRisk: toRiskLevel(form.riesgoAduanas),
+        amlRisk: toRiskLevel(form.lavadoDinero),
       })
+
       setSuccessOpen(true)
-    } catch (error) {
-      console.error("Failed to register client:", error)
+    } catch {
+      toast.error("No se pudo registrar el cliente. Intenta nuevamente.")
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
+  }
+
+  function goBack() {
+    setCurrentStep((s) => Math.max(0, s - 1))
+  }
+
+  function goNext() {
+    setCurrentStep((s) => Math.min(steps.length - 1, s + 1))
   }
 
   return (
@@ -212,24 +312,57 @@ export default function RegistrarClientePage() {
             </span>
           </div>
 
-          <div style={{ padding: "1.75rem" }}>
-            <AnimatePresence mode="wait">
-              <motion.div key={currentStep}
-                initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.22 }}>
+            <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] border-b border-black/5 pb-4 mb-8">
+              {currentStep + 1}. {steps[currentStep]}
+            </h2>
 
-                {currentStep === 0 && (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
-                    <Input label="Nombre completo" placeholder="Ej. Henry Contreras"
-                      value={form.nombre} onChange={e => setForm(s => ({ ...s, nombre: e.target.value }))} />
-                    <Input label="Teléfono" placeholder="Ej. 5555-5555"
-                      value={form.telefono} onChange={e => setForm(s => ({ ...s, telefono: e.target.value }))} />
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <Input label="Correo electrónico" type="email" placeholder="ejemplo@empresa.com"
-                        value={form.correo} onChange={e => setForm(s => ({ ...s, correo: e.target.value }))} />
-                    </div>
+            <div className="mt-8">
+              {currentStep === 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <Input
+                    label="Nombre"
+                    placeholder="Ej. Henry Contreras"
+                    value={form.nombre}
+                    onChange={(e) => setForm((s) => ({ ...s, nombre: e.target.value }))}
+                  />
+                  <Input
+                    label="Teléfono"
+                    placeholder="Ej. 5555-5555"
+                    value={form.telefono}
+                    onChange={(e) => setForm((s) => ({ ...s, telefono: e.target.value }))}
+                  />
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Correo de acceso"
+                      type="email"
+                      placeholder="portal@empresa.com"
+                      value={form.correo}
+                      onChange={(e) => setForm((s) => ({ ...s, correo: e.target.value }))}
+                    />
                   </div>
-                )}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-text-primary mb-1.5">Contraseña de acceso</label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Input
+                        type="text"
+                        placeholder="Genera una contraseña segura"
+                        value={form.contrasenaAcceso}
+                        onChange={(e) => setForm((s) => ({ ...s, contrasenaAcceso: e.target.value }))}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="border-primary text-primary hover:bg-primary hover:text-white whitespace-nowrap"
+                        onClick={handleGeneratePassword}
+                      >
+                        Generar contraseña segura
+                      </Button>
+                    </div>
+                    <p className="text-xs text-text-muted mt-2">Mínimo 12 caracteres. Se usará para crear el usuario del portal cliente.</p>
+                  </div>
+                </div>
+              )}
 
                 {currentStep === 1 && (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
@@ -265,60 +398,28 @@ export default function RegistrarClientePage() {
             </AnimatePresence>
           </div>
 
-          {/* Navigation */}
-          <div style={{ borderTop: "1px solid rgba(12,12,10,0.06)", padding: "1.25rem 1.75rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <button
-              onClick={() => setCurrentStep(s => Math.max(0, s - 1))}
-              disabled={currentStep === 0}
-              style={{
-                padding: "0.5rem 1.25rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
-                letterSpacing: "0.1em", textTransform: "uppercase",
-                cursor: currentStep === 0 ? "not-allowed" : "pointer",
-                border: "1px solid rgba(12,12,10,0.12)", background: "transparent",
-                color: currentStep === 0 ? "rgba(12,12,10,0.2)" : "rgba(12,12,10,0.45)",
-                transition: "all 0.15s",
-              }}
-              onMouseOver={e => { if (currentStep > 0) e.currentTarget.style.color = "#0C0C0A" }}
-              onMouseOut={e => { if (currentStep > 0) e.currentTarget.style.color = "rgba(12,12,10,0.45)" }}
-            >
-              ← Atrás
-            </button>
+            <div className="mt-12 flex items-center justify-between border-t border-black/5 pt-8">
+              <Button type="button" variant="outline" disabled={!canGoBack} onClick={goBack} className="border-black/10 hover:bg-black/5 px-8">
+                Atrás
+              </Button>
 
-            {currentStep < STEPS.length - 1 ? (
-              <button
-                onClick={() => setCurrentStep(s => Math.min(STEPS.length - 1, s + 1))}
-                style={{
-                  padding: "0.5rem 1.75rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
-                  letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer",
-                  background: "#0C0C0A", color: "#F5F2EC", border: "none", transition: "background 0.15s",
-                }}
-                onMouseOver={e => (e.currentTarget.style.background = "#C9924B")}
-                onMouseOut={e => (e.currentTarget.style.background = "#0C0C0A")}
-              >
-                Siguiente →
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                style={{
-                  padding: "0.5rem 1.75rem", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
-                  letterSpacing: "0.1em", textTransform: "uppercase",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  background: loading ? "#9A9489" : "#0C0C0A", color: "#F5F2EC",
-                  border: "none", transition: "background 0.15s",
-                  display: "flex", alignItems: "center", gap: "6px",
-                }}
-                onMouseOver={e => { if (!loading) e.currentTarget.style.background = "#C9924B" }}
-                onMouseOut={e => { if (!loading) e.currentTarget.style.background = "#0C0C0A" }}
-              >
-                {loading && <Loader2 size={11} className="animate-spin" />}
-                Registrar Cliente →
-              </button>
-            )}
-          </div>
-        </motion.div>
-
+              {!isLastStep ? (
+                <Button type="button" onClick={goNext} className="bg-[#0A3B7C] text-white hover:bg-[#083066] px-10">
+                  Siguiente
+                </Button>
+              ) : (
+                <Button 
+                  type="button" 
+                  onClick={handleSubmit} 
+                  className="bg-[#53B73E] text-white hover:bg-[#3A8E2A] px-10"
+                  loading={isSubmitting}
+                >
+                  Registrar Cliente
+                </Button>
+              )}
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   )

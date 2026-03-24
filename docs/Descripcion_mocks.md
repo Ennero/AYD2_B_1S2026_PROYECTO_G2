@@ -154,7 +154,7 @@ Pantalla de parametrización financiera y operativa. Permite establecer y actual
 
 ### 2. Panel de Facturación (Agente Financiero)
 
-Centro de control para la gestión de cobros. Presenta un listado centralizado de los borradores de factura generados automáticamente cuando los viajes pasan a estado "Entregada", permitiendo al equipo financiero revisar el documento fiscal, ajustarlo si hace falta y remitirlo al flujo FEL.
+Centro de control para la gestión de cobros. Presenta un listado centralizado de los borradores de factura generados automáticamente cuando los viajes pasan a estado "Entregada". En esta bandeja solo aparecen los borradores que aún no han sido procesados (sin descripción ni fecha de vencimiento), permitiendo al equipo financiero revisarlos y completarlos para remitirlos al flujo FEL.
 
 ![Panel de Facturación](./img_mocks/PanelFacts.png)
 
@@ -162,7 +162,7 @@ Centro de control para la gestión de cobros. Presenta un listado centralizado d
 
 ### 3. Revisión Pre-factura (DTE)
 
-Vista previa y validación del borrador de cobro autogenerado. Permite al agente financiero auditar los datos fiscales del cliente, el concepto detallado del servicio logístico y el desglose de montos (Subtotal, IVA y Total a facturar) antes de enviar el documento definitivo para su certificación legal.
+Vista previa y validación del borrador de cobro autogenerado. El agente financiero debe auditar los datos fiscales del cliente y es el responsable de ingresar obligatoriamente el **Concepto detallado del servicio** y la **Fecha de vencimiento** en el modal de confirmación antes de enviar el documento para su certificación legal. Al completar este paso, la factura desaparece de la bandeja de Finanzas y se vuelve visible para el Certificador.
 
 ![Revisión Pre-factura](./img_mocks/RevisionPreFactura.png)
 
@@ -170,7 +170,7 @@ Vista previa y validación del borrador de cobro autogenerado. Permite al agente
 
 ### 4. Portal Certificador FEL (Bandeja de Aprobación)
 
-Simulador del entorno del certificador externo (Factura Electrónica en Línea). Funciona como una bandeja de entrada donde se reciben las pre-facturas emitidas por LogiTrans, permitiendo a la entidad tributaria autorizar ("Certificar") o rechazar los Documentos Tributarios Electrónicos (DTE).
+Simulador del entorno del certificador externo (Factura Electrónica en Línea). Funciona como una bandeja de entrada donde se reciben las pre-facturas que ya fueron procesadas por el equipo de LogiTrans (con descripción y fecha). Permite a la entidad tributaria autorizar ("Certificar") o rechazar los Documentos Tributarios Electrónicos (DTE). Una vez certificada, la factura regresa a la bandeja de "Certificadas" en Finanzas para su envío final al cliente.
 
 ![Portal Certificador FEL](./img_mocks/PortalCertificadoFEL.png)
 

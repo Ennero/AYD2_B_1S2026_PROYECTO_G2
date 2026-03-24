@@ -82,7 +82,7 @@ export class BiService {
     >(`
       SELECT
         o.order_number,
-        c.commercial_name AS client_name,
+        c.legal_name AS client_name,
         r.origin          AS origin,
         r.destination     AS destination,
         o.status,
@@ -113,16 +113,17 @@ export class BiService {
 
     // Revenue per client
     const revenueByClient = await this.dataSource.query<
-      { client_name: string; ingresos: string; subtotal: string }[]
+      { client_name: string; ingresos: string; rentabilidad: string }[]
     >(`
       SELECT
         i.client_name,
         ROUND(SUM(i.total_amount)::numeric, 2)    AS ingresos,
-        ROUND(SUM(i.subtotal_amount)::numeric, 2) AS subtotal
+        ROUND(SUM(i.total_amount - (COALESCE(o.fuel_cost, 0) + COALESCE(o.viatics_cost, 0) + COALESCE(o.maintenance_cost, 0)))::numeric, 2) AS rentabilidad
       FROM invoices i
+      JOIN orders o ON o.order_id = i.order_id
       WHERE ${invoiceDateFilter}
       GROUP BY i.client_name
-      ORDER BY ingresos DESC
+      ORDER BY rentabilidad DESC
       LIMIT 8
     `);
 
@@ -174,7 +175,7 @@ export class BiService {
       revenueByClient: revenueByClient.map((r) => ({
         clientName: r.client_name,
         ingresos: parseFloat(r.ingresos),
-        subtotal: parseFloat(r.subtotal),
+        rentabilidad: parseFloat(r.rentabilidad),
       })),
       compliance: {
         onTimePct: compliancePct,

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, Not } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
@@ -19,7 +19,7 @@ export class CertifierService {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
 
     const pendingInvoices = await invoiceRepo.count({
-      where: { status: InvoiceStatus.BORRADOR },
+      where: { status: InvoiceStatus.BORRADOR, serviceDescription: Not('') },
     });
 
     const now = new Date();
@@ -44,7 +44,7 @@ export class CertifierService {
 
   async getPendingInvoices() {
     return this.dataSource.getRepository(Invoice).find({
-      where: { status: InvoiceStatus.BORRADOR },
+      where: { status: InvoiceStatus.BORRADOR, serviceDescription: Not('') },
       select: ['invoiceId', 'invoiceNumber', 'issueDate', 'clientName', 'clientNit', 'totalAmount', 'status'],
       order: { issueDate: 'ASC' },
     });
@@ -66,7 +66,7 @@ export class CertifierService {
     };
   }
 
-  async certifyInvoice(invoiceId: number, felUuid: string, clientNit: string) {
+  async certifyInvoice(invoiceId: number, clientNit: string) {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
     if (invoice.status !== InvoiceStatus.BORRADOR) {
@@ -80,8 +80,11 @@ export class CertifierService {
       );
     }
 
+    const crypto = require('crypto');
+    const generatedFelUuid = crypto.randomUUID();
+
     invoice.status = InvoiceStatus.CERTIFICADA;
-    invoice.felUuid = felUuid;
+    invoice.felUuid = generatedFelUuid;
     invoice.certifiedAt = new Date();
 
     await this.dataSource.getRepository(Invoice).save(invoice);

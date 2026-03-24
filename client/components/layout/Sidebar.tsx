@@ -15,6 +15,7 @@ const SIDEBAR_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
       { label: "Inicio", href: "/agente-operativo" },
       { label: "Registrar Cliente", href: "/agente-operativo/registrar-cliente" },
       { label: "Formalizar Contrato", href: "/agente-operativo/formalizar-contrato" },
+      { label: "Gestionar Usuarios", href: "/agente-operativo/usuarios" },
     ],
   },
   piloto: {

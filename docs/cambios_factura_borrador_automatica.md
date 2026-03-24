@@ -51,7 +51,8 @@ Se reemplazó el flujo principal de creación manual de prefactura por un flujo 
 1. El piloto confirma la entrega.
 2. La orden cambia a `ENTREGADA`.
 3. La base crea automáticamente una factura `BORRADOR`.
-4. Finanzas revisa ese borrador ya existente.
-5. Finanzas lo envía al flujo FEL.
-6. FEL certifica o rechaza.
-7. Finanzas envía la factura certificada al cliente.
+4. Finanzas revisa ese borrador ya existente en su bandeja (filtrado por descripción vacía).
+5. Finanzas **debe** completar la descripción y fecha de vencimiento.
+6. Finanzas lo envía al flujo FEL (ahora el borrador tiene descripción y se vuelve visible para el Certificador).
+7. FEL certifica o rechaza.
+8. Finanzas toma la factura `CERTIFICADA`, la envía al cliente y el estado cambia a `ENVIADA`.

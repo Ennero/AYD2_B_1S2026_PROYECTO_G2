@@ -40,7 +40,6 @@ export function getShortId(index: number): string {
 interface ClientBlueprint {
   key: string;
   legalName: string;
-  commercialName: string;
   nit: string;
   taxAddress: string;
   primaryContactName: string;
@@ -82,6 +81,7 @@ interface InternalUserBlueprint {
   email: string;
   phone: string;
   role: UserRole;
+  password?: string;
 }
 
 interface OrderPlan {
@@ -157,15 +157,17 @@ const EXTRA_CARGO_TYPES = [
 const INTERNAL_USERS: InternalUserBlueprint[] = [
   {
     fullName: 'Simulador FEL SAT',
-    email: 'certificador.fel@sat.gob.gt',
+    email: '2895884051401+s@ingenieria.usac.edu.gt',
     phone: '+50241000001',
     role: UserRole.CERTIFICADOR_FEL,
+    password: 'LogiSAT',
   },
   {
     fullName: 'Andrea Solares',
-    email: 'operativo.1@logitrans.gt',
+    email: '2895884051401+v@ingenieria.usac.edu.gt',
     phone: '+50241000002',
     role: UserRole.AGENTE_OPERATIVO,
+    password: 'LogiVentas',
   },
   {
     fullName: 'Luis Argueta',
@@ -175,9 +177,10 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Karla Menendez',
-    email: 'logistica.1@logitrans.gt',
+    email: '2895884051401+l@ingenieria.usac.edu.gt',
     phone: '+50241000004',
     role: UserRole.AGENTE_LOGISTICO,
+    password: 'LogiLogistica',
   },
   {
     fullName: 'Diego Paredes',
@@ -193,9 +196,10 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Mario Caal',
-    email: 'patio.1@logitrans.gt',
+    email: '2895884051401+p@ingenieria.usac.edu.gt',
     phone: '+50241000007',
     role: UserRole.ENCARGADO_PATIO,
+    password: 'LogiPatio',
   },
   {
     fullName: 'Julio Macz',
@@ -205,9 +209,10 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Silvia Monterroso',
-    email: 'finanzas.1@logitrans.gt',
+    email: '2895884051401+f@ingenieria.usac.edu.gt',
     phone: '+50241000009',
     role: UserRole.AGENTE_FINANCIERO,
+    password: 'LogiFinanzas',
   },
   {
     fullName: 'Pamela Castellanos',
@@ -223,15 +228,17 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
   },
   {
     fullName: 'Ricardo Solis',
-    email: 'gerencia@logitrans.gt',
+    email: '2895884051401@ingenieria.usac.edu.gt',
     phone: '+50241000012',
     role: UserRole.GERENCIA,
+    password: 'LogiGerencia',
   },
   {
     fullName: 'Carlos Mendez',
-    email: 'piloto.01@logitrans.gt',
+    email: '2895884051401+t@ingenieria.usac.edu.gt',
     phone: '+50241000101',
     role: UserRole.PILOTO,
+    password: 'LogiPiloto',
   },
   {
     fullName: 'Edgar Choc',
@@ -314,20 +321,20 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
 ];
 
 const MVP_PRIORITY_USER_EMAILS: string[] = [
-  'certificador.fel@sat.gob.gt',
-  'operativo.1@logitrans.gt',
-  'logistica.1@logitrans.gt',
-  'patio.1@logitrans.gt',
-  'finanzas.1@logitrans.gt',
-  'gerencia@logitrans.gt',
-  'piloto.01@logitrans.gt',
+  '2895884051401@ingenieria.usac.edu.gt',
+  '2895884051401+v@ingenieria.usac.edu.gt',
+  '2895884051401+f@ingenieria.usac.edu.gt',
+  '2895884051401+l@ingenieria.usac.edu.gt',
+  '2895884051401+p@ingenieria.usac.edu.gt',
+  '2895884051401+s@ingenieria.usac.edu.gt',
+  '2895884051401+t@ingenieria.usac.edu.gt',
+  '2895884051401+c@ingenieria.usac.edu.gt',
 ];
 
 const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'alimentos-norte',
     legalName: 'ALIMENTOS DEL NORTE, S.A.',
-    commercialName: 'Alnorsa',
     nit: '1000000000001',
     taxAddress: '12 avenida 18-45 zona 10, Ciudad de Guatemala',
     primaryContactName: 'Paola Estrada',
@@ -387,7 +394,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'farmaceutica-maya',
     legalName: 'FARMACEUTICA MAYA, S.A.',
-    commercialName: 'FarmaMaya',
     nit: '1000000000002',
     taxAddress: '14 calle 6-20 zona 9, Ciudad de Guatemala',
     primaryContactName: 'Hector Figueroa',
@@ -439,7 +445,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'textiles-pacifico',
     legalName: 'TEXTILES DEL PACIFICO, S.A.',
-    commercialName: 'TexPac',
     nit: '1000000000003',
     taxAddress: 'Km 16.5 ruta al Pacifico, Villa Nueva, Guatemala',
     primaryContactName: 'Marcos Cifuentes',
@@ -485,7 +490,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'agroexportadora-verapaz',
     legalName: 'AGROEXPORTADORA VERAPAZ, S.A.',
-    commercialName: 'AgroVerapaz',
     nit: '1000000000004',
     taxAddress: 'Salida a Coban km 210, Alta Verapaz, Guatemala',
     primaryContactName: 'Carmen Orellana',
@@ -531,7 +535,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'electro-centroamerica',
     legalName: 'ELECTRO CENTROAMERICA, S.A.',
-    commercialName: 'ElectroCA',
     nit: '1000000000005',
     taxAddress: '4 avenida 9-18 zona 4, Mixco, Guatemala',
     primaryContactName: 'Pablo Cardona',
@@ -591,7 +594,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'aceros-istmo',
     legalName: 'ACEROS DEL ISTMO, S.A.',
-    commercialName: 'Aceros Istmo',
     nit: '1000000000006',
     taxAddress: 'Ruta al Atlantico km 14.5, zona 18, Guatemala',
     primaryContactName: 'Alejandro Chacon',
@@ -637,7 +639,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'supermercados-lago',
     legalName: 'SUPERMERCADOS DEL LAGO, S.A.',
-    commercialName: 'SuperLago',
     nit: '1000000000007',
     taxAddress: 'Boulevard principal 11-22, zona 1, Quetzaltenango',
     primaryContactName: 'Viviana Cuyun',
@@ -683,7 +684,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'quimicos-caribe',
     legalName: 'QUIMICOS DEL CARIBE, S.A.',
-    commercialName: 'Quimicar',
     nit: '1000000000008',
     taxAddress: 'Zona industrial 2, Puerto Barrios, Izabal',
     primaryContactName: 'Mario Vasquez',
@@ -729,7 +729,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'bebidas-occidente',
     legalName: 'BEBIDAS DEL OCCIDENTE, S.A.',
-    commercialName: 'Bebidas Occidente',
     nit: '1000000000009',
     taxAddress: 'Parque industrial, San Juan Ostuncalco, Quetzaltenango',
     primaryContactName: 'Javier Escobar',
@@ -766,7 +765,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'retail-portuario',
     legalName: 'RETAIL PORTUARIO, S.A.',
-    commercialName: 'Retail Portuario',
     nit: '1000000000010',
     taxAddress: 'Zona libre 4, Puerto Barrios, Izabal',
     primaryContactName: 'Natalia Solorzano',
@@ -797,7 +795,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'tecnologia-aduanera',
     legalName: 'TECNOLOGIA ADUANERA, S.A.',
-    commercialName: 'TecAduanas',
     nit: '1000000000011',
     taxAddress: 'Zona 13, edificio plataforma, Ciudad de Guatemala',
     primaryContactName: 'Erick Monterroso',
@@ -828,7 +825,6 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'importadora-oriental',
     legalName: 'IMPORTADORA ORIENTAL, S.A.',
-    commercialName: 'ImpOriental',
     nit: '1000000000012',
     taxAddress: 'Zona franca 1, Morales, Izabal',
     primaryContactName: 'Roxana Matias',
@@ -879,7 +875,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
   {
     branchCode: 'GUA',
     vehicleTypeCode: 'LIGHT',
-    pilotEmail: 'piloto.01@logitrans.gt',
+    pilotEmail: '2895884051401+t@ingenieria.usac.edu.gt',
     plateNumber: 'C-310BHQ',
     vehicleModel: 'Hyundai H100 2023',
     capacityTon: 3.2,
@@ -1026,10 +1022,13 @@ const ORDER_PLANS: OrderPlan[] = [
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY' },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'TRAILER', requiresRefrigeration: true },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'TRAILER' },
+  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'LIGHT' },
+  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY', requiresRefrigeration: true },
+  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY' },
 ];
 
 function daysFromNow(offsetDays: number): Date {
-  const value = new Date();
+  const value = new Date('2026-04-11T12:00:00Z');
   value.setUTCDate(value.getUTCDate() + offsetDays);
   return value;
 }
@@ -1175,8 +1174,8 @@ export class DatabaseSeeder {
   private async seedInternalUsers(manager: EntityManager): Promise<User[]> {
     const repository = manager.getRepository(User);
     const usersToCreate = await Promise.all(
-      INTERNAL_USERS.map(async (user, index) => {
-        const passwordHash = await bcrypt.hash(`seed$${user.email}`, 10);
+      INTERNAL_USERS.map(async (user) => {
+        const passwordHash = await bcrypt.hash(user.password ?? 'Logi2026', 10);
         return repository.create({
           role: user.role,
           fullName: user.fullName,
@@ -1200,7 +1199,6 @@ export class DatabaseSeeder {
       CLIENT_BLUEPRINTS.map((client, index) =>
         repository.create({
           legalName: client.legalName,
-          commercialName: client.commercialName,
           nit: client.nit,
           taxAddress: client.taxAddress,
           primaryContactName: client.primaryContactName,
@@ -1232,12 +1230,13 @@ export class DatabaseSeeder {
     const clientUsers = await Promise.all(
       CLIENT_BLUEPRINTS.map(async (client, index) => {
         const entity = mustFind(clientByNit.get(client.nit), client.legalName);
-        const passwordHash = await bcrypt.hash(`seed$portal.${client.key}`, 10);
+        const passwordHash = await bcrypt.hash('Logi2026', 10);
+        const email = index === 0 ? '2895884051401+c@ingenieria.usac.edu.gt' : `2895884051401+c${index}@ingenieria.usac.edu.gt`;
         return repository.create({
           clientId: entity.clientId,
           role: UserRole.CLIENTE,
           fullName: `${client.primaryContactName} Portal`,
-          email: `portal.${client.key}@clientes.logitrans.gt`,
+          email,
           passwordHash,
           phone: client.primaryContactPhone,
           isActive: true,
@@ -1330,7 +1329,7 @@ export class DatabaseSeeder {
         creditLimit: blueprint.creditLimit,
         paymentTermDays: blueprint.paymentTermDays,
         discountPercentage: blueprint.discountPercentage,
-        notes: `Contrato marco para ${blueprint.commercialName}.`,
+        notes: `Contrato marco para ${blueprint.legalName}.`,
         cargoTypes: blueprint.cargoNames.map((cargoName) =>
           mustFind(cargoByName.get(cargoName), cargoName),
         ),
@@ -1607,12 +1606,55 @@ export class DatabaseSeeder {
       );
 
       for (const [planIndex, plan] of ORDER_PLANS.entries()) {
-        const requestedAt = hoursAfter(daysFromNow(-(75 - clientIndex * 5 - planIndex * 2)), planIndex * 4);
+        // ── Resolve route and contractRoute first ───────────────────────────────
         const contractRoute =
           plan.stage === 'REGISTRADA'
             ? null
             : availableContractRoutes[planIndex % availableContractRoutes.length];
         const route = contractRoute ? mustFind(routeById.get(contractRoute.routeId), `${contractRoute.routeId}`) : null;
+
+        // ── Timing por stage, centrado en 11 de Abril de 2026 ──────────────────
+        // daysFromNow(0) = 2026-04-11T12:00:00Z (mediodía demo)
+        let requestedAt: Date;
+        let scheduledPickupAt: Date | null = null;
+        let promisedDeliveryAt: Date | null = null;
+        let dispatchedAt: Date | null = null;
+
+        if (plan.stage === 'REGISTRADA') {
+          // Recién creada esta mañana
+          requestedAt = hoursAfter(daysFromNow(0), -4 - clientIndex * 0.3);
+        } else if (plan.stage === 'ASIGNADA') {
+          // Solicitada hace 2-4 días, asignada hoy
+          requestedAt = hoursAfter(daysFromNow(-2 - clientIndex % 3), clientIndex * 1.2);
+          if (route) {
+            scheduledPickupAt = hoursAfter(requestedAt, 10 + clientIndex);
+            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+          }
+        } else if (plan.stage === 'LISTA') {
+          // Lista para despacho: solicitada hace 4 días, pickup esta madrugada
+          requestedAt = hoursAfter(daysFromNow(-4 - clientIndex % 2), 8 + clientIndex);
+          if (route) {
+            scheduledPickupAt = hoursAfter(daysFromNow(0), -6 - clientIndex * 0.5);
+            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+          }
+        } else if (plan.stage === 'TRANSITO') {
+          // En tránsito AHORA (11 abril): despachado esta mañana, entrega prometida esta tarde
+          requestedAt = hoursAfter(daysFromNow(-3 - clientIndex % 3), 6 + clientIndex * 0.5);
+          if (route) {
+            scheduledPickupAt = hoursAfter(daysFromNow(0), -8 - clientIndex);
+            promisedDeliveryAt = hoursAfter(daysFromNow(0), 4 + clientIndex * 0.5);
+            dispatchedAt = hoursAfter(scheduledPickupAt, 1.5);
+          }
+        } else {
+          // ENTREGADA: dispersas en los últimos 3 meses (rango -90 a -5 días)
+          const historyOffset = -(5 + clientIndex * 7 + planIndex * 3);
+          requestedAt = hoursAfter(daysFromNow(historyOffset), planIndex * 4);
+          if (route) {
+            scheduledPickupAt = hoursAfter(requestedAt, 10 + planIndex);
+            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+            dispatchedAt = hoursAfter(scheduledPickupAt, 1.5);
+          }
+        }
         const preferredCargoName =
           plan.requiresRefrigeration && blueprint.cargoNames.includes('CARGA REFRIGERADA')
             ? 'CARGA REFRIGERADA'
@@ -1640,15 +1682,6 @@ export class DatabaseSeeder {
         const subtotalAmount = route ? roundCurrency(distance * finalRatePerKm) : 0;
         const taxAmount = route ? roundCurrency(subtotalAmount * 0.12) : 0;
         const totalAmount = route ? roundCurrency(subtotalAmount + taxAmount) : 0;
-        const scheduledPickupAt = route ? hoursAfter(requestedAt, 10 + planIndex) : null;
-        const promisedDeliveryAt =
-          route && scheduledPickupAt
-            ? hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours))
-            : null;
-        const dispatchedAt =
-          plan.stage === 'TRANSITO' || plan.stage === 'ENTREGADA'
-            ? hoursAfter(scheduledPickupAt ?? requestedAt, 1.5)
-            : null;
 
         const declaredWeight = unit
           ? this.calculateDeclaredWeight(Number(unit.capacityTon), plan.preferredVehicleTypeCode)
@@ -1670,7 +1703,7 @@ export class DatabaseSeeder {
             cargoTypeId: cargoType.cargoTypeId,
             unitId: unit?.unitId,
             status: initialStatus,
-            cargoDescription: `${cargoType.cargoName} para ${blueprint.commercialName}`,
+            cargoDescription: `${cargoType.cargoName} para ${blueprint.legalName}`,
             declaredWeightTon: declaredWeight,
             loadedWeightTon: loadedWeight,
             origin: route?.origin,
@@ -1703,7 +1736,7 @@ export class DatabaseSeeder {
             fuelCost,
             viaticsCost,
             maintenanceCost,
-            notes: `Orden seed ${plan.stage.toLowerCase()} para ${blueprint.commercialName}`,
+            notes: `Orden seed ${plan.stage.toLowerCase()} para ${blueprint.legalName}`,
           }),
         );
 
@@ -1724,16 +1757,39 @@ export class DatabaseSeeder {
       }
     }
 
-    for (const record of createdOrders.filter((order) => order.finalStage === 'ENTREGADA')) {
+    const deliveredOrders = createdOrders.filter((order) => order.finalStage === 'ENTREGADA');
+    for (const [deliveryIdx, record] of deliveredOrders.entries()) {
+      const promisedHours = Number(record.contractRoute?.promisedDeliveryHours ?? 8);
+      // Ensure at least three explicit late deliveries for the demo
+      let offsetHrs: number;
+      if (deliveryIdx < 3) {
+        // Force a clear delay of 2 hours
+        offsetHrs = 2.0;
+      } else {
+        // Pattern: 0=early(-2h), 1=ontime(-0.5h), 2=ontime(0h), 3=ontime(+0.3h), 4=late(+1.5h)
+        const pattern = deliveryIdx % 5;
+        if (pattern === 0) {
+          offsetHrs = -2.0;
+        } else if (pattern === 1) {
+          offsetHrs = -0.5;
+        } else if (pattern === 2) {
+          offsetHrs = 0.0;
+        } else if (pattern === 3) {
+          offsetHrs = 0.3;
+        } else {
+          offsetHrs = 1.5;
+        }
+      }
+
       const deliveredAt = hoursAfter(
         record.dispatchedAt ?? record.scheduledPickupAt ?? record.requestedAt,
-        Number(record.contractRoute?.promisedDeliveryHours ?? 8) + 1,
+        promisedHours + offsetHrs,
       );
 
       await orderRepository.update(record.order.orderId, {
         status: OrderStatus.ENTREGADA,
         deliveredAt,
-        receiverName: `Recibe ${record.blueprint.commercialName}`,
+        receiverName: `Recibe ${record.blueprint.legalName}`,
         receiverSignaturePath: `/seed/signatures/${record.order.orderId}.png`,
         deliveryEvidencePath: `/seed/evidence/${record.order.orderId}.png`,
       });
@@ -1806,15 +1862,35 @@ export class DatabaseSeeder {
           );
         }
 
-        if (index % 4 === 0) {
+        // Incidente activo: en órdenes EN_TRANSITO aparece en /api/bi/alerts (ORDER NOT IN 'ENTREGADA').
+        // En órdenes ENTREGADA aparece en historial pero NO en alertas activas.
+        if (record.finalStage === 'TRANSITO') {
+          // Todos los EN_TRANSITO tienen incidente activo -> visible en Dashboard Alertas
+          const incidentDescriptions = [
+            'Congestion vehicular en tramo principal, retraso estimado 1.5h.',
+            'Averia menor del vehiculo. Mecanico en camino. ETA 2h.',
+            'Control policial en carretera RN-1. Documentos en revision.',
+            'Accidente de terceros bloquea carril. Desvio en progreso.',
+            'Condiciones climaticas adversas: lluvia fuerte. Velocidad reducida.',
+          ];
           logCounter++;
           entries.push(
             repository.create({
-  
               orderId: record.order.orderId,
               eventType: RouteEventType.INCIDENTE,
               eventTime: hoursAfter(record.dispatchedAt, 5.5),
-              description: 'Ajuste menor de ruta por congestion vehicular.',
+              description: incidentDescriptions[index % incidentDescriptions.length],
+            }),
+          );
+        } else if (record.finalStage === 'ENTREGADA' && index % 4 === 0) {
+          // Incidente ya resuelto en órdenes entregadas -> aparece en historial pero no en alertas
+          logCounter++;
+          entries.push(
+            repository.create({
+              orderId: record.order.orderId,
+              eventType: RouteEventType.INCIDENTE,
+              eventTime: hoursAfter(record.dispatchedAt, 3.0),
+              description: 'Ajuste menor de ruta por congestion. Resuelto sin afectar entrega.',
             }),
           );
         }
@@ -1939,50 +2015,59 @@ export class DatabaseSeeder {
         clientName: record.blueprint.legalName,
         clientNit: record.blueprint.nit,
         clientAddress: record.blueprint.taxAddress,
-        serviceDescription: `Servicio de transporte ${record.route?.origin ?? 'origen por definir'} -> ${record.route?.destination ?? 'destino por definir'} para ${record.blueprint.commercialName}`,
+        serviceDescription: `Servicio de transporte ${record.route?.origin ?? 'origen por definir'} -> ${record.route?.destination ?? 'destino por definir'} para ${record.blueprint.legalName}`,
         subtotalAmount,
         taxAmount,
         totalAmount,
       };
-      const invoiceSeedId = String(invoice.invoiceId);
+      const invoiceSeedId = String((invoice as Invoice).invoiceId);
 
-      if (index < 8) {
-        await repository.update(invoice.invoiceId, {
+      if (index < 4) {
+        // Empty drafts needing finance review
+        await repository.update((invoice as Invoice).invoiceId, {
+          ...invoiceBaseUpdate,
+          serviceDescription: '',
+          status: InvoiceStatus.BORRADOR,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-draft.pdf`,
+        });
+      } else if (index < 8) {
+        // Drafts reviewed by finance, ready for certifier
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.BORRADOR,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}-draft.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-draft.pdf`,
         });
       } else if (index < 13) {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.CERTIFICADA,
           certifiedAt: hoursAfter(issueDate, 5),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
         });
       } else if (index < 17) {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 4),
           sentAt: hoursAfter(issueDate, 8),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
         });
       } else if (index < 22) {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 3),
           sentAt: hoursAfter(issueDate, 7),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
         });
       } else {
-        await repository.update(invoice.invoiceId, {
+        await repository.update((invoice as Invoice).invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.RECHAZADA,
-          pdfPath: `/seed/invoices/${invoice.invoiceId}-rejected.pdf`,
+          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-rejected.pdf`,
         });
       }
     }

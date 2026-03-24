@@ -11,7 +11,7 @@ export class GetClientsUseCase {
 
     if (search) {
       queryBuilder.where(
-        'client.legalName ILIKE :search OR client.commercialName ILIKE :search OR client.nit ILIKE :search',
+        'client.legalName ILIKE :search OR client.nit ILIKE :search',
         { search: `%${search}%` }
       );
     }
@@ -19,7 +19,7 @@ export class GetClientsUseCase {
     const clients = await queryBuilder.getMany();
 
     return clients.map((client) => ({
-      clientId: client.clientId,
+      clientId: Number(client.clientId),
       clientCode: client.clientCode,
       legalName: client.legalName,
       nit: client.nit,

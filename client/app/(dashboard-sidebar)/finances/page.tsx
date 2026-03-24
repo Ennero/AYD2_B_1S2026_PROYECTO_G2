@@ -15,7 +15,6 @@ import { toast } from "sonner"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import FinancePageShell from "@/components/finance/FinancePageShell"
-import EndpointChip from "@/components/finance/EndpointChip"
 import { fetchFinanceSummary } from "@/lib/api/finance"
 import type { FinanceSummary } from "@/types/finance"
 
@@ -60,7 +59,6 @@ export default function FinanceDashboardPage() {
     <FinancePageShell
       title="Panel Financiero"
       subtitle="Control de facturacion FEL, tesoreria y tarifario base"
-      rightSlot={<EndpointChip endpoint="GET /api/finance/dashboard/summary?period=MONTHLY&year=2026&month=3" />}
     >
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4 mb-8">
         <Card className="rounded-3xl border-black/5 bg-white/95">

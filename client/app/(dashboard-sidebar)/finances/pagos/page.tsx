@@ -8,7 +8,6 @@ import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
 import StatusBadge from "@/components/shared/StatusBadge"
 import FinancePageShell from "@/components/finance/FinancePageShell"
-import EndpointChip from "@/components/finance/EndpointChip"
 import { approveFinancePayment, fetchFinancePayments } from "@/lib/api/finance"
 import type { FinancePayment } from "@/types/finance"
 
@@ -73,9 +72,8 @@ export default function FinancePaymentsPage() {
 
   return (
     <FinancePageShell
-      title="Conciliacion de Pagos"
-      subtitle="Aprobacion de pagos registrados por cliente despues del flujo FEL"
-      rightSlot={<EndpointChip endpoint="GET /api/finance/payments?status=PENDIENTE" />}
+      title="Conciliar Pagos"
+      subtitle="Autorización de pagos registrados para liberar crédito a clientes"
     >
       <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
         Esta aprobacion no pertenece al proceso FEL. Ocurre despues de certificar y enviar la factura,
@@ -93,7 +91,7 @@ export default function FinancePaymentsPage() {
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
-        <EndpointChip endpoint="PATCH /api/finance/payments/{PAYMENT_ID}/approve" />
+        <span className="text-secondary tracking-widest text-xs uppercase font-medium">Acción Requerida</span>
       </div>
 
       <Card className="rounded-3xl border-black/5 bg-white/95 p-0 overflow-hidden">

@@ -2,47 +2,47 @@
 
 Este documento resume los accesos mas utiles para pruebas MVP con la seed actual.
 
-## Regla de contrasena usada por la seed
+## Credenciales de Acceso (Simplificadas)
 
-Para usuarios internos, la seed genera la contrasena con esta regla:
+Todas las cuentas de prueba comparten la misma contrasena para facilitar la calificacion:
 
-- `password = seed$<email_del_usuario>`
+- **Password Universal**: `LogiTrans2026` -> **Actualizada a**: `Logi2026`
 
-Ejemplo:
+## Top usuarios recomendados para pruebas
 
-- email: `certificador.fel@sat.gob.gt`
-- password: `seed$certificador.fel@sat.gob.gt`
+| Rol               | Nombre            | Email                                       | Password       | Uso sugerido MVP                                       |
+| ----------------- | ----------------- | ------------------------------------------- | -------------- | ------------------------------------------------------ |
+| GERENCIA          | Ricardo Solis     | **2895884051401@ingenieria.usac.edu.gt**    | **LogiGerencia**| Dashboard BI y rentabilidad                            |
+| AGENTE_FINANCIERO | Silvia Monterroso | **2895884051401+f@ingenieria.usac.edu.gt**  | **LogiFinanzas**| Flujo FEL y conciliacion de pagos                      |
+| AGENTE_OPERATIVO  | Andrea Solares    | **2895884051401+v@ingenieria.usac.edu.gt**  | **LogiVentas**  | Comercial: Clientes y contratos                        |
+| AGENTE_LOGISTICO  | Karla Menendez    | **2895884051401+l@ingenieria.usac.edu.gt**  | **LogiLogistica**| Asignacion de unidades y monitoreo                     |
+| ENCARGADO_PATIO   | Mario Caal        | **2895884051401+p@ingenieria.usac.edu.gt**  | **LogiPatio**   | Control de pesaje y despacho                           |
+| PILOTO            | Carlos Mendez     | **2895884051401+t@ingenieria.usac.edu.gt**  | **LogiPiloto**  | Bitacoras y entregas                                   |
+| CLIENTE           | Paola Estrada     | **2895884051401+c@ingenieria.usac.edu.gt**  | **Logi2026**   | Portal cliente: contrato y ordenes                     |
+| CERTIFICADOR_FEL  | SAT Simulator     | **2895884051401+s@ingenieria.usac.edu.gt**  | **LogiSAT**     | Simulador tecnico FEL                                  |
 
-## Top 7 usuarios recomendados para pruebas
+## Patrones de otros usuarios
 
-| Rol               | Nombre            | Email                    | Password seed                 | Uso sugerido MVP                                       |
-| ----------------- | ----------------- | ------------------------ | ----------------------------- | ------------------------------------------------------ |
-| CERTIFICADOR_FEL  | Simulador FEL SAT | certificador.fel@sat.gob.gt| seed$certificador.fel@sat.gob.gt| Aprobacion y simulacion de SAT                         |
-| AGENTE_OPERATIVO  | Andrea Solares    | operativo.1@logitrans.gt | seed$operativo.1@logitrans.gt | Alta de clientes, contratos y flujo comercial          |
-| AGENTE_LOGISTICO  | Karla Menendez    | logistica.1@logitrans.gt | seed$logistica.1@logitrans.gt | Planificacion y asignacion de ordenes                  |
-| ENCARGADO_PATIO   | Mario Caal        | patio.1@logitrans.gt     | seed$patio.1@logitrans.gt     | Registro en patio, validacion y despacho               |
-| AGENTE_FINANCIERO | Silvia Monterroso | finanzas.1@logitrans.gt  | seed$finanzas.1@logitrans.gt  | Flujo FEL (borrador, validar NIT, certificar/rechazar) |
-| GERENCIA          | Ricardo Solis     | gerencia@logitrans.gt    | seed$gerencia@logitrans.gt    | Dashboard BI y revision de KPIs                        |
-| PILOTO            | Carlos Mendez     | piloto.01@logitrans.gt   | seed$piloto.01@logitrans.gt   | Monitoreo de viaje, bitacora y entrega                 |
+- **Otros Pilotos**: `piloto.02@logitrans.gt` (etc) con password `Logi123`.
+- **Otros Clientes**: `cliente.<key>@lt.com` con password `Logi123`.
 
-## Usuario cliente recomendado
 
-La seed tambien crea usuarios cliente con este patron:
+## Notas utiles para pruebas FEL y Finanzas
 
-- email: `portal.<client_key>@clientes.logitrans.gt`
-- password: `seed$portal.<client_key>`
+- **Pagos por conciliar**: El sistema toma como "Pagos por conciliar" aquellos pagos registrados por clientes que tienen el estado **`PENDIENTE`** (esperando aprobacion del Agente Financiero).
+- **Flujo de Facturacion (Finanzas)**:
+  - Las facturas nacen como `BORRADOR` automaticamente al entregar la orden.
+  - El Agente Financiero **debe** completar la *Descripcion del servicio* y *Fecha de vencimiento* al presionar "Enviar a certificador".
+  - Una vez procesada por Finanzas, desaparece de su bandeja y aparece en la del Certificador FEL.
+- **Flujo de Certificacion (FEL)**:
+  - Solo se muestran facturas `BORRADOR` que ya fueron revisadas por Finanzas (tienen descripcion).
+  - Antes de certificar, es obligatorio validar NIT en la bandeja FEL.
+- **Estado ENVIADA**: Significa que la factura ya fue **certificada** (tiene UUID FEL) y **enviada** por correo al cliente final.
 
-Ejemplo util:
-
-- email: `portal.alimentos-norte@clientes.logitrans.gt`
-- password: `seed$portal.alimentos-norte`
-
-## Notas utiles para pruebas FEL
-
-- El flujo FEL usa facturas en estado `BORRADOR`.
-- Antes de certificar, ahora es obligatorio validar NIT en la bandeja FEL.
+### Endpoints tecnicos (FEL)
 - Endpoint de validacion NIT: `POST /api/certifier/invoices/{INVOICE_ID}/validate-nit`.
 - Endpoint de rechazo FEL: `PATCH /api/certifier/invoices/{INVOICE_ID}/reject`.
+
 
 ## Advertencia
 

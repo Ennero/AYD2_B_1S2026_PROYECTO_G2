@@ -17,9 +17,6 @@ export class Client {
   @Column({ name: 'legal_name', type: 'varchar', length: 180 })
   legalName: string;
 
-  @Column({ name: 'commercial_name', type: 'varchar', length: 180, nullable: true })
-  commercialName: string | null;
-
   @Column({ name: 'nit', type: 'varchar', length: 20, unique: true })
   nit: string;
 

@@ -72,7 +72,6 @@ Table CLIENTS {
   CLIENT_ID int [pk, increment]
   CLIENT_CODE varchar(30) [not null, unique]
   LEGAL_NAME varchar(180) [not null]
-  COMMERCIAL_NAME varchar(180)
   NIT varchar(20) [not null, unique]
   TAX_ADDRESS text [not null]
   PRIMARY_CONTACT_NAME varchar(160) [not null]

@@ -20,8 +20,8 @@ export default function AsignacionRutasPage() {
 
   useEffect(() => {
     api
-      .get<RouteInfo[]>(ENDPOINTS.LOGISTICS.ROUTES)
-      .then(({ data }) => setRoutes(data))
+      .get<{ data: RouteInfo[] }>(ENDPOINTS.LOGISTICS.ROUTES)
+      .then(({ data }) => setRoutes(data.data))
       .catch(() => setRoutes([]))
       .finally(() => setLoading(false))
   }, [])

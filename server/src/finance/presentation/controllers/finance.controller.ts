@@ -26,7 +26,7 @@ import {
 
 @Controller('api/finance')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(USER_ROLE.AGENTE_FINANCIERO, USER_ROLE.GERENCIA)
+@Roles(USER_ROLE.AGENTE_FINANCIERO)
 export class FinanceController {
   constructor(private readonly financeService: FinanceService) {}
 

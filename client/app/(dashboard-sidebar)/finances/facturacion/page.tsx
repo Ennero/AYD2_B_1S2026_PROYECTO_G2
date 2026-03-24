@@ -9,7 +9,6 @@ import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
 import StatusBadge from "@/components/shared/StatusBadge"
 import FinancePageShell from "@/components/finance/FinancePageShell"
-import EndpointChip from "@/components/finance/EndpointChip"
 import { fetchFinanceInvoices, sendFinanceInvoice } from "@/lib/api/finance"
 import type { FinanceInvoice } from "@/types/finance"
 
@@ -107,7 +106,6 @@ export default function FinanceBillingPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        <EndpointChip endpoint="GET /api/finance/invoices?status=BORRADOR" />
       </div>
 
       <Card className="rounded-3xl border-black/5 bg-white/95 p-0 overflow-hidden mb-10">
@@ -154,7 +152,6 @@ export default function FinanceBillingPage() {
           <h2 className="text-2xl font-bold text-[#0A3B7C]">Facturas Certificadas por FEL</h2>
           <p className="text-sm text-[#64748B]">Luego de la aprobacion fiscal, quedan listas para envio.</p>
         </div>
-        <EndpointChip endpoint="GET /api/finance/invoices?status=CERTIFICADA" />
       </div>
 
       <Card className="rounded-3xl border-black/5 bg-white/95 p-0 overflow-hidden">

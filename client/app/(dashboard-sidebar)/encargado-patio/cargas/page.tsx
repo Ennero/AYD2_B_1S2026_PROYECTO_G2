@@ -12,6 +12,7 @@ type CargaReal = {
   id: string
   codigo: string
   unitId: string | null
+  pilotName: string
   vehicleModel: string
   plateNumber: string
   fecha: string
@@ -53,8 +54,15 @@ export default function FormalizarCargasPage() {
   const cargas = useMemo(() => {
     let f = [...allCargas]
     if (piloto.trim()) {
-      const t = piloto.trim().toLowerCase()
-      f = f.filter(c => [c.codigo, c.vehicleModel, c.plateNumber, c.origen, c.destino].some(v => v.toLowerCase().includes(t)))
+      const term = piloto.trim().toLowerCase()
+      filtered = filtered.filter(c =>
+        c.pilotName.toLowerCase().includes(term) ||
+        c.codigo.toLowerCase().includes(term) ||
+        c.vehicleModel.toLowerCase().includes(term) ||
+        c.plateNumber.toLowerCase().includes(term) ||
+        c.origen.toLowerCase().includes(term) ||
+        c.destino.toLowerCase().includes(term)
+      )
     }
     if (placa.trim())   f = f.filter(c => c.plateNumber.toLowerCase().includes(placa.trim().toLowerCase()))
     if (fechaInicio)    f = f.filter(c => c.fecha >= fechaInicio)
@@ -251,34 +259,52 @@ export default function FormalizarCargasPage() {
                     </div>
                   </div>
 
-                  {/* Divider */}
-                  <div style={{ height: "1px", background: "rgba(12,12,10,0.06)", margin: "1rem 0" }} />
+                  {/* Info Header */}
+                  <div className="lg:col-span-9 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 text-center sm:text-left mb-4 sm:mb-0">
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Unidad Asignada</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.vehicleModel}</p>
+                      <p className="text-xs text-white/70 break-all">Placa: {carga.plateNumber}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Piloto</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.pilotName}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Fecha</p>
+                      <p className="font-bold text-lg whitespace-nowrap">{carga.fecha}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Origen</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.origen}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs uppercase tracking-wider text-white/70 font-bold mb-1">Destino</p>
+                      <p className="font-bold text-lg wrap-break-word leading-tight">{carga.destino}</p>
+                    </div>
+                  </div>
 
-                  {/* Row 2: actions */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "2.5rem", flexWrap: "wrap" }}>
-
-                    {/* Unit ID */}
-                    <div>
-                      <Label>Unit ID</Label>
-                      <span style={{ fontSize: "0.82rem", fontWeight: 700, color: carga.unitId ? "#0C0C0A" : "#9A9489" }}>
-                        {carga.unitId ?? "—"}
-                      </span>
+                  {/* Action Row - Inputs and buttons */}
+                  <div className="lg:col-span-12 flex flex-wrap items-center justify-center lg:justify-end gap-x-6 gap-y-4 pt-4 border-t border-white/10 mt-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">ID de orden:</span>
+                      <input 
+                        type="text" 
+                        value={carga.id}
+                        readOnly
+                        className="w-48 px-3 py-1.5 text-center text-text-primary font-bold rounded bg-white shadow-inner disabled:opacity-80"
+                      />
                     </div>
 
-                    {/* Peso */}
-                    <div>
-                      <Label>Peso en Báscula</Label>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: "5px" }}>
-                        <input type="number" value={carga.peso}
-                          onChange={e => patch(carga.id, "peso", e.target.value)}
-                          disabled={done}
-                          style={{
-                            width: "64px", textAlign: "right", fontWeight: 700, fontSize: "0.82rem",
-                            background: "transparent", border: "none", borderBottom: "1px solid rgba(12,12,10,0.12)",
-                            color: "#0C0C0A", outline: "none", padding: "2px 0",
-                          }}
-                          onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
-                          onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(12,12,10,0.12)")}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">Peso en Báscula:</span>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="number" 
+                          value={carga.peso}
+                          onChange={(e) => updateCargaField(carga.id, 'peso', e.target.value)}
+                          disabled={isFormalizado}
+                          className="w-20 px-3 py-1.5 text-center text-text-primary font-bold rounded bg-white shadow-inner disabled:opacity-80"
                         />
                         <span style={{ fontSize: "0.58rem", letterSpacing: "0.12em", color: "#9A9489", fontWeight: 700 }}>TON</span>
                       </div>
