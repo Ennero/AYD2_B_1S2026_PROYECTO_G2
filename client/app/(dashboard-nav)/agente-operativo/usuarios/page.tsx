@@ -1,15 +1,13 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import Card from "@/components/ui/Card"
-import Input from "@/components/ui/Input"
-import Button from "@/components/ui/Button"
-import Modal from "@/components/ui/Modal"
-import Select from "@/components/ui/Select"
+import { motion, AnimatePresence } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
-import { Loader2, Users, Search, Pencil } from "lucide-react"
+import { Users, Search, Pencil, X, RefreshCw, ChevronDown } from "lucide-react"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 type UserRole =
   | "CLIENTE"
@@ -33,42 +31,218 @@ type OperationUser = {
   clientName: string | null
 }
 
-type ListUsersResponse = {
-  message: string
-  data: OperationUser[]
-}
-
-type UpdateUserResponse = {
-  message: string
-  data: OperationUser
-}
+type ListUsersResponse = { message: string; data: OperationUser[] }
+type UpdateUserResponse = { message: string; data: OperationUser }
 
 const ROLE_LABEL: Record<UserRole, string> = {
-  CLIENTE: "Cliente",
-  AGENTE_OPERATIVO: "Agente Operativo",
-  AGENTE_LOGISTICO: "Agente Logístico",
-  ENCARGADO_PATIO: "Encargado de Patio",
-  PILOTO: "Piloto",
+  CLIENTE:           "Cliente",
+  AGENTE_OPERATIVO:  "Agente Operativo",
+  AGENTE_LOGISTICO:  "Agente Logístico",
+  ENCARGADO_PATIO:   "Encargado de Patio",
+  PILOTO:            "Piloto",
   AGENTE_FINANCIERO: "Agente Financiero",
-  GERENCIA: "Gerencia",
-  CERTIFICADOR_FEL: "Certificador FEL",
+  GERENCIA:          "Gerencia",
+  CERTIFICADOR_FEL:  "Certificador FEL",
 }
 
+// ── Edit Modal ────────────────────────────────────────────────
+function EditModal({
+  user,
+  onClose,
+  onSaved,
+}: {
+  user: OperationUser
+  onClose: () => void
+  onSaved: (updated: OperationUser) => void
+}) {
+  const [form, setForm] = useState({
+    fullName: user.fullName,
+    email: user.email,
+    phone: user.phone ?? "",
+    isActive: user.isActive,
+  })
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    if (!form.fullName.trim() || !form.email.trim()) {
+      toast.error("Nombre y correo son obligatorios.")
+      return
+    }
+    setSaving(true)
+    try {
+      const payload = {
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        isActive: form.isActive,
+      }
+      const response = await api.patch<UpdateUserResponse>(
+        ENDPOINTS.OPERATIONS.USER(user.userId),
+        payload,
+      )
+      toast.success("Usuario actualizado correctamente.")
+      onSaved(response.data.data)
+    } catch {
+      // api client already shows a detailed toast
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "0.5rem", letterSpacing: "0.22em", color: "#9A9489",
+    textTransform: "uppercase", fontWeight: 700, marginBottom: "6px",
+  }
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "0.65rem 0.85rem",
+    background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.1)",
+    borderRadius: "4px", color: "#0C0C0A", fontSize: "0.85rem",
+    outline: "none", boxSizing: "border-box",
+  }
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 50,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)",
+      padding: "1rem",
+    }}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: EASE }}
+        style={{
+          background: "#ffffff", borderRadius: "6px",
+          maxWidth: "460px", width: "100%",
+          border: "1px solid rgba(12,12,10,0.07)",
+          overflow: "hidden",
+        }}>
+
+        {/* Top amber strip */}
+        <div style={{ height: "2px", background: "#C9924B" }} />
+
+        <div style={{ padding: "1.75rem 2rem 2rem" }}>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+            <div>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
+                Editar usuario
+              </p>
+              <h2 style={{ fontSize: "1.3rem", fontWeight: 900, letterSpacing: "-0.025em", color: "#0C0C0A" }}>
+                {user.fullName}
+              </h2>
+            </div>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A9489" }}>
+              <X size={18} />
+            </button>
+          </div>
+
+          <div style={{ height: "1px", background: "rgba(12,12,10,0.07)", marginBottom: "1.5rem" }} />
+
+          {/* Fields */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem" }}>
+            <div>
+              <label style={labelStyle}>Nombre completo</label>
+              <input
+                value={form.fullName}
+                onChange={(e) => setForm((s) => ({ ...s, fullName: e.target.value }))}
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Correo electrónico</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Teléfono</label>
+              <input
+                value={form.phone}
+                onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))}
+                style={inputStyle}
+                onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
+              />
+            </div>
+
+            {/* Toggle activo */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button
+                type="button"
+                onClick={() => setForm((s) => ({ ...s, isActive: !s.isActive }))}
+                style={{
+                  width: "36px", height: "20px", borderRadius: "10px",
+                  background: form.isActive ? "#3A8E2A" : "rgba(12,12,10,0.15)",
+                  border: "none", cursor: "pointer", position: "relative",
+                  transition: "background 0.2s", flexShrink: 0,
+                }}
+              >
+                <span style={{
+                  position: "absolute", top: "3px",
+                  left: form.isActive ? "19px" : "3px",
+                  width: "14px", height: "14px", borderRadius: "50%",
+                  background: "#ffffff", transition: "left 0.2s",
+                }} />
+              </button>
+              <span style={{ fontSize: "0.78rem", color: "#6B6260" }}>
+                {form.isActive ? "Usuario activo" : "Usuario inactivo"}
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: "flex", gap: "10px", marginTop: "2rem" }}>
+            <button
+              onClick={onClose}
+              style={{
+                flex: 1, padding: "0.65rem",
+                background: "none", border: "1px solid rgba(12,12,10,0.12)",
+                borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                letterSpacing: "0.1em", textTransform: "uppercase",
+                color: "#6B6260", cursor: "pointer",
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => void handleSave()}
+              disabled={saving}
+              style={{
+                flex: 1, padding: "0.65rem",
+                background: saving ? "rgba(201,146,75,0.4)" : "#C9924B",
+                border: "none", borderRadius: "4px",
+                fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+                textTransform: "uppercase", color: "#ffffff",
+                cursor: saving ? "not-allowed" : "pointer",
+                transition: "background 0.2s",
+              }}
+            >
+              {saving ? "Guardando..." : "Guardar cambios"}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────
 export default function GestionarUsuariosPage() {
   const [users, setUsers] = useState<OperationUser[]>([])
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState<string>("")
   const [loading, setLoading] = useState(true)
-
-  const [editOpen, setEditOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<OperationUser | null>(null)
-  const [editForm, setEditForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    isActive: true,
-  })
+  const [editUser, setEditUser] = useState<OperationUser | null>(null)
 
   const roleOptions = useMemo(
     () => [
@@ -103,217 +277,299 @@ export default function GestionarUsuariosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function openEditModal(user: OperationUser) {
-    setSelectedUser(user)
-    setEditForm({
-      fullName: user.fullName,
-      email: user.email,
-      phone: user.phone ?? "",
-      isActive: user.isActive,
-    })
-    setEditOpen(true)
-  }
-
-  async function handleSaveUser() {
-    if (!selectedUser) return
-
-    if (!editForm.fullName.trim() || !editForm.email.trim()) {
-      toast.error("Nombre y correo son obligatorios.")
-      return
-    }
-
-    setSaving(true)
-    try {
-      const payload = {
-        fullName: editForm.fullName.trim(),
-        email: editForm.email.trim(),
-        phone: editForm.phone.trim(),
-        isActive: editForm.isActive,
-      }
-
-      const response = await api.patch<UpdateUserResponse>(
-        ENDPOINTS.OPERATIONS.USER(selectedUser.userId),
-        payload,
-      )
-
-      const updated = response.data.data
-      setUsers((prev) =>
-        prev.map((item) => (item.userId === updated.userId ? { ...item, ...updated } : item)),
-      )
-
-      toast.success("Usuario actualizado correctamente.")
-      setEditOpen(false)
-      setSelectedUser(null)
-    } catch {
-      // api client already shows a detailed toast
-    } finally {
-      setSaving(false)
-    }
+  function handleSaved(updated: OperationUser) {
+    setUsers((prev) =>
+      prev.map((u) => (u.userId === updated.userId ? { ...u, ...updated } : u)),
+    )
+    setEditUser(null)
   }
 
   return (
-    <div className="min-h-screen relative animate-in fade-in duration-700 font-body">
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-35 pointer-events-none"
-        style={{ backgroundImage: "url('/images/agente-minimal-hd.png')" }}
-      />
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-      <div className="relative z-10 w-full min-h-screen px-6 py-12 md:p-16 max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-heading font-extrabold text-primary flex items-center gap-3">
-            <Users className="text-[#53B73E]" size={36} />
-            Gestión de Usuarios
-          </h1>
-          <p className="text-text-muted text-lg mt-2">
-            Visualiza y edita usuarios del sistema desde el módulo de Agente Operativo.
+      {/* Ghost letters */}
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem, 30vw, 28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>GU</div>
+
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Agente Operativo
           </p>
-        </div>
 
-        <Card className="p-6 md:p-8 rounded-3xl bg-white/95 backdrop-blur-md border-black/5 shadow-xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="md:col-span-2 relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted">
-                <Search size={18} />
-              </span>
-              <Input
-                label=""
-                placeholder="Buscar por nombre, correo, cliente o NIT"
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Gestión de Usuarios
+            </motion.h1>
+          </div>
+
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.7 }}
+            style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "44ch" }}>
+            Visualiza y edita usuarios del sistema desde el módulo operativo.
+          </motion.p>
+
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.5rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* Filter + search bar */}
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6, ease: EASE }}
+          style={{ marginBottom: "1.5rem" }}>
+          <div style={{
+            display: "grid", gridTemplateColumns: "1fr auto auto", gap: "10px", alignItems: "stretch",
+          }}>
+            {/* Search */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: "10px",
+              background: "#1E1E1B", border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: "4px", padding: "0 1rem",
+            }}>
+              <Search size={14} style={{ color: "#9A9489", flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Buscar por nombre, correo, cliente o NIT..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-11"
+                onKeyDown={(e) => e.key === "Enter" && void loadUsers()}
+                style={{
+                  flex: 1, padding: "0.7rem 0",
+                  background: "none", border: "none", outline: "none",
+                  fontSize: "0.82rem", color: "#F5F2EC",
+                }}
               />
+              {search && (
+                <button onClick={() => setSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: "#6B6260", display: "flex" }}>
+                  <X size={13} />
+                </button>
+              )}
             </div>
 
-            <Select
-              label=""
-              options={roleOptions}
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-            />
-          </div>
+            {/* Role select */}
+            <div style={{
+              position: "relative",
+              background: "#1E1E1B", border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: "4px", padding: "0 2rem 0 0.85rem",
+              display: "flex", alignItems: "center",
+            }}>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                style={{
+                  background: "none", border: "none", outline: "none",
+                  color: "#F5F2EC", fontSize: "0.78rem", cursor: "pointer",
+                  padding: "0.7rem 0", appearance: "none", width: "100%",
+                }}
+              >
+                {roleOptions.map((o) => (
+                  <option key={o.value} value={o.value} style={{ background: "#1E1E1B" }}>{o.label}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} style={{ position: "absolute", right: "0.65rem", color: "#9A9489", pointerEvents: "none" }} />
+            </div>
 
-          <div className="flex items-center justify-end mb-6">
-            <Button
-              type="button"
-              className="bg-primary text-white hover:bg-primary-hover"
+            {/* Refresh button */}
+            <button
               onClick={() => void loadUsers()}
-              loading={loading}
+              disabled={loading}
+              style={{
+                display: "flex", alignItems: "center", gap: "7px",
+                padding: "0 1.25rem",
+                background: "#C9924B", border: "none", borderRadius: "4px",
+                fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+                textTransform: "uppercase", color: "#ffffff",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.6 : 1, transition: "opacity 0.2s",
+                whiteSpace: "nowrap",
+              }}
             >
-              Actualizar listado
-            </Button>
+              <RefreshCw size={13} style={{ animation: loading ? "spin 1s linear infinite" : "none" }} />
+              Actualizar
+            </button>
           </div>
+        </motion.div>
 
-          {loading ? (
-            <div className="py-14 flex items-center justify-center text-primary gap-3">
-              <Loader2 className="animate-spin" size={20} />
+        {/* Count */}
+        {!loading && users.length > 0 && (
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+            style={{ fontSize: "0.65rem", letterSpacing: "0.15em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1rem" }}>
+            {users.length} usuario{users.length !== 1 ? "s" : ""}
+          </motion.p>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div style={{ textAlign: "center", padding: "4rem 0" }}>
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
               Cargando usuarios...
-            </div>
-          ) : users.length === 0 ? (
-            <div className="py-14 text-center text-text-muted">No se encontraron usuarios con los filtros actuales.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-225 text-sm">
-                <thead>
-                  <tr className="text-left border-b border-black/10 text-text-muted uppercase tracking-wide text-xs">
-                    <th className="py-3 px-2">Nombre</th>
-                    <th className="py-3 px-2">Correo</th>
-                    <th className="py-3 px-2">Rol</th>
-                    <th className="py-3 px-2">Cliente</th>
-                    <th className="py-3 px-2">Estado</th>
-                    <th className="py-3 px-2 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user.userId} className="border-b border-black/5 hover:bg-black/5 transition-colors">
-                      <td className="py-3 px-2 font-medium text-primary">{user.fullName}</td>
-                      <td className="py-3 px-2">{user.email}</td>
-                      <td className="py-3 px-2">{ROLE_LABEL[user.role]}</td>
-                      <td className="py-3 px-2">
-                        {user.clientCode && user.clientName ? `${user.clientCode} - ${user.clientName}` : "-"}
-                      </td>
-                      <td className="py-3 px-2">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                            user.isActive
-                              ? "bg-[#53B73E]/15 text-[#2E6A21]"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {user.isActive ? "Activo" : "Inactivo"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-2 text-right">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="border-primary text-primary hover:bg-primary hover:text-white"
-                          onClick={() => openEditModal(user)}
-                        >
-                          <Pencil size={14} />
-                          Editar
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Card>
+            </p>
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && users.length === 0 && (
+          <div style={{ textAlign: "center", padding: "4rem 0" }}>
+            <Users size={32} style={{ color: "#9A9489", margin: "0 auto 1rem" }} />
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.4rem" }}>
+              Sin usuarios
+            </p>
+            <p style={{ fontSize: "0.8rem", color: "#6B6260" }}>
+              No se encontraron usuarios con los filtros actuales.
+            </p>
+          </div>
+        )}
+
+        {/* Table header */}
+        {!loading && users.length > 0 && (
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1.6fr 1.8fr 1.1fr 1.5fr 0.6fr 0.5fr",
+            gap: "0 1rem", padding: "0 1.25rem 0.5rem",
+            borderBottom: "1px solid rgba(12,12,10,0.1)",
+            marginBottom: "8px",
+          }}>
+            {["Nombre", "Correo", "Rol", "Cliente", "Estado", ""].map((h) => (
+              <span key={h} style={{ fontSize: "0.48rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+                {h}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* User rows */}
+        {!loading && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <AnimatePresence>
+              {users.map((user, i) => (
+                <motion.div key={user.userId}
+                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.35, ease: EASE }}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.6fr 1.8fr 1.1fr 1.5fr 0.6fr 0.5fr",
+                    gap: "0 1rem", alignItems: "center",
+                    background: "#ffffff",
+                    border: "1px solid rgba(12,12,10,0.07)",
+                    borderLeft: `3px solid ${user.isActive ? "rgba(58,142,42,0.5)" : "rgba(229,62,62,0.4)"}`,
+                    borderRadius: "4px", padding: "0.85rem 1.25rem",
+                    transition: "box-shadow 0.15s, transform 0.15s",
+                    cursor: "default",
+                  }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.boxShadow = "0 4px 14px rgba(12,12,10,0.06)"
+                    el.style.transform = "translateY(-1px)"
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.boxShadow = "none"
+                    el.style.transform = "translateY(0)"
+                  }}
+                >
+                  {/* Nombre */}
+                  <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {user.fullName}
+                  </p>
+
+                  {/* Correo */}
+                  <p style={{ fontSize: "0.75rem", color: "#6B6260", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {user.email}
+                  </p>
+
+                  {/* Rol */}
+                  <div>
+                    <span style={{
+                      display: "inline-block",
+                      background: "rgba(201,146,75,0.08)", borderRadius: "3px",
+                      padding: "2px 8px",
+                      fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.06em",
+                      color: "#C9924B",
+                    }}>
+                      {ROLE_LABEL[user.role]}
+                    </span>
+                  </div>
+
+                  {/* Cliente */}
+                  <p style={{ fontSize: "0.72rem", color: "#6B6260", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {user.clientCode && user.clientName ? `${user.clientCode} — ${user.clientName}` : "—"}
+                  </p>
+
+                  {/* Estado */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span style={{
+                      width: "6px", height: "6px", borderRadius: "50%", flexShrink: 0,
+                      background: user.isActive ? "#3A8E2A" : "#E53E3E",
+                    }} />
+                    <span style={{ fontSize: "0.62rem", fontWeight: 700, color: user.isActive ? "#3A8E2A" : "#E53E3E" }}>
+                      {user.isActive ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
+
+                  {/* Editar */}
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => setEditUser(user)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: "5px",
+                        padding: "0.4rem 0.75rem",
+                        background: "none", border: "1px solid rgba(12,12,10,0.12)",
+                        borderRadius: "3px", fontSize: "0.55rem", fontWeight: 700,
+                        letterSpacing: "0.1em", textTransform: "uppercase",
+                        color: "#6B6260", cursor: "pointer",
+                        transition: "border-color 0.2s, color 0.2s, background 0.2s",
+                      }}
+                      onMouseOver={e => {
+                        const el = e.currentTarget
+                        el.style.borderColor = "#C9924B"
+                        el.style.color = "#C9924B"
+                        el.style.background = "rgba(201,146,75,0.06)"
+                      }}
+                      onMouseOut={e => {
+                        const el = e.currentTarget
+                        el.style.borderColor = "rgba(12,12,10,0.12)"
+                        el.style.color = "#6B6260"
+                        el.style.background = "none"
+                      }}
+                    >
+                      <Pencil size={11} />
+                      Editar
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+
       </div>
 
-      <Modal open={editOpen} onClose={() => setEditOpen(false)} size="md">
-        <div className="-mx-6 -mt-4 mb-6 h-1.5 bg-primary" />
+      {/* Edit Modal */}
+      {editUser && (
+        <EditModal
+          user={editUser}
+          onClose={() => setEditUser(null)}
+          onSaved={handleSaved}
+        />
+      )}
 
-        <h2 className="text-2xl font-heading font-bold text-primary mb-6">Editar Usuario</h2>
-
-        <div className="space-y-4">
-          <Input
-            label="Nombre completo"
-            value={editForm.fullName}
-            onChange={(e) => setEditForm((s) => ({ ...s, fullName: e.target.value }))}
-          />
-
-          <Input
-            label="Correo"
-            type="email"
-            value={editForm.email}
-            onChange={(e) => setEditForm((s) => ({ ...s, email: e.target.value }))}
-          />
-
-          <Input
-            label="Teléfono"
-            value={editForm.phone}
-            onChange={(e) => setEditForm((s) => ({ ...s, phone: e.target.value }))}
-          />
-
-          <label className="flex items-center gap-3 text-sm text-text-primary">
-            <input
-              type="checkbox"
-              checked={editForm.isActive}
-              onChange={(e) => setEditForm((s) => ({ ...s, isActive: e.target.checked }))}
-              className="h-4 w-4 rounded border-black/20"
-            />
-            Usuario activo
-          </label>
-        </div>
-
-        <div className="mt-8 flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            className="bg-primary text-white hover:bg-primary-hover"
-            onClick={() => void handleSaveUser()}
-            loading={saving}
-          >
-            Guardar cambios
-          </Button>
-        </div>
-      </Modal>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

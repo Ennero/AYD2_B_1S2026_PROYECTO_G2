@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { motion } from "framer-motion"
 import { api } from "@/lib/api/client"
-import { cn } from "@/lib/utils/cn"
-import { Calendar, RefreshCw, Clock, TrendingUp, CheckCircle2 } from "lucide-react"
+import { Calendar, RefreshCw, Clock, TrendingUp, CheckCircle2, ChevronDown } from "lucide-react"
 
-/* ─── Types ───────────────────────────────────────────── */
+const EASE = [0.16, 1, 0.3, 1] as const
+
+/* ─── Types ──────────────────────────────────────────────── */
 type RevenueClient = { clientName: string; ingresos: number; rentabilidad: number }
 type Compliance    = { onTimePct: number; onTime: number; total: number; avgDelayHrs: number }
 type DeliveryTime  = { orderNumber: string; prometidoHrs: number; realHrs: number }
@@ -25,110 +27,188 @@ function formatQ(n: number) {
   return new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ", minimumFractionDigits: 0 }).format(n)
 }
 
-/* ─── SVG Bar Chart ─────────────────────────────────────── */
+/* ─── SVG Bar Chart — Swiss palette ─────────────────────── */
 function BarChart({ data }: { data: RevenueClient[] }) {
-  if (!data.length) return <p className="text-center text-sm text-text-muted py-10">Sin datos para el período</p>
+  if (!data.length) return <p style={{ textAlign: "center", fontSize: "0.78rem", color: "#9A9489", padding: "2.5rem 0" }}>Sin datos para el período</p>
 
-  const W = 540; const H = 180; const PAD = { top: 10, bottom: 40, left: 10, right: 10 }
+  const W = 540; const H = 200; const PAD = { top: 20, bottom: 44, left: 10, right: 10 }
   const chartW = W - PAD.left - PAD.right
   const chartH = H - PAD.top - PAD.bottom
-  const maxVal = Math.max(...data.map(d => d.ingresos))
+  const maxVal = Math.max(...data.map((d) => d.ingresos))
   const barGroupW = chartW / data.length
-  const barW = Math.min(barGroupW * 0.35, 28)
+  const barW = Math.min(barGroupW * 0.4, 32)
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Ingresos por cliente">
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%" }} aria-label="Ingresos por cliente">
+      <defs>
+        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#C9924B" stopOpacity="1" />
+          <stop offset="100%" stopColor="#C9924B" stopOpacity="0.5" />
+        </linearGradient>
+      </defs>
+      {/* Gridlines */}
+      {[0.25, 0.5, 0.75, 1].map((pct) => {
+        const y = PAD.top + chartH * (1 - pct)
+        return (
+          <line key={pct} x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
+            stroke="rgba(12,12,10,0.06)" strokeWidth={1} />
+        )
+      })}
       {data.map((d, i) => {
         const x = PAD.left + i * barGroupW + barGroupW / 2
         const barH = (d.ingresos / maxVal) * chartH
         const barY = PAD.top + chartH - barH
-        const shortName = d.clientName.split(' ')[0]
+        const shortName = d.clientName.split(" ")[0]
         return (
           <g key={d.clientName}>
-            {/* Bar */}
-            <rect x={x - barW / 2} y={barY} width={barW} height={barH} fill="#0A474D" rx={3} />
-            {/* Value label */}
-            <text x={x} y={barY - 4} textAnchor="middle" fontSize={8} fill="#0A474D" fontWeight="600">
+            <rect x={x - barW / 2} y={barY} width={barW} height={barH} fill="url(#barGrad)" rx={2} />
+            <text x={x} y={barY - 5} textAnchor="middle" fontSize={7.5} fill="#C9924B" fontWeight="700">
               {formatQ(d.ingresos)}
             </text>
-            {/* Client label */}
-            <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fontSize={8.5} fill="#6B7280">
-              {shortName.length > 8 ? shortName.slice(0, 8) + '…' : shortName}
+            <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fontSize={8.5} fill="#9A9489">
+              {shortName.length > 9 ? shortName.slice(0, 9) + "…" : shortName}
             </text>
           </g>
         )
       })}
-      {/* Baseline */}
-      <line x1={PAD.left} y1={PAD.top + chartH} x2={W - PAD.right} y2={PAD.top + chartH} stroke="#E5E7EB" strokeWidth={1} />
+      <line x1={PAD.left} y1={PAD.top + chartH} x2={W - PAD.right} y2={PAD.top + chartH}
+        stroke="rgba(12,12,10,0.1)" strokeWidth={1} />
     </svg>
   )
 }
 
-/* ─── SVG Line Chart (Real vs Promesa) ──────────────────── */
+/* ─── SVG Line Chart — Real vs Promesa ──────────────────── */
 function LineChart({ data }: { data: DeliveryTime[] }) {
-  if (!data.length) return <p className="text-center text-sm text-text-muted py-10">Sin datos de entregas</p>
+  if (!data.length) return <p style={{ textAlign: "center", fontSize: "0.78rem", color: "#9A9489", padding: "2.5rem 0" }}>Sin datos de entregas</p>
 
   const reversed = [...data].reverse()
-  const W = 540; const H = 180; const PAD = { top: 20, bottom: 35, left: 36, right: 10 }
+  const W = 540; const H = 200; const PAD = { top: 20, bottom: 38, left: 38, right: 12 }
   const chartW = W - PAD.left - PAD.right
   const chartH = H - PAD.top - PAD.bottom
-  const allVals = reversed.flatMap(d => [d.prometidoHrs, d.realHrs])
-  const maxVal = Math.max(...allVals) * 1.1
-  const stepX = chartW / (reversed.length - 1 || 1)
+  const allVals = reversed.flatMap((d) => [d.prometidoHrs, d.realHrs])
+  const maxVal  = Math.max(...allVals) * 1.1
+  const stepX   = chartW / (reversed.length - 1 || 1)
 
   const toX = (i: number) => PAD.left + i * stepX
   const toY = (v: number) => PAD.top + chartH - (v / maxVal) * chartH
 
-  const pathP = reversed.map((d, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(d.prometidoHrs).toFixed(1)}`).join(' ')
-  const pathR = reversed.map((d, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(d.realHrs).toFixed(1)}`).join(' ')
+  const pathP = reversed.map((d, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(1)},${toY(d.prometidoHrs).toFixed(1)}`).join(" ")
+  const pathR = reversed.map((d, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(1)},${toY(d.realHrs).toFixed(1)}`).join(" ")
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Real vs Promesa">
-      {/* Y gridlines */}
-      {[0.25, 0.5, 0.75, 1].map(pct => {
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%" }} aria-label="Real vs Promesa">
+      <defs>
+        <linearGradient id="lineAreaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#C9924B" stopOpacity="0.12" />
+          <stop offset="100%" stopColor="#C9924B" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* Gridlines */}
+      {[0.25, 0.5, 0.75, 1].map((pct) => {
         const y = PAD.top + chartH * (1 - pct)
         return (
           <g key={pct}>
-            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#F3F4F6" strokeWidth={1} />
-            <text x={PAD.left - 4} y={y + 3} textAnchor="end" fontSize={8} fill="#9CA3AF">
+            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="rgba(12,12,10,0.06)" strokeWidth={1} />
+            <text x={PAD.left - 4} y={y + 3} textAnchor="end" fontSize={8} fill="#9A9489">
               {(maxVal * pct).toFixed(0)}h
             </text>
           </g>
         )
       })}
-
-      {/* Lines */}
-      <path d={pathP} fill="none" stroke="#9CA3AF" strokeWidth={2} strokeDasharray="5,3" />
-      <path d={pathR} fill="none" stroke="#0A474D" strokeWidth={2.5} />
-
+      {/* Area */}
+      <path
+        d={pathR + ` L${toX(reversed.length - 1).toFixed(1)},${(PAD.top + chartH).toFixed(1)} L${toX(0).toFixed(1)},${(PAD.top + chartH).toFixed(1)} Z`}
+        fill="url(#lineAreaGrad)"
+      />
+      {/* Promised line (dashed gray) */}
+      <path d={pathP} fill="none" stroke="#9A9489" strokeWidth={1.5} strokeDasharray="5,3" />
+      {/* Real line (amber) */}
+      <path d={pathR} fill="none" stroke="#C9924B" strokeWidth={2.5} />
       {/* Dots */}
       {reversed.map((d, i) => (
         <g key={i}>
-          <circle cx={toX(i)} cy={toY(d.prometidoHrs)} r={3} fill="#9CA3AF" />
-          <circle cx={toX(i)} cy={toY(d.realHrs)} r={3.5} fill="#0A474D" />
+          <circle cx={toX(i)} cy={toY(d.prometidoHrs)} r={3} fill="#9A9489" />
+          <circle cx={toX(i)} cy={toY(d.realHrs)} r={4} fill="#C9924B" />
+          <text x={toX(i)} y={H - PAD.bottom + 14} textAnchor="middle" fontSize={7.5} fill="#9A9489">
+            {d.orderNumber.replace("ORD-", "")}
+          </text>
         </g>
       ))}
-
-      {/* X labels */}
-      {reversed.map((d, i) => (
-        <text key={i} x={toX(i)} y={H - PAD.bottom + 14} textAnchor="middle" fontSize={8} fill="#6B7280">
-          {d.orderNumber.replace('ORD-', '')}
-        </text>
-      ))}
-
-      {/* Baseline */}
-      <line x1={PAD.left} y1={PAD.top + chartH} x2={W - PAD.right} y2={PAD.top + chartH} stroke="#E5E7EB" strokeWidth={1} />
+      <line x1={PAD.left} y1={PAD.top + chartH} x2={W - PAD.right} y2={PAD.top + chartH}
+        stroke="rgba(12,12,10,0.1)" strokeWidth={1} />
     </svg>
   )
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ─── Period bar ─────────────────────────────────────────── */
+function PeriodBar({
+  period, month, year, refreshing,
+  onPeriod, onMonth, onYear, onRefresh,
+}: {
+  period: "MONTHLY" | "ANNUAL"; month: number; year: number; refreshing: boolean
+  onPeriod: (v: "MONTHLY" | "ANNUAL") => void
+  onMonth: (v: number) => void
+  onYear: (v: number) => void
+  onRefresh: () => void
+}) {
+  const selStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "4px", padding: "0.45rem 1.75rem 0.45rem 0.75rem",
+    color: "#F5F2EC", fontSize: "0.78rem", outline: "none", cursor: "pointer", appearance: "none",
+  }
+  return (
+    <div style={{ background: "#1E1E1B", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0.85rem 2rem" }}>
+      <div style={{ maxWidth: "1024px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Calendar size={13} style={{ color: "#9A9489" }} />
+          <span style={{ fontSize: "0.55rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+            Período de análisis
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+          <div style={{ position: "relative" }}>
+            <select value={period} onChange={(e) => onPeriod(e.target.value as "MONTHLY" | "ANNUAL")} style={selStyle}>
+              <option value="MONTHLY" style={{ background: "#1E1E1B" }}>Mensual</option>
+              <option value="ANNUAL" style={{ background: "#1E1E1B" }}>Anual</option>
+            </select>
+            <ChevronDown size={11} style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", color: "#9A9489", pointerEvents: "none" }} />
+          </div>
+          {period === "MONTHLY" && (
+            <div style={{ position: "relative" }}>
+              <select value={month} onChange={(e) => onMonth(Number(e.target.value))} style={selStyle}>
+                {MONTHS.map((m, i) => <option key={i + 1} value={i + 1} style={{ background: "#1E1E1B" }}>{m}</option>)}
+              </select>
+              <ChevronDown size={11} style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", color: "#9A9489", pointerEvents: "none" }} />
+            </div>
+          )}
+          <div style={{ position: "relative" }}>
+            <select value={year} onChange={(e) => onYear(Number(e.target.value))} style={selStyle}>
+              {[2024, 2025, 2026, 2027].map((y) => <option key={y} value={y} style={{ background: "#1E1E1B" }}>{y}</option>)}
+            </select>
+            <ChevronDown size={11} style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", color: "#9A9489", pointerEvents: "none" }} />
+          </div>
+          <button onClick={onRefresh} disabled={refreshing} style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: "32px", height: "32px",
+            background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "4px", cursor: refreshing ? "not-allowed" : "pointer",
+            color: "#9A9489", opacity: refreshing ? 0.5 : 1,
+          }}>
+            <RefreshCw size={13} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════
    Page
-═══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════════ */
 export default function RentabilidadPage() {
-  const currentDate = new Date()
-  const [year, setYear]     = useState(currentDate.getFullYear())
-  const [month, setMonth]   = useState(currentDate.getMonth() + 1)
+  const now = new Date()
+  const [year, setYear]     = useState(now.getFullYear())
+  const [month, setMonth]   = useState(now.getMonth() + 1)
   const [period, setPeriod] = useState<"MONTHLY" | "ANNUAL">("ANNUAL")
   const [data, setData]     = useState<ProfitabilityData | null>(null)
   const [loading, setLoading]     = useState(true)
@@ -143,185 +223,219 @@ export default function RentabilidadPage() {
     try {
       const res = await api.get<{ data: ProfitabilityData }>(`/api/bi/profitability?${params}`)
       if (res.ok) setData(res.data.data)
-    } finally {
-      setLoading(false); setRefreshing(false)
-    }
+    } finally { setLoading(false); setRefreshing(false) }
   }, [period, year, month])
 
   useEffect(() => { fetchData() }, [fetchData])
 
   const compliance = data?.compliance
   const periodLabel = period === "MONTHLY" ? `${MONTHS[month - 1]} ${year}` : `Año ${year}`
+  const totalFacturado = data?.revenueByClient.reduce((s, r) => s + r.ingresos, 0) ?? 0
+  const onTimePct = compliance?.onTimePct ?? 0
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top bar */}
-      <div className="bg-surface border-b border-black/5 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold font-heading text-primary">Análisis de Rentabilidad</h1>
-            <p className="text-sm text-text-muted mt-0.5">Medición de cumplimiento (KPIs) — {periodLabel}</p>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
+
+      {/* Ghost letters */}
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem, 30vw, 28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.025)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>AR</div>
+
+      <PeriodBar period={period} month={month} year={year} refreshing={refreshing}
+        onPeriod={setPeriod} onMonth={setMonth} onYear={setYear} onRefresh={() => fetchData(true)} />
+
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-12">
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Gerencia · {periodLabel}
+          </p>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Análisis de Rentabilidad
+            </motion.h1>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Calendar size={16} className="text-text-muted" />
-            <select value={period} onChange={e => setPeriod(e.target.value as "MONTHLY" | "ANNUAL")}
-              className="text-sm border border-black/10 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30">
-              <option value="MONTHLY">Mensual</option>
-              <option value="ANNUAL">Anual</option>
-            </select>
-            {period === "MONTHLY" && (
-              <select value={month} onChange={e => setMonth(Number(e.target.value))}
-                className="text-sm border border-black/10 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30">
-                {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
-              </select>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.7 }}
+            style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "48ch" }}>
+            Medición de cumplimiento de entrega, ingresos por cliente y KPIs operativos.
+          </motion.p>
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.5rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* ── KPI row ─────────────────────────────────── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.7, ease: EASE }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "24px" }}>
+
+          {/* Facturación — dark */}
+          <div style={{ background: "#1E1E1B", borderRadius: "6px", padding: "1.75rem 2rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Facturación Total</p>
+              <TrendingUp size={14} style={{ color: "#C9924B" }} />
+            </div>
+            {loading ? <div style={{ height: "44px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }} /> : (
+              <p style={{ fontSize: "clamp(1.4rem, 3vw, 2.2rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#C9924B", lineHeight: 1 }}>
+                {formatQ(totalFacturado)}
+              </p>
             )}
-            <select value={year} onChange={e => setYear(Number(e.target.value))}
-              className="text-sm border border-black/10 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30">
-              {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <button onClick={() => fetchData(true)} disabled={refreshing}
-              className="p-1.5 rounded-lg border border-black/10 bg-white hover:bg-black/5 transition-colors disabled:opacity-50">
-              <RefreshCw size={15} className={cn("text-text-muted", refreshing && "animate-spin")} />
-            </button>
+            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>{periodLabel}</p>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-
-        {/* ── Summary cards ─────────────────────────────── */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[1,2,3].map(i => <div key={i} className="bg-surface rounded-2xl h-28 animate-pulse border border-black/5" />)}
+          {/* Entregas a tiempo */}
+          <div style={{
+            background: onTimePct >= 80 ? "rgba(58,142,42,0.06)" : "rgba(201,146,75,0.06)",
+            border: `1px solid ${onTimePct >= 80 ? "rgba(58,142,42,0.2)" : "rgba(201,146,75,0.2)"}`,
+            borderRadius: "6px", padding: "1.75rem 2rem", display: "flex", flexDirection: "column", gap: "0.25rem",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Entregas a Tiempo</p>
+              <CheckCircle2 size={14} style={{ color: onTimePct >= 80 ? "#3A8E2A" : "#C9924B" }} />
+            </div>
+            {loading ? <div style={{ height: "44px", background: "rgba(12,12,10,0.04)", borderRadius: "3px" }} /> : (
+              <p style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, letterSpacing: "-0.04em", color: onTimePct >= 80 ? "#3A8E2A" : "#C9924B", lineHeight: 1 }}>
+                {onTimePct}%
+              </p>
+            )}
+            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>
+              {compliance ? `${compliance.onTime} de ${compliance.total} órdenes` : "—"}
+            </p>
           </div>
-        ) : data && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {/* Total facturado */}
-            <div className="bg-surface rounded-2xl p-5 border border-black/5 shadow-sm flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 text-primary shrink-0"><TrendingUp size={22} /></div>
-              <div>
-                <p className="text-sm text-text-muted font-medium">Facturación Total</p>
-                <p className="text-xl font-bold text-text-primary mt-1">
-                  {formatQ(data.revenueByClient.reduce((s, r) => s + r.ingresos, 0))}
-                </p>
-                <p className="text-xs text-text-muted mt-0.5">{periodLabel}</p>
-              </div>
-            </div>
 
-            {/* % entregas a tiempo */}
-            <div className={cn(
-              "rounded-2xl p-5 border shadow-sm flex items-start gap-4",
-              (compliance?.onTimePct ?? 0) >= 80 ? "bg-emerald-50 border-emerald-100" : "bg-amber-50 border-amber-100"
-            )}>
-              <div className={cn("p-3 rounded-xl shrink-0",
-                (compliance?.onTimePct ?? 0) >= 80 ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"
-              )}>
-                <CheckCircle2 size={22} />
-              </div>
-              <div>
-                <p className="text-sm text-text-muted font-medium">Entregas a Tiempo</p>
-                <p className="text-3xl font-bold text-text-primary mt-1">{compliance?.onTimePct ?? 0}%</p>
-                <p className="text-xs text-text-muted mt-0.5">
-                  {compliance?.onTime ?? 0} de {compliance?.total ?? 0} órdenes
-                </p>
-              </div>
+          {/* Retraso promedio */}
+          <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", padding: "1.75rem 2rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Retraso Promedio</p>
+              <Clock size={14} style={{ color: "#9A9489" }} />
             </div>
-
-            {/* Retraso promedio */}
-            <div className="bg-surface rounded-2xl p-5 border border-black/5 shadow-sm flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600 shrink-0"><Clock size={22} /></div>
-              <div>
-                <p className="text-sm text-text-muted font-medium">Retraso Promedio</p>
-                <p className="text-3xl font-bold text-text-primary mt-1">
-                  {Math.abs(compliance?.avgDelayHrs ?? 0).toFixed(1)}h
-                </p>
-                <p className="text-xs text-text-muted mt-0.5">
-                  {(compliance?.avgDelayHrs ?? 0) > 0 ? "sobre lo prometido" : "dentro del plazo"}
-                </p>
-              </div>
-            </div>
+            {loading ? <div style={{ height: "44px", background: "rgba(12,12,10,0.04)", borderRadius: "3px" }} /> : (
+              <p style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#0C0C0A", lineHeight: 1 }}>
+                {Math.abs(compliance?.avgDelayHrs ?? 0).toFixed(1)}h
+              </p>
+            )}
+            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>
+              {(compliance?.avgDelayHrs ?? 0) > 0 ? "sobre lo prometido" : "dentro del plazo"}
+            </p>
           </div>
-        )}
+        </motion.div>
 
-        {/* ── Charts row ────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* ── Charts row ───────────────────────────────── */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.7, ease: EASE }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
 
-          {/* Ingresos por Cliente */}
-          <div className="bg-surface rounded-2xl p-6 border border-black/5 shadow-sm">
-            <h2 className="text-base font-semibold text-text-primary mb-1">Ingresos por Cliente</h2>
-            <p className="text-xs text-text-muted mb-4">{periodLabel} · Monto facturado (Q)</p>
-            {loading
-              ? <div className="h-44 animate-pulse bg-gray-100 rounded-xl" />
-              : <BarChart data={data?.revenueByClient ?? []} />
-            }
+          {/* Ingresos por cliente */}
+          <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+            <div style={{ height: "2px", background: "#C9924B" }} />
+            <div style={{ padding: "1.5rem 1.75rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+                Ingresos por Cliente
+              </p>
+              <p style={{ fontSize: "0.65rem", color: "#6B6260", marginBottom: "1.25rem" }}>{periodLabel} · Monto facturado (Q)</p>
+              {loading
+                ? <div style={{ height: "180px", background: "rgba(12,12,10,0.04)", borderRadius: "4px" }} />
+                : <BarChart data={data?.revenueByClient ?? []} />}
+            </div>
           </div>
 
           {/* Real vs Promesa */}
-          <div className="bg-surface rounded-2xl p-6 border border-black/5 shadow-sm">
-            <h2 className="text-base font-semibold text-text-primary mb-1">Real vs Promesa (Horas)</h2>
-            <p className="text-xs text-text-muted mb-2">Tiempo de entrega: prometido vs real</p>
-            <div className="flex gap-4 text-xs mb-3">
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block w-6 border-t-2 border-dashed border-gray-400" />
-                Prometido
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block w-6 border-t-2 border-primary" style={{ borderColor: '#0A474D' }} />
-                Real
-              </span>
+          <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+            <div style={{ height: "2px", background: "rgba(12,12,10,0.08)" }} />
+            <div style={{ padding: "1.5rem 1.75rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+                Real vs Promesa
+              </p>
+              <p style={{ fontSize: "0.65rem", color: "#6B6260", marginBottom: "0.75rem" }}>Tiempo de entrega: prometido vs real (horas)</p>
+              {/* Legend */}
+              <div style={{ display: "flex", gap: "16px", marginBottom: "1rem" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.6rem", color: "#9A9489" }}>
+                  <span style={{ display: "inline-block", width: "20px", borderTop: "2px dashed #9A9489" }} />
+                  Prometido
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.6rem", color: "#C9924B" }}>
+                  <span style={{ display: "inline-block", width: "20px", borderTop: "2.5px solid #C9924B" }} />
+                  Real
+                </span>
+              </div>
+              {loading
+                ? <div style={{ height: "180px", background: "rgba(12,12,10,0.04)", borderRadius: "4px" }} />
+                : <LineChart data={data?.deliveryTimes ?? []} />}
             </div>
-            {loading
-              ? <div className="h-44 animate-pulse bg-gray-100 rounded-xl" />
-              : <LineChart data={data?.deliveryTimes ?? []} />
-            }
           </div>
-        </div>
+        </motion.div>
 
-        {/* ── Bottlenecks table ─────────────────────────── */}
+        {/* ── Compliance table ─────────────────────────── */}
         {!loading && data && data.deliveryTimes.length > 0 && (
-          <div className="bg-surface rounded-2xl border border-black/5 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-black/5">
-              <h2 className="text-base font-semibold text-text-primary">Detalle de Cumplimiento por Orden</h2>
-              <p className="text-xs text-text-muted mt-0.5">Comparativa prometido vs real en órdenes entregadas</p>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.6, ease: EASE }}
+            style={{ background: "#1E1E1B", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "6px", overflow: "hidden" }}>
+            <div style={{ height: "2px", background: "rgba(201,146,75,0.4)" }} />
+            <div style={{ padding: "1.5rem 1.75rem" }}>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.35rem" }}>
+                Detalle de Cumplimiento por Orden
+              </p>
+              <p style={{ fontSize: "0.65rem", color: "#6B6260", marginBottom: "1.25rem" }}>Comparativa prometido vs real en órdenes entregadas</p>
+
+              {/* Header */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 0.8fr 0.8fr 0.8fr 0.8fr", gap: "0 1rem", paddingBottom: "0.6rem", borderBottom: "1px solid rgba(255,255,255,0.07)", marginBottom: "4px" }}>
+                {["Orden", "Prometido", "Real", "Desviación", "Estado"].map((h, i) => (
+                  <span key={h} style={{ fontSize: "0.45rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, textAlign: i > 0 ? "right" : "left" }}>
+                    {h}
+                  </span>
+                ))}
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {data.deliveryTimes.map((row, i) => {
+                  const diff = row.realHrs - row.prometidoHrs
+                  const onTime = diff <= 0
+                  return (
+                    <div key={row.orderNumber} style={{
+                      display: "grid", gridTemplateColumns: "1fr 0.8fr 0.8fr 0.8fr 0.8fr",
+                      gap: "0 1rem", alignItems: "center",
+                      padding: "0.6rem 0",
+                      borderBottom: i < data.deliveryTimes.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                    }}>
+                      <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#C9924B", letterSpacing: "0.02em" }}>{row.orderNumber}</span>
+                      <span style={{ fontSize: "0.72rem", color: "#9A9489", textAlign: "right" }}>{row.prometidoHrs.toFixed(1)}h</span>
+                      <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "#F5F2EC", textAlign: "right" }}>{row.realHrs.toFixed(1)}h</span>
+                      <span style={{ fontSize: "0.72rem", fontWeight: 700, color: onTime ? "#3A8E2A" : "#E53E3E", textAlign: "right" }}>
+                        {diff > 0 ? `+${diff.toFixed(1)}h` : `${diff.toFixed(1)}h`}
+                      </span>
+                      <div style={{ textAlign: "right" }}>
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: "4px",
+                          fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.08em",
+                          color: onTime ? "#3A8E2A" : "#E53E3E",
+                          background: onTime ? "rgba(58,142,42,0.1)" : "rgba(229,62,62,0.1)",
+                          borderRadius: "3px", padding: "2px 7px",
+                        }}>
+                          {onTime ? "A tiempo" : "Con retraso"}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-black/5 bg-black/[0.02]">
-                    <th className="px-5 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Orden</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wide">Prometido</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wide">Real</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wide">Desviación</th>
-                    <th className="px-5 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wide">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black/5">
-                  {data.deliveryTimes.map(row => {
-                    const diff = row.realHrs - row.prometidoHrs
-                    const onTime = diff <= 0
-                    return (
-                      <tr key={row.orderNumber} className="hover:bg-black/[0.015]">
-                        <td className="px-5 py-3 font-mono text-primary font-semibold text-xs">{row.orderNumber}</td>
-                        <td className="px-5 py-3 text-right text-text-muted">{row.prometidoHrs.toFixed(1)}h</td>
-                        <td className="px-5 py-3 text-right font-semibold text-text-primary">{row.realHrs.toFixed(1)}h</td>
-                        <td className={cn("px-5 py-3 text-right font-semibold", onTime ? "text-emerald-600" : "text-red-500")}>
-                          {diff > 0 ? `+${diff.toFixed(1)}h` : `${diff.toFixed(1)}h`}
-                        </td>
-                        <td className="px-5 py-3 text-center">
-                          <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full",
-                            onTime ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
-                            {onTime ? "A tiempo" : "Con retraso"}
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          </motion.div>
         )}
+
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
