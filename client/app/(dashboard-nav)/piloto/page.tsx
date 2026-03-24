@@ -1,32 +1,29 @@
-'use client'
-// ============================================================
-// app/(dashboard-nav)/piloto/page.tsx
-// Dashboard "Mis Viajes" — Portal del Piloto
-// ============================================================
-// Estructura:
-//   - Sidebar izquierdo: FiltrosSidebar (filtros de búsqueda)
-//   - Contenido derecho: lista de ViajeCard
-//
-// Fetch: GET /api/pilot/orders
-// Navegación: al hacer clic en una tarjeta → /piloto/monitoreo/[id]
-// ============================================================
+"use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { ViajeResumen, FiltrosViaje } from "@/types/pilot"
 import { useAuth } from "@/hooks/useAuth"
 import FiltrosSidebar from "@/components/piloto/FIltrosSidebar"
 import ViajeCard from "@/components/piloto/ViajeCard"
-import { Truck } from "lucide-react"
-import { cn } from "@/lib/utils/cn"
-import { param } from "framer-motion/client"
 
+const EASE = [0.16, 1, 0.3, 1] as const
 
+/* ── Priority sort: EN_TRANSITO first, then LISTA_PARA_DESPACHO, rest ── */
+const PRIORITY: Record<string, number> = {
+  EN_TRANSITO: 0,
+  LISTA_PARA_DESPACHO: 1,
+  ASIGNADA: 2,
+  REGISTRADA: 3,
+  ENTREGADA: 4,
+  BLOQUEADA: 5,
+  CANCELADA: 6,
+}
 
 export default function PilotoDashboardPage() {
-
   const router = useRouter()
   const { user } = useAuth()
 
@@ -34,109 +31,155 @@ export default function PilotoDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [filtros, setFiltros] = useState<FiltrosViaje>({})
 
-  // ---- Fetch inicial y cada vez que cambien los filtros ------
-  useEffect(() => {
-    fetchViaje(filtros)
-  }, [filtros])
+  useEffect(() => { fetchViaje(filtros) }, [filtros])
 
-  async function fetchViaje(params:FiltrosViaje) {
+  async function fetchViaje(params: FiltrosViaje) {
     setLoading(true)
     try {
-      // Construir query string solo con los campos que tienen valor
       const query: Record<string, string> = {}
-      if (params.status) query.status = params.status
-      if (params.startDate) query.startDate = params.startDate
-      if (params.endDate) query.endDate = params.endDate
-      if (params.clientName) query.clientName = params.clientName
-      if (params.origin) query.origin = params.origin
+      if (params.status)      query.status       = params.status
+      if (params.startDate)   query.startDate    = params.startDate
+      if (params.endDate)     query.endDate      = params.endDate
+      if (params.clientName)  query.clientName   = params.clientName
+      if (params.origin)      query.origin       = params.origin
       if (params.destination) query.destinantion = params.destination
-      if (params.cargoType) query.cargoType = params.cargoType
+      if (params.cargoType)   query.cargoType    = params.cargoType
       if (params.sortByWeight) query.sortByWeight = params.sortByWeight
-  
-      const queryString = new URLSearchParams(query).toString()
-      const url = queryString
-        ? `${ENDPOINTS.VIAJES.LIST}?${queryString}`
-        : ENDPOINTS.VIAJES.LIST
-  
-      const response = await api.get<{ message: string; data: ViajeResumen[] }>(url)
-      const viajesToSet = (response.data as any).data
-      setViajes(Array.isArray(viajesToSet) ? viajesToSet : [])
+
+      const qs = new URLSearchParams(query).toString()
+      const url = qs ? `${ENDPOINTS.VIAJES.LIST}?${qs}` : ENDPOINTS.VIAJES.LIST
+
+      const res = await api.get<{ message: string; data: ViajeResumen[] }>(url)
+      const data = (res.data as any).data
+      const arr: ViajeResumen[] = Array.isArray(data) ? data : []
+
+      // Sort by priority unless user has a weight sort
+      if (!params.sortByWeight) {
+        arr.sort((a, b) => (PRIORITY[a.status] ?? 9) - (PRIORITY[b.status] ?? 9))
+      }
+      setViajes(arr)
     } catch {
-      // El cliente api ya muestra el toast de error automáticamente
+      // api client handles toast
     } finally {
       setLoading(false)
     }
-  } 
-
-  function handleAbrirViaje(orderId: string) {
-    router.push(`/piloto/monitoreo/${orderId}`)
   }
 
-  // -- Separar viajes por estado para mostrar en Tránsito primero -----
-  const viajesEnTransito = viajes.filter((v) => v.status == "EN_TRANSITO")
-  const viajesPendientes = viajes.filter((v) => v.status == "LISTA_PARA_DESPACHO" )
-  const otrosViajes = viajes.filter((v) => v.status !== "EN_TRANSITO" && v.status !== "LISTA_PARA_DESPACHO")
+  const firstName = user?.fullName?.split(" ")[0] ?? "Piloto"
 
-  const viajesOrdenados = [...viajesEnTransito, ...viajesPendientes, ...otrosViajes]
+  /* ── Active trip (EN_TRANSITO) ── */
+  const activo = viajes.find(v => v.status === "EN_TRANSITO")
+  const resto  = viajes.filter(v => v.status !== "EN_TRANSITO")
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="w-full max-w-7xl mx-auto px-6 py-8">
-        {/* ── Bienvenida ──────────────────────────────────────────── */}
-        <h1 className="font-heading text-4xl font-extrabold text-center text-text-primary mb-8">
-          ¡Bienvenido{user?.fullName ? `, ${user.fullName}` : ""}!
-        </h1>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
 
-        {/* ── Layout principal: Sidebar + Lista ────────────────────── */}
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar de filtros */}
-          <aside className="w-full lg:w-1/4">
-            <FiltrosSidebar
-              filtros={filtros}
-              onChange={(nuevosFiltros) => setFiltros(nuevosFiltros)}
-            />
-          </aside>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-          {/* Lista de viajes */}
-          <section className="w-full lg:w-3/4 flex flex-col gap-2">
-            <h2 className="font-subheading text-3xl text-center text-text-primary mb-6">
-              Mis viajes
-            </h2>
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-10">
 
-            {/* Estado de carga */}
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-20 gap-4 text-text-muted">
-                <Truck size={48} className="animate-bounce text-primary" />
-                <p className="font-body text-lg">Cargando tus viajes...</p>
-              </div>
+        {/* ── Header ── */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Portal del Piloto
+          </p>
+
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Hola, {firstName}.
+            </motion.h1>
+          </div>
+
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* ── Filters ── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.7, ease: EASE }}>
+          <FiltrosSidebar filtros={filtros} onChange={setFiltros} />
+        </motion.div>
+
+        {/* ── Loading ── */}
+        {loading && (
+          <p style={{ textAlign: "center", padding: "4rem 0", fontSize: "0.68rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase" }}>
+            Cargando viajes…
+          </p>
+        )}
+
+        {/* ── Empty ── */}
+        {!loading && viajes.length === 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            style={{ textAlign: "center", padding: "5rem 0" }}>
+            <p style={{ fontSize: "0.68rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", marginBottom: "0.5rem" }}>
+              Sin viajes asignados
+            </p>
+            <p style={{ fontSize: "0.82rem", color: "#6B6260" }}>
+              Cuando el agente logístico te asigne una orden, aparecerá aquí.
+            </p>
+          </motion.div>
+        )}
+
+        {!loading && viajes.length > 0 && (
+          <>
+            {/* ── Active trip highlight ── */}
+            {activo && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.6, ease: EASE }} style={{ marginBottom: "2rem" }}>
+
+                <p style={{ fontSize: "0.55rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span className="relative flex" style={{ width: "6px", height: "6px" }}>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "#C9924B" }} />
+                    <span className="relative inline-flex rounded-full" style={{ width: "6px", height: "6px", background: "#C9924B" }} />
+                  </span>
+                  Viaje activo
+                </p>
+                <ViajeCard viaje={activo} onAbrir={() => router.push(`/piloto/monitoreo/${activo.orderId}`)} />
+              </motion.div>
             )}
 
-            {/* Sin resultados */}
-            {!loading && viajesOrdenados.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center">
-                  <Truck size={40} className="text-text-muted" />
+            {/* ── Rest of trips ── */}
+            {resto.length > 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.6 }}>
+
+                {activo && (
+                  <p style={{ fontSize: "0.55rem", letterSpacing: "0.3em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.75rem" }}>
+                    Otros viajes · {resto.length}
+                  </p>
+                )}
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {resto.map((viaje, i) => (
+                    <motion.div key={viaje.orderId}
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 + i * 0.04, duration: 0.5, ease: EASE }}>
+                      <ViajeCard viaje={viaje} onAbrir={() => router.push(`/piloto/monitoreo/${viaje.orderId}`)} />
+                    </motion.div>
+                  ))}
                 </div>
-                <p className="font-subheading text-xl text-text-primary">
-                  No hay viajes asignados
-                </p>
-                <p className="font-body text-text-muted text-center max-w-sm">
-                  Cuando el agente logístico te asigne una orden, aparecerá aquí.
-                </p>
-              </div>
+              </motion.div>
             )}
 
-            {/* Tarjetas de viaje */}
-            {!loading && viajesOrdenados.map((viaje) => (
-              <ViajeCard
-                key={viaje.orderId}
-                viaje={viaje}
-                onAbrir={() => handleAbrirViaje(viaje.orderId)}
-              />
-            ))}
-          </section>
-        </div>
-      </main>
+            {/* Count */}
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.2em", color: "rgba(12,12,10,0.25)", textTransform: "uppercase", marginTop: "1.5rem", textAlign: "right" }}>
+              {viajes.length} {viajes.length === 1 ? "viaje" : "viajes"} en total
+            </p>
+          </>
+        )}
+
+        <div style={{ height: "4rem" }} />
+      </div>
     </div>
   )
 }

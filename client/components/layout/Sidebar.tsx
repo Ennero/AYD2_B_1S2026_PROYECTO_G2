@@ -1,15 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { LogOut, ChevronLeft, ChevronRight, Clock as ClockIcon } from "lucide-react"
+import { LogOut, ChevronLeft, ChevronRight } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils/cn"
 import { useAuth } from "@/hooks/useAuth"
 import type { NavItem } from "@/types"
 
-/** Configuración completa de navegación por rol con sidebar */
 const SIDEBAR_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
   "agente-operativo": {
     title: "Agente Operativo",
@@ -22,9 +20,7 @@ const SIDEBAR_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
   },
   piloto: {
     title: "Piloto",
-    items: [
-      { label: "Mis Viajes", href: "/piloto" },
-    ],
+    items: [{ label: "Mis Viajes", href: "/piloto" }],
   },
   "agente-logistico": {
     title: "Agente Logístico",
@@ -52,7 +48,7 @@ const SIDEBAR_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
     title: "Agente Financiero",
     items: [
       { label: "Inicio", href: "/finances" },
-      { label: "Bandeja de Facturacion", href: "/finances/facturacion" },
+      { label: "Bandeja de Facturación", href: "/finances/facturacion" },
       { label: "Conciliar Pagos", href: "/finances/pagos" },
       { label: "Tarifario Base", href: "/finances/tarifario" },
     ],
@@ -74,122 +70,244 @@ export default function Sidebar() {
   const [mounted, setMounted] = useState(false)
   const { logout } = useAuth()
 
-  // Prevent hydration mismatch for the Clock
   useEffect(() => {
     setMounted(true)
     const timer = setInterval(() => setTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  // Detectar rol activo por la URL
-  const activeRole = Object.keys(SIDEBAR_CONFIG).find((role) => pathname.startsWith(`/${role}`))
+  const activeRole = Object.keys(SIDEBAR_CONFIG).find((role) =>
+    pathname.startsWith(`/${role}`)
+  )
   const config = activeRole ? SIDEBAR_CONFIG[activeRole] : null
 
   return (
     <aside
       className={cn(
-        "bg-[#0A3B7C] text-white min-h-screen flex flex-col transition-all duration-300 shadow-xl relative z-50",
-        collapsed ? "w-20" : "w-64"
+        "min-h-screen flex flex-col transition-all duration-300 relative z-50 select-none",
+        collapsed ? "w-18" : "w-56"
       )}
+      style={{
+        background: "#0C0C0A",
+        borderRight: "1px solid rgba(245,242,236,0.06)",
+      }}
     >
-      {/* Header */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between min-h-[80px] bg-[#083066] relative">
-        <div className="flex-1 flex justify-center">
-          <Link href={config?.items[0]?.href || "/"}>
-            {collapsed ? (
-              <Image src="/logo-icon.svg" alt="LogiTrans" width={40} height={44} className="h-11 w-auto" priority />
-            ) : (
-              <Image src="/logo-white.svg" alt="LogiTrans" width={160} height={48} className="h-12 w-auto" priority />
-            )}
+
+      {/* ── Brand header ── */}
+      <div
+        className="flex items-center justify-between px-5 relative"
+        style={{ height: "64px", borderBottom: "1px solid rgba(245,242,236,0.06)" }}
+      >
+        {!collapsed && (
+          <Link href={config?.items[0]?.href || "/"} style={{ textDecoration: "none" }}>
+            <span style={{
+              fontWeight: 900,
+              fontSize: "0.78rem",
+              letterSpacing: "0.32em",
+              color: "#F5F2EC",
+            }}>
+              LOGITRANS
+            </span>
           </Link>
-        </div>
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-white/80 hover:text-white transition-colors cursor-pointer p-1 rounded hover:bg-white/10 absolute right-2 top-1/2 -translate-y-1/2"
-        >
-          {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-        </button>
+        )}
+
+        {collapsed && (
+          <Link href={config?.items[0]?.href || "/"} style={{ textDecoration: "none", margin: "0 auto" }}>
+            <span style={{ fontWeight: 900, fontSize: "0.9rem", letterSpacing: "0.1em", color: "#F5F2EC" }}>
+              LT
+            </span>
+          </Link>
+        )}
+
+        {!collapsed && (
+          <button
+            onClick={() => setCollapsed(true)}
+            style={{ color: "rgba(245,242,236,0.3)", cursor: "pointer", padding: "4px", lineHeight: 0 }}
+            onMouseOver={(e) => (e.currentTarget.style.color = "#F5F2EC")}
+            onMouseOut={(e) => (e.currentTarget.style.color = "rgba(245,242,236,0.3)")}
+          >
+            <ChevronLeft size={16} />
+          </button>
+        )}
       </div>
 
-      {/* Role badge */}
-      {!collapsed && config && (
-        <div className="px-5 py-4 border-b border-white/10 bg-black/10">
-          <span className="text-xs text-white/70 uppercase tracking-widest font-semibold">{config.title}</span>
+      {/* ── Role label ── */}
+      {config && (
+        <div
+          style={{
+            padding: collapsed ? "20px 0 16px" : "20px 20px 16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: collapsed ? "center" : "flex-start",
+            borderBottom: "1px solid rgba(245,242,236,0.06)",
+          }}
+        >
+          {collapsed ? (
+            <button
+              onClick={() => setCollapsed(false)}
+              style={{ color: "rgba(245,242,236,0.3)", cursor: "pointer", lineHeight: 0 }}
+              onMouseOver={(e) => (e.currentTarget.style.color = "#C9924B")}
+              onMouseOut={(e) => (e.currentTarget.style.color = "rgba(245,242,236,0.3)")}
+              title="Expandir"
+            >
+              <ChevronRight size={15} />
+            </button>
+          ) : (
+            <span style={{
+              fontSize: "0.55rem",
+              letterSpacing: "0.34em",
+              color: "#C9924B",
+              textTransform: "uppercase",
+              fontWeight: 700,
+            }}>
+              {config.title}
+            </span>
+          )}
         </div>
       )}
 
-      {/* Nav items */}
-      <nav className="flex-1 py-6 space-y-2 px-3 overflow-y-auto">
-        {config?.items.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-              pathname === item.href || (item.href !== `/${activeRole}` && pathname.startsWith(item.href))
-                ? "bg-[#53B73E] text-white shadow-md shadow-[#53B73E]/20"
-                : "text-white/70 hover:bg-white/10 hover:text-white"
-            )}
-            title={collapsed ? item.label : undefined}
-          >
-            {collapsed && (
-               <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 mx-auto">
-                 {item.label.charAt(0)}
-               </div>
-            )}
-            {!collapsed && <span>{item.label}</span>}
-          </Link>
-        ))}
+      {/* ── Nav items ── */}
+      <nav className="flex-1 overflow-y-auto" style={{ padding: collapsed ? "20px 0" : "20px 0" }}>
+        {config?.items.map((item) => {
+          const active =
+            pathname === item.href ||
+            (item.href !== `/${activeRole}` && pathname.startsWith(item.href))
+
+          if (collapsed) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                title={item.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "40px",
+                  margin: "2px 12px",
+                  borderRadius: "6px",
+                  fontSize: "0.7rem",
+                  fontWeight: 900,
+                  background: active ? "rgba(201,146,75,0.15)" : "transparent",
+                  color: active ? "#C9924B" : "rgba(245,242,236,0.3)",
+                  textDecoration: "none",
+                  letterSpacing: "0.04em",
+                  transition: "color 0.2s, background 0.2s",
+                }}
+                onMouseOver={(e) => {
+                  if (!active) e.currentTarget.style.color = "#F5F2EC"
+                }}
+                onMouseOut={(e) => {
+                  if (!active) e.currentTarget.style.color = "rgba(245,242,236,0.3)"
+                }}
+              >
+                {item.label.charAt(0)}
+              </Link>
+            )
+          }
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "9px 20px",
+                textDecoration: "none",
+                transition: "color 0.15s",
+                color: active ? "#C9924B" : "rgba(245,242,236,0.38)",
+                position: "relative",
+              }}
+              onMouseOver={(e) => {
+                if (!active) e.currentTarget.style.color = "rgba(245,242,236,0.75)"
+              }}
+              onMouseOut={(e) => {
+                if (!active) e.currentTarget.style.color = "rgba(245,242,236,0.38)"
+              }}
+            >
+              {/* Active indicator — thin left rule */}
+              {active && (
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: "20%",
+                    height: "60%",
+                    width: "2px",
+                    background: "#C9924B",
+                    borderRadius: "0 2px 2px 0",
+                  }}
+                />
+              )}
+              <span style={{
+                fontSize: "0.82rem",
+                fontWeight: active ? 700 : 400,
+                letterSpacing: active ? "0.01em" : "0",
+                lineHeight: 1.2,
+              }}>
+                {item.label}
+              </span>
+            </Link>
+          )
+        })}
       </nav>
 
-      {/* Status & Time */}
-      <div className="border-t border-white/10">
-        {!collapsed ? (
-          <div className="px-5 py-4 space-y-3 bg-black/10">
-            {mounted && (
-              <div className="flex items-center gap-2 text-sm text-white/80 font-medium">
-                <ClockIcon size={16} className="text-[#53B73E]" />
-                <span>
-                  {time.toLocaleTimeString('es-GT', { 
-                    hour: '2-digit', minute: '2-digit' 
-                  })}
-                </span>
-                <span className="text-xs text-white/50 ml-1">
-                  {time.toLocaleDateString('es-GT', { month: 'short', day: 'numeric' })}
-                </span>
-              </div>
-            )}
-            <div className="flex items-center gap-3 bg-[#083066] p-2 rounded-lg border border-white/5">
-              <span className="relative flex h-3 w-3 ml-1">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#53B73E]"></span>
-              </span>
-              <span className="text-sm font-medium text-white/90">Sistema En Línea</span>
-            </div>
-          </div>
-        ) : (
-          <div className="py-6 flex flex-col items-center gap-4 bg-black/10">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#53B73E]"></span>
+      {/* ── Footer ── */}
+      <div style={{ borderTop: "1px solid rgba(245,242,236,0.06)" }}>
+
+        {/* Clock + status — single minimal line */}
+        {!collapsed && mounted && (
+          <div
+            style={{
+              padding: "12px 20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              borderBottom: "1px solid rgba(245,242,236,0.06)",
+            }}
+          >
+            {/* Live dot */}
+            <span className="relative flex" style={{ width: "6px", height: "6px", flexShrink: 0 }}>
+              <span
+                className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-50"
+                style={{ background: "#C9924B" }}
+              />
+              <span className="relative inline-flex rounded-full" style={{ width: "6px", height: "6px", background: "#C9924B" }} />
+            </span>
+            <span style={{ fontSize: "0.68rem", color: "rgba(245,242,236,0.28)", letterSpacing: "0.04em" }}>
+              {time.toLocaleTimeString("es-GT", { hour: "2-digit", minute: "2-digit" })}
+              {" · "}
+              {time.toLocaleDateString("es-GT", { day: "numeric", month: "short" })}
             </span>
           </div>
         )}
 
-        {/* Footer — logout */}
-        <div className="p-4 border-t border-white/5">
-          <button
-            onClick={() => void logout()}
-            className={cn(
-              "flex items-center gap-3 text-white/70 hover:text-white hover:bg-white/10 p-3 rounded-lg transition-colors text-sm w-full cursor-pointer",
-              collapsed && "justify-center"
-            )}
-            title="Cerrar sesión"
-          >
-            <LogOut size={20} />
-            {!collapsed && <span>Cerrar sesión</span>}
-          </button>
-        </div>
+        {/* Collapsed: just dot */}
+        {collapsed && (
+          <div style={{ padding: "12px 0", display: "flex", justifyContent: "center", borderBottom: "1px solid rgba(245,242,236,0.06)" }}>
+            <span className="relative flex" style={{ width: "5px", height: "5px" }}>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-50" style={{ background: "#C9924B" }} />
+              <span className="relative inline-flex rounded-full" style={{ width: "5px", height: "5px", background: "#C9924B" }} />
+            </span>
+          </div>
+        )}
+
+        {/* Logout */}
+        <button
+          onClick={() => void logout()}
+          title="Cerrar sesión"
+          className={cn("flex items-center w-full cursor-pointer transition-colors", collapsed ? "justify-center py-4 px-0" : "gap-3 px-5 py-4")}
+          style={{ color: "rgba(245,242,236,0.22)", background: "transparent" }}
+          onMouseOver={(e) => (e.currentTarget.style.color = "#F5F2EC")}
+          onMouseOut={(e) => (e.currentTarget.style.color = "rgba(245,242,236,0.22)")}
+        >
+          <LogOut size={15} />
+          {!collapsed && (
+            <span style={{ fontSize: "0.75rem", letterSpacing: "0.04em" }}>Cerrar sesión</span>
+          )}
+        </button>
       </div>
     </aside>
   )

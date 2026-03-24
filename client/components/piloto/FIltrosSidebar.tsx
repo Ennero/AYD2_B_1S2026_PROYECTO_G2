@@ -1,184 +1,220 @@
 "use client"
-// ============================================================
-// components/piloto/FiltrosSidebar.tsx
-// Panel lateral de filtros de búsqueda del Dashboard Piloto.
-// Campos: rango de fechas, cliente, origen, destino,
-//         tipo de mercancía, ordenar por peso.
-// ============================================================
 
-import { useState } from "react";
-import { FiltrosViaje, OrderStatus } from "@/types/pilot";
-import { Search, X } from "lucide-react";
-import { cn } from "@/lib/utils/cn";
+import { useState } from "react"
+import { FiltrosViaje, OrderStatus } from "@/types/pilot"
+import { Search, X, ChevronDown } from "lucide-react"
 
 interface FiltrosSidebarProps {
-    filtros: FiltrosViaje
-    onChange: (filtros: FiltrosViaje) => void
+  filtros: FiltrosViaje
+  onChange: (filtros: FiltrosViaje) => void
 }
 
 const TIPOS_MERCANCIA = ["General", "Peligrosa", "Refrigerado", "Construcción"]
 
-export default function FiltrosSidebar({ filtros, onChange}: FiltrosSidebarProps) {
-    // Estado local del formulario (se aplica solo al hacer click en FILTRAR)
-    const [local, setLocal] = useState<FiltrosViaje>(filtros)
+const STATUS_OPTIONS: { value: OrderStatus | ""; label: string }[] = [
+  { value: "", label: "Todos los estados" },
+  { value: "EN_TRANSITO", label: "En Tránsito" },
+  { value: "LISTA_PARA_DESPACHO", label: "Listo para Despacho" },
+  { value: "ASIGNADA", label: "Asignada" },
+  { value: "REGISTRADA", label: "Registrada" },
+  { value: "ENTREGADA", label: "Entregada" },
+  { value: "BLOQUEADA", label: "Bloqueada" },
+  { value: "CANCELADA", label: "Cancelada" },
+]
 
-    function handleChange(key: keyof FiltrosViaje, value: string) {
-        setLocal(prev => ({ ...prev, [key]: value || undefined }))
-    }
-
-    function handleAplicar() {
-        onChange(local)
-    }
-
-    function handleLimpiar() {
-        const vacio: FiltrosViaje = {}
-        setLocal(vacio)
-        onChange(vacio)
-    }
-
-    const tieneFiltros = Object.values(local).some(Boolean)
-
-    return (
-        <div className="bg-secondary/70 p-6 rounded-xl shadow-md">
-            {/* Encabezado */}
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="font-subheading text-2xl font-bold text-primary">
-                Buscar
-                </h3>
-                {tieneFiltros && (
-                <button
-                    onClick={handleLimpiar}
-                    className="text-text-muted hover:text-error flex items-center gap-1 text-xs font-bold transition-colors"
-                >
-                    <X size={14} /> Limpiar
-                </button>
-                )}
-            </div>
-
-            {/* Rango de fechas */}
-            <div className="flex gap-2">
-                <div className="w-1/2">
-                    <label className="block text-xs font-bold text-primary mb-1">
-                    Fecha Inicio
-                    </label>
-                    <input
-                    type="date"
-                    value={local.startDate ?? ""}
-                    onChange={(e) => handleChange("startDate", e.target.value)}
-                    className={inputCls}
-                    />
-                </div>
-                <div className="w-1/2">
-                    <label className="block text-xs font-bold text-primary mb-1">
-                    Fecha Fin
-                    </label>
-                    <input
-                    type="date"
-                    value={local.endDate ?? ""}
-                    onChange={(e) => handleChange("endDate", e.target.value)}
-                    className={inputCls}
-                    />
-                </div>
-            </div>
-
-            {/* Cliente */}
-            <div>
-                <label className="block text-xs font-bold text-primary mb-1">
-                    Cliente
-                </label>
-                <input
-                    type="text"
-                    placeholder="Ej. Cementos Progreso"
-                    value={local.clientName ?? ""}
-                    onChange={(e) => handleChange("clientName", e.target.value)}
-                    className={inputCls}
-                />
-            </div>
-
-            {/* Origen */}
-            <div>
-                <label className="block text-xs font-bold text-primary mb-1">
-                    Origen
-                </label>
-                <input
-                    type="text"
-                    placeholder="Ej. Guatemala"
-                    value={local.origin ?? ""}
-                    onChange={(e) => handleChange("origin", e.target.value)}
-                    className={inputCls}
-                />
-            </div>
-
-            {/* Destino */}
-            <div>
-                <label className="block text-xs font-bold text-primary mb-1">
-                    Destino
-                </label>
-                <input
-                    type="text"
-                    placeholder="Ej. Puerto Barrios"
-                    value={local.destination ?? ""}
-                    onChange={(e) => handleChange("destination", e.target.value)}
-                    className={inputCls}
-                />
-            </div>
-
-            {/* Tipo de mercancía */}
-            <div>
-                <label className="block text-xs font-bold text-primary mb-1">
-                    Tipo de Mercancía
-                </label>
-                <select
-                    value={local.cargoType ?? ""}
-                    onChange={(e) => handleChange("cargoType", e.target.value)}
-                    className={cn(inputCls, "text-gray-600")}
-                >
-                    <option value="">Seleccione...</option>
-                    {TIPOS_MERCANCIA.map((tipo) => (
-                    <option key={tipo} value={tipo}>
-                        {tipo}
-                    </option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Ordenar por peso */}
-            <div className="pt-2 space-y-2">
-                <p className="text-xs font-bold text-primary">Ordenar por peso</p>
-                <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-primary">
-                    <input
-                    type="radio"
-                    name="sortByWeight"
-                    value="ASC"
-                    checked={local.sortByWeight === "ASC"}
-                    onChange={() => handleChange("sortByWeight", "ASC")}
-                    className="accent-primary"
-                    />
-                    Menor a Mayor
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer text-sm font-semibold text-primary">
-                    <input
-                    type="radio"
-                    name="sortByWeight"
-                    value="DESC"
-                    checked={local.sortByWeight === "DESC"}
-                    onChange={() => handleChange("sortByWeight", "DESC")}
-                    className="accent-primary"
-                    />
-                    Mayor a Menor
-                </label>
-                {/* Botón Filtrar */}
-                <button
-                    onClick={handleAplicar}
-                    className="w-full bg-surface hover:bg-[#d4bca9] text-primary font-black py-3 rounded shadow-md mt-4 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                    >
-                    <Search size={16} />
-                    FILTRAR
-                </button>
-            </div>
-        </div>
-    )
+const inputStyle: React.CSSProperties = {
+  background: "transparent",
+  border: "none",
+  borderBottom: "1px solid rgba(245,242,236,0.1)",
+  color: "#F5F2EC",
+  fontSize: "0.78rem",
+  padding: "4px 0",
+  outline: "none",
+  width: "100%",
+  transition: "border-color 0.15s",
 }
 
-// Clase base reutilizable para los inputs
-const inputCls ="w-full p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
+const labelStyle: React.CSSProperties = {
+  fontSize: "0.52rem",
+  letterSpacing: "0.28em",
+  color: "#9A9489",
+  textTransform: "uppercase" as const,
+  fontWeight: 700,
+  display: "block",
+  marginBottom: "4px",
+}
+
+export default function FiltrosSidebar({ filtros, onChange }: FiltrosSidebarProps) {
+  const [local, setLocal] = useState<FiltrosViaje>(filtros)
+  const [open, setOpen] = useState(false)
+
+  function set(key: keyof FiltrosViaje, value: string) {
+    setLocal(prev => ({ ...prev, [key]: value || undefined }))
+  }
+
+  function aplicar() { onChange(local); setOpen(false) }
+
+  function limpiar() {
+    const vacio: FiltrosViaje = {}
+    setLocal(vacio)
+    onChange(vacio)
+  }
+
+  const activos = Object.values(local).filter(Boolean).length
+
+  return (
+    <div style={{ marginBottom: "1.75rem" }}>
+      {/* ── Toggle bar ── */}
+      <div
+        style={{
+          background: "#1E1E1B",
+          borderRadius: open ? "8px 8px 0 0" : "8px",
+          padding: "0.75rem 1.25rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "1rem",
+          cursor: "pointer",
+          border: "1px solid rgba(245,242,236,0.06)",
+          borderBottom: open ? "none" : "1px solid rgba(245,242,236,0.06)",
+        }}
+        onClick={() => setOpen(v => !v)}
+      >
+        <Search size={13} style={{ color: "#C9924B", flexShrink: 0 }} />
+        <span style={{ fontSize: "0.65rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, flex: 1 }}>
+          Filtros
+          {activos > 0 && (
+            <span style={{ marginLeft: "8px", color: "#C9924B" }}>· {activos} activo{activos > 1 ? "s" : ""}</span>
+          )}
+        </span>
+        {activos > 0 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); limpiar() }}
+            style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.6rem", color: "rgba(245,242,236,0.3)", letterSpacing: "0.08em", cursor: "pointer" }}
+            onMouseOver={e => (e.currentTarget.style.color = "#F5F2EC")}
+            onMouseOut={e => (e.currentTarget.style.color = "rgba(245,242,236,0.3)")}
+          >
+            <X size={10} /> Limpiar
+          </button>
+        )}
+        <ChevronDown size={14} style={{ color: "rgba(245,242,236,0.3)", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
+      </div>
+
+      {/* ── Expanded filter panel ── */}
+      {open && (
+        <div style={{
+          background: "#1E1E1B",
+          border: "1px solid rgba(245,242,236,0.06)",
+          borderTop: "1px solid rgba(245,242,236,0.04)",
+          borderRadius: "0 0 8px 8px",
+          padding: "1.25rem",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "1.25rem 2rem",
+          alignItems: "flex-end",
+        }}>
+
+          {/* Status */}
+          <div style={{ minWidth: "160px" }}>
+            <span style={labelStyle}>Estado</span>
+            <select value={local.status ?? ""} onChange={e => set("status", e.target.value)}
+              style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}>
+              {STATUS_OPTIONS.map(o => (
+                <option key={o.value} value={o.value} style={{ background: "#1E1E1B", color: "#F5F2EC" }}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Client */}
+          <div style={{ minWidth: "150px" }}>
+            <span style={labelStyle}>Cliente</span>
+            <input type="text" value={local.clientName ?? ""} placeholder="Cementos Progreso…"
+              onChange={e => set("clientName", e.target.value)} style={inputStyle}
+              onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
+              onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(245,242,236,0.1)")} />
+          </div>
+
+          {/* Origin */}
+          <div style={{ minWidth: "120px" }}>
+            <span style={labelStyle}>Origen</span>
+            <input type="text" value={local.origin ?? ""} placeholder="Guatemala…"
+              onChange={e => set("origin", e.target.value)} style={inputStyle}
+              onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
+              onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(245,242,236,0.1)")} />
+          </div>
+
+          {/* Destination */}
+          <div style={{ minWidth: "120px" }}>
+            <span style={labelStyle}>Destino</span>
+            <input type="text" value={local.destination ?? ""} placeholder="Puerto Barrios…"
+              onChange={e => set("destination", e.target.value)} style={inputStyle}
+              onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
+              onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(245,242,236,0.1)")} />
+          </div>
+
+          {/* Cargo type */}
+          <div style={{ minWidth: "130px" }}>
+            <span style={labelStyle}>Tipo de carga</span>
+            <select value={local.cargoType ?? ""} onChange={e => set("cargoType", e.target.value)}
+              style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}>
+              <option value="" style={{ background: "#1E1E1B" }}>Todos</option>
+              {TIPOS_MERCANCIA.map(t => (
+                <option key={t} value={t} style={{ background: "#1E1E1B", color: "#F5F2EC" }}>{t}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Dates */}
+          <div style={{ minWidth: "120px" }}>
+            <span style={labelStyle}>Desde</span>
+            <input type="date" value={local.startDate ?? ""} onChange={e => set("startDate", e.target.value)}
+              style={{ ...inputStyle, colorScheme: "dark" }}
+              onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
+              onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(245,242,236,0.1)")} />
+          </div>
+          <div style={{ minWidth: "120px" }}>
+            <span style={labelStyle}>Hasta</span>
+            <input type="date" value={local.endDate ?? ""} onChange={e => set("endDate", e.target.value)}
+              style={{ ...inputStyle, colorScheme: "dark" }}
+              onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
+              onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(245,242,236,0.1)")} />
+          </div>
+
+          {/* Weight sort */}
+          <div>
+            <span style={labelStyle}>Peso</span>
+            <div style={{ display: "flex", gap: "1rem" }}>
+              {(["ASC", "DESC"] as const).map(v => (
+                <button key={v} onClick={() => set("sortByWeight", local.sortByWeight === v ? "" : v)}
+                  style={{
+                    fontSize: "0.65rem", letterSpacing: "0.08em", cursor: "pointer",
+                    fontWeight: local.sortByWeight === v ? 700 : 400,
+                    color: local.sortByWeight === v ? "#C9924B" : "rgba(245,242,236,0.3)",
+                    borderBottom: local.sortByWeight === v ? "1px solid #C9924B" : "1px solid transparent",
+                    paddingBottom: "3px", transition: "all 0.15s",
+                  }}>
+                  {v === "ASC" ? "↑ Menor" : "↓ Mayor"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Apply */}
+          <div style={{ marginLeft: "auto" }}>
+            <button onClick={aplicar}
+              style={{
+                fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em",
+                textTransform: "uppercase", padding: "0.5rem 1.5rem", borderRadius: "4px",
+                background: "#C9924B", color: "#0C0C0A", cursor: "pointer", transition: "background 0.15s",
+              }}
+              onMouseOver={e => (e.currentTarget.style.background = "#B8813C")}
+              onMouseOut={e => (e.currentTarget.style.background = "#C9924B")}>
+              Aplicar →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
