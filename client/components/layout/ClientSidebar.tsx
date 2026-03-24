@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import {
   Home,
@@ -43,14 +42,8 @@ function isActive(href: string, pathname: string) {
   return pathname.startsWith(href)
 }
 
-/* ── Shared drawer state (used by both header and drawer) ────────────────── */
-// We lift drawer state into a context-like global signal via a simple module-level
-// event so both components can share it without a context provider.
-// On each render cycle the components reconcile their own local state.
-
 /* ─────────────────────────────────────────────────────────────────────────
    Desktop collapsible sidebar
-   Rendered as a sibling flex item to the main content column.
 ───────────────────────────────────────────────────────────────────────── */
 export default function ClientSidebar() {
   const pathname = usePathname()
@@ -68,35 +61,54 @@ export default function ClientSidebar() {
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col bg-primary text-white h-screen transition-all duration-300 shadow-xl shrink-0 z-40",
+        "hidden lg:flex flex-col h-screen transition-all duration-300 shadow-xl shrink-0 z-40",
         collapsed ? "w-20" : "w-64"
       )}
+      style={{ background: "#0C0C0A", color: "#F5F2EC" }}
     >
       {/* Header */}
       {collapsed ? (
-        /* Collapsed: logo icon + expand button stacked, no overlap */
-        <div className="flex flex-col items-center justify-center gap-1 py-2 h-17 bg-primary-hover border-b border-white/10 shrink-0">
-          <Link href="/cliente">
-            <Image src="/logo-icon.svg" alt="LogiTrans" width={32} height={36} className="h-8 w-auto" priority />
+        <div
+          className="flex flex-col items-center justify-center gap-1 py-2 shrink-0"
+          style={{
+            minHeight: "68px",
+            borderBottom: "1px solid rgba(245,242,236,0.07)",
+            background: "rgba(30,30,27,0.6)",
+          }}
+        >
+          <Link href="/cliente" style={{ textDecoration: "none" }}>
+            <span style={{ fontWeight: 900, fontSize: "1rem", letterSpacing: "0.08em", color: "#F5F2EC" }}>LT</span>
           </Link>
           <button
             onClick={() => setCollapsed((v) => !v)}
-            className="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1 rounded transition-colors cursor-pointer"
+            style={{ color: "rgba(245,242,236,0.5)" }}
+            onMouseOver={(e) => (e.currentTarget.style.color = "#F5F2EC")}
+            onMouseOut={(e) => (e.currentTarget.style.color = "rgba(245,242,236,0.5)")}
           >
             <ChevronRight size={16} />
           </button>
         </div>
       ) : (
-        /* Expanded: logo centered, collapse button absolute on the right */
-        <div className="flex items-center justify-between px-4 h-17 bg-primary-hover border-b border-white/10 shrink-0 relative">
+        <div
+          className="flex items-center justify-between px-4 relative shrink-0"
+          style={{
+            minHeight: "68px",
+            borderBottom: "1px solid rgba(245,242,236,0.07)",
+            background: "rgba(30,30,27,0.6)",
+          }}
+        >
           <div className="flex-1 flex justify-center">
-            <Link href="/cliente">
-              <Image src="/logo-white.svg" alt="LogiTrans" width={148} height={44} className="h-11 w-auto" priority />
+            <Link href="/cliente" style={{ textDecoration: "none" }}>
+              <span style={{ fontWeight: 900, fontSize: "0.88rem", letterSpacing: "0.32em", color: "#F5F2EC" }}>LOGITRANS</span>
             </Link>
           </div>
           <button
             onClick={() => setCollapsed((v) => !v)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded transition-colors cursor-pointer"
+            style={{ color: "rgba(245,242,236,0.5)" }}
+            onMouseOver={(e) => (e.currentTarget.style.color = "#F5F2EC")}
+            onMouseOut={(e) => (e.currentTarget.style.color = "rgba(245,242,236,0.5)")}
           >
             <ChevronLeft size={18} />
           </button>
@@ -105,9 +117,13 @@ export default function ClientSidebar() {
 
       {/* Role badge */}
       {!collapsed && (
-        <div className="px-5 py-3 border-b border-white/10 bg-black/10 shrink-0">
-          <p className="text-[10px] text-white/50 uppercase tracking-widest font-semibold">Portal Cliente</p>
-          <p className="text-xs text-white/80 font-semibold truncate mt-0.5">{user?.fullName ?? "Cliente"}</p>
+        <div className="px-5 py-3 shrink-0" style={{ borderBottom: "1px solid rgba(245,242,236,0.07)" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.32em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>
+            Portal Cliente
+          </p>
+          <p style={{ fontSize: "0.78rem", color: "rgba(245,242,236,0.75)", fontWeight: 600, marginTop: "2px" }} className="truncate">
+            {user?.fullName ?? "Cliente"}
+          </p>
         </div>
       )}
 
@@ -121,13 +137,26 @@ export default function ClientSidebar() {
               href={item.href}
               title={collapsed ? item.label : undefined}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                active
-                  ? "bg-[#53B73E] text-white shadow-md shadow-[#53B73E]/20"
-                  : "text-white/65 hover:bg-white/10 hover:text-white"
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                collapsed && "justify-center"
               )}
+              style={
+                active
+                  ? {
+                      background: "rgba(201,146,75,0.15)",
+                      color: "#C9924B",
+                      borderLeft: collapsed ? "none" : "2px solid #C9924B",
+                    }
+                  : { color: "rgba(245,242,236,0.55)" }
+              }
+              onMouseOver={(e) => {
+                if (!active) e.currentTarget.style.color = "#F5F2EC"
+              }}
+              onMouseOut={(e) => {
+                if (!active) e.currentTarget.style.color = "rgba(245,242,236,0.55)"
+              }}
             >
-              <item.icon size={20} className={cn("shrink-0", collapsed && "mx-auto")} />
+              <item.icon size={19} className={cn("shrink-0", collapsed && "mx-auto")} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           )
@@ -135,37 +164,47 @@ export default function ClientSidebar() {
       </nav>
 
       {/* Status + logout */}
-      <div className="border-t border-white/10 shrink-0">
+      <div style={{ borderTop: "1px solid rgba(245,242,236,0.07)" }} className="shrink-0">
         {!collapsed && (
-          <div className="px-5 py-3 bg-black/10 space-y-2">
+          <div className="px-4 py-3 space-y-2" style={{ background: "rgba(30,30,27,0.4)" }}>
             {mounted && (
-              <div className="flex items-center gap-2 text-xs text-white/70">
-                <ClockIcon size={13} className="text-[#53B73E]" />
-                <span>
-                  {time.toLocaleTimeString("es-GT", { hour: "2-digit", minute: "2-digit" })}
-                </span>
-                <span className="text-white/40 ml-1">
+              <div className="flex items-center gap-2" style={{ fontSize: "0.7rem", color: "#9A9489" }}>
+                <ClockIcon size={12} style={{ color: "#C9924B" }} />
+                <span>{time.toLocaleTimeString("es-GT", { hour: "2-digit", minute: "2-digit" })}</span>
+                <span style={{ color: "rgba(154,148,137,0.6)", marginLeft: "2px" }}>
                   {time.toLocaleDateString("es-GT", { month: "short", day: "numeric" })}
                 </span>
               </div>
             )}
-            <div className="flex items-center gap-2 bg-primary-hover px-2 py-1.5 rounded-lg border border-white/5">
-              <span className="relative flex h-2.5 w-2.5 ml-0.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#53B73E]" />
+            <div
+              className="flex items-center gap-2 px-2 py-1.5 rounded"
+              style={{ background: "rgba(245,242,236,0.04)", border: "1px solid rgba(245,242,236,0.06)" }}
+            >
+              <span className="relative flex h-2 w-2 ml-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "#C9924B" }} />
+                <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#C9924B" }} />
               </span>
-              <span className="text-xs font-medium text-white/80">Sistema En Línea</span>
+              <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(245,242,236,0.7)" }}>Sistema En Línea</span>
             </div>
           </div>
         )}
-        <div className="p-3 border-t border-white/5">
+        <div className="p-3" style={{ borderTop: "1px solid rgba(245,242,236,0.05)" }}>
           <button
             onClick={() => void logout()}
             title="Cerrar sesión"
             className={cn(
-              "flex items-center gap-3 text-white/60 hover:text-white hover:bg-white/10 p-2.5 rounded-xl transition-colors text-sm w-full cursor-pointer",
+              "flex items-center gap-3 p-2.5 rounded-lg text-sm w-full cursor-pointer transition-colors",
               collapsed && "justify-center"
             )}
+            style={{ color: "rgba(245,242,236,0.4)" }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = "#F5F2EC"
+              e.currentTarget.style.background = "rgba(245,242,236,0.05)"
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = "rgba(245,242,236,0.4)"
+              e.currentTarget.style.background = "transparent"
+            }}
           >
             <LogOut size={18} />
             {!collapsed && <span>Cerrar sesión</span>}
@@ -178,7 +217,6 @@ export default function ClientSidebar() {
 
 /* ─────────────────────────────────────────────────────────────────────────
    Mobile header bar + drawer overlay
-   Rendered INSIDE the main content column so it stacks vertically.
 ───────────────────────────────────────────────────────────────────────── */
 export function ClientMobileHeader() {
   const pathname = usePathname()
@@ -189,14 +227,18 @@ export function ClientMobileHeader() {
 
   return (
     <>
-      {/* Sticky top bar — visible only on mobile */}
-      <header className="lg:hidden flex items-center justify-between h-14 px-4 bg-primary text-white shadow-md shrink-0">
-        <Link href="/cliente">
-          <Image src="/logo-white.svg" alt="LogiTrans" width={120} height={36} className="h-8 w-auto" priority />
+      {/* Sticky top bar — mobile only */}
+      <header
+        className="lg:hidden flex items-center justify-between h-14 px-4 shadow-md shrink-0"
+        style={{ background: "#0C0C0A", color: "#F5F2EC", borderBottom: "1px solid rgba(245,242,236,0.07)" }}
+      >
+        <Link href="/cliente" style={{ textDecoration: "none" }}>
+          <span style={{ fontWeight: 900, fontSize: "0.88rem", letterSpacing: "0.32em", color: "#F5F2EC" }}>LOGITRANS</span>
         </Link>
         <button
           onClick={() => setOpen(true)}
-          className="p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+          className="p-2 rounded-lg transition-colors cursor-pointer"
+          style={{ color: "rgba(245,242,236,0.7)" }}
           aria-label="Abrir menú"
         >
           <Menu size={22} />
@@ -206,7 +248,7 @@ export function ClientMobileHeader() {
       {/* Backdrop */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 bg-black/60 z-50 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
@@ -214,24 +256,39 @@ export function ClientMobileHeader() {
       {/* Drawer */}
       <div
         className={cn(
-          "lg:hidden fixed top-0 left-0 h-full w-72 bg-primary text-white z-50 flex flex-col shadow-2xl transition-transform duration-300",
+          "lg:hidden fixed top-0 left-0 h-full w-72 z-50 flex flex-col shadow-2xl transition-transform duration-300",
           open ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{ background: "#0C0C0A", color: "#F5F2EC" }}
       >
-        <div className="flex items-center justify-between px-5 h-16 bg-primary-hover border-b border-white/10 shrink-0">
-          <Image src="/logo-white.svg" alt="LogiTrans" width={128} height={38} className="h-9 w-auto" />
+        <div
+          className="flex items-center justify-between px-5 shrink-0"
+          style={{
+            minHeight: "64px",
+            borderBottom: "1px solid rgba(245,242,236,0.07)",
+            background: "rgba(30,30,27,0.6)",
+          }}
+        >
+          <span style={{ fontWeight: 900, fontSize: "0.88rem", letterSpacing: "0.32em", color: "#F5F2EC" }}>LOGITRANS</span>
           <button
             onClick={() => setOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg transition-colors cursor-pointer"
+            style={{ color: "rgba(245,242,236,0.6)" }}
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="px-5 py-3 border-b border-white/10 bg-black/10 shrink-0">
-          <p className="text-[10px] text-white/50 uppercase tracking-widest font-semibold">Portal Cliente</p>
-          <p className="text-sm text-white/85 font-semibold mt-0.5 truncate">{user?.fullName ?? "Cliente"}</p>
-          <p className="text-xs text-white/45 truncate">{user?.email ?? ""}</p>
+        <div className="px-5 py-3 shrink-0" style={{ borderBottom: "1px solid rgba(245,242,236,0.07)" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.32em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>
+            Portal Cliente
+          </p>
+          <p style={{ fontSize: "0.85rem", color: "rgba(245,242,236,0.85)", fontWeight: 600, marginTop: "2px" }} className="truncate">
+            {user?.fullName ?? "Cliente"}
+          </p>
+          <p style={{ fontSize: "0.72rem", color: "rgba(245,242,236,0.4)" }} className="truncate">
+            {user?.email ?? ""}
+          </p>
         </div>
 
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
@@ -241,12 +298,12 @@ export function ClientMobileHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200"
+                style={
                   active
-                    ? "bg-[#53B73E] text-white shadow-md"
-                    : "text-white/65 hover:bg-white/10 hover:text-white"
-                )}
+                    ? { background: "rgba(201,146,75,0.15)", color: "#C9924B", borderLeft: "2px solid #C9924B" }
+                    : { color: "rgba(245,242,236,0.55)" }
+                }
               >
                 <item.icon size={20} className="shrink-0" />
                 <span>{item.label}</span>
@@ -255,10 +312,11 @@ export function ClientMobileHeader() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/10 shrink-0">
+        <div className="p-4 shrink-0" style={{ borderTop: "1px solid rgba(245,242,236,0.07)" }}>
           <button
             onClick={() => void logout()}
-            className="flex items-center gap-3 text-white/60 hover:text-white hover:bg-white/10 px-4 py-3 rounded-xl transition-colors text-sm w-full cursor-pointer"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm w-full cursor-pointer transition-colors"
+            style={{ color: "rgba(245,242,236,0.4)" }}
           >
             <LogOut size={18} />
             <span>Cerrar sesión</span>

@@ -2,85 +2,134 @@
 
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
-import { UserPlus, NotebookPen, Globe2, FileSignature } from 'lucide-react';
-import { useState, useEffect } from "react";
+import { motion } from "framer-motion"
+import { UserPlus, NotebookPen, ArrowRight } from "lucide-react"
+
+const EASE = [0.16, 1, 0.3, 1] as const
+
+const CARDS = [
+  {
+    href: "/agente-operativo/registrar-cliente",
+    icon: <UserPlus size={16} />,
+    step: "01",
+    title: "Registrar Cliente",
+    description: "Alta de nuevos clientes, registro de datos fiscales y evaluación de perfiles de riesgo operativo.",
+    cta: "Comenzar registro",
+  },
+  {
+    href: "/agente-operativo/formalizar-contrato",
+    icon: <NotebookPen size={16} />,
+    step: "02",
+    title: "Formalizar Contrato",
+    description: "Vinculación de tarifas paramétricas, definición de rutas y condiciones logísticas para contratos activos.",
+    cta: "Crear contrato",
+  },
+]
 
 export default function AgenteOperativoPage() {
-  const { user, loading } = useAuth()
-  const userName = loading ? "..." : (user?.fullName ?? "Agente")
-  
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const { user } = useAuth()
+  const firstName = user?.fullName?.split(" ")[0] ?? "Agente"
 
   return (
-    <div className="min-h-screen relative animate-in fade-in duration-700 font-body">
-      {/* HD Minimalist Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70"
-        style={{ backgroundImage: "url('/images/agente-minimal-hd.png')" }}
-      />
-      
-      {/* Subtle Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-      {/* Content */}
-      <div className="relative z-10 w-full h-full min-h-screen px-6 py-12 md:p-20 flex flex-col items-center text-center max-w-7xl mx-auto">
-        
-        {/* Top Section - Welcome */}
-        <div className="max-w-4xl mb-16 mt-8">
-          <h1 className="text-5xl md:text-7xl font-heading font-extrabold text-[#0A3B7C] tracking-tight leading-tight">
-            ¡Bienvenido <br />
-            <span className="text-[#53B73E]">Área Comercial!</span>
-          </h1>
-          <p className="text-[#64748B] text-xl md:text-2xl mt-6 font-light max-w-2xl mx-auto">
-            Panel de Control Operativo para la gestión regional de clientes y contratos comerciales LogiTrans.
+      {/* Ghost letters */}
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem, 30vw, 28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>AO</div>
+
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "3rem" }}>
+
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Área Comercial
           </p>
-        </div>
 
-        {/* Action Cards Section - Centered and Larger */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
-          <Link href="/agente-operativo/registrar-cliente" className="block outline-none group">
-            <div className="bg-white/90 backdrop-blur-sm border border-black/5 hover:border-[#53B73E]/40 rounded-3xl p-10 h-full transition-all duration-300 transform group-hover:-translate-y-2 group-hover:shadow-[0_20px_50px_rgba(10,59,124,0.1)] flex flex-col items-center text-center gap-6 shadow-sm">
-              <div className="w-20 h-20 bg-[#0A3B7C]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#0A3B7C]/20 transition-colors">
-                <UserPlus size={40} className="text-[#0A3B7C]" />
-              </div>
-              <div>
-                <h3 className="text-3xl font-heading font-bold text-[#0A3B7C] mb-4">Registrar Cliente</h3>
-                <p className="text-[#64748B] text-lg leading-relaxed">
-                  Alta de nuevos clientes, registro de datos fiscales y evaluación de perfiles de riesgo operativo.
-                </p>
-              </div>
-              <div className="mt-4 text-[#53B73E] font-semibold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
-                Comenzar registro <span>→</span>
-              </div>
-            </div>
-          </Link>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Hola, {firstName}.
+            </motion.h1>
+          </div>
 
-          <Link href="/agente-operativo/formalizar-contrato" className="block outline-none group">
-            <div className="bg-white/90 backdrop-blur-sm border border-black/5 hover:border-[#53B73E]/40 rounded-3xl p-10 h-full transition-all duration-300 transform group-hover:-translate-y-2 group-hover:shadow-[0_20px_50px_rgba(10,59,124,0.1)] flex flex-col items-center text-center gap-6 shadow-sm">
-              <div className="w-20 h-20 bg-[#53B73E]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#53B73E]/20 transition-colors">
-                <NotebookPen size={40} className="text-[#53B73E]" />
-              </div>
-              <div>
-                <h3 className="text-3xl font-heading font-bold text-[#0A3B7C] mb-4">Formalizar Contrato</h3>
-                <p className="text-[#64748B] text-lg leading-relaxed">
-                  Vinculación de tarifas paramétricas, definición de rutas y condiciones logísticas para contratos activos.
-                </p>
-              </div>
-              <div className="mt-4 text-[#53B73E] font-semibold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
-                Crear contrato <span>→</span>
-              </div>
-            </div>
-          </Link>
-        </div>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.7 }}
+            style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "42ch" }}>
+            Panel de gestión regional de clientes y contratos comerciales.
+          </motion.p>
 
-        {/* Subtle Decorative Elements */}
-        <div className="mt-20 flex gap-4 text-[#0A3B7C]/20">
-          <Globe2 size={40} strokeWidth={1} />
-          <FileSignature size={40} strokeWidth={1} />
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.5rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* Action cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
+          {CARDS.map((card, i) => (
+            <motion.div key={card.href}
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1, duration: 0.7, ease: EASE }}>
+              <Link href={card.href} style={{ display: "block", textDecoration: "none" }}>
+                <div
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid rgba(12,12,10,0.07)",
+                    borderRadius: "6px",
+                    overflow: "hidden",
+                    transition: "border-color 0.2s, transform 0.2s",
+                  }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.borderColor = "rgba(201,146,75,0.3)"
+                    el.style.transform = "translateY(-2px)"
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.borderColor = "rgba(12,12,10,0.07)"
+                    el.style.transform = "translateY(0)"
+                  }}
+                >
+                  {/* Amber accent strip */}
+                  <div style={{ height: "2px", background: "#C9924B" }} />
+
+                  <div style={{ padding: "2rem 2rem 1.75rem" }}>
+                    {/* Step number + icon */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+                      <span style={{ fontSize: "0.52rem", letterSpacing: "0.3em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+                        {card.step}
+                      </span>
+                      <span style={{ color: "#C9924B", display: "flex" }}>{card.icon}</span>
+                    </div>
+
+                    <h3 style={{ fontSize: "1.2rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A", marginBottom: "0.6rem", lineHeight: 1.1 }}>
+                      {card.title}
+                    </h3>
+
+                    <p style={{ fontSize: "0.8rem", color: "#6B6260", lineHeight: 1.6, marginBottom: "2rem" }}>
+                      {card.description}
+                    </p>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#C9924B" }}>
+                      {card.cta}
+                      <ArrowRight size={11} />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
         </div>
 
       </div>

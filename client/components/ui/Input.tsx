@@ -14,7 +14,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-text-primary mb-1.5">
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium mb-1.5"
+            style={{ color: "#0C0C0A", letterSpacing: "0.01em" }}
+          >
             {label}
           </label>
         )}
@@ -22,15 +26,18 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            "w-full border rounded-lg px-4 py-2.5 text-text-primary placeholder:text-text-muted",
-            "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all",
-            error ? "border-error focus:ring-error/50 focus:border-error" : "border-black/20",
+            "w-full rounded-lg px-4 py-2.5 text-sm transition-all",
+            "placeholder:text-text-warm-mist text-text-primary bg-white",
+            "border focus:outline-none",
+            error
+              ? "border-error focus:ring-2 focus:ring-error/30 focus:border-error"
+              : "border-black/15 focus:ring-2 focus:ring-primary/30 focus:border-primary",
             className
           )}
           {...props}
         />
-        {error && <p className="mt-1 text-sm text-error">{error}</p>}
-        {helperText && !error && <p className="mt-1 text-sm text-text-muted">{helperText}</p>}
+        {error && <p className="mt-1 text-xs text-error">{error}</p>}
+        {helperText && !error && <p className="mt-1 text-xs text-text-muted">{helperText}</p>}
       </div>
     )
   }

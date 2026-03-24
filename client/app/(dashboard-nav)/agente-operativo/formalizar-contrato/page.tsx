@@ -1,15 +1,18 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
-import Card from "@/components/ui/Card"
+import { useState, useEffect } from "react"
 import Input from "@/components/ui/Input"
-import Button from "@/components/ui/Button"
-import Modal from "@/components/ui/Modal"
-import { FileText, Search, Send, MapPin, Truck, DollarSign, Percent, ChevronRight, ShieldCheck, Loader2, Check, X } from "lucide-react"
+import {
+  Search, MapPin, Truck, DollarSign, Percent,
+  ShieldCheck, Loader2, Check, X, ArrowLeft,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
+import { motion } from "framer-motion"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 type PlazoPago = 15 | 30 | 45
 
@@ -17,10 +20,8 @@ const cargaOptions = [
   { id: 1, name: "Carga General" },
   { id: 2, name: "Perecederos" },
   { id: 3, name: "Construcción" },
-  { id: 4, name: "Peligrosa" }
+  { id: 4, name: "Peligrosa" },
 ] as const
-
-type CargaOption = typeof cargaOptions[number]
 
 export interface Client {
   clientId: string
@@ -29,13 +30,21 @@ export interface Client {
   nit: string
 }
 
+const sectionLabelStyle: React.CSSProperties = {
+  fontSize: "0.52rem",
+  letterSpacing: "0.3em",
+  color: "#9A9489",
+  textTransform: "uppercase",
+  fontWeight: 700,
+}
+
 export default function FormalizarContratoPage() {
   const router = useRouter()
   const [clienteQuery, setClienteQuery] = useState("")
   const [clients, setClients] = useState<Client[]>([])
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [searching, setSearching] = useState(false)
-  
+
   const [limiteCredito, setLimiteCredito] = useState("")
   const [rutasAutorizadas, setRutasAutorizadas] = useState("")
   const [plazoPago, setPlazoPago] = useState<PlazoPago>(30)
@@ -45,13 +54,8 @@ export default function FormalizarContratoPage() {
   const [successOpen, setSuccessOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  // Búsqueda de clientes (Debounce simplificado con useEffect)
   useEffect(() => {
-    if (clienteQuery.length < 3) {
-      setClients([])
-      return
-    }
-
+    if (clienteQuery.length < 3) { setClients([]); return }
     const timer = setTimeout(async () => {
       setSearching(true)
       try {
@@ -63,30 +67,26 @@ export default function FormalizarContratoPage() {
         setSearching(false)
       }
     }, 500)
-
     return () => clearTimeout(timer)
   }, [clienteQuery])
 
   function toggleCarga(id: number) {
-    setCargasPermitidas((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+    setCargasPermitidas(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
   }
 
   async function handleSubmit() {
     if (!selectedClient) return toast.error("Debe seleccionar un cliente")
     if (!limiteCredito) return toast.error("Debe definir un límite de crédito")
-
     setLoading(true)
     try {
-      const payload = {
+      await api.post(ENDPOINTS.CONTRATOS.CREATE, {
         clientId: selectedClient.clientId,
         creditLimit: parseFloat(limiteCredito),
         paymentTermDays: plazoPago,
         discountPercentage: parseFloat(descuentoPorcentaje) || 0,
-        routeIds: [1, 2], // Hardcoded por ahora ya que no hay CRUD de rutas en frontend
-        cargoTypeIds: cargasPermitidas
-      }
-      
-      await api.post(ENDPOINTS.CONTRATOS.CREATE, payload)
+        routeIds: [1, 2],
+        cargoTypeIds: cargasPermitidas,
+      })
       setSuccessOpen(true)
     } catch (error) {
       console.error("Failed to create contract:", error)
@@ -96,182 +96,259 @@ export default function FormalizarContratoPage() {
   }
 
   return (
-    <div className="min-h-screen relative animate-in fade-in duration-700 font-body">
-      {/* HD Minimalist Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 pointer-events-none"
-        style={{ backgroundImage: "url('/images/agente-minimal-hd.png')" }}
-      />
-      
-      <div className="relative z-10 w-full h-full min-h-screen px-6 py-12 md:p-16 flex flex-col max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-heading font-extrabold text-[#0A3B7C]">Formalización de Contrato</h1>
-          <p className="text-[#64748B] mt-2 text-lg">Configura los términos operativos y financieros para el nuevo cliente.</p>
-        </div>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-          
-          {/* Left Column (Main Form) */}
-          <div className="lg:col-span-2 space-y-10">
-            
-            <Card className="p-10 rounded-3xl shadow-xl bg-white/95 backdrop-blur-md border-black/5">
-              <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] flex items-center gap-3 mb-8 border-b border-black/5 pb-4">
-                <Search className="text-[#53B73E]" size={28} />
-                1. Selección de Cliente
-              </h2>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-[#64748B]">
-                  <Search size={22} />
-                </span>
-                <Input
-                  label=""
-                  placeholder="Buscar Razón Social o NIT del cliente registrado"
-                  value={clienteQuery}
-                  onChange={(e) => {
-                    setClienteQuery(e.target.value)
-                    if (selectedClient) setSelectedClient(null)
-                  }}
-                  className="pl-14 py-4 bg-surface/30 border-none shadow-inner text-lg rounded-2xl"
-                />
-                
-                {searching && (
-                  <div className="absolute right-5 top-1/2 -translate-y-1/2">
-                    <Loader2 className="animate-spin text-[#0A3B7C]" size={20} />
-                  </div>
-                )}
+      {/* Success overlay */}
+      {successOpen && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(12,12,10,0.72)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            style={{ background: "#ffffff", borderRadius: "6px", padding: "3rem 2.5rem", maxWidth: "400px", width: "100%", textAlign: "center" }}>
+
+            <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(201,146,75,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
+              <ShieldCheck size={22} style={{ color: "#C9924B" }} />
+            </div>
+
+            <p style={{ fontSize: "0.52rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>
+              Contrato formalizado
+            </p>
+            <h3 style={{ fontSize: "1.4rem", fontWeight: 900, letterSpacing: "-0.025em", color: "#0C0C0A", marginBottom: "0.75rem" }}>
+              Propuesta generada.
+            </h3>
+            <p style={{ fontSize: "0.8rem", color: "#6B6260", lineHeight: 1.6, marginBottom: "2rem" }}>
+              El contrato ha sido generado y se encuentra en estado{" "}
+              <strong style={{ color: "#0C0C0A" }}>PENDIENTE DE FIRMA</strong>.
+            </p>
+
+            <button
+              onClick={() => { setSuccessOpen(false); router.push("/agente-operativo") }}
+              style={{
+                width: "100%", padding: "0.65rem 1.5rem", borderRadius: "4px",
+                background: "#0C0C0A", color: "#F5F2EC",
+                fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+                cursor: "pointer", transition: "background 0.15s", border: "none",
+              }}
+              onMouseOver={e => (e.currentTarget.style.background = "#C9924B")}
+              onMouseOut={e => (e.currentTarget.style.background = "#0C0C0A")}
+            >
+              Volver al panel →
+            </button>
+          </motion.div>
+        </div>
+      )}
+
+      <div className="relative z-10 max-w-6xl mx-auto px-8 py-14">
+
+        {/* Back */}
+        <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+          onClick={() => router.push("/agente-operativo")}
+          style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.6rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2rem", cursor: "pointer", background: "none", border: "none" }}
+          onMouseOver={e => (e.currentTarget.style.color = "#0C0C0A")}
+          onMouseOut={e => (e.currentTarget.style.color = "#9A9489")}
+        >
+          <ArrowLeft size={11} /> Agente Operativo
+        </motion.button>
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Contrato Comercial
+          </p>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.4rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Formalizar Contrato.
+            </motion.h1>
+          </div>
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* Content grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "14px", alignItems: "start" }}>
+
+          {/* ── Main column ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
+            {/* 1. Client search */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.6, ease: EASE }}
+              style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+
+              <div style={{ borderBottom: "1px solid rgba(12,12,10,0.06)", padding: "1.1rem 1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                <Search size={12} style={{ color: "#C9924B", flexShrink: 0 }} />
+                <span style={sectionLabelStyle}>01 · Selección de Cliente</span>
               </div>
 
-              {/* Resultados de búsqueda */}
-              {clients.length > 0 && !selectedClient && (
-                <div className="mt-4 bg-white border border-black/5 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                  {clients.map((c) => (
-                    <button
-                      key={c.clientId}
-                      className="w-full text-left p-4 hover:bg-[#0A3B7C]/5 flex items-center justify-between group transition-colors"
-                      onClick={() => {
-                        setSelectedClient(c)
-                        setClienteQuery(c.legalName)
-                        setClients([])
-                      }}
-                    >
-                      <div>
-                        <div className="font-bold text-[#0A3B7C]">{c.legalName}</div>
-                        <div className="text-xs text-[#64748B]">NIT: {c.nit}</div>
-                      </div>
-                      <ChevronRight size={18} className="text-[#64748B] group-hover:translate-x-1 transition-transform" />
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {selectedClient && (
-                <div className="mt-4 p-4 bg-[#53B73E]/10 rounded-2xl border border-[#53B73E]/20 flex items-center justify-between animate-in zoom-in duration-300">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#53B73E] rounded-lg">
-                      <Check size={18} className="text-white" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-[#53B73E] uppercase tracking-wider">Cliente Seleccionado</div>
-                      <div className="font-bold text-[#0A3B7C]">{selectedClient.legalName}</div>
-                    </div>
-                  </div>
-                  <button 
-                    className="text-[#64748B] hover:text-[#E53E3E] p-2"
-                    onClick={() => {
-                        setSelectedClient(null)
-                        setClienteQuery("")
+              <div style={{ padding: "1.5rem" }}>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    placeholder="Buscar por razón social o NIT…"
+                    value={clienteQuery}
+                    onChange={e => { setClienteQuery(e.target.value); if (selectedClient) setSelectedClient(null) }}
+                    style={{
+                      width: "100%", background: "#1E1E1B",
+                      border: "1px solid rgba(245,242,236,0.08)", borderRadius: "4px",
+                      padding: "0.6rem 2.5rem 0.6rem 0.85rem", color: "#F5F2EC",
+                      fontSize: "0.82rem", outline: "none", transition: "border-color 0.15s",
                     }}
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              )}
-
-              <p className="text-sm text-[#64748B] mt-4 ml-2 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#53B73E]"></span>
-                El cliente debe estar previamente dado de alta en la plataforma.
-              </p>
-            </Card>
-
-            <Card className="p-10 rounded-3xl shadow-xl bg-white/95 backdrop-blur-md border-black/5">
-              <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] flex items-center gap-3 mb-8 border-b border-black/5 pb-4">
-                <DollarSign className="text-[#53B73E]" size={28} />
-                2. Condiciones Financieras
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-4">
-                  <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Límite de Crédito (GTQ)</label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-[#0A3B7C] font-bold text-xl">
-                      Q
-                    </span>
-                    <Input
-                      label=""
-                      placeholder="10,000.00"
-                      inputMode="numeric"
-                      value={limiteCredito}
-                      onChange={(e) => setLimiteCredito(e.target.value)}
-                      className="pl-12 py-4 text-xl font-bold bg-surface/30 border-none shadow-inner rounded-2xl"
-                    />
+                    onFocus={e => (e.currentTarget.style.borderColor = "rgba(201,146,75,0.4)")}
+                    onBlur={e => (e.currentTarget.style.borderColor = "rgba(245,242,236,0.08)")}
+                  />
+                  <div style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#9A9489", display: "flex" }}>
+                    {searching
+                      ? <Loader2 size={13} className="animate-spin" />
+                      : <Search size={13} />}
                   </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Plazo de Pago</label>
-                  <div className="flex bg-surface/40 p-1.5 rounded-2xl border border-black/5">
-                    {([15, 30, 45] as const).map((dias) => (
-                      <button
-                        key={dias}
-                        type="button"
-                        onClick={() => setPlazoPago(dias)}
-                        className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${
-                          plazoPago === dias ? "bg-white text-[#0A3B7C] shadow-md border-black/5" : "text-[#64748B] hover:text-[#0A3B7C] hover:bg-white/50"
-                        }`}
+
+                {/* Dropdown */}
+                {clients.length > 0 && !selectedClient && (
+                  <div style={{ marginTop: "4px", background: "#1E1E1B", border: "1px solid rgba(245,242,236,0.08)", borderRadius: "4px", overflow: "hidden" }}>
+                    {clients.map((c, idx) => (
+                      <button key={c.clientId}
+                        onClick={() => { setSelectedClient(c); setClienteQuery(c.legalName); setClients([]) }}
+                        style={{
+                          width: "100%", textAlign: "left", padding: "0.7rem 1rem",
+                          display: "flex", alignItems: "center", justifyContent: "space-between",
+                          cursor: "pointer", background: "transparent", border: "none",
+                          borderBottom: idx < clients.length - 1 ? "1px solid rgba(245,242,236,0.05)" : "none",
+                          transition: "background 0.1s",
+                        }}
+                        onMouseOver={e => (e.currentTarget.style.background = "rgba(201,146,75,0.08)")}
+                        onMouseOut={e => (e.currentTarget.style.background = "transparent")}
                       >
-                        {dias} Días
+                        <div>
+                          <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#F5F2EC" }}>{c.legalName}</div>
+                          <div style={{ fontSize: "0.62rem", color: "#9A9489", marginTop: "2px" }}>NIT: {c.nit}</div>
+                        </div>
+                        <span style={{ fontSize: "0.65rem", color: "#C9924B" }}>→</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Selected */}
+                {selectedClient && (
+                  <div style={{ marginTop: "8px", background: "rgba(201,146,75,0.06)", border: "1px solid rgba(201,146,75,0.2)", borderRadius: "4px", padding: "0.7rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: "#C9924B", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <Check size={11} style={{ color: "#0C0C0A" }} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: "0.5rem", letterSpacing: "0.2em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>Cliente seleccionado</div>
+                        <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A" }}>{selectedClient.legalName}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => { setSelectedClient(null); setClienteQuery("") }}
+                      style={{ color: "#9A9489", cursor: "pointer", background: "none", border: "none", display: "flex", padding: "2px" }}
+                      onMouseOver={e => (e.currentTarget.style.color = "#E53E3E")}
+                      onMouseOut={e => (e.currentTarget.style.color = "#9A9489")}>
+                      <X size={15} />
+                    </button>
+                  </div>
+                )}
+
+                <p style={{ fontSize: "0.58rem", color: "#9A9489", marginTop: "8px", letterSpacing: "0.04em" }}>
+                  El cliente debe estar previamente registrado en la plataforma.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* 2. Financial conditions */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.42, duration: 0.6, ease: EASE }}
+              style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+
+              <div style={{ borderBottom: "1px solid rgba(12,12,10,0.06)", padding: "1.1rem 1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                <DollarSign size={12} style={{ color: "#C9924B", flexShrink: 0 }} />
+                <span style={sectionLabelStyle}>02 · Condiciones Financieras</span>
+              </div>
+
+              <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                {/* Credit limit */}
+                <div>
+                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>
+                    Límite de Crédito (GTQ)
+                  </span>
+                  <div style={{ position: "relative" }}>
+                    <span style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.82rem", fontWeight: 700, color: "#9A9489", pointerEvents: "none" }}>Q</span>
+                    <Input label="" placeholder="10,000.00" inputMode="numeric"
+                      value={limiteCredito} onChange={e => setLimiteCredito(e.target.value)}
+                      className="pl-8" />
+                  </div>
+                </div>
+
+                {/* Payment term */}
+                <div>
+                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>
+                    Plazo de Pago
+                  </span>
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {([15, 30, 45] as const).map((dias) => (
+                      <button key={dias} type="button" onClick={() => setPlazoPago(dias)}
+                        style={{
+                          flex: 1, padding: "0.5rem 0", borderRadius: "4px",
+                          fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", transition: "all 0.15s",
+                          background: plazoPago === dias ? "#0C0C0A" : "transparent",
+                          color: plazoPago === dias ? "#F5F2EC" : "#9A9489",
+                          border: `1px solid ${plazoPago === dias ? "transparent" : "rgba(12,12,10,0.12)"}`,
+                        }}
+                        onMouseOver={e => { if (plazoPago !== dias) e.currentTarget.style.borderColor = "rgba(12,12,10,0.3)" }}
+                        onMouseOut={e => { if (plazoPago !== dias) e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)" }}
+                      >
+                        {dias}d
                       </button>
                     ))}
                   </div>
                 </div>
               </div>
-            </Card>
+            </motion.div>
 
-            <Card className="p-10 rounded-3xl shadow-xl bg-white/95 backdrop-blur-md border-black/5">
-              <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] flex items-center gap-3 mb-8 border-b border-black/5 pb-4">
-                <MapPin className="text-[#53B73E]" size={28} />
-                3. Alcance Operativo
-              </h2>
-              <div className="space-y-10">
-                <div className="space-y-4">
-                  <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Rutas Autorizadas</label>
-                  <Input
-                    label=""
-                    placeholder="Ej. GT-Puerto Quetzal, GT-Tecún Umán, SV-Acajutla"
-                    value={rutasAutorizadas}
-                    onChange={(e) => setRutasAutorizadas(e.target.value)}
-                    className="py-4 bg-surface/30 border-none shadow-inner text-lg rounded-2xl"
-                  />
-                </div>
+            {/* 3. Operational scope */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.49, duration: 0.6, ease: EASE }}
+              style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
 
-                <div className="space-y-4">
-                  <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1 flex items-center gap-2">
-                    <Truck size={18} className="text-[#53B73E]" /> Tipos de Carga Permitida
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div style={{ borderBottom: "1px solid rgba(12,12,10,0.06)", padding: "1.1rem 1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                <MapPin size={12} style={{ color: "#C9924B", flexShrink: 0 }} />
+                <span style={sectionLabelStyle}>03 · Alcance Operativo</span>
+              </div>
+
+              <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                <Input label="Rutas Autorizadas"
+                  placeholder="Ej. GT-Puerto Quetzal, GT-Tecún Umán, SV-Acajutla"
+                  value={rutasAutorizadas} onChange={e => setRutasAutorizadas(e.target.value)} />
+
+                <div>
+                  <span style={{ ...sectionLabelStyle, display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
+                    <Truck size={11} /> Tipos de Carga Permitida
+                  </span>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                     {cargaOptions.map((opt) => {
-                      const selected = cargasPermitidas.includes(opt.id)
+                      const sel = cargasPermitidas.includes(opt.id)
                       return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => toggleCarga(opt.id)}
-                          className={`p-4 text-xs font-bold rounded-2xl border-2 transition-all uppercase tracking-wider ${
-                            selected 
-                              ? "border-[#53B73E] bg-[#53B73E]/10 text-[#53B73E] shadow-sm" 
-                              : "border-black/5 text-[#64748B] hover:border-[#0A3B7C]/40 hover:bg-surface/50"
-                          }`}
+                        <button key={opt.id} type="button" onClick={() => toggleCarga(opt.id)}
+                          style={{
+                            padding: "0.4rem 0.9rem", borderRadius: "4px",
+                            fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.08em",
+                            textTransform: "uppercase", cursor: "pointer", transition: "all 0.15s",
+                            background: sel ? "#0C0C0A" : "transparent",
+                            color: sel ? "#F5F2EC" : "#9A9489",
+                            border: `1px solid ${sel ? "transparent" : "rgba(12,12,10,0.12)"}`,
+                          }}
+                          onMouseOver={e => { if (!sel) { e.currentTarget.style.color = "#0C0C0A"; e.currentTarget.style.borderColor = "rgba(12,12,10,0.3)" } }}
+                          onMouseOut={e => { if (!sel) { e.currentTarget.style.color = "#9A9489"; e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)" } }}
                         >
                           {opt.name}
                         </button>
@@ -280,105 +357,113 @@ export default function FormalizarContratoPage() {
                   </div>
                 </div>
               </div>
-            </Card>
-
+            </motion.div>
           </div>
 
-          {/* Right Column (Sidebar form & Submit) */}
-          <div className="space-y-10">
-            <Card className="bg-[#f0f4f8] border-none shadow-md p-10 rounded-3xl">
-              <h2 className="text-2xl font-heading font-bold text-[#0A3B7C] flex items-center gap-3 mb-6">
-                <Percent className="text-[#53B73E]" size={28} />
-                Descuentos
-              </h2>
-              <p className="text-sm text-[#64748B] mb-8 font-medium leading-relaxed">
-                Aplica beneficios contractuales especiales por volumen de carga o fidelidad.
-              </p>
-              
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Porcentaje (%)</label>
-                  <Input
-                    label=""
-                    placeholder="0.00"
-                    inputMode="numeric"
-                    value={descuentoPorcentaje}
-                    onChange={(e) => setDescuentoPorcentaje(e.target.value)}
-                    className="bg-white py-4 font-bold text-xl rounded-2xl border-none shadow-inner"
+          {/* ── Sidebar ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", position: "sticky", top: "1.5rem" }}>
+
+            {/* Discounts */}
+            <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.6, ease: EASE }}
+              style={{ background: "#1E1E1B", border: "1px solid rgba(245,242,236,0.06)", borderRadius: "6px", overflow: "hidden" }}>
+
+              <div style={{ borderBottom: "1px solid rgba(245,242,236,0.06)", padding: "1.1rem 1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                <Percent size={12} style={{ color: "#C9924B", flexShrink: 0 }} />
+                <span style={{ ...sectionLabelStyle, color: "#9A9489" }}>Descuentos</span>
+              </div>
+
+              <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                <div>
+                  <span style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, display: "block", marginBottom: "6px" }}>
+                    Porcentaje (%)
+                  </span>
+                  <input type="text" inputMode="numeric" placeholder="0.00"
+                    value={descuentoPorcentaje} onChange={e => setDescuentoPorcentaje(e.target.value)}
+                    style={{
+                      width: "100%", background: "transparent", border: "none",
+                      borderBottom: "1px solid rgba(245,242,236,0.1)", color: "#F5F2EC",
+                      fontSize: "0.82rem", padding: "4px 0", outline: "none", transition: "border-color 0.15s",
+                    }}
+                    onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
+                    onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(245,242,236,0.1)")}
                   />
                 </div>
-                <div className="space-y-4">
-                  <label className="block text-sm font-bold text-[#0A3B7C] uppercase tracking-[0.2em] ml-1">Justificación</label>
-                  <textarea 
-                    className="w-full bg-white border-none rounded-2xl p-6 text-base font-medium focus:outline-none focus:ring-4 focus:ring-[#0A3B7C]/10 min-h-[140px] shadow-inner"
-                    placeholder="Motivo del descuento especial..."
-                    value={descuentoJustificacion}
-                    onChange={(e) => setDescuentoJustificacion(e.target.value)}
-                  ></textarea>
-                </div>
-              </div>
-            </Card>
 
-            <Card className="bg-[#0A3B7C] text-white p-10 border-none shadow-2xl rounded-3xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-              
-              <h3 className="font-heading font-extrabold text-2xl mb-8 flex items-center gap-3 !text-white">
-                <FileText size={28} className="text-[#53B73E]" />
-                Resumen Final
-              </h3>
-              
-              <div className="space-y-6 text-base mb-10 border-b border-white/10 pb-8">
-                <div className="flex justify-between items-center">
-                  <span className="text-white/60 font-bold uppercase tracking-widest text-xs">Límite:</span>
-                  <span className="font-extrabold text-xl text-white">Q {limiteCredito || "0"}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-white/60 font-bold uppercase tracking-widest text-xs">Plazo:</span>
-                  <span className="font-extrabold text-xl text-white">{plazoPago} Días</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-white/60 font-bold uppercase tracking-widest text-xs">Descuento:</span>
-                  <span className="font-extrabold text-xl text-[#53B73E]">{descuentoPorcentaje || "0"}%</span>
+                <div>
+                  <span style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, display: "block", marginBottom: "6px" }}>
+                    Justificación
+                  </span>
+                  <textarea placeholder="Motivo del descuento especial…"
+                    value={descuentoJustificacion} onChange={e => setDescuentoJustificacion(e.target.value)}
+                    style={{
+                      width: "100%", background: "transparent", border: "none",
+                      borderBottom: "1px solid rgba(245,242,236,0.1)", color: "#F5F2EC",
+                      fontSize: "0.78rem", padding: "4px 0", outline: "none",
+                      resize: "vertical", minHeight: "80px", lineHeight: 1.6,
+                      transition: "border-color 0.15s",
+                    }}
+                    onFocus={e => (e.currentTarget.style.borderBottomColor = "#C9924B")}
+                    onBlur={e => (e.currentTarget.style.borderBottomColor = "rgba(245,242,236,0.1)")}
+                  />
                 </div>
               </div>
-              
-              <Button 
-                type="button" 
-                className="w-full bg-[#53B73E] text-white hover:bg-[#3A8E2A] border-none shadow-xl py-6 rounded-2xl font-bold flex items-center justify-center gap-3 group" 
-                size="lg"
-                onClick={handleSubmit}
-              >
-                Generar Propuesta
-                <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </Button>
-            </Card>
+            </motion.div>
+
+            {/* Summary + submit */}
+            <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.58, duration: 0.6, ease: EASE }}
+              style={{ background: "#0C0C0A", border: "1px solid rgba(245,242,236,0.06)", borderRadius: "6px", overflow: "hidden" }}>
+
+              <div style={{ borderBottom: "1px solid rgba(245,242,236,0.06)", padding: "1.1rem 1.5rem" }}>
+                <span style={{ fontSize: "0.52rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>
+                  Resumen del Contrato
+                </span>
+              </div>
+
+              <div style={{ padding: "1.5rem" }}>
+                {[
+                  { label: "Cliente", value: selectedClient?.legalName ?? "—" },
+                  { label: "Límite", value: limiteCredito ? `Q ${limiteCredito}` : "—" },
+                  { label: "Plazo", value: `${plazoPago} días` },
+                  { label: "Descuento", value: descuentoPorcentaje ? `${descuentoPorcentaje}%` : "—" },
+                  { label: "Cargas", value: cargasPermitidas.length ? `${cargasPermitidas.length} tipo${cargasPermitidas.length > 1 ? "s" : ""}` : "—" },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.85rem" }}>
+                    <span style={{ fontSize: "0.5rem", letterSpacing: "0.2em", color: "rgba(245,242,236,0.35)", textTransform: "uppercase", fontWeight: 700 }}>
+                      {label}
+                    </span>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#F5F2EC", textAlign: "right", maxWidth: "55%", wordBreak: "break-word" }}>
+                      {value}
+                    </span>
+                  </div>
+                ))}
+
+                <div style={{ height: "1px", background: "rgba(245,242,236,0.06)", margin: "1.25rem 0" }} />
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  style={{
+                    width: "100%", padding: "0.7rem", borderRadius: "4px",
+                    fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+                    cursor: loading ? "not-allowed" : "pointer",
+                    background: loading ? "#3A3A37" : "#C9924B", color: "#0C0C0A",
+                    border: "none", transition: "background 0.15s",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                  }}
+                  onMouseOver={e => { if (!loading) e.currentTarget.style.background = "#B8813C" }}
+                  onMouseOut={e => { if (!loading) e.currentTarget.style.background = "#C9924B" }}
+                >
+                  {loading ? <Loader2 size={11} className="animate-spin" /> : null}
+                  Generar Propuesta →
+                </button>
+              </div>
+            </motion.div>
+
           </div>
         </div>
 
-        <Modal open={successOpen} onClose={() => setSuccessOpen(false)}>
-          <div className="py-10 text-center">
-            <div className="mx-auto w-24 h-24 rounded-full bg-[#53B73E]/15 flex flex-col items-center justify-center mb-8">
-              <ShieldCheck className="text-[#53B73E]" size={48} />
-            </div>
-
-            <h2 className="text-3xl font-heading font-extrabold text-[#0A3B7C]">¡Contrato Formalizado!</h2>
-            <p className="text-[#64748B] mt-5 max-w-sm mx-auto text-lg leading-relaxed">
-              El contrato comercial ha sido generado y se encuentra en estado <span className="font-extrabold text-[#0A3B7C]">PENDIENTE DE FIRMA</span>. 
-            </p>
-
-            <div className="mt-12">
-              <Button
-                className="w-full sm:w-auto min-w-[240px] bg-[#0A3B7C] text-white hover:bg-[#083066] font-bold py-4 rounded-2xl"
-                onClick={() => {
-                  setSuccessOpen(false)
-                  router.push("/agente-operativo")
-                }}
-              >
-                Cerrar y Regresar al Panel
-              </Button>
-            </div>
-          </div>
-        </Modal>
       </div>
     </div>
   )
