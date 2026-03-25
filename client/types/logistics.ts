@@ -96,4 +96,5 @@ export interface FiltrosOrden {
   startDate?: string
   endDate?: string
   clientId?: string
+  clientName?: string
 }

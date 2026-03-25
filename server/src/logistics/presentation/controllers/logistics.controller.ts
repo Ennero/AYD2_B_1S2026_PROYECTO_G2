@@ -55,8 +55,9 @@ export class LogisticsController {
     @Query('status') status?: OrderStatus,
     @Query('startDate') startDate?: string,
     @Query('clientId') clientId?: string,
+    @Query('clientName') clientName?: string,
   ) {
-    const data = await this.getOrders.execute({ status, startDate, clientId });
+    const data = await this.getOrders.execute({ status, startDate, clientId, clientName });
     return { message: 'Órdenes obtenidas correctamente', data };
   }
 

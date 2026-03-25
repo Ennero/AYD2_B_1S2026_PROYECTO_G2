@@ -1686,7 +1686,8 @@ export class DatabaseSeeder {
         const declaredWeight = unit
           ? this.calculateDeclaredWeight(Number(unit.capacityTon), plan.preferredVehicleTypeCode)
           : roundCurrency(1.2 + planIndex * 0.35 + clientIndex * 0.1);
-        const loadedWeight = unit ? roundCurrency(declaredWeight * 0.98) : null;
+        const isStowageConfirmed = ['LISTA', 'TRANSITO', 'ENTREGADA'].includes(plan.stage);
+        const loadedWeight = (unit && isStowageConfirmed) ? roundCurrency(declaredWeight * 0.98) : null;
         const fuelCost = unit && distance > 0 ? roundCurrency(distance * 2.15) : 0;
         const viaticsCost = unit && distance > 0 ? roundCurrency(distance * 0.42) : 0;
         const maintenanceCost = unit && distance > 0 ? roundCurrency(distance * 0.28) : 0;
@@ -1739,6 +1740,11 @@ export class DatabaseSeeder {
             notes: `Orden seed ${plan.stage.toLowerCase()} para ${blueprint.legalName}`,
           }),
         );
+
+        // Update unit availability if it's assigned to an active order (ASIGNADA, LISTA, TRANSITO)
+        if (unit && ['ASIGNADA', 'LISTA', 'TRANSITO'].includes(plan.stage)) {
+          await manager.getRepository(TransportUnit).update(unit.unitId, { isAvailable: false });
+        }
 
         createdOrders.push({
           order,

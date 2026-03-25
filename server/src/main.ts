@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
@@ -14,8 +15,9 @@ import { runInitialSeed } from './infrastructure/database/seeds/database-seeder'
 async function bootstrap() {
   await ensureDatabaseExists();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.use(cookieParser());
+  app.useBodyParser('json', { limit: '10mb' });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

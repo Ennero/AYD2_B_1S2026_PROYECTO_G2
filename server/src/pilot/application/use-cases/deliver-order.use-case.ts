@@ -115,6 +115,10 @@ export class DeliverOrderUseCase {
             });
             await logRepo.save(log);
 
+            // 7. Marcar la unidad como disponible nuevamente
+            const unitRepo = em.getRepository(TransportUnit);
+            await unitRepo.update(unit.unitId, { isAvailable: true });
+
             return {
                 orderId:               order.orderId,
                 status:                order.status,

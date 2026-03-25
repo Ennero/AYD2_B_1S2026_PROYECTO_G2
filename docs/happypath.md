@@ -92,7 +92,6 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Email Contacto | `deennerparaprobar@gmail.com` |
 | Contraseña | `probando2026` |
 | Teléfono Contacto | `22001234` |
-| Límite de Crédito | `Q 50,000.00` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
 | Riesgo de Mercancia | `BAJO` |
