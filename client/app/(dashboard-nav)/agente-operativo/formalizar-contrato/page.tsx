@@ -375,7 +375,7 @@ export default function FormalizarContratoPage() {
 
                 {/* Route search */}
                 <div>
-                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>Rutas Autorizadas</span>
+                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>Rutas Autorizadas del Contrato</span>
                   <div style={{ position: "relative" }}>
                     <input
                       type="text"

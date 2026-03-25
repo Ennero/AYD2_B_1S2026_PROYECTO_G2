@@ -19,6 +19,13 @@ import { ENDPOINTS } from "@/lib/api/endpoints"
 import { cn } from "@/lib/utils/cn"
 import Button from "@/components/ui/Button"
 import Input from "@/components/ui/Input"
+import {
+  buildPrefixedPhone,
+  normalizeLocalPhone,
+  PHONE_COUNTRIES,
+  splitPrefixedPhone,
+  type PhoneCountryCode,
+} from "@/lib/utils/phone"
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -33,14 +40,16 @@ interface Contact {
 interface ContactForm {
   contactName: string
   contactEmail: string
-  contactPhone: string
+  contactPhoneCountry: PhoneCountryCode
+  contactPhoneLocal: string
   positionTitle: string
 }
 
 const EMPTY_FORM: ContactForm = {
   contactName: "",
   contactEmail: "",
-  contactPhone: "",
+  contactPhoneCountry: "+502",
+  contactPhoneLocal: "",
   positionTitle: "",
 }
 
@@ -93,7 +102,8 @@ function ContactModal({
           ? {
               contactName: editing.contactName,
               contactEmail: editing.contactEmail,
-              contactPhone: editing.contactPhone ?? "",
+              contactPhoneCountry: splitPrefixedPhone(editing.contactPhone).countryCode,
+              contactPhoneLocal: splitPrefixedPhone(editing.contactPhone).localNumber,
               positionTitle: editing.positionTitle ?? "",
             }
           : EMPTY_FORM,
@@ -112,7 +122,7 @@ function ContactModal({
       const payload = {
         contactName: form.contactName.trim(),
         contactEmail: form.contactEmail.trim(),
-        contactPhone: form.contactPhone.trim() || undefined,
+        contactPhone: buildPrefixedPhone(form.contactPhoneCountry, form.contactPhoneLocal) || undefined,
         positionTitle: form.positionTitle.trim() || undefined,
       }
 
@@ -175,13 +185,33 @@ function ContactModal({
             placeholder="contacto@empresa.com"
             disabled={saving}
           />
-          <Input
-            label="Teléfono"
-            value={form.contactPhone}
-            onChange={(e) => setForm((f) => ({ ...f, contactPhone: e.target.value }))}
-            placeholder="+502 5555-0000"
-            disabled={saving}
-          />
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-1.5" style={{ color: "#0C0C0A", letterSpacing: "0.01em" }}>
+              Teléfono
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.contactPhoneCountry}
+                onChange={(e) => setForm((f) => ({ ...f, contactPhoneCountry: e.target.value as PhoneCountryCode }))}
+                disabled={saving}
+                className="w-full rounded-lg px-3 py-2.5 text-sm bg-white border border-black/15 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              >
+                {PHONE_COUNTRIES.map((country) => (
+                  <option key={country.code} value={country.code}>{country.label}</option>
+                ))}
+              </select>
+              <input
+                value={form.contactPhoneLocal}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, contactPhoneLocal: normalizeLocalPhone(e.target.value) }))
+                }
+                placeholder="22001234"
+                disabled={saving}
+                className="w-full rounded-lg px-4 py-2.5 text-sm bg-white border border-black/15 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              />
+            </div>
+            <p className="mt-1 text-xs text-text-muted">Formato guardado: +50X seguido de 8 dígitos.</p>
+          </div>
           <Input
             label="Cargo / Puesto"
             value={form.positionTitle}

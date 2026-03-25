@@ -9,13 +9,20 @@ import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
+import {
+  buildPrefixedPhone,
+  normalizeLocalPhone,
+  PHONE_COUNTRIES,
+  type PhoneCountryCode,
+} from "@/lib/utils/phone"
 
 const EASE = [0.16, 1, 0.3, 1] as const
 const STEPS = ["Datos Generales", "Datos Fiscales", "Perfil de Riesgo"]
 
 type FormState = {
   nombre: string
-  telefono: string
+  telefonoPais: PhoneCountryCode
+  telefonoNumero: string
   correo: string
   contrasenaAcceso: string
   razonSocial: string
@@ -47,7 +54,7 @@ export default function RegistrarClientePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState<FormState>({
-    nombre: "", telefono: "", correo: "", contrasenaAcceso: "",
+    nombre: "", telefonoPais: "+502", telefonoNumero: "", correo: "", contrasenaAcceso: "",
     razonSocial: "", direccion: "", nit: "",
     capacidadPago: "", riesgoMercancia: "", riesgoAduanas: "", lavadoDinero: "",
   })
@@ -120,8 +127,13 @@ export default function RegistrarClientePage() {
     if (!form.capacidadPago || !form.riesgoMercancia || !form.riesgoAduanas || !form.lavadoDinero) {
       return toast.error("Completa el perfil de riesgo antes de continuar.")
     }
+    if (form.telefonoNumero && form.telefonoNumero.length !== 8) {
+      return toast.error("El teléfono debe tener exactamente 8 dígitos locales.")
+    }
     setIsSubmitting(true)
     try {
+      const prefixedPhone = buildPrefixedPhone(form.telefonoPais, form.telefonoNumero)
+
       await api.post<CreateClientResponse>(ENDPOINTS.CLIENTES.CREATE, {
         legalName: form.razonSocial,
         nit: nitSanitized,
@@ -129,15 +141,23 @@ export default function RegistrarClientePage() {
         primaryContactName: form.nombre,
         primaryContactEmail: form.correo,
         portalPassword: form.contrasenaAcceso,
-        primaryContactPhone: form.telefono || undefined,
+        primaryContactPhone: prefixedPhone || undefined,
         paymentRisk: paymentCapacityToRisk(form.capacidadPago),
         cargoRisk: toRiskLevel(form.riesgoMercancia),
         customsRisk: toRiskLevel(form.riesgoAduanas),
         amlRisk: toRiskLevel(form.lavadoDinero),
       })
       setSuccessOpen(true)
-    } catch {
-      toast.error("No se pudo registrar el cliente. Intenta nuevamente.")
+    } catch (error: any) {
+      const detailsMessage = error?.details?.message
+      const backendMessage = Array.isArray(detailsMessage)
+        ? detailsMessage.join(" ")
+        : typeof detailsMessage === "string"
+          ? detailsMessage
+          : typeof error?.message === "string"
+            ? error.message
+            : "No se pudo registrar el cliente. Intenta nuevamente."
+      toast.error(backendMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -279,8 +299,32 @@ export default function RegistrarClientePage() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
                     <Input label="Nombre completo" placeholder="Ej. Henry Contreras"
                       value={form.nombre} onChange={e => setForm(s => ({ ...s, nombre: e.target.value }))} />
-                    <Input label="Teléfono" placeholder="Ej. 5555-5555"
-                      value={form.telefono} onChange={e => setForm(s => ({ ...s, telefono: e.target.value }))} />
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.375rem", color: "#0C0C0A", letterSpacing: "0.01em" }}>
+                        Teléfono
+                      </label>
+                      <div style={{ display: "grid", gridTemplateColumns: "112px 1fr", gap: "0.5rem", alignItems: "start" }}>
+                        <Select
+                          label=""
+                          options={PHONE_COUNTRIES.map((country) => ({ value: country.code, label: country.code }))}
+                          value={form.telefonoPais}
+                          onChange={(e) => setForm((s) => ({ ...s, telefonoPais: e.target.value as PhoneCountryCode }))}
+                          className="px-3"
+                        />
+                        <Input
+                          label=""
+                          placeholder="Ej. 22001234"
+                          inputMode="numeric"
+                          value={form.telefonoNumero}
+                          onChange={(e) =>
+                            setForm((s) => ({ ...s, telefonoNumero: normalizeLocalPhone(e.target.value) }))
+                          }
+                        />
+                      </div>
+                      <p style={{ fontSize: "0.65rem", color: "#9A9489", marginTop: "6px" }}>
+                        Se guarda como {form.telefonoPais} seguido de 8 dígitos.
+                      </p>
+                    </div>
                     <div style={{ gridColumn: "1 / -1" }}>
                       <Input label="Correo de acceso" type="email" placeholder="portal@empresa.com"
                         value={form.correo} onChange={e => setForm(s => ({ ...s, correo: e.target.value }))} />

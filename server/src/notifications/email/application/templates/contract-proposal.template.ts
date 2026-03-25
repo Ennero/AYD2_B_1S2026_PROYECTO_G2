@@ -7,7 +7,6 @@ export interface ContractProposalTemplateData {
   validUntil: string;
   totalAmount: string;
   currency: string;
-  portalUrl: string;
   agentName: string;
 }
 
@@ -27,6 +26,7 @@ export function contractProposalTemplate(
 
   const html = baseTemplate(
     `
+    <p class="eyebrow">Propuesta Comercial</p>
     <h2>Propuesta de Contrato Digital</h2>
     <p>Estimado/a <strong>${data.clientName}</strong>,</p>
     <p>Le informamos que el agente <strong>${data.agentName}</strong> ha generado una propuesta de contrato para su revisión y aceptación:</p>
@@ -39,17 +39,21 @@ export function contractProposalTemplate(
       <p><strong>Válido hasta:</strong> ${data.validUntil}</p>
     </div>
 
-    <p>Puede revisar los términos completos y tomar una decisión desde el portal:</p>
-
-    <p style="text-align:center;">
-      <a class="btn" href="${data.portalUrl}">Revisar y responder contrato</a>
-    </p>
+    <div class="info-box">
+      <p><strong>Pasos para revisar y responder</strong></p>
+      <ol class="steps">
+        <li>Ingrese al Portal de Clientes LogiTrans.</li>
+        <li>Abra el módulo de contratos y busque el código <code>${data.contractCode}</code>.</li>
+        <li>Revise términos y seleccione Aceptar o Rechazar.</li>
+      </ol>
+      <p style="margin-top:10px;">Este correo no contiene enlaces directos por política de seguridad.</p>
+    </div>
 
     <hr class="divider" />
 
     <p style="font-size:13px; color:#888888;">
       Si tiene dudas sobre esta propuesta, comuníquese con su agente asignado o
-      escríbanos a <a href="mailto:contratos@logitrans.com">contratos@logitrans.com</a>.
+      escríbanos a contratos@logitrans.com.
     </p>
     `,
     subject,
@@ -64,7 +68,10 @@ Rutas: ${data.routes.join(', ')}
 Monto: ${data.currency} ${data.totalAmount}
 Válido hasta: ${data.validUntil}
 
-Revise y responda en: ${data.portalUrl}
+Para revisar y responder:
+  1) Ingrese al Portal de Clientes LogiTrans
+  2) Abra el módulo de contratos y busque ${data.contractCode}
+  3) Seleccione Aceptar o Rechazar
   `.trim();
 
   return { subject, html, text };

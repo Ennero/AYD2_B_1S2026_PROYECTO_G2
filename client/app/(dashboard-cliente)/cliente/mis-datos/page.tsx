@@ -176,7 +176,7 @@ export default function MisDatosPage() {
         { skipAuth: true, silentError: true },
       )
       setRecoverySent(true)
-      toast.success(`Enlace de recuperación enviado a ${profile.user.email}`)
+      toast.success(`Token de recuperación enviado a ${profile.user.email}`)
     } catch {
       toast.error("No se pudo enviar el correo. Intenta más tarde.")
     } finally {
@@ -354,7 +354,7 @@ export default function MisDatosPage() {
           {recoverySent ? (
             <div className="flex items-center gap-2 text-[#3A8E2A] text-sm font-medium">
               <CheckCircle2 size={16} />
-              Enlace enviado. Revisa tu bandeja de entrada.
+              Token enviado. Revisa tu bandeja de entrada.
             </div>
           ) : (
             <Button
@@ -364,7 +364,7 @@ export default function MisDatosPage() {
               onClick={() => void handleSendRecovery()}
             >
               <Send size={14} />
-              Enviar enlace de recuperación
+              Enviar token de recuperación
             </Button>
           )}
         </div>

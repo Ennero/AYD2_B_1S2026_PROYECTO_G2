@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   EMAIL_SERVICE_TOKEN,
   type EmailSendResult,
@@ -24,14 +23,10 @@ import { invoiceTemplate, InvoiceTemplateData } from './templates/invoice.templa
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly portalUrl: string;
 
   constructor(
     @Inject(EMAIL_SERVICE_TOKEN) private readonly transport: IEmailService,
-    private readonly config: ConfigService,
-  ) {
-    this.portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3000');
-  }
+  ) {}
 
   // ─── HU-02: Bienvenida con credenciales ──────────────────────────────────
 
@@ -42,7 +37,6 @@ export class EmailService {
       clientName: data.clientName,
       email: data.email,
       temporaryPassword: data.temporaryPassword,
-      portalUrl: data.portalUrl ?? this.portalUrl,
     });
 
     return this.transport.send({
@@ -60,9 +54,8 @@ export class EmailService {
   ): Promise<EmailSendResult> {
     const tpl = passwordRecoveryTemplate({
       clientName: data.clientName,
-      recoveryUrl: data.recoveryUrl,
+      recoveryToken: data.recoveryToken,
       expiresInMinutes: data.expiresInMinutes ?? 30,
-      ipAddress: data.ipAddress,
     });
 
     return this.transport.send({
@@ -85,7 +78,6 @@ export class EmailService {
       validUntil: data.validUntil,
       totalAmount: data.totalAmount,
       currency: data.currency ?? 'GTQ',
-      portalUrl: data.portalUrl ?? this.portalUrl,
       agentName: data.agentName,
     });
 
@@ -113,7 +105,6 @@ export class EmailService {
       total: data.total,
       currency: data.currency ?? 'GTQ',
       pdfUrl: data.pdfUrl,
-      portalUrl: data.portalUrl ?? this.portalUrl,
       felAuthorizationCode: data.felAuthorizationCode,
     });
 

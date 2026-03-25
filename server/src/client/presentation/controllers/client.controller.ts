@@ -43,8 +43,8 @@ export class ClientController {
   // ── Catálogos / Órdenes ───────────────────────────────────────────────
 
   @Get('cargo-types')
-  async getCargoTypes() {
-    const data = await this.clientService.getCargoTypes();
+  async getCargoTypes(@CurrentUser() user: JwtPayload) {
+    const data = await this.clientService.getCargoTypes(user.sub);
     return { message: 'Tipos de mercancía obtenidos', data };
   }
 

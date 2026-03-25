@@ -1,4 +1,6 @@
-import { IsBoolean, IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsOptional, IsString, Matches } from 'class-validator';
+
+const PHONE_PATTERN = /^\+50[234]\d{8}$/;
 
 export class UpdateUserDto {
   @IsString()
@@ -11,6 +13,9 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
+  @Matches(PHONE_PATTERN, {
+    message: 'phone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+  })
   phone?: string;
 
   @IsBoolean()

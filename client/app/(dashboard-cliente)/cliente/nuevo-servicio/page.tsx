@@ -28,7 +28,7 @@ interface CargoType {
 }
 
 interface ActiveContract {
-  contractId: string
+  contractId: number
   contractNumber: string
   startDate: string
   endDate: string
@@ -37,8 +37,7 @@ interface ActiveContract {
 }
 
 interface OrderForm {
-  contractId: string
-  cargoTypeId: string
+  cargoTypeId: number | null
   pickupAddress: string
   deliveryAddress: string
   declaredWeightTon: string
@@ -94,21 +93,21 @@ const inputCls =
 
 function Step1({
   form,
-  contracts,
+  activeContract,
   cargoTypes,
   loadingCatalogs,
   onUpdate,
   onNext,
 }: {
   form: OrderForm
-  contracts: ActiveContract[]
+  activeContract: ActiveContract | null
   cargoTypes: CargoType[]
   loadingCatalogs: boolean
   onUpdate: (f: Partial<OrderForm>) => void
   onNext: () => void
 }) {
   const validate = () => {
-    if (!form.contractId) return toast.error("Selecciona un contrato vigente"), false
+    if (!activeContract) return toast.error("No tienes contrato vigente"), false
     if (!form.cargoTypeId) return toast.error("Selecciona el tipo de mercancía"), false
     if (!form.pickupAddress.trim()) return toast.error("Ingresa la dirección de origen"), false
     if (!form.deliveryAddress.trim()) return toast.error("Ingresa la dirección de destino"), false
@@ -129,7 +128,7 @@ function Step1({
         </div>
       ) : (
         <>
-          {contracts.length === 0 && (
+          {!activeContract && (
             <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <span>
@@ -139,29 +138,23 @@ function Step1({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Contrato */}
-            <Field label="Contrato Vigente">
-              <select
-                value={form.contractId}
-                onChange={(e) => onUpdate({ contractId: e.target.value })}
-                className={inputCls}
-                disabled={contracts.length === 0}
-              >
-                <option value="">Selecciona un contrato…</option>
-                {contracts.map((c) => (
-                  <option key={c.contractId} value={c.contractId}>
-                    {c.contractNumber} · Vence: {c.endDate} · Pago: {c.paymentTermDays} días
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <div className="md:col-span-2 bg-secondary/10 border border-secondary/20 rounded-xl px-4 py-3 text-sm text-secondary">
+              {activeContract ? (
+                <span>
+                  Contrato aplicado automáticamente: <strong>{activeContract.contractNumber}</strong> · Vence: {activeContract.endDate} · Pago: {activeContract.paymentTermDays} días
+                </span>
+              ) : (
+                <span>No hay contrato vigente disponible para crear órdenes.</span>
+              )}
+            </div>
 
             {/* Tipo de mercancía */}
             <Field label="Tipo de Mercancía">
               <select
-                value={form.cargoTypeId}
-                onChange={(e) => onUpdate({ cargoTypeId: e.target.value })}
+                value={form.cargoTypeId ?? ""}
+                onChange={(e) => onUpdate({ cargoTypeId: e.target.value ? Number(e.target.value) : null })}
                 className={inputCls}
+                disabled={!activeContract || cargoTypes.length === 0}
               >
                 <option value="">Selecciona tipo de mercancía…</option>
                 {cargoTypes.map((ct) => (
@@ -171,6 +164,15 @@ function Step1({
                 ))}
               </select>
             </Field>
+
+            {activeContract && cargoTypes.length === 0 && (
+              <div className="md:col-span-2 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                <span>
+                  Tu contrato vigente no tiene tipos de mercancía autorizados. Contacta a tu agente operativo.
+                </span>
+              </div>
+            )}
 
             {/* Origen */}
             <Field label="Origen (Planta / Bodega)">
@@ -242,7 +244,7 @@ function Step1({
       <div className="flex justify-end pt-4 border-t border-gray-100">
         <button
           onClick={() => validate() && onNext()}
-          disabled={contracts.length === 0 || loadingCatalogs}
+          disabled={!activeContract || loadingCatalogs || cargoTypes.length === 0}
           className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white font-bold py-2.5 px-8 rounded-xl shadow-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           Siguiente <ArrowRight size={16} />
@@ -256,21 +258,20 @@ function Step1({
 
 function Step2({
   form,
-  contracts,
+  activeContract,
   cargoTypes,
   submitting,
   onBack,
   onSubmit,
 }: {
   form: OrderForm
-  contracts: ActiveContract[]
+  activeContract: ActiveContract | null
   cargoTypes: CargoType[]
   submitting: boolean
   onBack: () => void
   onSubmit: () => void
 }) {
-  const contract = contracts.find((c) => c.contractId === form.contractId)
-  const cargoType = cargoTypes.find((ct) => String(ct.cargoTypeId) === form.cargoTypeId)
+  const cargoType = cargoTypes.find((ct) => ct.cargoTypeId === form.cargoTypeId)
 
   return (
     <div className="space-y-6">
@@ -283,7 +284,7 @@ function Step2({
             Resumen de la Solicitud
           </h4>
           <div className="space-y-2.5 text-sm">
-            <Row label="Contrato" value={contract?.contractNumber ?? "—"} />
+            <Row label="Contrato" value={activeContract?.contractNumber ?? "—"} />
             <Row label="Mercancía" value={cargoType?.cargoName ?? "—"} />
             <Row label="Origen" value={form.pickupAddress} />
             <Row label="Destino" value={form.deliveryAddress} />
@@ -300,12 +301,12 @@ function Step2({
             Condiciones del Contrato
           </h4>
           <div className="space-y-2.5 text-sm">
-            <Row label="Plazo de pago" value={`${contract?.paymentTermDays ?? "—"} días`} />
+            <Row label="Plazo de pago" value={`${activeContract?.paymentTermDays ?? "—"} días`} />
             <Row
               label="Límite de crédito"
               value={
-                contract
-                  ? `Q ${contract.creditLimit.toLocaleString("es-GT", { minimumFractionDigits: 2 })}`
+                activeContract
+                  ? `Q ${activeContract.creditLimit.toLocaleString("es-GT", { minimumFractionDigits: 2 })}`
                   : "—"
               }
             />
@@ -358,14 +359,13 @@ export default function NuevoServicioPage() {
   const router = useRouter()
 
   const [step, setStep] = useState<1 | 2>(1)
-  const [contracts, setContracts] = useState<ActiveContract[]>([])
+  const [activeContract, setActiveContract] = useState<ActiveContract | null>(null)
   const [cargoTypes, setCargoTypes] = useState<CargoType[]>([])
   const [loadingCatalogs, setLoadingCatalogs] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
   const [form, setForm] = useState<OrderForm>({
-    contractId: "",
-    cargoTypeId: "",
+    cargoTypeId: null,
     pickupAddress: "",
     deliveryAddress: "",
     declaredWeightTon: "",
@@ -378,15 +378,15 @@ export default function NuevoServicioPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [cRes, ctRes] = await Promise.all([
-          api.get<{ data: ActiveContract[] }>(ENDPOINTS.CLIENT.ACTIVE_CONTRACTS),
-          api.get<{ data: CargoType[] }>(ENDPOINTS.CLIENT.CARGO_TYPES),
-        ])
-        setContracts(cRes.data.data)
-        setCargoTypes(ctRes.data.data)
-        // Pre-seleccionar primer contrato si solo hay uno
-        if (cRes.data.data.length === 1) {
-          setForm((prev) => ({ ...prev, contractId: cRes.data.data[0].contractId }))
+        const cRes = await api.get<{ data: ActiveContract[] }>(ENDPOINTS.CLIENT.ACTIVE_CONTRACTS)
+        const latestContract = cRes.data.data[0] ?? null
+        setActiveContract(latestContract)
+
+        if (latestContract) {
+          const ctRes = await api.get<{ data: CargoType[] }>(ENDPOINTS.CLIENT.CARGO_TYPES)
+          setCargoTypes(ctRes.data.data)
+        } else {
+          setCargoTypes([])
         }
       } catch {
         // api client shows toast
@@ -398,13 +398,17 @@ export default function NuevoServicioPage() {
   }, [])
 
   const handleSubmit = async () => {
+    if (!form.cargoTypeId) {
+      toast.error("Selecciona el tipo de mercancía")
+      return
+    }
+
     setSubmitting(true)
     try {
       const res = await api.post<{ data: { orderNumber: string } }>(
         ENDPOINTS.CLIENT.ORDERS,
         {
-          contractId: form.contractId,
-          cargoTypeId: Number(form.cargoTypeId),
+          cargoTypeId: form.cargoTypeId,
           pickupAddress: form.pickupAddress,
           deliveryAddress: form.deliveryAddress,
           declaredWeightTon: Number(form.declaredWeightTon),
@@ -448,7 +452,7 @@ export default function NuevoServicioPage() {
         {step === 1 && (
           <Step1
             form={form}
-            contracts={contracts}
+            activeContract={activeContract}
             cargoTypes={cargoTypes}
             loadingCatalogs={loadingCatalogs}
             onUpdate={update}
@@ -459,7 +463,7 @@ export default function NuevoServicioPage() {
         {step === 2 && (
           <Step2
             form={form}
-            contracts={contracts}
+            activeContract={activeContract}
             cargoTypes={cargoTypes}
             submitting={submitting}
             onBack={() => setStep(1)}

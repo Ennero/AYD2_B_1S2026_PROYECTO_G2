@@ -110,17 +110,13 @@ export class AuthController {
 
   /**
    * POST /api/auth/password
-   * El token de recuperación llega como Bearer en Authorization.
-   * No es un JWT: es el rawToken generado en /recovery.
+   * El token de recuperación llega en el body como `token`.
    */
   @Post('password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() dto: ResetPasswordDto, @Req() req: Request) {
-    const authHeader = (req.headers['authorization'] as string) ?? '';
-    const rawToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
-
+  async resetPassword(@Body() dto: ResetPasswordDto) {
     await this.resetPasswordUseCase.execute({
-      rawToken,
+      rawToken: dto.token,
       password: dto.password,
       confirmation: dto.confirmation,
     });

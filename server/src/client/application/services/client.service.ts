@@ -38,12 +38,35 @@ export class ClientService {
     return user.client;
   }
 
+  private async resolveLatestActiveContract(clientId: number) {
+    const contract = await this.dataSource.getRepository(Contract).findOne({
+      where: { clientId, status: ContractStatus.VIGENTE },
+      relations: ['cargoTypes'],
+      order: { startDate: 'DESC' },
+    });
+
+    if (!contract) {
+      throw new BadRequestException(
+        'No tienes un contrato vigente para crear una orden. Contacta a tu agente operativo.',
+      );
+    }
+
+    return contract;
+  }
+
   // ── Catálogos ──────────────────────────────────────────────────────────
 
-  async getCargoTypes() {
-    return this.dataSource
-      .getRepository(CargoType)
-      .find({ order: { cargoName: 'ASC' } });
+  async getCargoTypes(userId: number) {
+    const client = await this.resolveClient(userId);
+    const contract = await this.resolveLatestActiveContract(client.clientId);
+
+    return [...contract.cargoTypes]
+      .sort((a, b) => a.cargoName.localeCompare(b.cargoName, 'es'))
+      .map((ct) => ({
+        cargoTypeId: ct.cargoTypeId,
+        cargoName: ct.cargoName,
+        requiresRefrigeration: ct.requiresRefrigeration,
+      }));
   }
 
   async getActiveContracts(userId: number) {
@@ -67,25 +90,14 @@ export class ClientService {
   async createOrder(userId: number, dto: CreateOrderDto) {
     const client = await this.resolveClient(userId);
 
-    // Verificar contrato vigente y que pertenezca al cliente
-    const contract = await this.dataSource.getRepository(Contract).findOne({
-      where: {
-        contractId: dto.contractId,
-        clientId: client.clientId,
-        status: ContractStatus.VIGENTE,
-      },
-    });
-    if (!contract) {
-      throw new BadRequestException(
-        'Contrato no encontrado o no está vigente para este cliente',
-      );
-    }
+    // Resolver contrato vigente más reciente del cliente autenticado
+    const contract = await this.resolveLatestActiveContract(client.clientId);
 
-    // Verificar tipo de mercancía válido
-    const cargoType = await this.dataSource
-      .getRepository(CargoType)
-      .findOne({ where: { cargoTypeId: dto.cargoTypeId } });
-    if (!cargoType) {
+    // Validar que el tipo de mercancía esté autorizado por el contrato vigente
+    const isAllowedCargoType = contract.cargoTypes.some(
+      (ct) => ct.cargoTypeId === dto.cargoTypeId,
+    );
+    if (!isAllowedCargoType) {
       throw new BadRequestException('Tipo de mercancía no válido');
     }
 
@@ -103,7 +115,7 @@ export class ClientService {
 
     const order = this.dataSource.getRepository(Order).create({
       orderNumber,
-      contractId: dto.contractId,
+      contractId: contract.contractId,
       requestedByUserId: userId,
       cargoTypeId: dto.cargoTypeId,
       status: OrderStatus.REGISTRADA,
@@ -678,7 +690,9 @@ export class ClientService {
         .andWhere('contract_id <> :contractId', { contractId })
         .execute();
 
-      contract.creditLimit = dto.creditLimit;
+      if (dto.creditLimit !== undefined) {
+        contract.creditLimit = dto.creditLimit;
+      }
       contract.status = ContractStatus.VIGENTE;
       contract.acceptedAt = new Date();
       await repo.save(contract);
@@ -688,7 +702,7 @@ export class ClientService {
         contractNumber: contract.contractNumber,
         status: contract.status,
         acceptedAt: contract.acceptedAt,
-        creditLimit: Number(contract.creditLimit),
+        creditLimit: contract.creditLimit !== null ? Number(contract.creditLimit) : null,
       };
     });
   }
