@@ -2,42 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import {
-  Package,
-  Search,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  MapPin,
-  Truck,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  Circle,
-  AlertCircle,
-  Navigation,
-  Flag,
-  ShieldAlert,
-  RefreshCw,
-  Plus,
-  Weight,
-  DollarSign,
+  Package, Search, X, ChevronLeft, ChevronRight,
+  MapPin, Truck, Calendar, Clock, CheckCircle2, Circle,
+  AlertCircle, Navigation, Flag, ShieldAlert, RotateCcw,
+  Plus, Weight, DollarSign,
 } from "lucide-react"
-import { toast } from "sonner"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
-import { cn } from "@/lib/utils/cn"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
 type OrderStatus =
-  | "REGISTRADA"
-  | "ASIGNADA"
-  | "LISTA_PARA_DESPACHO"
-  | "EN_TRANSITO"
-  | "ENTREGADA"
-  | "BLOQUEADA"
-  | "CANCELADA"
+  | "REGISTRADA" | "ASIGNADA" | "LISTA_PARA_DESPACHO"
+  | "EN_TRANSITO" | "ENTREGADA" | "BLOQUEADA" | "CANCELADA"
 
 type EventType = "SALIDA" | "PUNTO_CONTROL" | "ADUANA" | "INCIDENTE" | "LLEGADA" | "OTRO"
 
@@ -85,45 +66,33 @@ interface OrderPage {
   totalPages: number
 }
 
-/* ─── Status config ─────────────────────────────────────────────────────── */
+/* ─── Status / Event configs ─────────────────────────────────────────────── */
 
-const STATUS_CFG: Record<OrderStatus, { label: string; bg: string; text: string; dot: string }> = {
-  REGISTRADA:         { label: "Registrada",          bg: "bg-gray-100",          text: "text-gray-600",   dot: "bg-gray-400" },
-  ASIGNADA:           { label: "Asignada",             bg: "bg-blue-100",          text: "text-blue-700",   dot: "bg-blue-500" },
-  LISTA_PARA_DESPACHO:{ label: "Lista p/ despacho",   bg: "bg-purple-100",        text: "text-purple-700", dot: "bg-purple-500" },
-  EN_TRANSITO:        { label: "En tránsito",          bg: "bg-amber-100",         text: "text-amber-700",  dot: "bg-amber-500" },
-  ENTREGADA:          { label: "Entregada",            bg: "bg-[#53B73E]/15",      text: "text-[#3A8E2A]",  dot: "bg-[#53B73E]" },
-  BLOQUEADA:          { label: "Bloqueada",            bg: "bg-red-100",           text: "text-red-700",    dot: "bg-red-500" },
-  CANCELADA:          { label: "Cancelada",            bg: "bg-gray-100",          text: "text-gray-400",   dot: "bg-gray-300" },
+const STATUS_CFG: Record<OrderStatus, { label: string; color: string; bg: string; borderColor: string }> = {
+  REGISTRADA:          { label: "Registrada",        color: "#6B6260", bg: "rgba(107,98,96,0.07)",   borderColor: "#9A9489" },
+  ASIGNADA:            { label: "Asignada",           color: "#2563EB", bg: "rgba(37,99,235,0.08)",   borderColor: "#3B82F6" },
+  LISTA_PARA_DESPACHO: { label: "Lista p/ despacho", color: "#7C3AED", bg: "rgba(124,58,237,0.08)",  borderColor: "#8B5CF6" },
+  EN_TRANSITO:         { label: "En tránsito",        color: "#C9924B", bg: "rgba(201,146,75,0.10)",  borderColor: "#C9924B" },
+  ENTREGADA:           { label: "Entregada",          color: "#3A8E2A", bg: "rgba(58,142,42,0.08)",   borderColor: "#3A8E2A" },
+  BLOQUEADA:           { label: "Bloqueada",          color: "#E53E3E", bg: "rgba(229,62,62,0.08)",   borderColor: "#E53E3E" },
+  CANCELADA:           { label: "Cancelada",          color: "#9A9489", bg: "rgba(154,148,137,0.05)", borderColor: "rgba(12,12,10,0.12)" },
 }
 
 const EVENT_CFG: Record<EventType, { label: string; Icon: React.ElementType; color: string }> = {
-  SALIDA:        { label: "Salida",          Icon: Navigation,   color: "text-[#095556]" },
-  PUNTO_CONTROL: { label: "Punto de control",Icon: Circle,       color: "text-blue-500" },
-  ADUANA:        { label: "Aduana",          Icon: ShieldAlert,  color: "text-purple-500" },
-  INCIDENTE:     { label: "Incidente",       Icon: AlertCircle,  color: "text-red-500" },
-  LLEGADA:       { label: "Llegada",         Icon: Flag,         color: "text-[#53B73E]" },
-  OTRO:          { label: "Otro",            Icon: Clock,        color: "text-gray-400" },
+  SALIDA:        { label: "Salida",           Icon: Navigation, color: "#C9924B" },
+  PUNTO_CONTROL: { label: "Punto de control", Icon: Circle,     color: "#3B82F6" },
+  ADUANA:        { label: "Aduana",           Icon: ShieldAlert, color: "#8B5CF6" },
+  INCIDENTE:     { label: "Incidente",        Icon: AlertCircle, color: "#E53E3E" },
+  LLEGADA:       { label: "Llegada",          Icon: Flag,       color: "#3A8E2A" },
+  OTRO:          { label: "Otro",             Icon: Clock,      color: "#9A9489" },
 }
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
 
-function StatusBadge({ status }: { status: OrderStatus }) {
-  const c = STATUS_CFG[status]
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold", c.bg, c.text)}>
-      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", c.dot)} />
-      {c.label}
-    </span>
-  )
-}
-
 function fmtDate(d: string | null | undefined, withTime = false) {
   if (!d) return "—"
   return new Date(d).toLocaleDateString("es-GT", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+    day: "2-digit", month: "short", year: "numeric",
     ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
   })
 }
@@ -132,27 +101,9 @@ function fmtCurrency(n: number) {
   return `Q ${n.toLocaleString("es-GT", { minimumFractionDigits: 2 })}`
 }
 
-function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2 text-sm">
-      <Icon size={14} className="text-[#94A3B8] shrink-0 mt-0.5" />
-      <span className="text-[#64748B] shrink-0">{label}:</span>
-      <span className="font-medium text-[#1A202C] break-words min-w-0">{value ?? "—"}</span>
-    </div>
-  )
-}
+/* ─── Tracking Drawer ───────────────────────────────────────────────────── */
 
-/* ─── Tracking drawer ───────────────────────────────────────────────────── */
-
-function TrackingDrawer({
-  orderId,
-  open,
-  onClose,
-}: {
-  orderId: string | null
-  open: boolean
-  onClose: () => void
-}) {
+function TrackingDrawer({ orderId, open, onClose }: { orderId: string | null; open: boolean; onClose: () => void }) {
   const [data, setData] = useState<OrderTracking | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -170,135 +121,160 @@ function TrackingDrawer({
   if (!open) return null
 
   const isActive = data && !["ENTREGADA", "CANCELADA", "BLOQUEADA"].includes(data.status)
+  const statusCfg = data ? STATUS_CFG[data.status] : null
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-
-      <div className="fixed top-0 right-0 h-full w-full max-w-lg z-50 flex flex-col bg-white shadow-2xl border-l border-black/5">
+      <div
+        style={{ position: "fixed", inset: 0, zIndex: 40, background: "rgba(12,12,10,0.5)", backdropFilter: "blur(4px)" }}
+        onClick={onClose}
+      />
+      <div style={{
+        position: "fixed", top: 0, right: 0, height: "100%", width: "100%", maxWidth: "480px",
+        zIndex: 50, display: "flex", flexDirection: "column",
+        background: "#F5F2EC", borderLeft: "1px solid rgba(12,12,10,0.1)",
+        boxShadow: "-8px 0 32px rgba(12,12,10,0.12)",
+      }}>
+        <div style={{ height: "3px", background: "#C9924B", flexShrink: 0 }} />
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#F1F5F9] bg-[#F8FAFC] shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-[#095556]/10 flex items-center justify-center">
-              <Navigation size={18} className="text-[#095556]" />
-            </div>
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.08)",
+          background: "#1E1E1B", flexShrink: 0,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <Navigation size={16} style={{ color: "#C9924B" }} />
             <div>
-              <p className="text-xs text-[#94A3B8] uppercase tracking-wide">Tracking de Orden</p>
-              <p className="font-bold text-[#1A202C] text-sm">
-                {loading ? "Cargando…" : data?.orderNumber ?? "—"}
+              <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+                Tracking de Orden
+              </p>
+              <p style={{ fontSize: "0.9rem", fontWeight: 900, color: "#F5F2EC", letterSpacing: "-0.02em" }}>
+                {loading ? "Cargando…" : (data?.orderNumber ?? "—")}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-8 w-8 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#1A202C] hover:bg-[#E2E8F0] transition-colors cursor-pointer"
+            style={{
+              width: "32px", height: "32px", borderRadius: "4px", display: "flex",
+              alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)", color: "#9A9489", cursor: "pointer",
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = "rgba(255,255,255,0.12)")}
+            onMouseOut={e => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+        <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem" }}>
           {loading && (
-            <div className="space-y-3">
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-12 rounded-xl bg-[#F1F5F9] animate-pulse" />
+                <div key={i} style={{ height: "48px", borderRadius: "6px", background: "rgba(12,12,10,0.06)" }} />
               ))}
             </div>
           )}
 
-          {!loading && data && (
-            <>
-              {/* Status + badge */}
-              <div className="flex items-center justify-between">
-                <StatusBadge status={data.status} />
+          {!loading && data && statusCfg && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              {/* Status row */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px",
+                  padding: "4px 10px", borderRadius: "4px",
+                  background: statusCfg.bg, color: statusCfg.color,
+                  fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+                }}>
+                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: statusCfg.color, flexShrink: 0 }} />
+                  {statusCfg.label}
+                </span>
                 {isActive && (
-                  <span className="text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-100 px-2 py-1 rounded-lg animate-pulse">
+                  <span style={{
+                    fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.12em",
+                    color: "#C9924B", background: "rgba(201,146,75,0.10)",
+                    border: "1px solid rgba(201,146,75,0.3)",
+                    padding: "3px 8px", borderRadius: "4px", textTransform: "uppercase",
+                  }}>
                     En curso
                   </span>
                 )}
               </div>
 
               {/* Info card */}
-              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 space-y-2.5">
-                <InfoRow icon={MapPin} label="Recolección" value={data.pickupAddress} />
-                <InfoRow icon={MapPin} label="Entrega" value={data.deliveryAddress} />
-                {data.cargoType && <InfoRow icon={Package} label="Mercancía" value={data.cargoType} />}
-                <InfoRow icon={Weight} label="Peso declarado" value={`${data.declaredWeightTon} ton`} />
-                {data.loadedWeightTon && (
-                  <InfoRow icon={Weight} label="Peso cargado" value={`${data.loadedWeightTon} ton`} />
-                )}
-                {data.unitPlate && (
-                  <InfoRow icon={Truck} label="Unidad" value={`${data.unitPlate}${data.vehicleType ? ` — ${data.vehicleType}` : ""}`} />
-                )}
-                {data.receiverName && (
-                  <InfoRow icon={CheckCircle2} label="Recibido por" value={data.receiverName} />
-                )}
-                <InfoRow icon={Calendar} label="Solicitado" value={fmtDate(data.requestedAt, true)} />
-                {data.scheduledPickupAt && (
-                  <InfoRow icon={Calendar} label="Recolección prog." value={fmtDate(data.scheduledPickupAt, true)} />
-                )}
-                {data.promisedDeliveryAt && (
-                  <InfoRow icon={Calendar} label="Entrega prometida" value={fmtDate(data.promisedDeliveryAt, true)} />
-                )}
-                {data.deliveredAt && (
-                  <InfoRow icon={CheckCircle2} label="Entregado" value={fmtDate(data.deliveredAt, true)} />
-                )}
-                {data.totalAmount > 0 && (
-                  <InfoRow icon={DollarSign} label="Total" value={fmtCurrency(data.totalAmount)} />
-                )}
+              <div style={{
+                background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+                borderRadius: "6px", padding: "1.25rem",
+                display: "flex", flexDirection: "column", gap: "0.75rem",
+              }}>
+                {[
+                  { icon: <MapPin size={13} />, label: "Recolección", value: data.pickupAddress },
+                  { icon: <MapPin size={13} />, label: "Entrega", value: data.deliveryAddress },
+                  ...(data.cargoType ? [{ icon: <Package size={13} />, label: "Mercancía", value: data.cargoType }] : []),
+                  { icon: <Weight size={13} />, label: "Peso declarado", value: `${data.declaredWeightTon} ton` },
+                  ...(data.loadedWeightTon ? [{ icon: <Weight size={13} />, label: "Peso cargado", value: `${data.loadedWeightTon} ton` }] : []),
+                  ...(data.unitPlate ? [{ icon: <Truck size={13} />, label: "Unidad", value: `${data.unitPlate}${data.vehicleType ? ` — ${data.vehicleType}` : ""}` }] : []),
+                  ...(data.receiverName ? [{ icon: <CheckCircle2 size={13} />, label: "Recibido por", value: data.receiverName }] : []),
+                  { icon: <Calendar size={13} />, label: "Solicitado", value: fmtDate(data.requestedAt, true) },
+                  ...(data.scheduledPickupAt ? [{ icon: <Calendar size={13} />, label: "Recolección prog.", value: fmtDate(data.scheduledPickupAt, true) }] : []),
+                  ...(data.promisedDeliveryAt ? [{ icon: <Calendar size={13} />, label: "Entrega prometida", value: fmtDate(data.promisedDeliveryAt, true) }] : []),
+                  ...(data.deliveredAt ? [{ icon: <CheckCircle2 size={13} />, label: "Entregado", value: fmtDate(data.deliveredAt, true) }] : []),
+                  ...(data.totalAmount > 0 ? [{ icon: <DollarSign size={13} />, label: "Total", value: fmtCurrency(data.totalAmount) }] : []),
+                ].map((row, idx) => (
+                  <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "0.78rem" }}>
+                    <span style={{ color: "#9A9489", flexShrink: 0, marginTop: "1px" }}>{row.icon}</span>
+                    <span style={{ color: "#9A9489", flexShrink: 0 }}>{row.label}:</span>
+                    <span style={{ color: "#0C0C0A", fontWeight: 600 }}>{row.value}</span>
+                  </div>
+                ))}
               </div>
 
               {/* Timeline */}
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-[#64748B] mb-3">
+                <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1rem" }}>
                   Bitácora de ruta
                 </p>
-
                 {data.logs.length === 0 ? (
-                  <div className="text-center py-8 text-sm text-[#94A3B8]">
-                    Aún no hay eventos registrados para esta orden.
-                  </div>
+                  <p style={{ fontSize: "0.78rem", color: "#9A9489", textAlign: "center", padding: "2rem 0" }}>
+                    Aún no hay eventos registrados.
+                  </p>
                 ) : (
-                  <div className="relative">
-                    {/* vertical line */}
-                    <div className="absolute left-4 top-0 bottom-0 w-px bg-[#E2E8F0]" />
-
-                    <div className="space-y-4">
+                  <div style={{ position: "relative" }}>
+                    <div style={{
+                      position: "absolute", left: "14px", top: 0, bottom: 0,
+                      width: "1px", background: "rgba(12,12,10,0.1)",
+                    }} />
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                       {data.logs.map((log, idx) => {
                         const cfg = EVENT_CFG[log.eventType]
                         const isLast = idx === data.logs.length - 1
+                        const isIncident = log.eventType === "INCIDENTE"
                         return (
-                          <div key={log.logId} className="flex gap-4 relative">
-                            {/* dot */}
-                            <div className={cn(
-                              "h-8 w-8 rounded-full flex items-center justify-center bg-white border-2 shrink-0 z-10",
-                              log.eventType === "INCIDENTE"
-                                ? "border-red-300"
-                                : log.eventType === "LLEGADA"
-                                ? "border-[#53B73E]"
-                                : "border-[#E2E8F0]",
-                            )}>
-                              <cfg.Icon size={14} className={cfg.color} />
+                          <div key={log.logId} style={{ display: "flex", gap: "10px", position: "relative" }}>
+                            <div style={{
+                              width: "28px", height: "28px", borderRadius: "50%",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              background: "#F5F2EC", flexShrink: 0, zIndex: 1,
+                              border: `2px solid ${isIncident ? "#E53E3E" : isLast ? "#C9924B" : "rgba(12,12,10,0.12)"}`,
+                            }}>
+                              <cfg.Icon size={12} style={{ color: cfg.color }} />
                             </div>
-
-                            <div className={cn(
-                              "flex-1 bg-[#F8FAFC] rounded-xl p-3 border",
-                              log.eventType === "INCIDENTE"
-                                ? "border-red-100 bg-red-50"
-                                : isLast
-                                ? "border-[#095556]/20 bg-[#095556]/5"
-                                : "border-[#E2E8F0]",
-                            )}>
-                              <div className="flex items-center justify-between gap-2 mb-1">
-                                <span className={cn("text-xs font-bold", cfg.color)}>
+                            <div style={{
+                              flex: 1,
+                              background: isIncident ? "rgba(229,62,62,0.05)" : isLast ? "rgba(201,146,75,0.05)" : "#ffffff",
+                              border: `1px solid ${isIncident ? "rgba(229,62,62,0.2)" : isLast ? "rgba(201,146,75,0.2)" : "rgba(12,12,10,0.07)"}`,
+                              borderRadius: "6px", padding: "0.6rem 0.85rem",
+                            }}>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "3px" }}>
+                                <span style={{ fontSize: "0.6rem", fontWeight: 700, color: cfg.color, letterSpacing: "0.05em" }}>
                                   {cfg.label}
                                 </span>
-                                <span className="text-[10px] text-[#94A3B8]">
+                                <span style={{ fontSize: "0.52rem", color: "#9A9489" }}>
                                   {fmtDate(log.eventTime, true)}
                                 </span>
                               </div>
-                              <p className="text-xs text-[#475569]">{log.description}</p>
+                              <p style={{ fontSize: "0.72rem", color: "#6B6260" }}>{log.description}</p>
                             </div>
                           </div>
                         )
@@ -307,7 +283,7 @@ function TrackingDrawer({
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -315,104 +291,93 @@ function TrackingDrawer({
   )
 }
 
-/* ─── Order row ─────────────────────────────────────────────────────────── */
+/* ─── Order Row ─────────────────────────────────────────────────────────── */
 
-function OrderRow({
-  order,
-  onTrack,
-}: {
-  order: OrderSummary
-  onTrack: () => void
-}) {
+function OrderRow({ order, onTrack }: { order: OrderSummary; onTrack: () => void }) {
+  const cfg = STATUS_CFG[order.status]
   const addr = order.destination ?? order.deliveryAddress
   const origin = order.origin ?? order.pickupAddress
 
   return (
-    <div className="bg-white rounded-2xl border border-black/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md transition-shadow group">
-      {/* Status icon */}
-      <div className={cn(
-        "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
-        order.status === "EN_TRANSITO" ? "bg-amber-100" :
-        order.status === "ENTREGADA"   ? "bg-[#53B73E]/15" :
-        order.status === "BLOQUEADA"   ? "bg-red-100" :
-        "bg-[#095556]/8",
-      )}>
-        <Package size={18} className={cn(
-          order.status === "EN_TRANSITO" ? "text-amber-600" :
-          order.status === "ENTREGADA"   ? "text-[#3A8E2A]" :
-          order.status === "BLOQUEADA"   ? "text-red-600" :
-          "text-[#095556]",
-        )} />
-      </div>
-
-      {/* Main info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-2 mb-1">
-          <p className="font-bold text-[#1A202C] text-sm">{order.orderNumber}</p>
-          <StatusBadge status={order.status} />
+    <div style={{
+      background: "#ffffff", borderRadius: "6px", overflow: "hidden",
+      border: "1px solid rgba(12,12,10,0.07)", borderLeft: `3px solid ${cfg.borderColor}`,
+      display: "flex", alignItems: "center", gap: "1.5rem",
+      padding: "1rem 1.25rem", flexWrap: "wrap",
+    }}>
+      <div style={{ flex: 1, minWidth: "200px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+          <p style={{ fontSize: "0.9rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>
+            {order.orderNumber}
+          </p>
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: "5px",
+            padding: "2px 8px", borderRadius: "4px",
+            background: cfg.bg, color: cfg.color,
+            fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+          }}>
+            <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: cfg.color, flexShrink: 0 }} />
+            {cfg.label}
+          </span>
         </div>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
-          <div className="flex items-center gap-1 text-xs text-[#64748B]">
-            <MapPin size={11} className="text-[#94A3B8]" />
-            <span className="truncate max-w-[140px]" title={origin}>{origin}</span>
-            <span className="text-[#CBD5E1]">→</span>
-            <span className="truncate max-w-[140px]" title={addr}>{addr}</span>
-          </div>
-          {order.cargoType && (
-            <div className="flex items-center gap-1 text-xs text-[#64748B]">
-              <Package size={11} className="text-[#94A3B8]" />
-              <span>{order.cargoType}</span>
-            </div>
-          )}
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.72rem", color: "#6B6260", marginBottom: "3px" }}>
+          <MapPin size={11} style={{ color: "#9A9489", flexShrink: 0 }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "130px" }} title={origin}>{origin}</span>
+          <span style={{ color: "#9A9489" }}>→</span>
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "130px" }} title={addr}>{addr}</span>
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-          <span className="text-xs text-[#94A3B8] flex items-center gap-1">
-            <Calendar size={10} />
-            {fmtDate(order.requestedAt)}
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.62rem", color: "#9A9489" }}>
+            <Calendar size={10} />{fmtDate(order.requestedAt)}
           </span>
           {order.declaredWeightTon > 0 && (
-            <span className="text-xs text-[#94A3B8] flex items-center gap-1">
-              <Weight size={10} />
-              {order.declaredWeightTon} ton
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.62rem", color: "#9A9489" }}>
+              <Weight size={10} />{order.declaredWeightTon} ton
             </span>
           )}
           {order.unitPlate && (
-            <span className="text-xs text-[#94A3B8] flex items-center gap-1">
-              <Truck size={10} />
-              {order.unitPlate}
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "0.62rem", color: "#9A9489" }}>
+              <Truck size={10} />{order.unitPlate}
             </span>
           )}
         </div>
       </div>
-
-      {/* Action */}
       <button
         onClick={onTrack}
-        className="shrink-0 flex items-center gap-2 border-2 border-[#095556]/20 text-[#095556] hover:bg-[#095556]/5 font-semibold py-2 px-4 rounded-xl text-xs transition-colors cursor-pointer"
+        style={{
+          display: "flex", alignItems: "center", gap: "6px",
+          padding: "0.5rem 1rem", flexShrink: 0,
+          background: "none", border: "1px solid rgba(201,146,75,0.35)",
+          borderRadius: "4px", color: "#C9924B",
+          fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em",
+          textTransform: "uppercase", cursor: "pointer", transition: "all 0.15s",
+        }}
+        onMouseOver={e => { e.currentTarget.style.background = "rgba(201,146,75,0.08)"; e.currentTarget.style.borderColor = "#C9924B" }}
+        onMouseOut={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.borderColor = "rgba(201,146,75,0.35)" }}
       >
-        <Navigation size={13} />
+        <Navigation size={12} />
         Ver tracking
       </button>
     </div>
   )
 }
 
-/* ─── Status filter pills ────────────────────────────────────────────────── */
+/* ─── Filters ────────────────────────────────────────────────────────────── */
 
 const FILTERS: { label: string; value: string }[] = [
-  { label: "Todas",              value: "" },
-  { label: "Registrada",         value: "REGISTRADA" },
-  { label: "Asignada",           value: "ASIGNADA" },
-  { label: "Lista p/ despacho",  value: "LISTA_PARA_DESPACHO" },
-  { label: "En tránsito",        value: "EN_TRANSITO" },
-  { label: "Entregada",          value: "ENTREGADA" },
-  { label: "Bloqueada",          value: "BLOQUEADA" },
-  { label: "Cancelada",          value: "CANCELADA" },
+  { label: "Todas",             value: "" },
+  { label: "Registrada",        value: "REGISTRADA" },
+  { label: "Asignada",          value: "ASIGNADA" },
+  { label: "Lista p/ despacho", value: "LISTA_PARA_DESPACHO" },
+  { label: "En tránsito",       value: "EN_TRANSITO" },
+  { label: "Entregada",         value: "ENTREGADA" },
+  { label: "Bloqueada",         value: "BLOQUEADA" },
+  { label: "Cancelada",         value: "CANCELADA" },
 ]
 
-/* ─── Main page ─────────────────────────────────────────────────────────── */
-
 const LIMIT = 10
+
+/* ─── Main Page ──────────────────────────────────────────────────────────── */
 
 export default function OrdenesPage() {
   const [page, setPage] = useState<OrderPage | null>(null)
@@ -424,29 +389,23 @@ export default function OrdenesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const fetchOrders = useCallback(
-    async (s: string, st: string, p: number) => {
-      setLoading(true)
-      try {
-        const params = new URLSearchParams()
-        if (s) params.set("search", s)
-        if (st) params.set("status", st)
-        params.set("page", String(p))
-        params.set("limit", String(LIMIT))
-        const res = await api.get<{ data: OrderPage }>(
-          `${ENDPOINTS.CLIENT.ORDERS}?${params.toString()}`,
-        )
-        setPage(res.data.data)
-      } catch {
-        // api client shows toast
-      } finally {
-        setLoading(false)
-      }
-    },
-    [],
-  )
+  const fetchOrders = useCallback(async (s: string, st: string, p: number) => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (s) params.set("search", s)
+      if (st) params.set("status", st)
+      params.set("page", String(p))
+      params.set("limit", String(LIMIT))
+      const res = await api.get<{ data: OrderPage }>(`${ENDPOINTS.CLIENT.ORDERS}?${params.toString()}`)
+      setPage(res.data.data)
+    } catch {
+      // api client shows toast
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  // Debounce search
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current)
     searchTimeout.current = setTimeout(() => {
@@ -456,206 +415,230 @@ export default function OrdenesPage() {
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current) }
   }, [search, statusFilter, fetchOrders])
 
-  useEffect(() => {
-    void fetchOrders(search, statusFilter, currentPage)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage])
-
-  const openTracking = (orderId: string) => {
-    setTrackingId(orderId)
-    setDrawerOpen(true)
-  }
+  useEffect(() => { void fetchOrders(search, statusFilter, currentPage) }, [currentPage])
 
   const orders = page?.items ?? []
   const totalPages = page?.totalPages ?? 1
 
-  /* Skeleton */
-  if (loading && !page) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-4">
-        <div className="h-9 w-64 bg-[#095556]/10 rounded-xl animate-pulse mb-6" />
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl h-20 animate-pulse" />
-        ))}
-      </div>
-    )
-  }
-
   return (
     <>
-      <TrackingDrawer
-        orderId={trackingId}
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      />
+      <TrackingDrawer orderId={trackingId} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
+      <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+        <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+          backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+          backgroundSize: "72px 72px",
+        }} />
+        <div aria-hidden style={{
+          position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+          fontSize: "clamp(18rem,30vw,28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+          color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+        }}>OR</div>
 
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A202C] tracking-tight uppercase">
-              Historial de Órdenes
-            </h1>
-            <p className="text-sm text-[#64748B] mt-1">
-              Consulta el estado y tracking de todos tus envíos.
+        <div className="relative z-10 max-w-4xl mx-auto px-8 py-14">
+
+          {/* Header */}
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+              Portal Cliente
             </p>
-          </div>
-          <div className="flex items-center gap-2">
+            <div style={{ overflow: "hidden" }}>
+              <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+                transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+                style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+                Historial de Órdenes
+              </motion.h1>
+            </div>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+              style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "44ch" }}>
+              Consulta el estado y tracking de todos tus envíos.
+            </motion.p>
+            <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+              transition={{ delay: 0.4, duration: 0.9, ease: EASE }}
+              style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+          </motion.div>
+
+          {/* Toolbar */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
             <button
               onClick={() => void fetchOrders(search, statusFilter, currentPage)}
-              title="Actualizar"
-              className="h-9 w-9 rounded-xl flex items-center justify-center text-[#64748B] hover:text-[#095556] hover:bg-[#095556]/8 border border-[#E2E8F0] transition-colors cursor-pointer"
+              style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                padding: "0.5rem 0.9rem", background: "none",
+                border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
+                fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em",
+                textTransform: "uppercase", color: "#6B6260", cursor: "pointer",
+                transition: "border-color 0.15s",
+              }}
+              onMouseOver={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.25)")}
+              onMouseOut={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
             >
-              <RefreshCw size={16} />
+              <RotateCcw size={12} />
+              Actualizar
             </button>
-            <Link
-              href="/cliente/nuevo-servicio"
-              className="flex items-center gap-2 bg-[#095556] hover:bg-[#074041] text-white font-semibold py-2 px-4 rounded-xl text-sm transition-colors"
-            >
-              <Plus size={15} />
+            <Link href="/cliente/nuevo-servicio" style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "0.55rem 1.1rem", background: "#C9924B", border: "none",
+              borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+              letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff", textDecoration: "none",
+            }}>
+              <Plus size={12} />
               Nueva Orden
             </Link>
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-4 space-y-3">
-          {/* Search */}
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por número de orden..."
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[#1A202C] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#095556]/30 focus:border-[#095556]/50"
-            />
-          </div>
-
-          {/* Status pills */}
-          <div className="flex flex-wrap gap-1.5">
-            {FILTERS.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => { setStatusFilter(f.value); setCurrentPage(1) }}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer",
-                  statusFilter === f.value
-                    ? "bg-[#095556] text-white"
-                    : "bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]",
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Count */}
-          {page && (
-            <p className="text-xs text-[#94A3B8]">
-              {page.total} orden{page.total !== 1 ? "es" : ""} encontrada{page.total !== 1 ? "s" : ""}
-            </p>
-          )}
-        </div>
-
-        {/* List */}
-        {loading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl h-20 animate-pulse" />
-            ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-black/5 py-16 flex flex-col items-center gap-4 text-center">
-            <div className="h-14 w-14 rounded-2xl bg-[#095556]/8 flex items-center justify-center">
-              <Package size={26} className="text-[#095556]/40" />
+          {/* Filter card */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.6, ease: EASE }}
+            style={{
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "6px", padding: "1.25rem", marginBottom: "1rem",
+            }}>
+            <div style={{ position: "relative", marginBottom: "1rem" }}>
+              <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#9A9489", pointerEvents: "none" }} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por número de orden..."
+                style={{
+                  width: "100%", boxSizing: "border-box",
+                  paddingLeft: "36px", paddingRight: "1rem", paddingTop: "0.55rem", paddingBottom: "0.55rem",
+                  background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.12)",
+                  borderRadius: "4px", color: "#0C0C0A", fontSize: "0.85rem", outline: "none",
+                }}
+                onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.12)")}
+              />
             </div>
-            <div>
-              <p className="font-semibold text-[#1A202C]">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              {FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => { setStatusFilter(f.value); setCurrentPage(1) }}
+                  style={{
+                    padding: "4px 12px", borderRadius: "4px",
+                    fontSize: "0.58rem", fontWeight: 700, letterSpacing: "0.1em",
+                    textTransform: "uppercase", cursor: "pointer", transition: "all 0.15s",
+                    background: statusFilter === f.value ? "#C9924B" : "rgba(12,12,10,0.05)",
+                    color: statusFilter === f.value ? "#ffffff" : "#6B6260",
+                    border: statusFilter === f.value ? "1px solid #C9924B" : "1px solid rgba(12,12,10,0.08)",
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            {page && (
+              <p style={{ fontSize: "0.62rem", color: "#9A9489", marginTop: "0.75rem" }}>
+                {page.total} orden{page.total !== 1 ? "es" : ""} encontrada{page.total !== 1 ? "s" : ""}
+              </p>
+            )}
+          </motion.div>
+
+          {/* List */}
+          {loading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[...Array(5)].map((_, i) => (
+                <div key={i} style={{ height: "80px", borderRadius: "6px", background: "rgba(12,12,10,0.05)" }} />
+              ))}
+            </div>
+          ) : orders.length === 0 ? (
+            <div style={{
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "6px", padding: "4rem 2rem", textAlign: "center",
+            }}>
+              <Package size={32} style={{ color: "#9A9489", margin: "0 auto 1rem" }} />
+              <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#0C0C0A", marginBottom: "4px" }}>
                 {search || statusFilter ? "Sin resultados" : "No tienes órdenes aún"}
               </p>
-              <p className="text-sm text-[#64748B] mt-1">
-                {search || statusFilter
-                  ? "Prueba con otro filtro o término de búsqueda."
-                  : "Solicita tu primer servicio de transporte."}
+              <p style={{ fontSize: "0.78rem", color: "#9A9489" }}>
+                {search || statusFilter ? "Prueba con otro filtro." : "Solicita tu primer servicio de transporte."}
               </p>
+              {!search && !statusFilter && (
+                <Link href="/cliente/nuevo-servicio" style={{
+                  display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "1rem",
+                  padding: "0.55rem 1.1rem", background: "#C9924B", borderRadius: "4px",
+                  fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+                  textTransform: "uppercase", color: "#ffffff", textDecoration: "none",
+                }}>
+                  <Plus size={12} />
+                  Solicitar servicio
+                </Link>
+              )}
             </div>
-            {!search && !statusFilter && (
-              <Link
-                href="/cliente/nuevo-servicio"
-                className="flex items-center gap-2 bg-[#095556] hover:bg-[#074041] text-white font-semibold py-2 px-4 rounded-xl text-sm transition-colors"
-              >
-                <Plus size={14} />
-                Solicitar servicio
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {orders.map((order) => (
-              <OrderRow
-                key={order.orderId}
-                order={order}
-                onTrack={() => openTracking(order.orderId)}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between pt-2">
-            <p className="text-xs text-[#94A3B8]">
-              Página {currentPage} de {totalPages}
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className={cn(
-                  "h-9 w-9 rounded-xl flex items-center justify-center border transition-colors cursor-pointer",
-                  currentPage === 1
-                    ? "border-[#E2E8F0] text-[#CBD5E1] cursor-not-allowed"
-                    : "border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]",
-                )}
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                const p = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
-                return (
-                  <button
-                    key={p}
-                    onClick={() => setCurrentPage(p)}
-                    className={cn(
-                      "h-9 w-9 rounded-xl text-sm font-semibold border transition-colors cursor-pointer",
-                      p === currentPage
-                        ? "bg-[#095556] text-white border-[#095556]"
-                        : "border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]",
-                    )}
-                  >
-                    {p}
-                  </button>
-                )
-              })}
-
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className={cn(
-                  "h-9 w-9 rounded-xl flex items-center justify-center border transition-colors cursor-pointer",
-                  currentPage === totalPages
-                    ? "border-[#E2E8F0] text-[#CBD5E1] cursor-not-allowed"
-                    : "border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9]",
-                )}
-              >
-                <ChevronRight size={16} />
-              </button>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {orders.map((order, i) => (
+                <motion.div key={order.orderId}
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.05, duration: 0.5, ease: EASE }}>
+                  <OrderRow order={order} onTrack={() => { setTrackingId(order.orderId); setDrawerOpen(true) }} />
+                </motion.div>
+              ))}
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "1.5rem" }}>
+              <p style={{ fontSize: "0.62rem", color: "#9A9489" }}>
+                Página {currentPage} de {totalPages}
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  style={{
+                    width: "32px", height: "32px", borderRadius: "4px", display: "flex",
+                    alignItems: "center", justifyContent: "center", background: "none",
+                    border: "1px solid rgba(12,12,10,0.12)",
+                    color: currentPage === 1 ? "rgba(12,12,10,0.2)" : "#6B6260",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const p = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      style={{
+                        width: "32px", height: "32px", borderRadius: "4px",
+                        fontSize: "0.75rem", fontWeight: 700, cursor: "pointer",
+                        background: p === currentPage ? "#C9924B" : "none",
+                        color: p === currentPage ? "#ffffff" : "#6B6260",
+                        border: p === currentPage ? "1px solid #C9924B" : "1px solid rgba(12,12,10,0.12)",
+                      }}
+                    >
+                      {p}
+                    </button>
+                  )
+                })}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    width: "32px", height: "32px", borderRadius: "4px", display: "flex",
+                    alignItems: "center", justifyContent: "center", background: "none",
+                    border: "1px solid rgba(12,12,10,0.12)",
+                    color: currentPage === totalPages ? "rgba(12,12,10,0.2)" : "#6B6260",
+                    cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
     </>
   )

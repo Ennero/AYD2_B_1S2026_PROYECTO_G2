@@ -2,20 +2,109 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { FileSearch, Send, Mail } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { FileSearch, Send, Mail, Search, X } from "lucide-react"
 import { toast } from "sonner"
-import Card from "@/components/ui/Card"
-import Button from "@/components/ui/Button"
-import Modal from "@/components/ui/Modal"
-import StatusBadge from "@/components/shared/StatusBadge"
-import FinancePageShell from "@/components/finance/FinancePageShell"
 import { fetchFinanceInvoices, sendFinanceInvoice } from "@/lib/api/finance"
 import type { FinanceInvoice } from "@/types/finance"
 
-function normalize(value: string): string {
-  return value.trim().toLowerCase()
+const EASE = [0.16, 1, 0.3, 1] as const
+
+function normalize(v: string) { return v.trim().toLowerCase() }
+
+const COL6 = "1fr 1fr 1.4fr 1fr 0.8fr 0.8fr"
+
+/* ─── Table row ─────────────────────────────────── */
+function InvoiceRow({ children, accent }: { children: React.ReactNode; accent: string }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: COL6, gap: "0 1rem",
+      alignItems: "center", padding: "0.85rem 1.25rem",
+      background: "#ffffff", borderBottom: "1px solid rgba(12,12,10,0.06)",
+      borderLeft: `3px solid ${accent}`,
+      transition: "background 0.12s",
+    }}
+      onMouseOver={e => (e.currentTarget.style.background = "rgba(12,12,10,0.01)")}
+      onMouseOut={e => (e.currentTarget.style.background = "#ffffff")}
+    >
+      {children}
+    </div>
+  )
 }
 
+/* ─── Section header ────────────────────────────── */
+function SectionHeader({ cols }: { cols: string[] }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: COL6, gap: "0 1rem",
+      padding: "0.55rem 1.25rem",
+      background: "rgba(12,12,10,0.03)",
+      borderBottom: "1px solid rgba(12,12,10,0.07)",
+    }}>
+      {cols.map((c, i) => (
+        <span key={i} style={{
+          fontSize: "0.47rem", letterSpacing: "0.22em", color: "#9A9489",
+          textTransform: "uppercase", fontWeight: 700,
+          textAlign: i === cols.length - 1 ? "right" : "left",
+        }}>{c}</span>
+      ))}
+    </div>
+  )
+}
+
+/* ─── Send Modal ────────────────────────────────── */
+function SendModal({ invoice, onClose, onConfirm, loading }: {
+  invoice: FinanceInvoice
+  onClose: () => void
+  onConfirm: () => void
+  loading: boolean
+}) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 50,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)", padding: "1rem",
+    }}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.26, ease: EASE }}
+        style={{ background: "#ffffff", borderRadius: "6px", maxWidth: "420px", width: "100%", overflow: "hidden", border: "1px solid rgba(12,12,10,0.07)" }}>
+        <div style={{ height: "2px", background: "#3A8E2A" }} />
+        <div style={{ padding: "1.75rem 2rem 2rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
+            <div>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#3A8E2A", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Enviar factura certificada</p>
+              <h2 style={{ fontSize: "1.2rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>{invoice.invoiceNumber}</h2>
+            </div>
+            <button onClick={onClose} disabled={loading} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A9489" }}><X size={16} /></button>
+          </div>
+          <p style={{ fontSize: "0.82rem", color: "#6B6260", lineHeight: 1.6, marginBottom: "1.75rem" }}>
+            Se enviará la factura <strong style={{ color: "#0C0C0A" }}>{invoice.invoiceNumber}</strong> al cliente{" "}
+            <strong style={{ color: "#0C0C0A" }}>{invoice.clientName}</strong> y se marcará como ENVIADA.
+          </p>
+          <div style={{ display: "flex", gap: "10px", paddingTop: "1rem", borderTop: "1px solid rgba(12,12,10,0.07)" }}>
+            <button onClick={onClose} disabled={loading} style={{
+              flex: 1, padding: "0.65rem", background: "none",
+              border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "#6B6260", cursor: "pointer",
+            }}>Cancelar</button>
+            <button onClick={onConfirm} disabled={loading} style={{
+              flex: 1, padding: "0.65rem", background: loading ? "rgba(58,142,42,0.4)" : "#3A8E2A",
+              border: "none", borderRadius: "4px",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "#ffffff", cursor: loading ? "not-allowed" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+            }}>
+              <Send size={11} /> {loading ? "Enviando..." : "Confirmar envío"}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════ */
 export default function FinanceBillingPage() {
   const [search, setSearch] = useState("")
   const [draftInvoices, setDraftInvoices] = useState<FinanceInvoice[]>([])
@@ -34,46 +123,24 @@ export default function FinanceBillingPage() {
       setDraftInvoices(draft)
       setCertifiedInvoices(certified)
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No fue posible cargar la bandeja de facturacion"
-      toast.error(message)
+      toast.error(error instanceof Error ? error.message : "No fue posible cargar la bandeja de facturación")
     } finally {
       setLoadingData(false)
     }
   }, [])
 
-  useEffect(() => {
-    void refreshData()
-  }, [refreshData])
+  useEffect(() => { void refreshData() }, [refreshData])
 
-  const searchValue = normalize(search)
+  const sv = normalize(search)
+  const filteredDraft = useMemo(() => !sv ? draftInvoices : draftInvoices.filter(inv =>
+    `${inv.invoiceNumber} ${inv.orderNumber} ${inv.clientName}`.toLowerCase().includes(sv)
+  ), [draftInvoices, sv])
+  const filteredCertified = useMemo(() => !sv ? certifiedInvoices : certifiedInvoices.filter(inv =>
+    `${inv.invoiceNumber} ${inv.clientName} ${inv.felUuid ?? ""}`.toLowerCase().includes(sv)
+  ), [certifiedInvoices, sv])
 
-  const filteredDraftInvoices = useMemo(() => {
-    if (!searchValue) {
-      return draftInvoices
-    }
-
-    return draftInvoices.filter((invoice) => {
-      const scope = `${invoice.invoiceNumber} ${invoice.orderNumber} ${invoice.clientName}`.toLowerCase()
-      return scope.includes(searchValue)
-    })
-  }, [draftInvoices, searchValue])
-
-  const filteredCertifiedInvoices = useMemo(() => {
-    if (!searchValue) {
-      return certifiedInvoices
-    }
-
-    return certifiedInvoices.filter((invoice) => {
-      const scope = `${invoice.invoiceNumber} ${invoice.clientName} ${invoice.felUuid ?? ""}`.toLowerCase()
-      return scope.includes(searchValue)
-    })
-  }, [certifiedInvoices, searchValue])
-
-  const confirmSendInvoice = async () => {
-    if (!selectedCertified) {
-      return
-    }
-
+  const confirmSend = async () => {
+    if (!selectedCertified) return
     setSendingInvoice(true)
     try {
       await sendFinanceInvoice(selectedCertified.invoiceId)
@@ -81,143 +148,199 @@ export default function FinanceBillingPage() {
       setSelectedCertified(null)
       await refreshData()
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No fue posible enviar la factura"
-      toast.error(message)
+      toast.error(error instanceof Error ? error.message : "No fue posible enviar la factura")
     } finally {
       setSendingInvoice(false)
     }
   }
 
   return (
-    <FinancePageShell
-      title="Bandeja de Facturacion"
-      subtitle="Revision de BORRADOR autogenerado y envio de certificadas"
-    >
-      <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-        En esta vista conviven dos bandejas: primero los BORRADOR generados al entregar la orden y despues
-        las facturas CERTIFICADA listas para envio al cliente.
-      </div>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem,30vw,28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>BF</div>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <input
-          type="text"
-          placeholder="Buscar por factura, orden o cliente"
-          className="flex-1 min-w-[220px] border border-[#0A3B7C]/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-[#0A3B7C]/10 bg-white/95"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
+      <div className="relative z-10 max-w-6xl mx-auto px-8 py-14">
 
-      <Card className="rounded-3xl border-black/5 bg-white/95 p-0 overflow-hidden mb-10">
-        <div className="grid grid-cols-6 gap-4 p-4 bg-[#0A3B7C]/5 border-b border-black/5 text-sm font-bold uppercase tracking-[0.12em] text-[#0A3B7C]/70">
-          <div className="col-span-1">Factura</div>
-          <div className="col-span-1">Orden</div>
-          <div className="col-span-1">Cliente</div>
-          <div className="col-span-1">Fecha entrega</div>
-          <div className="col-span-1">Estado</div>
-          <div className="col-span-1 text-right">Acciones</div>
-        </div>
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Módulo Financiero
+          </p>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Bandeja de Facturación
+            </motion.h1>
+          </div>
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.4, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+        </motion.div>
 
-        {loadingData ? (
-          <div className="p-8 text-center text-[#64748B]">Cargando facturas...</div>
-        ) : filteredDraftInvoices.length === 0 ? (
-          <div className="p-8 text-center text-[#64748B]">No hay facturas BORRADOR para mostrar.</div>
-        ) : (
-          filteredDraftInvoices.map((invoice) => (
-            <div
-              key={invoice.invoiceId}
-              className="grid grid-cols-6 gap-4 p-4 items-center border-b border-black/5 hover:bg-black/[0.02]"
-            >
-              <div className="font-bold text-[#0A3B7C]">{invoice.invoiceNumber}</div>
-              <div className="font-semibold text-[#1A202C]">{invoice.orderNumber}</div>
-              <div className="text-[#1A202C]">{invoice.clientName}</div>
-              <div className="text-[#64748B] text-sm">{invoice.deliveredAt ? new Date(invoice.deliveredAt).toLocaleDateString("es-GT") : "-"}</div>
-              <div>
-                <StatusBadge variant="warning">Borrador</StatusBadge>
-              </div>
-              <div className="text-right">
-                <Link href={`/finances/facturacion/${invoice.invoiceId}`}>
-                  <Button variant="outline" size="sm">
-                    <FileSearch size={15} /> Revisar
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          ))
-        )}
-      </Card>
+        {/* Info strip */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+          style={{
+            background: "#1E1E1B", borderRadius: "4px", padding: "0.85rem 1.25rem",
+            marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "10px",
+          }}>
+          <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#C9924B", flexShrink: 0 }} />
+          <p style={{ fontSize: "0.72rem", color: "#9A9489", lineHeight: 1.5 }}>
+            Primero aparecen los <span style={{ color: "#C9924B", fontWeight: 700 }}>BORRADOR</span> generados al entregar la orden,
+            luego las facturas <span style={{ color: "#3A8E2A", fontWeight: 700 }}>CERTIFICADAS</span> listas para envío.
+          </p>
+        </motion.div>
 
-      <div className="mt-2 mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-[#0A3B7C]">Facturas Certificadas por FEL</h2>
-          <p className="text-sm text-[#64748B]">Luego de la aprobacion fiscal, quedan listas para envio.</p>
-        </div>
-      </div>
+        {/* Search */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+          style={{ position: "relative", marginBottom: "2rem" }}>
+          <Search size={13} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#9A9489" }} />
+          <input
+            type="text"
+            placeholder="Buscar por factura, orden o cliente"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: "100%", boxSizing: "border-box",
+              padding: "0.65rem 0.9rem 0.65rem 2.5rem",
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.1)",
+              borderRadius: "4px", color: "#0C0C0A", fontSize: "0.82rem", outline: "none",
+            }}
+            onFocus={e => (e.target.style.borderColor = "#C9924B")}
+            onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
+          />
+        </motion.div>
 
-      <Card className="rounded-3xl border-black/5 bg-white/95 p-0 overflow-hidden">
-        <div className="grid grid-cols-6 gap-4 p-4 bg-[#0A3B7C]/5 border-b border-black/5 text-sm font-bold uppercase tracking-[0.12em] text-[#0A3B7C]/70">
-          <div className="col-span-1">Factura</div>
-          <div className="col-span-1">Cliente</div>
-          <div className="col-span-1">UUID FEL</div>
-          <div className="col-span-1">Certificada</div>
-          <div className="col-span-1">Estado</div>
-          <div className="col-span-1 text-right">Acciones</div>
-        </div>
+        {/* ── BORRADOR ── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.6, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+            <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#C9924B" }} />
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.25em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>
+              Borradores · {filteredDraft.length}
+            </p>
+          </div>
 
-        {loadingData ? (
-          <div className="p-8 text-center text-[#64748B]">Cargando facturas...</div>
-        ) : filteredCertifiedInvoices.length === 0 ? (
-          <div className="p-8 text-center text-[#64748B]">No hay facturas CERTIFICADA pendientes de envio.</div>
-        ) : (
-          filteredCertifiedInvoices.map((invoice) => (
-            <div
-              key={invoice.invoiceId}
-              className="grid grid-cols-6 gap-4 p-4 items-center border-b border-black/5 hover:bg-black/[0.02]"
-            >
-              <div className="font-bold text-[#0A3B7C]">{invoice.invoiceNumber}</div>
-              <div className="text-[#1A202C]">{invoice.clientName}</div>
-              <div className="text-xs font-mono text-[#64748B] break-all">{invoice.felUuid ?? "-"}</div>
-              <div className="text-[#64748B] text-sm">
-                {invoice.certifiedAt ? new Date(invoice.certifiedAt).toLocaleString("es-GT") : "-"}
-              </div>
-              <div>
-                <StatusBadge variant="info">Certificada</StatusBadge>
-              </div>
-              <div className="text-right">
-                <Button size="sm" onClick={() => setSelectedCertified(invoice)}>
-                  <Mail size={15} /> Enviar
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
-      </Card>
+          <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+            <SectionHeader cols={["Factura", "Orden", "Cliente", "Fecha Entrega", "Estado", "Acción"]} />
 
-      <Modal
-        open={Boolean(selectedCertified)}
-        onClose={() => {
-          if (!sendingInvoice) {
-            setSelectedCertified(null)
-          }
-        }}
-        title="Enviar factura certificada"
-      >
-        <div className="py-4">
-          <p className="text-[#1A202C] mb-8">
-            Se enviara la factura <strong>{selectedCertified?.invoiceNumber}</strong> al cliente
-            {" "}<strong>{selectedCertified?.clientName}</strong> y se marcara como ENVIADA.
+            {loadingData ? (
+              <p style={{ padding: "1.5rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>Cargando...</p>
+            ) : filteredDraft.length === 0 ? (
+              <p style={{ padding: "2rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>No hay facturas BORRADOR.</p>
+            ) : (
+              filteredDraft.map(inv => (
+                <InvoiceRow key={inv.invoiceId} accent="#C9924B">
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#C9924B" }}>{inv.invoiceNumber}</span>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0C0C0A" }}>{inv.orderNumber}</span>
+                  <span style={{ fontSize: "0.78rem", color: "#0C0C0A" }}>{inv.clientName}</span>
+                  <span style={{ fontSize: "0.72rem", color: "#9A9489" }}>
+                    {inv.deliveredAt ? new Date(inv.deliveredAt).toLocaleDateString("es-GT") : "—"}
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(201,146,75,0.1)", borderRadius: "3px", padding: "2px 7px" }}>
+                    <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#C9924B" }} />
+                    <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C9924B" }}>Borrador</span>
+                  </span>
+                  <div style={{ textAlign: "right" }}>
+                    <Link href={`/finances/facturacion/${inv.invoiceId}`} style={{ textDecoration: "none" }}>
+                      <button style={{
+                        display: "inline-flex", alignItems: "center", gap: "5px",
+                        padding: "0.35rem 0.8rem",
+                        background: "none", border: "1px solid rgba(201,146,75,0.3)",
+                        borderRadius: "3px", fontSize: "0.55rem", fontWeight: 700,
+                        letterSpacing: "0.1em", textTransform: "uppercase", color: "#C9924B", cursor: "pointer",
+                        transition: "background 0.15s",
+                      }}
+                        onMouseOver={e => (e.currentTarget.style.background = "rgba(201,146,75,0.07)")}
+                        onMouseOut={e => (e.currentTarget.style.background = "none")}
+                      >
+                        <FileSearch size={11} /> Revisar
+                      </button>
+                    </Link>
+                  </div>
+                </InvoiceRow>
+              ))
+            )}
+          </div>
+        </motion.div>
+
+        {/* ── CERTIFICADAS ── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6, ease: EASE }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+            <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#3A8E2A" }} />
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.25em", color: "#3A8E2A", textTransform: "uppercase", fontWeight: 700 }}>
+              Certificadas por FEL · {filteredCertified.length}
+            </p>
+          </div>
+          <p style={{ fontSize: "0.72rem", color: "#9A9489", marginBottom: "10px" }}>
+            Luego de la aprobación fiscal, quedan listas para envío al cliente.
           </p>
 
-          <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => setSelectedCertified(null)} disabled={sendingInvoice}>
-              Cancelar
-            </Button>
-            <Button onClick={() => void confirmSendInvoice()} loading={sendingInvoice}>
-              <Send size={15} /> Confirmar envio
-            </Button>
+          <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+            <SectionHeader cols={["Factura", "Cliente", "UUID FEL", "Certificada", "Estado", "Acción"]} />
+
+            {loadingData ? (
+              <p style={{ padding: "1.5rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>Cargando...</p>
+            ) : filteredCertified.length === 0 ? (
+              <p style={{ padding: "2rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>No hay facturas CERTIFICADAS pendientes de envío.</p>
+            ) : (
+              filteredCertified.map(inv => (
+                <InvoiceRow key={inv.invoiceId} accent="#3A8E2A">
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#3A8E2A" }}>{inv.invoiceNumber}</span>
+                  <span style={{ fontSize: "0.78rem", color: "#0C0C0A" }}>{inv.clientName}</span>
+                  <span style={{ fontSize: "0.62rem", fontFamily: "monospace", color: "#9A9489", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {inv.felUuid ?? "—"}
+                  </span>
+                  <span style={{ fontSize: "0.72rem", color: "#9A9489" }}>
+                    {inv.certifiedAt ? new Date(inv.certifiedAt).toLocaleString("es-GT") : "—"}
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(58,142,42,0.08)", borderRadius: "3px", padding: "2px 7px" }}>
+                    <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#3A8E2A" }} />
+                    <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#3A8E2A" }}>Certificada</span>
+                  </span>
+                  <div style={{ textAlign: "right" }}>
+                    <button
+                      onClick={() => setSelectedCertified(inv)}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: "5px",
+                        padding: "0.35rem 0.85rem",
+                        background: "#3A8E2A", border: "none",
+                        borderRadius: "3px", fontSize: "0.55rem", fontWeight: 700,
+                        letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff", cursor: "pointer",
+                        transition: "background 0.15s",
+                      }}
+                      onMouseOver={e => (e.currentTarget.style.background = "#2E7321")}
+                      onMouseOut={e => (e.currentTarget.style.background = "#3A8E2A")}
+                    >
+                      <Mail size={11} /> Enviar
+                    </button>
+                  </div>
+                </InvoiceRow>
+              ))
+            )}
           </div>
-        </div>
-      </Modal>
-    </FinancePageShell>
+        </motion.div>
+
+      </div>
+
+      {selectedCertified && (
+        <SendModal
+          invoice={selectedCertified}
+          onClose={() => !sendingInvoice && setSelectedCertified(null)}
+          onConfirm={() => void confirmSend()}
+          loading={sendingInvoice}
+        />
+      )}
+    </div>
   )
 }
