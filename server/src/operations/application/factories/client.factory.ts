@@ -9,7 +9,6 @@ export interface ClientFactoryInput {
   primaryContactName: string;
   primaryContactEmail: string;
   primaryContactPhone?: string;
-  creditLimit?: number;
   paymentRisk?: RiskLevel;
   customsRisk?: RiskLevel;
   cargoRisk?: RiskLevel;
@@ -32,7 +31,6 @@ export class ClientFactory {
     client.primaryContactEmail = input.primaryContactEmail.trim().toLowerCase();
     client.primaryContactPhone = this.toNullable(input.primaryContactPhone);
 
-    client.creditLimit = input.creditLimit ?? 0;
     client.paymentRisk = input.paymentRisk ?? RiskLevel.MEDIO;
     client.customsRisk = input.customsRisk ?? RiskLevel.MEDIO;
     client.cargoRisk = input.cargoRisk ?? RiskLevel.MEDIO;

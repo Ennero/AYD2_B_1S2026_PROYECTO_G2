@@ -32,9 +32,6 @@ export class CreateClientDto {
   @IsOptional()
   primaryContactPhone?: string;
 
-  @IsOptional()
-  creditLimit?: number;
-
   @IsEnum(RiskLevel)
   @IsOptional()
   paymentRisk?: RiskLevel;

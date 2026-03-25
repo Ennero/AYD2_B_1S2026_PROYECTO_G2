@@ -2,6 +2,7 @@ import {
   IsIn,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -28,36 +29,11 @@ export class UpdatePasswordDto {
   newPassword: string;
 }
 
-export class AddCardDto {
+export class AcceptContractDto {
   @IsNotEmpty()
-  @IsString()
-  @MaxLength(80)
-  cardAlias: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(160)
-  cardholderName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(30)
-  cardBrand: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(4)
-  lastFour: string;
-
-  @IsInt()
-  @Min(1)
-  @Max(12)
-  expirationMonth: number;
-
-  @IsInt()
-  @Min(2024)
-  @Max(2099)
-  expirationYear: number;
+  @IsNumber()
+  @Min(0)
+  creditLimit: number;
 }
 
 export class CreateOrderDto {
@@ -138,23 +114,26 @@ export class RegisterPaymentDto {
   invoiceId: number;
 
   @IsNotEmpty()
-  @IsIn(['TARJETA', 'TRANSFERENCIA'])
-  method: 'TARJETA' | 'TRANSFERENCIA';
+  @IsIn(['TRANSFERENCIA', 'CHEQUE'])
+  method: 'TRANSFERENCIA' | 'CHEQUE';
 
-  /** Requerido si method = TARJETA */
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  cardId?: number;
-
-  /** Requerido si method = TRANSFERENCIA */
-  @IsOptional()
-  @IsString()
-  @MaxLength(80)
-  bankReference?: string;
-
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   @MaxLength(120)
-  bankName?: string;
+  bankName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(50)
+  bankAccountNumber: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(80)
+  bankReference: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(500)
+  supportDocumentPath: string;
 }

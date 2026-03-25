@@ -9,7 +9,6 @@ import { DataSource, In, QueryFailedError } from 'typeorm';
 import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
-import { ClientCard } from '../../../infrastructure/database/typeorm/entities/client-card.entity';
 import { ClientContact } from '../../../infrastructure/database/typeorm/entities/client-contact.entity';
 import { ContractRoute } from '../../../infrastructure/database/typeorm/entities/contract-route.entity';
 import { ContractRate } from '../../../infrastructure/database/typeorm/entities/contract-rate.entity';
@@ -22,7 +21,7 @@ import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
 import { PaymentMethod } from '../../../domain/enums/payment-method.enum';
 import { PaymentStatus } from '../../../domain/enums/payment-status.enum';
-import { AddCardDto, CreateContactDto, CreateOrderDto, RegisterPaymentDto, UpdateContactDto } from '../../presentation/dto/client.dto';
+import { AcceptContractDto, CreateContactDto, CreateOrderDto, RegisterPaymentDto, UpdateContactDto } from '../../presentation/dto/client.dto';
 
 @Injectable()
 export class ClientService {
@@ -58,7 +57,7 @@ export class ClientService {
       contractNumber: c.contractNumber,
       startDate: c.startDate,
       endDate: c.endDate,
-      creditLimit: Number(c.creditLimit),
+      creditLimit: c.creditLimit !== null ? Number(c.creditLimit) : 0,
       paymentTermDays: c.paymentTermDays,
     }));
   }
@@ -343,77 +342,6 @@ export class ClientService {
     };
   }
 
-  // ── Tarjetas ───────────────────────────────────────────────────────────
-
-  async getCards(userId: number) {
-    const client = await this.resolveClient(userId);
-    const cards = await this.dataSource
-      .getRepository(ClientCard)
-      .find({
-        where: { clientId: client.clientId, isActive: true },
-        order: { cardAlias: 'ASC' },
-      });
-    return cards.map((c) => ({
-      cardId: c.cardId,
-      cardAlias: c.cardAlias,
-      cardholderName: c.cardholderName,
-      cardBrand: c.cardBrand,
-      lastFour: c.lastFour,
-      expirationMonth: c.expirationMonth,
-      expirationYear: c.expirationYear,
-    }));
-  }
-
-  async addCard(userId: number, dto: AddCardDto) {
-    const client = await this.resolveClient(userId);
-    const repo = this.dataSource.getRepository(ClientCard);
-
-    const existing = await repo.findOne({
-      where: { clientId: client.clientId, cardAlias: dto.cardAlias, isActive: true },
-    });
-    if (existing) {
-      throw new BadRequestException(
-        `Ya existe una tarjeta con el alias "${dto.cardAlias}"`,
-      );
-    }
-
-    const card = repo.create({
-      clientId: client.clientId,
-      cardAlias: dto.cardAlias,
-      cardholderName: dto.cardholderName,
-      cardBrand: dto.cardBrand.toUpperCase(),
-      lastFour: dto.lastFour,
-      expirationMonth: dto.expirationMonth,
-      expirationYear: dto.expirationYear,
-      isActive: true,
-    });
-    await repo.save(card);
-
-    return {
-      cardId: card.cardId,
-      cardAlias: card.cardAlias,
-      cardholderName: card.cardholderName,
-      cardBrand: card.cardBrand,
-      lastFour: card.lastFour,
-      expirationMonth: card.expirationMonth,
-      expirationYear: card.expirationYear,
-    };
-  }
-
-  async removeCard(userId: number, cardId: number) {
-    const client = await this.resolveClient(userId);
-    const repo = this.dataSource.getRepository(ClientCard);
-
-    const card = await repo.findOne({
-      where: { cardId, clientId: client.clientId, isActive: true },
-    });
-    if (!card) throw new NotFoundException('Tarjeta no encontrada');
-
-    card.isActive = false;
-    await repo.save(card);
-    return { message: 'Tarjeta desactivada correctamente' };
-  }
-
   // ── Pagos ──────────────────────────────────────────────────────────────
 
   async registerPayment(userId: number, dto: RegisterPaymentDto) {
@@ -440,30 +368,14 @@ export class ClientService {
       );
     }
 
-    // Validar tarjeta si es pago con tarjeta
-    if (dto.method === 'TARJETA') {
-      if (!dto.cardId) {
-        throw new BadRequestException('Debes seleccionar una tarjeta');
-      }
-      const card = await this.dataSource.getRepository(ClientCard).findOne({
-        where: { cardId: dto.cardId, clientId: client.clientId, isActive: true },
-      });
-      if (!card) throw new NotFoundException('Tarjeta no encontrada');
-    }
-
-    if (dto.method === 'TRANSFERENCIA' && !dto.bankReference) {
-      throw new BadRequestException(
-        'El número de referencia es requerido para transferencias',
-      );
-    }
-
     const payment = this.dataSource.getRepository(Payment).create({
       invoiceId: dto.invoiceId,
       method: dto.method as PaymentMethod,
       status: PaymentStatus.PENDIENTE,
-      cardId: dto.cardId ?? null,
-      bankReference: dto.bankReference ?? null,
-      bankName: dto.bankName ?? null,
+      bankName: dto.bankName,
+      bankAccountNumber: dto.bankAccountNumber,
+      bankReference: dto.bankReference,
+      supportDocumentPath: dto.supportDocumentPath,
       amount: invoice.totalAmount,
       paymentDate: new Date(),
     });
@@ -539,7 +451,10 @@ export class ClientService {
     if (!user || !user.client) throw new NotFoundException('Cliente no encontrado');
 
     const { client } = user;
-    const creditLimit = Number(client.creditLimit);
+    const activeContract = await this.dataSource.getRepository(Contract).findOne({
+      where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
+    });
+    const creditLimit = activeContract?.creditLimit != null ? Number(activeContract.creditLimit) : 0;
 
     // ── Órdenes activas (a través de contratos del cliente) ──────────────
     const activeStatuses = [
@@ -609,7 +524,10 @@ export class ClientService {
     if (!user || !user.client) throw new NotFoundException('Cliente no encontrado');
 
     const { client } = user;
-    const creditLimit = Number(client.creditLimit);
+    const activeContract = await this.dataSource.getRepository(Contract).findOne({
+      where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
+    });
+    const creditLimit = activeContract?.creditLimit != null ? Number(activeContract.creditLimit) : 0;
 
     // Facturas pendientes de pago (enviadas al cliente, no pagadas aún)
     const unpaidInvoices = await this.dataSource
@@ -664,7 +582,7 @@ export class ClientService {
       startDate: c.startDate,
       endDate: c.endDate,
       acceptedAt: c.acceptedAt,
-      creditLimit: Number(c.creditLimit),
+      creditLimit: c.creditLimit !== null ? Number(c.creditLimit) : null,
       paymentTermDays: c.paymentTermDays,
       discountPercentage: Number(c.discountPercentage),
       notes: c.notes,
@@ -701,7 +619,7 @@ export class ClientService {
       startDate: contract.startDate,
       endDate: contract.endDate,
       acceptedAt: contract.acceptedAt,
-      creditLimit: Number(contract.creditLimit),
+      creditLimit: contract.creditLimit !== null ? Number(contract.creditLimit) : null,
       paymentTermDays: contract.paymentTermDays,
       discountPercentage: Number(contract.discountPercentage),
       notes: contract.notes,
@@ -736,30 +654,43 @@ export class ClientService {
     };
   }
 
-  async acceptContract(userId: number, contractId: number) {
+  async acceptContract(userId: number, contractId: number, dto: AcceptContractDto) {
     const client = await this.resolveClient(userId);
-    const repo = this.dataSource.getRepository(Contract);
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(Contract);
 
-    const contract = await repo.findOne({
-      where: { contractId, clientId: client.clientId },
+      const contract = await repo.findOne({
+        where: { contractId, clientId: client.clientId },
+      });
+      if (!contract) throw new NotFoundException('Contrato no encontrado');
+      if (contract.status !== ContractStatus.PENDIENTE) {
+        throw new BadRequestException(
+          'Solo se pueden aceptar contratos con estado PENDIENTE',
+        );
+      }
+
+      await repo
+        .createQueryBuilder()
+        .update(Contract)
+        .set({ status: ContractStatus.VENCIDO })
+        .where('client_id = :clientId', { clientId: client.clientId })
+        .andWhere('status = :status', { status: ContractStatus.VIGENTE })
+        .andWhere('contract_id <> :contractId', { contractId })
+        .execute();
+
+      contract.creditLimit = dto.creditLimit;
+      contract.status = ContractStatus.VIGENTE;
+      contract.acceptedAt = new Date();
+      await repo.save(contract);
+
+      return {
+        contractId: contract.contractId,
+        contractNumber: contract.contractNumber,
+        status: contract.status,
+        acceptedAt: contract.acceptedAt,
+        creditLimit: Number(contract.creditLimit),
+      };
     });
-    if (!contract) throw new NotFoundException('Contrato no encontrado');
-    if (contract.status !== ContractStatus.PENDIENTE) {
-      throw new BadRequestException(
-        'Solo se pueden aceptar contratos con estado PENDIENTE',
-      );
-    }
-
-    contract.status = ContractStatus.VIGENTE;
-    contract.acceptedAt = new Date();
-    await repo.save(contract);
-
-    return {
-      contractId: contract.contractId,
-      contractNumber: contract.contractNumber,
-      status: contract.status,
-      acceptedAt: contract.acceptedAt,
-    };
   }
 
   async rejectContract(userId: number, contractId: number) {

@@ -17,7 +17,6 @@ export interface CreateClientInput {
   primaryContactEmail: string;
   portalPassword: string;
   primaryContactPhone?: string;
-  creditLimit?: number;
   paymentRisk?: RiskLevel;
   customsRisk?: RiskLevel;
   cargoRisk?: RiskLevel;
@@ -53,10 +52,6 @@ export class CreateClientUseCase {
       throw new BadRequestException('El NIT debe contener exactamente 13 digitos.');
     }
 
-    if (input.creditLimit !== undefined && input.creditLimit < 0) {
-      throw new BadRequestException('El limite de credito no puede ser negativo.');
-    }
-
     if (!portalPassword || portalPassword.length < 12) {
       throw new BadRequestException('La contraseña de acceso debe tener al menos 12 caracteres.');
     }
@@ -81,7 +76,6 @@ export class CreateClientUseCase {
       primaryContactName: input.primaryContactName,
       primaryContactEmail: normalizedEmail,
       primaryContactPhone: input.primaryContactPhone,
-      creditLimit: input.creditLimit,
       paymentRisk: input.paymentRisk,
       customsRisk: input.customsRisk,
       cargoRisk: input.cargoRisk,

@@ -5,18 +5,34 @@ import { motion, AnimatePresence } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
-import { ArrowLeft, Loader2, Map, PackageOpen, Plus } from "lucide-react"
+import { ArrowLeft, Check, Loader2, Map, PackageOpen, Pencil, Plus, Trash2, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 const EASE = [0.16, 1, 0.3, 1] as const
+
+type RouteItem = {
+  routeId: number
+  routeCode: string
+  origin: string
+  destination: string
+  distanceKm: number
+  estimatedHours: number
+  isInternational: boolean
+}
+
+type CargoTypeItem = {
+  cargoTypeId: number
+  cargoName: string
+  requiresRefrigeration: boolean
+}
 
 export default function GestionCatalogosPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
 
   // Data
-  const [routes, setRoutes] = useState<any[]>([])
-  const [cargoTypes, setCargoTypes] = useState<any[]>([])
+  const [routes, setRoutes] = useState<RouteItem[]>([])
+  const [cargoTypes, setCargoTypes] = useState<CargoTypeItem[]>([])
 
   // Route Form
   const [newRoute, setNewRoute] = useState("")
@@ -33,6 +49,11 @@ export default function GestionCatalogosPage() {
   const [requiresRef, setRequiresRef] = useState(false)
   const [submittingCargo, setSubmittingCargo] = useState(false)
   const [showCargoErrors, setShowCargoErrors] = useState(false)
+  const [editingCargoId, setEditingCargoId] = useState<number | null>(null)
+  const [editCargoName, setEditCargoName] = useState("")
+  const [editRequiresRef, setEditRequiresRef] = useState(false)
+  const [submittingCargoEditId, setSubmittingCargoEditId] = useState<number | null>(null)
+  const [deletingCargoId, setDeletingCargoId] = useState<number | null>(null)
 
   async function fetchCatalogs() {
     try {
@@ -112,6 +133,59 @@ export default function GestionCatalogosPage() {
       toast.error(err.response?.data?.message || "Hubo un error al agregar el tipo de carga (posible duplicada)")
     } finally {
       setSubmittingCargo(false)
+    }
+  }
+
+  function startCargoEdition(cargo: CargoTypeItem) {
+    setEditingCargoId(cargo.cargoTypeId)
+    setEditCargoName(cargo.cargoName)
+    setEditRequiresRef(cargo.requiresRefrigeration)
+  }
+
+  function cancelCargoEdition() {
+    setEditingCargoId(null)
+    setEditCargoName("")
+    setEditRequiresRef(false)
+  }
+
+  async function handleUpdateCargo(cargoTypeId: number) {
+    if (!editCargoName.trim()) {
+      toast.error("El nombre del tipo de carga es obligatorio")
+      return
+    }
+
+    setSubmittingCargoEditId(cargoTypeId)
+    try {
+      await api.put(ENDPOINTS.OPERATIONS.CARGO_TYPE(cargoTypeId), {
+        cargoName: editCargoName,
+        requiresRefrigeration: editRequiresRef,
+      })
+      toast.success("Tipo de carga actualizado")
+      cancelCargoEdition()
+      await fetchCatalogs()
+    } catch (err: any) {
+      toast.error(err?.message || "No se pudo actualizar el tipo de carga")
+    } finally {
+      setSubmittingCargoEditId(null)
+    }
+  }
+
+  async function handleDeleteCargo(cargo: CargoTypeItem) {
+    const confirmed = window.confirm(`¿Eliminar el tipo de carga ${cargo.cargoName}?`)
+    if (!confirmed) return
+
+    setDeletingCargoId(cargo.cargoTypeId)
+    try {
+      await api.delete(ENDPOINTS.OPERATIONS.CARGO_TYPE(cargo.cargoTypeId))
+      toast.success("Tipo de carga eliminado")
+      if (editingCargoId === cargo.cargoTypeId) {
+        cancelCargoEdition()
+      }
+      await fetchCatalogs()
+    } catch (err: any) {
+      toast.error(err?.message || "No se pudo eliminar el tipo de carga")
+    } finally {
+      setDeletingCargoId(null)
     }
   }
 
@@ -329,9 +403,71 @@ export default function GestionCatalogosPage() {
                         transition={{ delay: i * 0.02, duration: 0.3 }}
                         style={{ border: "1px solid rgba(12,12,10,0.06)", borderRadius: "4px", padding: "0.75rem 1rem", background: "#FAF9F6", display: "flex", justifyContent: "space-between", alignItems: "center" }}
                       >
-                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A" }}>{cargo.cargoName}</span>
-                        {cargo.requiresRefrigeration && (
-                          <span style={{ fontSize: "0.5rem", letterSpacing: "0.1em", background: "rgba(91,154,225,0.1)", color: "#3A7BD5", padding: "3px 8px", borderRadius: "2px", fontWeight: 700, textTransform: "uppercase" }}>Refrigerada</span>
+                        {editingCargoId === cargo.cargoTypeId ? (
+                          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                            <input
+                              type="text"
+                              value={editCargoName}
+                              onChange={(e) => setEditCargoName(e.target.value)}
+                              className="w-full bg-[#FFFFFF] border border-[#E5E0D8] p-2 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                              disabled={submittingCargoEditId === cargo.cargoTypeId}
+                            />
+                            <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#6B6260] uppercase font-bold tracking-wider">
+                              <input
+                                type="checkbox"
+                                checked={editRequiresRef}
+                                onChange={(e) => setEditRequiresRef(e.target.checked)}
+                                className="accent-[#C9924B] w-4 h-4 cursor-pointer"
+                                disabled={submittingCargoEditId === cargo.cargoTypeId}
+                              />
+                              Requiere Refrigeración
+                            </label>
+                            <div style={{ display: "flex", gap: "0.45rem", justifyContent: "flex-end" }}>
+                              <button
+                                type="button"
+                                onClick={cancelCargoEdition}
+                                disabled={submittingCargoEditId === cargo.cargoTypeId}
+                                style={{ border: "1px solid rgba(12,12,10,0.12)", padding: "0.35rem 0.55rem", borderRadius: "4px", background: "transparent", color: "#6B6260", cursor: "pointer" }}
+                              >
+                                <X size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateCargo(cargo.cargoTypeId)}
+                                disabled={submittingCargoEditId === cargo.cargoTypeId}
+                                style={{ border: "none", padding: "0.35rem 0.55rem", borderRadius: "4px", background: "#0C0C0A", color: "#F5F2EC", cursor: "pointer" }}
+                              >
+                                {submittingCargoEditId === cargo.cargoTypeId ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A" }}>{cargo.cargoName}</span>
+                              {cargo.requiresRefrigeration && (
+                                <span style={{ fontSize: "0.5rem", letterSpacing: "0.1em", background: "rgba(91,154,225,0.1)", color: "#3A7BD5", padding: "3px 8px", borderRadius: "2px", fontWeight: 700, textTransform: "uppercase" }}>Refrigerada</span>
+                              )}
+                            </div>
+                            <div style={{ display: "flex", gap: "0.4rem" }}>
+                              <button
+                                type="button"
+                                onClick={() => startCargoEdition(cargo)}
+                                disabled={deletingCargoId === cargo.cargoTypeId}
+                                style={{ border: "1px solid rgba(12,12,10,0.12)", padding: "0.3rem 0.5rem", borderRadius: "4px", background: "transparent", color: "#6B6260", cursor: "pointer" }}
+                              >
+                                <Pencil size={13} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCargo(cargo)}
+                                disabled={deletingCargoId === cargo.cargoTypeId}
+                                style={{ border: "1px solid rgba(189,58,58,0.25)", padding: "0.3rem 0.5rem", borderRadius: "4px", background: "transparent", color: "#BD3A3A", cursor: "pointer" }}
+                              >
+                                {deletingCargoId === cargo.cargoTypeId ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                              </button>
+                            </div>
+                          </>
                         )}
                       </motion.div>
                     ))}

@@ -21,7 +21,6 @@ type FormState = {
   razonSocial: string
   direccion: string
   nit: string
-  limiteCredito: string
   capacidadPago: string
   riesgoMercancia: string
   riesgoAduanas: string
@@ -49,7 +48,7 @@ export default function RegistrarClientePage() {
 
   const [form, setForm] = useState<FormState>({
     nombre: "", telefono: "", correo: "", contrasenaAcceso: "",
-    razonSocial: "", direccion: "", nit: "", limiteCredito: "",
+    razonSocial: "", direccion: "", nit: "",
     capacidadPago: "", riesgoMercancia: "", riesgoAduanas: "", lavadoDinero: "",
   })
 
@@ -131,7 +130,6 @@ export default function RegistrarClientePage() {
         primaryContactEmail: form.correo,
         portalPassword: form.contrasenaAcceso,
         primaryContactPhone: form.telefono || undefined,
-        creditLimit: form.limiteCredito ? Number.parseFloat(form.limiteCredito.replace(/,/g, "")) : undefined,
         paymentRisk: paymentCapacityToRisk(form.capacidadPago),
         cargoRisk: toRiskLevel(form.riesgoMercancia),
         customsRisk: toRiskLevel(form.riesgoAduanas),
@@ -329,13 +327,6 @@ export default function RegistrarClientePage() {
                     <div style={{ gridColumn: "1 / -1" }}>
                       <Input label="Dirección fiscal" placeholder="Ej. Zona 10, Ciudad de Guatemala"
                         value={form.direccion} onChange={e => setForm(s => ({ ...s, direccion: e.target.value }))} />
-                    </div>
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <Input label="Límite de Crédito (Q)" placeholder="Ej. 50000" type="number"
-                        value={form.limiteCredito} onChange={e => setForm(s => ({ ...s, limiteCredito: e.target.value }))} />
-                      <p style={{ fontSize: "0.65rem", color: "#9A9489", marginTop: "6px" }}>
-                        Monto máximo de deuda permitido para este cliente.
-                      </p>
                     </div>
                   </div>
                 )}

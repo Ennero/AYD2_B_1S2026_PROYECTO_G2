@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Patch,
   Body,
   Param,
@@ -32,9 +34,12 @@ import { CreateRouteUseCase } from '../../application/use-cases/create-route.use
 import { CreateCargoTypeUseCase } from '../../application/use-cases/create-cargo-type.use-case';
 import { CreateRouteDto } from '../dtos/create-route.dto';
 import { CreateCargoTypeDto } from '../dtos/create-cargo-type.dto';
+import { UpdateCargoTypeDto } from '../dtos/update-cargo-type.dto';
 import { UpdateUserUseCase } from '../../application/use-cases/update-user.use-case';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { UserRole } from '../../../domain/enums/user-role.enum';
+import { UpdateCargoTypeUseCase } from '../../application/use-cases/update-cargo-type.use-case';
+import { DeleteCargoTypeUseCase } from '../../application/use-cases/delete-cargo-type.use-case';
 
 /**
  * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
@@ -58,6 +63,8 @@ export class OperationsController {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly createRouteUseCase: CreateRouteUseCase,
     private readonly createCargoTypeUseCase: CreateCargoTypeUseCase,
+    private readonly updateCargoTypeUseCase: UpdateCargoTypeUseCase,
+    private readonly deleteCargoTypeUseCase: DeleteCargoTypeUseCase,
   ) {}
 
   // ─── Endpoints del Agente Operativo ────────────────────────────────────
@@ -126,6 +133,36 @@ export class OperationsController {
   }
 
   /**
+   * PUT /api/operations/cargo-types/:id
+   * Editar un tipo de carga del catálogo.
+   */
+  @Put('cargo-types/:id')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async updateCargoType(
+    @Param('id', ParseIntPipe) cargoTypeId: number,
+    @Body() dto: UpdateCargoTypeDto,
+  ) {
+    const data = await this.updateCargoTypeUseCase.execute(cargoTypeId, {
+      cargoName: dto.cargoName,
+      requiresRefrigeration: dto.requiresRefrigeration,
+    });
+    return { message: 'Tipo de carga actualizado exitosamente', data };
+  }
+
+  /**
+   * DELETE /api/operations/cargo-types/:id
+   * Eliminar un tipo de carga del catálogo cuando no tiene uso.
+   */
+  @Delete('cargo-types/:id')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async deleteCargoType(@Param('id', ParseIntPipe) cargoTypeId: number) {
+    const data = await this.deleteCargoTypeUseCase.execute(cargoTypeId);
+    return { message: 'Tipo de carga eliminado exitosamente', data };
+  }
+
+  /**
    * GET /api/operations/users?search=...&role=...
    * Listar usuarios del sistema para gestión operativa.
    */
@@ -177,7 +214,6 @@ export class OperationsController {
       primaryContactEmail: dto.primaryContactEmail,
       portalPassword: dto.portalPassword,
       primaryContactPhone: dto.primaryContactPhone,
-      creditLimit: dto.creditLimit,
       paymentRisk: dto.paymentRisk,
       customsRisk: dto.customsRisk,
       cargoRisk: dto.cargoRisk,

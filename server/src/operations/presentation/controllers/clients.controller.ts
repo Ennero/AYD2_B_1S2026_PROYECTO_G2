@@ -30,7 +30,6 @@ export class ClientsController {
       primaryContactEmail: dto.primaryContactEmail,
       portalPassword: dto.portalPassword,
       primaryContactPhone: dto.primaryContactPhone,
-      creditLimit: dto.creditLimit,
       paymentRisk: dto.paymentRisk,
       customsRisk: dto.customsRisk,
       cargoRisk: dto.cargoRisk,

@@ -20,6 +20,7 @@ import { ClientService } from '../../application/services/client.service';
 import {
   CreateContactDto,
   CreateOrderDto,
+  AcceptContractDto,
   UpdateClientProfileDto,
   UpdateContactDto,
   UpdatePasswordDto,
@@ -72,8 +73,9 @@ export class ClientController {
   async acceptContract(
     @CurrentUser() user: JwtPayload,
     @Param('contractId', ParseIntPipe) contractId: number,
+    @Body() dto: AcceptContractDto,
   ) {
-    const data = await this.clientService.acceptContract(user.sub, contractId);
+    const data = await this.clientService.acceptContract(user.sub, contractId, dto);
     return { message: 'Contrato aceptado correctamente', data };
   }
 
