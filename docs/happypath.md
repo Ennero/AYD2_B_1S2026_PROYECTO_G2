@@ -178,8 +178,8 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 ## 4. Portal del Cliente — Crear una Orden de Servicio
 **Actor**: Cliente
 **Credenciales**:
-- Email: `2895884051401+c@ingenieria.usac.edu.gt`
-- Password: `Logi2026`
+- Email: `deennerparaprobar@gmail.com`
+- Password: `probando2026`
 
 > **Nota**: Si ya iniciaste sesión como cliente en el paso 3.3, puedes continuar directamente.
 
@@ -463,17 +463,20 @@ Ingresa los siguientes datos:
 3. El sistema genera automáticamente:
    - Un **UUID de autorización FEL** (ej.: `FEL-A3B2C1D4-...`)
    - La fecha y hora de certificación
-4. La factura cambia de estado `BORRADOR` → **`CERTIFICADA`**.
+4. La factura cambia de estado `BORRADOR` → **`ENVIADA`** (incluye certificación FEL y envío automático).
+5. El sistema envía automáticamente la notificación de factura al correo del cliente al momento de certificar.
 
-> 📸 **CAPTURA**: Captura la factura ya en estado `CERTIFICADA` mostrando el UUID FEL generado y la fecha de certificación.
+> 📸 **CAPTURA**: Captura la factura en estado `ENVIADA` mostrando el UUID FEL generado y la fecha de certificación.
+
+> 📸 **CAPTURA**: Captura evidencia del correo de factura recibido por el cliente después de certificar.
 
 ---
 
 ## 11. Portal del Cliente — Registrar Pago
 **Actor**: Cliente
 **Credenciales**:
-- Email: `2895884051401+c@ingenieria.usac.edu.gt`
-- Password: `Logi2026`
+- Email: `deennerparaprobar@gmail.com`
+- Password: `probando2026`
 
 ### 11.1 Login como Cliente y ver Estado de Cuenta
 

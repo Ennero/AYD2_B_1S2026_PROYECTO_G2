@@ -1,55 +1,68 @@
-# Accesos MVP - Usuarios Clave
+# Accesos MVP - Usuarios clave
 
-Este documento resume los accesos mas utiles para pruebas MVP con la seed actual.
+Este documento resume los accesos más útiles para pruebas del MVP con la seed actual.
 
-## Credenciales de Acceso (Simplificadas)
+## Credenciales de acceso
 
-Todas las cuentas de prueba comparten la misma contrasena para facilitar la calificacion:
+Regla de seed vigente:
 
-- **Password Universal**: `LogiTrans2026` -> **Actualizada a**: `Logi2026`
+- Cuentas con contraseña explícita en seed: usan su contraseña definida por rol.
+- Cuentas sin contraseña explícita: usan contraseña por defecto `Logi2026`.
 
-## Top usuarios recomendados para pruebas
+## Usuarios recomendados para pruebas
 
-| Rol               | Nombre            | Email                                       | Password       | Uso sugerido MVP                                       |
-| ----------------- | ----------------- | ------------------------------------------- | -------------- | ------------------------------------------------------ |
-| GERENCIA          | Ricardo Solis     | **2895884051401@ingenieria.usac.edu.gt**    | **LogiGerencia**| Dashboard BI y rentabilidad                            |
-| AGENTE_FINANCIERO | Silvia Monterroso | **2895884051401+f@ingenieria.usac.edu.gt**  | **LogiFinanzas**| Flujo FEL y conciliacion de pagos                      |
-| AGENTE_OPERATIVO  | Andrea Solares    | **2895884051401+v@ingenieria.usac.edu.gt**  | **LogiVentas**  | Comercial: Clientes y contratos                        |
-| AGENTE_LOGISTICO  | Karla Menendez    | **2895884051401+l@ingenieria.usac.edu.gt**  | **LogiLogistica**| Asignacion de unidades y monitoreo                     |
-| ENCARGADO_PATIO   | Mario Caal        | **2895884051401+p@ingenieria.usac.edu.gt**  | **LogiPatio**   | Control de pesaje y despacho                           |
-| PILOTO            | Carlos Mendez     | **2895884051401+t@ingenieria.usac.edu.gt**  | **LogiPiloto**  | Bitacoras y entregas                                   |
-| CLIENTE           | Paola Estrada     | **2895884051401+c@ingenieria.usac.edu.gt**  | **Logi2026**   | Portal cliente: contrato y ordenes                     |
-| CERTIFICADOR_FEL  | SAT Simulator     | **2895884051401+s@ingenieria.usac.edu.gt**  | **LogiSAT**     | Simulador tecnico FEL                                  |
+| Rol | Nombre | Email | Password | Uso sugerido MVP |
+| --- | --- | --- | --- | --- |
+| GERENCIA | Ricardo Solís | **2895884051401@ingenieria.usac.edu.gt** | **LogiGerencia** | Dashboard BI y rentabilidad |
+| AGENTE_FINANCIERO | Silvia Monterroso | **2895884051401+f@ingenieria.usac.edu.gt** | **LogiFinanzas** | Flujo FEL y conciliación de pagos |
+| AGENTE_OPERATIVO | Andrea Solares | **2895884051401+v@ingenieria.usac.edu.gt** | **LogiVentas** | Comercial: clientes y contratos |
+| AGENTE_LOGISTICO | Karla Menéndez | **2895884051401+l@ingenieria.usac.edu.gt** | **LogiLogistica** | Asignación de unidades y monitoreo |
+| ENCARGADO_PATIO | Mario Caal | **2895884051401+p@ingenieria.usac.edu.gt** | **LogiPatio** | Control de pesaje y despacho |
+| PILOTO | Carlos Méndez | **2895884051401+t@ingenieria.usac.edu.gt** | **LogiPiloto** | Bitácoras y entregas |
+| CLIENTE | Paola Estrada | **2895884051401+c@ingenieria.usac.edu.gt** | **Logi2026** | Portal cliente: contrato y órdenes |
+| CERTIFICADOR_FEL | Simulador FEL SAT | **2895884051401+s@ingenieria.usac.edu.gt** | **LogiSAT** | Simulador técnico FEL |
 
-## Patrones de otros usuarios
+## Accesos de pilotos (seed)
 
-- **Otros Pilotos**: `piloto.02@logitrans.gt` (etc) con password `Logi123`.
-- **Otros Clientes**: `cliente.<key>@lt.com` con password `Logi123`.
+- `2895884051401+t@ingenieria.usac.edu.gt` - Carlos Méndez - `LogiPiloto`
+- `piloto.02@logitrans.gt` - Edgar Choc - `Logi2026`
+- `piloto.03@logitrans.gt` - Miguel Ixcoy - `Logi2026`
+- `piloto.04@logitrans.gt` - José Tum - `Logi2026`
+- `piloto.05@logitrans.gt` - Víctor Quej - `Logi2026`
+- `piloto.06@logitrans.gt` - Byron Cuxum - `Logi2026`
+- `piloto.07@logitrans.gt` - Kevin Cholotio - `Logi2026`
+- `piloto.08@logitrans.gt` - Ángel Sucuc - `Logi2026`
+- `piloto.09@logitrans.gt` - Marco Cañiz - `Logi2026`
+- `piloto.10@logitrans.gt` - Jhonny Lux - `Logi2026`
+- `piloto.11@logitrans.gt` - René Tecún - `Logi2026`
+- `piloto.12@logitrans.gt` - Samuel Colop - `Logi2026`
+- `piloto.13@logitrans.gt` - Otto Chaj - `Logi2026`
+- `piloto.14@logitrans.gt` - Fredy Us - `Logi2026`
 
+## Notas útiles para pruebas FEL y Finanzas
 
-## Notas utiles para pruebas FEL y Finanzas
+- Pagos por conciliar: el sistema considera como "Pagos por conciliar" los pagos registrados en estado `PENDIENTE`.
+- Flujo de facturación (Finanzas):
+  - Las facturas nacen como `BORRADOR` automáticamente al entregar la orden.
+  - El Agente Financiero debe completar Descripción del servicio y Fecha de vencimiento al enviar al certificador.
+  - Tras esta revisión, la factura deja la bandeja de Finanzas y aparece en la del Certificador FEL.
+- Flujo de certificación (FEL):
+  - Solo se muestran facturas `BORRADOR` ya revisadas por Finanzas (con descripción).
+  - Antes de certificar, es obligatorio validar NIT.
+  - Al certificar (`CERTIFICADA`), el sistema dispara notificación automática por correo al cliente.
+- Estado `ENVIADA`: representa factura certificada y marcada como enviada en el flujo financiero.
 
-- **Pagos por conciliar**: El sistema toma como "Pagos por conciliar" aquellos pagos registrados por clientes que tienen el estado **`PENDIENTE`** (esperando aprobacion del Agente Financiero).
-- **Flujo de Facturacion (Finanzas)**:
-  - Las facturas nacen como `BORRADOR` automaticamente al entregar la orden.
-  - El Agente Financiero **debe** completar la *Descripcion del servicio* y *Fecha de vencimiento* al presionar "Enviar a certificador".
-  - Una vez procesada por Finanzas, desaparece de su bandeja y aparece en la del Certificador FEL.
-- **Flujo de Certificacion (FEL)**:
-  - Solo se muestran facturas `BORRADOR` que ya fueron revisadas por Finanzas (tienen descripcion).
-  - Antes de certificar, es obligatorio validar NIT en la bandeja FEL.
-- **Estado ENVIADA**: Significa que la factura ya fue **certificada** (tiene UUID FEL) y **enviada** por correo al cliente final.
+## Notas útiles de autenticación y comunicaciones
 
-## Notas utiles de autenticacion y comunicaciones
+- Recuperación de contraseña: el correo envía un token hexadecimal largo (64 caracteres), sin enlace directo.
+- Política de correos MVP: los correos transaccionales se envían sin botones ni links; incluyen instrucciones operativas y datos de referencia.
+- Teléfonos de contacto: en formularios clave se capturan con prefijo de país (`+502`, `+503`, `+504`) y se persisten en formato canónico prefijado.
 
-- **Recuperacion de contrasena**: el correo envia un token hexadecimal largo (64 caracteres), sin enlace directo. El usuario debe copiarlo y pegarlo en la pantalla de restablecimiento.
-- **Politica de correos MVP**: los correos transaccionales se envian sin botones ni links; incluyen instrucciones operativas y datos de referencia (portal, contrato, factura, token).
-- **Telefonos de contacto**: en formularios clave se capturan con prefijo de pais (`+502`, `+503`, `+504`) y se persisten en formato canonico prefijado.
+## Endpoints técnicos (FEL)
 
-### Endpoints tecnicos (FEL)
-- Endpoint de validacion NIT: `POST /api/certifier/invoices/{INVOICE_ID}/validate-nit`.
+- Endpoint de validación NIT: `POST /api/certifier/invoices/{INVOICE_ID}/validate-nit`.
 - Endpoint de rechazo FEL: `PATCH /api/certifier/invoices/{INVOICE_ID}/reject`.
-
 
 ## Advertencia
 
-Estas credenciales son solo para ambiente local de desarrollo con seed de MVP. No usar en produccion.
+Estas credenciales son solo para ambiente local de desarrollo con seed del MVP. No usar en producción.

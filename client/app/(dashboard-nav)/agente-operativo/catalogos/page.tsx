@@ -43,6 +43,15 @@ export default function GestionCatalogosPage() {
   const [isInternational, setIsInternational] = useState(false)
   const [submittingRoute, setSubmittingRoute] = useState(false)
   const [showRouteErrors, setShowRouteErrors] = useState(false)
+  const [editingRouteId, setEditingRouteId] = useState<number | null>(null)
+  const [editRouteCode, setEditRouteCode] = useState("")
+  const [editRouteOrigin, setEditRouteOrigin] = useState("")
+  const [editRouteDestination, setEditRouteDestination] = useState("")
+  const [editRouteDistanceKm, setEditRouteDistanceKm] = useState("")
+  const [editRouteEstimatedHours, setEditRouteEstimatedHours] = useState("")
+  const [editRouteInternational, setEditRouteInternational] = useState(false)
+  const [submittingRouteEditId, setSubmittingRouteEditId] = useState<number | null>(null)
+  const [deletingRouteId, setDeletingRouteId] = useState<number | null>(null)
 
   // Cargo Form
   const [newCargoName, setNewCargoName] = useState("")
@@ -133,6 +142,89 @@ export default function GestionCatalogosPage() {
       toast.error(err.response?.data?.message || "Hubo un error al agregar el tipo de carga (posible duplicada)")
     } finally {
       setSubmittingCargo(false)
+    }
+  }
+
+  function startRouteEdition(route: RouteItem) {
+    setEditingRouteId(route.routeId)
+    setEditRouteCode(route.routeCode)
+    setEditRouteOrigin(route.origin)
+    setEditRouteDestination(route.destination)
+    setEditRouteDistanceKm(String(route.distanceKm))
+    setEditRouteEstimatedHours(String(route.estimatedHours))
+    setEditRouteInternational(route.isInternational)
+  }
+
+  function cancelRouteEdition() {
+    setEditingRouteId(null)
+    setEditRouteCode("")
+    setEditRouteOrigin("")
+    setEditRouteDestination("")
+    setEditRouteDistanceKm("")
+    setEditRouteEstimatedHours("")
+    setEditRouteInternational(false)
+  }
+
+  async function handleUpdateRoute(routeId: number) {
+    if (
+      !editRouteCode.trim() ||
+      !editRouteOrigin.trim() ||
+      !editRouteDestination.trim() ||
+      !editRouteDistanceKm.trim() ||
+      !editRouteEstimatedHours.trim()
+    ) {
+      toast.error("Todos los campos de la ruta son obligatorios")
+      return
+    }
+
+    const normalizedDistance = Number(editRouteDistanceKm)
+    const normalizedHours = Number(editRouteEstimatedHours)
+    if (!Number.isFinite(normalizedDistance) || normalizedDistance <= 0) {
+      toast.error("La distancia debe ser mayor a 0")
+      return
+    }
+
+    if (!Number.isFinite(normalizedHours) || normalizedHours <= 0) {
+      toast.error("Las horas estimadas deben ser mayores a 0")
+      return
+    }
+
+    setSubmittingRouteEditId(routeId)
+    try {
+      await api.put(ENDPOINTS.OPERATIONS.ROUTE(routeId), {
+        routeCode: editRouteCode,
+        origin: editRouteOrigin,
+        destination: editRouteDestination,
+        distanceKm: normalizedDistance,
+        estimatedHours: normalizedHours,
+        isInternational: editRouteInternational,
+      })
+      toast.success("Ruta actualizada")
+      cancelRouteEdition()
+      await fetchCatalogs()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err?.message || "No se pudo actualizar la ruta")
+    } finally {
+      setSubmittingRouteEditId(null)
+    }
+  }
+
+  async function handleDeleteRoute(route: RouteItem) {
+    const confirmed = window.confirm(`¿Desactivar la ruta ${route.routeCode}?`)
+    if (!confirmed) return
+
+    setDeletingRouteId(route.routeId)
+    try {
+      await api.delete(ENDPOINTS.OPERATIONS.ROUTE(route.routeId))
+      toast.success("Ruta desactivada")
+      if (editingRouteId === route.routeId) {
+        cancelRouteEdition()
+      }
+      await fetchCatalogs()
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err?.message || "No se pudo desactivar la ruta")
+    } finally {
+      setDeletingRouteId(null)
     }
   }
 
@@ -330,18 +422,119 @@ export default function GestionCatalogosPage() {
                         transition={{ delay: i * 0.02, duration: 0.3 }}
                         style={{ border: "1px solid rgba(12,12,10,0.06)", borderRadius: "4px", padding: "0.75rem 1rem", background: "#FAF9F6" }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                          <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#0C0C0A" }}>{route.routeCode}</span>
-                          {route.isInternational && (
-                            <span style={{ fontSize: "0.5rem", letterSpacing: "0.1em", background: "rgba(201,146,75,0.1)", color: "#C9924B", padding: "2px 6px", borderRadius: "2px", fontWeight: 700, textTransform: "uppercase" }}>Internacional</span>
-                          )}
-                        </div>
-                        <p style={{ fontSize: "0.7rem", color: "#6B6260" }}>
-                          {route.origin} → {route.destination}
-                        </p>
-                        <p style={{ fontSize: "0.65rem", color: "#9A9489", marginTop: "4px" }}>
-                          {route.distanceKm} km · {route.estimatedHours} horas
-                        </p>
+                        {editingRouteId === route.routeId ? (
+                          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                            <input
+                              type="text"
+                              value={editRouteCode}
+                              onChange={(e) => setEditRouteCode(e.target.value)}
+                              className="w-full bg-[#FFFFFF] border border-[#E5E0D8] p-2 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                              disabled={submittingRouteEditId === route.routeId}
+                              placeholder="Código de ruta"
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                value={editRouteOrigin}
+                                onChange={(e) => setEditRouteOrigin(e.target.value)}
+                                className="w-full bg-[#FFFFFF] border border-[#E5E0D8] p-2 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                                disabled={submittingRouteEditId === route.routeId}
+                                placeholder="Origen"
+                              />
+                              <input
+                                type="text"
+                                value={editRouteDestination}
+                                onChange={(e) => setEditRouteDestination(e.target.value)}
+                                className="w-full bg-[#FFFFFF] border border-[#E5E0D8] p-2 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                                disabled={submittingRouteEditId === route.routeId}
+                                placeholder="Destino"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editRouteDistanceKm}
+                                onChange={(e) => setEditRouteDistanceKm(e.target.value)}
+                                className="w-full bg-[#FFFFFF] border border-[#E5E0D8] p-2 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                                disabled={submittingRouteEditId === route.routeId}
+                                placeholder="Distancia KM"
+                              />
+                              <input
+                                type="number"
+                                step="0.1"
+                                value={editRouteEstimatedHours}
+                                onChange={(e) => setEditRouteEstimatedHours(e.target.value)}
+                                className="w-full bg-[#FFFFFF] border border-[#E5E0D8] p-2 text-sm focus:outline-none focus:border-[#C9924B] transition-all"
+                                disabled={submittingRouteEditId === route.routeId}
+                                placeholder="Horas"
+                              />
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#6B6260] uppercase font-bold tracking-wider">
+                              <input
+                                type="checkbox"
+                                checked={editRouteInternational}
+                                onChange={(e) => setEditRouteInternational(e.target.checked)}
+                                className="accent-[#C9924B] w-4 h-4 cursor-pointer"
+                                disabled={submittingRouteEditId === route.routeId}
+                              />
+                              Internacional
+                            </label>
+                            <div style={{ display: "flex", gap: "0.45rem", justifyContent: "flex-end" }}>
+                              <button
+                                type="button"
+                                onClick={cancelRouteEdition}
+                                disabled={submittingRouteEditId === route.routeId}
+                                style={{ border: "1px solid rgba(12,12,10,0.12)", padding: "0.35rem 0.55rem", borderRadius: "4px", background: "transparent", color: "#6B6260", cursor: "pointer" }}
+                              >
+                                <X size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateRoute(route.routeId)}
+                                disabled={submittingRouteEditId === route.routeId}
+                                style={{ border: "none", padding: "0.35rem 0.55rem", borderRadius: "4px", background: "#0C0C0A", color: "#F5F2EC", cursor: "pointer" }}
+                              >
+                                {submittingRouteEditId === route.routeId ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#0C0C0A" }}>{route.routeCode}</span>
+                                {route.isInternational && (
+                                  <span style={{ fontSize: "0.5rem", letterSpacing: "0.1em", background: "rgba(201,146,75,0.1)", color: "#C9924B", padding: "2px 6px", borderRadius: "2px", fontWeight: 700, textTransform: "uppercase" }}>Internacional</span>
+                                )}
+                              </div>
+                              <div style={{ display: "flex", gap: "0.4rem" }}>
+                                <button
+                                  type="button"
+                                  onClick={() => startRouteEdition(route)}
+                                  disabled={deletingRouteId === route.routeId}
+                                  style={{ border: "1px solid rgba(12,12,10,0.12)", padding: "0.3rem 0.5rem", borderRadius: "4px", background: "transparent", color: "#6B6260", cursor: "pointer" }}
+                                >
+                                  <Pencil size={13} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteRoute(route)}
+                                  disabled={deletingRouteId === route.routeId}
+                                  style={{ border: "1px solid rgba(189,58,58,0.25)", padding: "0.3rem 0.5rem", borderRadius: "4px", background: "transparent", color: "#BD3A3A", cursor: "pointer" }}
+                                >
+                                  {deletingRouteId === route.routeId ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                                </button>
+                              </div>
+                            </div>
+                            <p style={{ fontSize: "0.7rem", color: "#6B6260" }}>
+                              {route.origin} → {route.destination}
+                            </p>
+                            <p style={{ fontSize: "0.65rem", color: "#9A9489", marginTop: "4px" }}>
+                              {route.distanceKm} km · {route.estimatedHours} horas
+                            </p>
+                          </>
+                        )}
                       </motion.div>
                     ))}
                     {routes.length === 0 && (

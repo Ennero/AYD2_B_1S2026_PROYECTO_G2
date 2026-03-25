@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { TransportUnit } from '../../../infrastructure/database/typeorm/entities/transport-unit.entity';
+import { OrderStatus } from '../../../domain/enums/order-status.enum';
 
 export interface UnitBinomial {
   binomialId: string;
@@ -41,11 +42,29 @@ export class GetUnitBinomialsUseCase {
       .leftJoinAndSelect('u.pilotUser', 'pilot')
       .where('u.is_active = true')
       .andWhere('u.is_available = true')
+      .andWhere('u.pilot_user_id IS NOT NULL')
       .andWhere('u.pilot_license_expiration >= :today', { today })
       .andWhere('u.vehicle_document_expiration >= :today', { today })
       .andWhere('u.capacity_ton >= :weight', {
         weight: order.declaredWeightTon,
-      });
+      })
+      .andWhere(
+        `NOT EXISTS (
+          SELECT 1
+          FROM orders o
+          INNER JOIN transport_units tu ON tu.unit_id = o.unit_id
+          WHERE tu.pilot_user_id = u.pilot_user_id
+            AND o.status IN (:...activeStatuses)
+        )`,
+        {
+          activeStatuses: [
+            OrderStatus.ASIGNADA,
+            OrderStatus.LISTA_PARA_DESPACHO,
+            OrderStatus.EN_TRANSITO,
+            OrderStatus.BLOQUEADA,
+          ],
+        },
+      );
 
     // Si la carga requiere refrigeración, filtrar unidades con refrigeración
     if (order.cargoType?.requiresRefrigeration) {

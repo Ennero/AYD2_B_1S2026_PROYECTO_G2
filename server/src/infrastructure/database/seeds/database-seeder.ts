@@ -1559,6 +1559,8 @@ export class DatabaseSeeder {
     );
 
     const createdOrders: CreatedOrderRecord[] = [];
+    const occupiedUnitIds = new Set<number>();
+    const noOccupiedUnits = new Set<number>();
     const orderRepository = manager.getRepository(Order);
     let orderCounter = 0;
 
@@ -1576,9 +1578,12 @@ export class DatabaseSeeder {
       );
 
       for (const [planIndex, plan] of ORDER_PLANS.entries()) {
+        const stage = this.resolveStageForClient(plan.stage, clientIndex);
+        const isActiveStage = ['ASIGNADA', 'LISTA', 'TRANSITO'].includes(stage);
+
         // ── Resolve route and contractRoute first ───────────────────────────────
         const contractRoute =
-          plan.stage === 'REGISTRADA'
+          stage === 'REGISTRADA'
             ? null
             : availableContractRoutes[planIndex % availableContractRoutes.length];
         const route = contractRoute ? mustFind(routeById.get(contractRoute.routeId), `${contractRoute.routeId}`) : null;
@@ -1590,24 +1595,24 @@ export class DatabaseSeeder {
         let promisedDeliveryAt: Date | null = null;
         let dispatchedAt: Date | null = null;
 
-        if (plan.stage === 'REGISTRADA') {
+        if (stage === 'REGISTRADA') {
           // Recién creada esta mañana
           requestedAt = hoursAfter(daysFromNow(0), -4 - clientIndex * 0.3);
-        } else if (plan.stage === 'ASIGNADA') {
+        } else if (stage === 'ASIGNADA') {
           // Solicitada hace 2-4 días, asignada hoy
           requestedAt = hoursAfter(daysFromNow(-2 - clientIndex % 3), clientIndex * 1.2);
           if (route) {
             scheduledPickupAt = hoursAfter(requestedAt, 10 + clientIndex);
             promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
           }
-        } else if (plan.stage === 'LISTA') {
+        } else if (stage === 'LISTA') {
           // Lista para despacho: solicitada hace 4 días, pickup esta madrugada
           requestedAt = hoursAfter(daysFromNow(-4 - clientIndex % 2), 8 + clientIndex);
           if (route) {
             scheduledPickupAt = hoursAfter(daysFromNow(0), -6 - clientIndex * 0.5);
             promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
           }
-        } else if (plan.stage === 'TRANSITO') {
+        } else if (stage === 'TRANSITO') {
           // En tránsito AHORA (11 abril): despachado esta mañana, entrega prometida esta tarde
           requestedAt = hoursAfter(daysFromNow(-3 - clientIndex % 3), 6 + clientIndex * 0.5);
           if (route) {
@@ -1638,6 +1643,7 @@ export class DatabaseSeeder {
               branchNameByOrigin.get(route.origin),
               plan.preferredVehicleTypeCode,
               cargoType.requiresRefrigeration || Boolean(plan.requiresRefrigeration),
+              isActiveStage ? occupiedUnitIds : noOccupiedUnits,
             )
           : null;
         const contractRate = unit
@@ -1656,14 +1662,14 @@ export class DatabaseSeeder {
         const declaredWeight = unit
           ? this.calculateDeclaredWeight(Number(unit.capacityTon), plan.preferredVehicleTypeCode)
           : roundCurrency(1.2 + planIndex * 0.35 + clientIndex * 0.1);
-        const isStowageConfirmed = ['LISTA', 'TRANSITO', 'ENTREGADA'].includes(plan.stage);
+        const isStowageConfirmed = ['LISTA', 'TRANSITO', 'ENTREGADA'].includes(stage);
         const loadedWeight = unit && isStowageConfirmed
           ? roundCurrency(declaredWeight + (planIndex % 2 === 0 ? 0.01 : -0.01))
           : null;
         const fuelCost = unit && distance > 0 ? roundCurrency(distance * 2.15) : 0;
         const viaticsCost = unit && distance > 0 ? roundCurrency(distance * 0.42) : 0;
         const maintenanceCost = unit && distance > 0 ? roundCurrency(distance * 0.28) : 0;
-        const initialStatus = this.resolveInitialStatus(plan.stage);
+        const initialStatus = this.resolveInitialStatus(stage);
 
         orderCounter++;
         const order = await orderRepository.save(
@@ -1688,15 +1694,15 @@ export class DatabaseSeeder {
             promisedDeliveryAt,
             dispatchedAt,
             stowageConfirmed:
-              plan.stage === 'LISTA' ||
-              plan.stage === 'TRANSITO' ||
-              plan.stage === 'ENTREGADA'
+              stage === 'LISTA' ||
+              stage === 'TRANSITO' ||
+              stage === 'ENTREGADA'
                 ? true
                 : null,
             isSealed:
-              plan.stage === 'LISTA' ||
-              plan.stage === 'TRANSITO' ||
-              plan.stage === 'ENTREGADA'
+              stage === 'LISTA' ||
+              stage === 'TRANSITO' ||
+              stage === 'ENTREGADA'
                 ? true
                 : null,
             distanceKm: distance,
@@ -1709,12 +1715,13 @@ export class DatabaseSeeder {
             fuelCost,
             viaticsCost,
             maintenanceCost,
-            notes: `Orden seed ${plan.stage.toLowerCase()} para ${blueprint.legalName}`,
+            notes: `Orden seed ${stage.toLowerCase()} para ${blueprint.legalName}`,
           }),
         );
 
         // Update unit availability if it's assigned to an active order (ASIGNADA, LISTA, TRANSITO)
-        if (unit && ['ASIGNADA', 'LISTA', 'TRANSITO'].includes(plan.stage)) {
+        if (unit && ['ASIGNADA', 'LISTA', 'TRANSITO'].includes(stage)) {
+          occupiedUnitIds.add(unit.unitId);
           await manager.getRepository(TransportUnit).update(unit.unitId, { isAvailable: false });
         }
 
@@ -1726,7 +1733,7 @@ export class DatabaseSeeder {
           contractRoute,
           cargoType,
           unit,
-          finalStage: plan.stage,
+          finalStage: stage,
           requestedAt,
           scheduledPickupAt,
           dispatchedAt,
@@ -2130,9 +2137,14 @@ export class DatabaseSeeder {
     preferredBranchCode: string | undefined,
     preferredVehicleTypeCode: OrderPlan['preferredVehicleTypeCode'],
     requiresRefrigeration: boolean,
+    occupiedUnitIds: Set<number>,
   ): TransportUnit {
     const vehicleTypeIdByRateOrder = new Set(contractRates.map((rate) => rate.vehicleTypeId));
     const candidates = units.filter((unit) => {
+      if (occupiedUnitIds.has(unit.unitId)) {
+        return false;
+      }
+
       if (!vehicleTypeIdByRateOrder.has(unit.vehicleTypeId)) {
         return false;
       }
@@ -2155,7 +2167,32 @@ export class DatabaseSeeder {
       return branchMatches && vehicleTypeMatches;
     });
 
-    return prioritized[0] ?? candidates[0] ?? units[0];
+    const selected = prioritized[0] ?? candidates[0];
+    if (!selected) {
+      throw new Error(
+        `No existe unidad compatible para el seed (refrigeración=${requiresRefrigeration}, tipo=${preferredVehicleTypeCode ?? 'ANY'}, sede=${preferredBranchCode ?? 'ANY'}).`,
+      );
+    }
+
+    return selected;
+  }
+
+  private resolveStageForClient(
+    stage: OrderPlan['stage'],
+    clientIndex: number,
+  ): OrderPlan['stage'] {
+    if (!['ASIGNADA', 'LISTA', 'TRANSITO'].includes(stage)) {
+      return stage;
+    }
+
+    const stageRotation: Array<OrderPlan['stage']> = [
+      'ASIGNADA',
+      'LISTA',
+      'TRANSITO',
+    ];
+
+    const activeStageForClient = stageRotation[clientIndex % stageRotation.length];
+    return stage === activeStageForClient ? stage : 'ENTREGADA';
   }
 
   private resolveBranchCodeFromUnit(

@@ -50,6 +50,42 @@ export class AssignOrderUseCase {
       );
     }
 
+    const selectedUnit = await unitRepo.findOne({ where: { unitId } });
+    if (!selectedUnit) {
+      throw new NotFoundException(`Unidad ${unitId} no encontrada.`);
+    }
+
+    if (!selectedUnit.pilotUserId) {
+      throw new BadRequestException(
+        'La unidad seleccionada no tiene piloto asignado.',
+      );
+    }
+
+    const pilotActiveOrdersCount = await orderRepo
+      .createQueryBuilder('order')
+      .innerJoin('order.unit', 'unit')
+      .where('unit.pilot_user_id = :pilotUserId', {
+        pilotUserId: selectedUnit.pilotUserId,
+      })
+      .andWhere('order.order_id != :currentOrderId', {
+        currentOrderId: order.orderId,
+      })
+      .andWhere('order.status IN (:...activeStatuses)', {
+        activeStatuses: [
+          OrderStatus.ASIGNADA,
+          OrderStatus.LISTA_PARA_DESPACHO,
+          OrderStatus.EN_TRANSITO,
+          OrderStatus.BLOQUEADA,
+        ],
+      })
+      .getCount();
+
+    if (pilotActiveOrdersCount > 0) {
+      throw new BadRequestException(
+        'El piloto del binomio seleccionado ya tiene una carga activa asignada.',
+      );
+    }
+
     // Asignar campos — el trigger VALIDATE_ORDER_ASSIGNMENT valida
     // capacidad, refrigeración, licencias y calcula montos automáticamente.
     order.unitId = unitId;

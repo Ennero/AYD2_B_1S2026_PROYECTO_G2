@@ -217,6 +217,10 @@ export class FinanceService {
       throw new BadRequestException('Solo se puede enviar una factura en estado CERTIFICADA');
     }
 
+    if (invoice.sentAt) {
+      throw new BadRequestException('La factura ya fue marcada como enviada anteriormente');
+    }
+
     invoice.status = InvoiceStatus.ENVIADA;
     invoice.sentAt = new Date();
     invoice.pdfPath =

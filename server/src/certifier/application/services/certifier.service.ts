@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { DataSource, Not } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
+import { EmailService } from '../../../notifications/email/application/email.service';
+import { UserRole } from '../../../domain/enums/user-role.enum';
+import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
+import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 
 interface DashboardSummaryFilters {
   period?: 'MONTHLY';
@@ -13,7 +17,12 @@ interface DashboardSummaryFilters {
 
 @Injectable()
 export class CertifierService {
-  constructor(private readonly dataSource: DataSource) {}
+  private readonly logger = new Logger(CertifierService.name);
+
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly emailService: EmailService,
+  ) {}
 
   async getDashboardSummary(filters: DashboardSummaryFilters = {}) {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
@@ -34,7 +43,7 @@ export class CertifierService {
     // Counting certified this month as an example for the summary
     const certifiedCount = await invoiceRepo
       .createQueryBuilder('invoice')
-      .where('invoice.status = :status', { status: InvoiceStatus.CERTIFICADA })
+      .where('invoice.certifiedAt IS NOT NULL')
       .andWhere('invoice.certifiedAt >= :start', { start: startOfMonth })
       .andWhere('invoice.certifiedAt < :end', { end: endOfMonth })
       .getCount();
@@ -67,7 +76,10 @@ export class CertifierService {
   }
 
   async certifyInvoice(invoiceId: number, clientNit: string) {
-    const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
+    const invoice = await this.dataSource.getRepository(Invoice).findOne({
+      where: { invoiceId },
+      relations: { order: true },
+    });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
     if (invoice.status !== InvoiceStatus.BORRADOR) {
       throw new BadRequestException('La factura no esta en estado BORRADOR');
@@ -83,11 +95,56 @@ export class CertifierService {
     const crypto = require('crypto');
     const generatedFelUuid = crypto.randomUUID();
 
-    invoice.status = InvoiceStatus.CERTIFICADA;
+    invoice.status = InvoiceStatus.ENVIADA;
     invoice.felUuid = generatedFelUuid;
     invoice.certifiedAt = new Date();
+    invoice.sentAt = new Date();
 
     await this.dataSource.getRepository(Invoice).save(invoice);
+
+    const clientUser = await this.dataSource.getRepository(User).findOne({
+      where: {
+        clientId: invoice.clientId,
+        role: UserRole.CLIENTE,
+        isActive: true,
+      },
+    });
+
+    const client = await this.dataSource.getRepository(Client).findOne({
+      where: { clientId: invoice.clientId },
+    });
+
+    const destinationEmail = clientUser?.email ?? client?.primaryContactEmail;
+
+    if (destinationEmail) {
+      const issueDateText = new Date(invoice.issueDate).toISOString().slice(0, 10);
+      const dueDateText = invoice.dueDate;
+
+      this.emailService
+        .sendInvoice({
+          to: destinationEmail,
+          clientName: invoice.clientName,
+          invoiceNumber: invoice.invoiceNumber,
+          issueDate: issueDateText,
+          dueDate: dueDateText,
+          orderCode: invoice.order?.orderNumber ?? `ORD-${invoice.orderId}`,
+          subtotal: Number(invoice.subtotalAmount).toFixed(2),
+          taxes: Number(invoice.taxAmount).toFixed(2),
+          total: Number(invoice.totalAmount).toFixed(2),
+          currency: 'GTQ',
+          pdfUrl: invoice.pdfPath ?? undefined,
+          felAuthorizationCode: invoice.felUuid ?? undefined,
+        })
+        .catch((err: Error) =>
+          this.logger.error(
+            `Error al enviar factura certificada ${invoice.invoiceNumber}: ${err.message}`,
+          ),
+        );
+    } else {
+      this.logger.warn(
+        `No se encontró correo de destino para la factura ${invoice.invoiceNumber} del cliente ${invoice.clientId}.`,
+      );
+    }
 
     return {
       invoiceId: invoice.invoiceId,
