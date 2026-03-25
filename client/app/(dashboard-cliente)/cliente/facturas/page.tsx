@@ -1,19 +1,15 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { motion } from "framer-motion"
 import {
-  Receipt,
-  Search,
-  X,
-  CheckCircle,
-  FileText,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
+  Receipt, Search, X, CheckCircle, FileText,
+  ChevronLeft, ChevronRight, Eye,
 } from "lucide-react"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
-import { cn } from "@/lib/utils/cn"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -54,140 +50,172 @@ function formatQ(n: number) {
 
 function formatDate(d: string | null) {
   if (!d) return "—"
-  try {
-    return new Date(d).toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" })
-  } catch {
-    return d
-  }
+  try { return new Date(d).toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" }) }
+  catch { return d }
 }
 
-const STATUS_META: Record<InvoiceStatus, { label: string; cls: string }> = {
-  BORRADOR:    { label: "Borrador",    cls: "bg-gray-100 text-gray-600" },
-  CERTIFICADA: { label: "Certificada", cls: "bg-blue-50 text-blue-700" },
-  ENVIADA:     { label: "Pendiente",   cls: "bg-amber-50 text-amber-700" },
-  PAGADA:      { label: "Pagada",      cls: "bg-[#53B73E]/10 text-[#3A8E2A]" },
-  RECHAZADA:   { label: "Rechazada",   cls: "bg-red-50 text-red-600" },
+const STATUS_META: Record<InvoiceStatus, { label: string; color: string; bg: string }> = {
+  BORRADOR:    { label: "Borrador",    color: "#6B6260", bg: "rgba(107,98,96,0.07)" },
+  CERTIFICADA: { label: "Certificada", color: "#2563EB", bg: "rgba(37,99,235,0.08)" },
+  ENVIADA:     { label: "Pendiente",   color: "#C9924B", bg: "rgba(201,146,75,0.10)" },
+  PAGADA:      { label: "Pagada",      color: "#3A8E2A", bg: "rgba(58,142,42,0.08)" },
+  RECHAZADA:   { label: "Rechazada",   color: "#E53E3E", bg: "rgba(229,62,62,0.08)" },
 }
 
 /* ─── Invoice Detail Modal ──────────────────────────────────────────────── */
 
-function InvoiceDetailModal({
-  invoice,
-  onClose,
-}: {
-  invoice: Invoice
-  onClose: () => void
-}) {
+function InvoiceDetailModal({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
   const meta = STATUS_META[invoice.status]
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)" }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
+        background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)",
+      }}
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+        style={{
+          background: "#ffffff", borderRadius: "6px",
+          width: "100%", maxWidth: "540px", overflow: "hidden",
+          boxShadow: "0 24px 64px rgba(12,12,10,0.2)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Amber top strip */}
+        <div style={{ height: "3px", background: "#C9924B" }} />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/8 flex items-center justify-center">
-              <Receipt size={18} className="text-primary" />
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{
+              width: "36px", height: "36px", borderRadius: "4px",
+              background: "rgba(12,12,10,0.04)", border: "1px solid rgba(12,12,10,0.08)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Receipt size={16} style={{ color: "#6B6260" }} />
             </div>
             <div>
-              <h2 className="text-lg font-extrabold text-text-primary">{invoice.invoiceNumber}</h2>
-              <span className={cn("inline-block px-2 py-0.5 rounded-full text-xs font-bold mt-0.5", meta.cls)}>
+              <h2 style={{ fontSize: "1rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>
+                {invoice.invoiceNumber}
+              </h2>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: "5px",
+                padding: "2px 8px", borderRadius: "3px",
+                background: meta.bg, color: meta.color,
+                fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              }}>
+                <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: meta.color, flexShrink: 0 }} />
                 {meta.label}
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
+            style={{
+              width: "32px", height: "32px", borderRadius: "4px", display: "flex",
+              alignItems: "center", justifyContent: "center", background: "rgba(12,12,10,0.04)",
+              border: "1px solid rgba(12,12,10,0.08)", color: "#9A9489", cursor: "pointer",
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = "rgba(12,12,10,0.08)")}
+            onMouseOut={e => (e.currentTarget.style.background = "rgba(12,12,10,0.04)")}
           >
-            <X size={16} className="text-text-muted" />
+            <X size={15} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+        <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem", maxHeight: "70vh", overflowY: "auto" }}>
 
           {/* Client info */}
-          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-            <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted">Datos del Cliente</p>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="text-text-muted text-xs">Nombre</span>
-                <p className="font-semibold text-text-primary">{invoice.clientName || "—"}</p>
-              </div>
-              <div>
-                <span className="text-text-muted text-xs">NIT</span>
-                <p className="font-semibold text-text-primary">{invoice.clientNit || "—"}</p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-text-muted text-xs">Dirección</span>
-                <p className="font-semibold text-text-primary">{invoice.clientAddress || "—"}</p>
+          <div style={{ background: "#F5F2EC", borderRadius: "6px", padding: "1rem" }}>
+            <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.75rem" }}>
+              Datos del Cliente
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              {[
+                { label: "Nombre", value: invoice.clientName || "—" },
+                { label: "NIT", value: invoice.clientNit || "—" },
+              ].map((f) => (
+                <div key={f.label}>
+                  <p style={{ fontSize: "0.6rem", color: "#9A9489", marginBottom: "2px" }}>{f.label}</p>
+                  <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0C0C0A" }}>{f.value}</p>
+                </div>
+              ))}
+              <div style={{ gridColumn: "1 / -1" }}>
+                <p style={{ fontSize: "0.6rem", color: "#9A9489", marginBottom: "2px" }}>Dirección</p>
+                <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0C0C0A" }}>{invoice.clientAddress || "—"}</p>
               </div>
             </div>
           </div>
 
-          {/* Service description */}
+          {/* Description */}
           <div>
-            <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted mb-1">Descripción del Servicio</p>
-            <p className="text-sm text-text-primary">{invoice.serviceDescription || "Sin descripción"}</p>
+            <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
+              Descripción del Servicio
+            </p>
+            <p style={{ fontSize: "0.82rem", color: "#6B6260", lineHeight: 1.6 }}>
+              {invoice.serviceDescription || "Sin descripción"}
+            </p>
           </div>
 
           {/* Financial breakdown */}
-          <div className="bg-[#e8d5c4]/30 rounded-xl p-4 space-y-2">
-            <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted">Desglose Financiero</p>
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="text-text-muted">Subtotal</span>
-                <span className="font-semibold">{formatQ(invoice.subtotalAmount)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-text-muted">IVA (12%)</span>
-                <span className="font-semibold">{formatQ(invoice.taxAmount)}</span>
-              </div>
-              <div className="h-px bg-gray-200 my-1" />
-              <div className="flex justify-between text-base">
-                <span className="font-bold text-text-primary">Total</span>
-                <span className="font-extrabold text-primary">{formatQ(invoice.totalAmount)}</span>
+          <div style={{
+            background: "rgba(201,146,75,0.05)", border: "1px solid rgba(201,146,75,0.15)",
+            borderRadius: "6px", padding: "1rem",
+          }}>
+            <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.75rem" }}>
+              Desglose Financiero
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {[
+                { label: "Subtotal", value: formatQ(invoice.subtotalAmount), bold: false },
+                { label: "IVA (12%)", value: formatQ(invoice.taxAmount), bold: false },
+              ].map((row) => (
+                <div key={row.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem" }}>
+                  <span style={{ color: "#9A9489" }}>{row.label}</span>
+                  <span style={{ fontWeight: 600, color: "#6B6260" }}>{row.value}</span>
+                </div>
+              ))}
+              <div style={{ height: "1px", background: "rgba(12,12,10,0.1)", margin: "4px 0" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1rem" }}>
+                <span style={{ fontWeight: 700, color: "#0C0C0A" }}>Total</span>
+                <span style={{ fontWeight: 900, color: "#C9924B", letterSpacing: "-0.02em" }}>{formatQ(invoice.totalAmount)}</span>
               </div>
             </div>
           </div>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-text-muted text-xs">Fecha de Emisión</span>
-              <p className="font-semibold text-text-primary">{formatDate(invoice.issueDate)}</p>
-            </div>
-            <div>
-              <span className="text-text-muted text-xs">Fecha de Vencimiento</span>
-              <p className="font-semibold text-text-primary">{formatDate(invoice.dueDate)}</p>
-            </div>
-            {invoice.certifiedAt && (
-              <div>
-                <span className="text-text-muted text-xs">Fecha de Certificación</span>
-                <p className="font-semibold text-text-primary">{formatDate(invoice.certifiedAt)}</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            {[
+              { label: "Fecha de Emisión", value: formatDate(invoice.issueDate) },
+              { label: "Fecha de Vencimiento", value: formatDate(invoice.dueDate) },
+              ...(invoice.certifiedAt ? [{ label: "Fecha de Certificación", value: formatDate(invoice.certifiedAt) }] : []),
+              ...(invoice.sentAt ? [{ label: "Fecha de Envío", value: formatDate(invoice.sentAt) }] : []),
+            ].map((f) => (
+              <div key={f.label}>
+                <p style={{ fontSize: "0.6rem", color: "#9A9489", marginBottom: "2px" }}>{f.label}</p>
+                <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "#0C0C0A" }}>{f.value}</p>
               </div>
-            )}
-            {invoice.sentAt && (
-              <div>
-                <span className="text-text-muted text-xs">Fecha de Envío</span>
-                <p className="font-semibold text-text-primary">{formatDate(invoice.sentAt)}</p>
-              </div>
-            )}
+            ))}
           </div>
 
           {/* FEL UUID */}
           {invoice.felUuid && (
             <div>
-              <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted mb-1">No. Autorización FEL</p>
-              <p className="font-mono text-xs text-text-primary bg-gray-50 rounded-lg px-3 py-2 break-all">
+              <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
+                No. Autorización FEL
+              </p>
+              <p style={{
+                fontFamily: "monospace", fontSize: "0.72rem", color: "#6B6260",
+                background: "#F5F2EC", borderRadius: "4px", padding: "0.5rem 0.75rem",
+                wordBreak: "break-all",
+              }}>
                 {invoice.felUuid}
               </p>
             </div>
@@ -195,27 +223,22 @@ function InvoiceDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+        <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(12,12,10,0.07)", display: "flex", justifyContent: "flex-end" }}>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl text-sm font-bold bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer"
+            style={{
+              padding: "0.55rem 1.5rem", borderRadius: "4px",
+              background: "#C9924B", border: "none", color: "#ffffff",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+              textTransform: "uppercase", cursor: "pointer", transition: "background 0.15s",
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = "#b5833f")}
+            onMouseOut={e => (e.currentTarget.style.background = "#C9924B")}
           >
             Cerrar
           </button>
         </div>
       </div>
-    </div>
-  )
-}
-
-/* ─── Skeleton ───────────────────────────────────────────────────────────── */
-
-function TableSkeleton() {
-  return (
-    <div className="space-y-2 animate-pulse">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="h-14 bg-gray-100 rounded-xl" />
-      ))}
     </div>
   )
 }
@@ -226,22 +249,17 @@ export default function FacturasPage() {
   const [invoicePage, setInvoicePage] = useState<InvoicePage | null>(null)
   const [loadingInvoices, setLoadingInvoices] = useState(true)
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
-
   const [search, setSearch] = useState("")
   const [searchInput, setSearchInput] = useState("")
   const [page, setPage] = useState(1)
-
   const searchRef = useRef<HTMLInputElement>(null)
 
-  // ── Fetch invoices ────────────────────────────────────────────────────
   const fetchInvoices = useCallback(async (q: string, p: number) => {
     setLoadingInvoices(true)
     try {
       const params = new URLSearchParams({ page: String(p), limit: "10" })
       if (q) params.set("search", q)
-      const res = await api.get<{ data: InvoicePage }>(
-        `${ENDPOINTS.CLIENT.INVOICES}?${params.toString()}`
-      )
+      const res = await api.get<{ data: InvoicePage }>(`${ENDPOINTS.CLIENT.INVOICES}?${params.toString()}`)
       setInvoicePage(res.data.data)
     } catch {
       // api client shows toast
@@ -257,172 +275,271 @@ export default function FacturasPage() {
     setPage(1)
   }
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
+  const COL = "1.2fr 2fr 1.8fr 1fr 0.9fr 0.8fr"
 
-      {/* Invoice Detail Modal */}
+  return (
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
       {selectedInvoice && (
-        <InvoiceDetailModal
-          invoice={selectedInvoice}
-          onClose={() => setSelectedInvoice(null)}
-        />
+        <InvoiceDetailModal invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
       )}
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-primary/8 flex items-center justify-center">
-          <Receipt size={20} className="text-primary" />
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight uppercase">
-          Mis Facturas
-        </h1>
-      </div>
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem,30vw,28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>FA</div>
 
-      {/* ── Invoice table card ─────────────────────────────────────────── */}
-      <div className="bg-white rounded-3xl shadow-sm border border-black/5 p-6 space-y-6">
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
 
-        {/* Search bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <div className="flex-1 flex gap-2">
-            <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <input
-                ref={searchRef}
-                type="text"
-                placeholder="Buscar por No. de factura…"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="w-full border border-gray-200 rounded-full pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-              />
-            </div>
-            <button
-              onClick={handleSearch}
-              className="bg-primary hover:bg-primary-hover text-white w-10 h-10 rounded-full flex items-center justify-center shadow transition-colors cursor-pointer shrink-0"
-            >
-              <Search size={16} />
-            </button>
-            {search && (
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Portal Cliente
+          </p>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Mis Facturas
+            </motion.h1>
+          </div>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "44ch" }}>
+            Historial de facturación FEL con desglose financiero detallado.
+          </motion.p>
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.4, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* Table card */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6, ease: EASE }}
+          style={{
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "6px", overflow: "hidden",
+          }}>
+
+          {/* Search bar */}
+          <div style={{
+            padding: "1rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)",
+            display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap",
+          }}>
+            <div style={{ flex: 1, display: "flex", gap: "8px", minWidth: "200px" }}>
+              <div style={{ position: "relative", flex: 1 }}>
+                <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#9A9489", pointerEvents: "none" }} />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  placeholder="Buscar por No. de factura…"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  style={{
+                    width: "100%", boxSizing: "border-box",
+                    paddingLeft: "32px", paddingRight: "0.75rem", paddingTop: "0.5rem", paddingBottom: "0.5rem",
+                    background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.12)",
+                    borderRadius: "4px", color: "#0C0C0A", fontSize: "0.82rem", outline: "none",
+                  }}
+                  onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                  onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.12)")}
+                />
+              </div>
               <button
-                onClick={() => { setSearch(""); setSearchInput(""); setPage(1) }}
-                className="text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
-                title="Limpiar búsqueda"
+                onClick={handleSearch}
+                style={{
+                  width: "36px", height: "36px", borderRadius: "4px", display: "flex",
+                  alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  background: "#C9924B", border: "none", color: "#ffffff", cursor: "pointer",
+                  transition: "background 0.15s",
+                }}
+                onMouseOver={e => (e.currentTarget.style.background = "#b5833f")}
+                onMouseOut={e => (e.currentTarget.style.background = "#C9924B")}
               >
-                <X size={18} />
+                <Search size={15} />
               </button>
+              {search && (
+                <button
+                  onClick={() => { setSearch(""); setSearchInput(""); setPage(1) }}
+                  style={{
+                    width: "36px", height: "36px", borderRadius: "4px", display: "flex",
+                    alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    background: "rgba(12,12,10,0.04)", border: "1px solid rgba(12,12,10,0.08)",
+                    color: "#9A9489", cursor: "pointer",
+                  }}
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+            {invoicePage && (
+              <p style={{ fontSize: "0.62rem", color: "#9A9489", flexShrink: 0 }}>
+                {invoicePage.total} resultado{invoicePage.total !== 1 ? "s" : ""}
+              </p>
             )}
           </div>
-          {invoicePage && (
-            <span className="text-xs text-text-muted shrink-0">
-              {invoicePage.total} resultado{invoicePage.total !== 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
 
-        {/* Table */}
-        {loadingInvoices ? (
-          <TableSkeleton />
-        ) : !invoicePage || invoicePage.items.length === 0 ? (
-          <div className="text-center py-16 text-text-muted space-y-2">
-            <FileText size={36} className="mx-auto text-gray-300" />
-            <p className="font-semibold">Sin facturas{search ? ` para "${search}"` : ""}</p>
+          {/* Table header */}
+          <div style={{
+            display: "grid", gridTemplateColumns: COL,
+            padding: "0.6rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)",
+            background: "rgba(12,12,10,0.015)",
+          }}>
+            {["No. Factura", "Descripción", "No. Autorización", "Monto", "Estado", "Detalle"].map((h, idx) => (
+              <p key={h} style={{
+                fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489",
+                textTransform: "uppercase", fontWeight: 700,
+                textAlign: idx === 3 ? "right" : idx >= 4 ? "center" : "left",
+              }}>{h}</p>
+            ))}
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-sm">
-              <thead>
-                <tr className="border-b-2 border-gray-100">
-                  <th className="text-left pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">No. Factura</th>
-                  <th className="text-left pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">Descripción</th>
-                  <th className="text-left pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">No. Autorización</th>
-                  <th className="text-right pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">Monto</th>
-                  <th className="text-center pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">Estado</th>
-                  <th className="text-center pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">Detalle</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {invoicePage.items.map((inv) => {
-                  const meta = STATUS_META[inv.status]
-                  return (
-                    <tr key={inv.invoiceId} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3.5 px-2 font-bold text-text-primary">
-                        {inv.invoiceNumber}
-                      </td>
-                      <td className="py-3.5 px-2 text-text-muted max-w-[200px] truncate">
-                        {inv.serviceDescription || "—"}
-                      </td>
-                      <td className="py-3.5 px-2 font-mono text-xs text-text-muted">
-                        {inv.felUuid ?? "—"}
-                      </td>
-                      <td className="py-3.5 px-2 text-right font-extrabold text-text-primary">
-                        {formatQ(inv.totalAmount)}
-                      </td>
-                      <td className="py-3.5 px-2 text-center">
-                        <span className={cn("inline-block px-2.5 py-1 rounded-full text-xs font-bold", meta.cls)}>
-                          {meta.label}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-2">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            title="Ver Detalle"
-                            onClick={() => setSelectedInvoice(inv)}
-                            className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary cursor-pointer shadow-sm transition-colors"
-                          >
-                            <Eye size={15} />
-                          </button>
-                          {inv.status === "PAGADA" && (
-                            <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#53B73E]/10 text-[#3A8E2A]">
-                              <CheckCircle size={12} /> Pagada
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
 
-        {/* Pagination */}
-        {invoicePage && invoicePage.totalPages > 1 && (
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex gap-1">
-              {Array.from({ length: invoicePage.totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className={cn(
-                    "w-9 h-9 rounded-lg text-sm font-bold transition-colors cursor-pointer",
-                    p === invoicePage.page
-                      ? "bg-[#e8d5c4] text-primary shadow-sm"
-                      : "bg-white border border-gray-200 text-text-muted hover:bg-gray-50"
-                  )}
-                >
-                  {p}
-                </button>
+          {/* Rows */}
+          {loadingInvoices ? (
+            <div style={{ padding: "1rem 1.5rem", display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[...Array(5)].map((_, i) => (
+                <div key={i} style={{ height: "48px", borderRadius: "4px", background: "rgba(12,12,10,0.04)" }} />
               ))}
             </div>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#e8d5c4] text-primary disabled:opacity-40 hover:bg-[#d4bca9] transition-colors cursor-pointer"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(invoicePage.totalPages, p + 1))}
-                disabled={page === invoicePage.totalPages}
-                className="w-9 h-9 rounded-lg flex items-center justify-center bg-[#e8d5c4] text-primary disabled:opacity-40 hover:bg-[#d4bca9] transition-colors cursor-pointer"
-              >
-                <ChevronRight size={16} />
-              </button>
+          ) : !invoicePage || invoicePage.items.length === 0 ? (
+            <div style={{ padding: "4rem 2rem", textAlign: "center" }}>
+              <FileText size={32} style={{ color: "#9A9489", margin: "0 auto 1rem" }} />
+              <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A", marginBottom: "4px" }}>
+                Sin facturas{search ? ` para "${search}"` : ""}
+              </p>
             </div>
-          </div>
-        )}
+          ) : (
+            <div>
+              {invoicePage.items.map((inv, i) => {
+                const meta = STATUS_META[inv.status]
+                return (
+                  <div
+                    key={inv.invoiceId}
+                    style={{
+                      display: "grid", gridTemplateColumns: COL,
+                      padding: "0.85rem 1.5rem", alignItems: "center",
+                      borderBottom: i < invoicePage.items.length - 1 ? "1px solid rgba(12,12,10,0.05)" : "none",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseOver={e => (e.currentTarget.style.background = "rgba(12,12,10,0.02)")}
+                    onMouseOut={e => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A" }}>
+                      {inv.invoiceNumber}
+                    </p>
+                    <p style={{ fontSize: "0.75rem", color: "#6B6260", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: "0.5rem" }}>
+                      {inv.serviceDescription || "—"}
+                    </p>
+                    <p style={{ fontFamily: "monospace", fontSize: "0.65rem", color: "#9A9489", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {inv.felUuid ?? "—"}
+                    </p>
+                    <p style={{ fontSize: "0.85rem", fontWeight: 900, color: "#0C0C0A", textAlign: "right", letterSpacing: "-0.02em" }}>
+                      {formatQ(inv.totalAmount)}
+                    </p>
+                    <div style={{ display: "flex", justifyContent: "center" }}>
+                      <span style={{
+                        display: "inline-flex", alignItems: "center", gap: "4px",
+                        padding: "2px 8px", borderRadius: "4px",
+                        background: meta.bg, color: meta.color,
+                        fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+                      }}>
+                        <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: meta.color, flexShrink: 0 }} />
+                        {meta.label}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                      <button
+                        title="Ver Detalle"
+                        onClick={() => setSelectedInvoice(inv)}
+                        style={{
+                          width: "32px", height: "32px", borderRadius: "4px", display: "flex",
+                          alignItems: "center", justifyContent: "center",
+                          background: "rgba(201,146,75,0.08)", border: "1px solid rgba(201,146,75,0.2)",
+                          color: "#C9924B", cursor: "pointer", transition: "all 0.15s",
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.background = "rgba(201,146,75,0.15)"; e.currentTarget.style.borderColor = "#C9924B" }}
+                        onMouseOut={e => { e.currentTarget.style.background = "rgba(201,146,75,0.08)"; e.currentTarget.style.borderColor = "rgba(201,146,75,0.2)" }}
+                      >
+                        <Eye size={13} />
+                      </button>
+                      {inv.status === "PAGADA" && (
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: "4px",
+                          padding: "2px 7px", borderRadius: "4px",
+                          background: "rgba(58,142,42,0.08)", color: "#3A8E2A",
+                          fontSize: "0.52rem", fontWeight: 700,
+                        }}>
+                          <CheckCircle size={10} /> Pagada
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {invoicePage && invoicePage.totalPages > 1 && (
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "0.85rem 1.5rem", borderTop: "1px solid rgba(12,12,10,0.07)",
+            }}>
+              <div style={{ display: "flex", gap: "4px" }}>
+                {Array.from({ length: invoicePage.totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    style={{
+                      width: "30px", height: "30px", borderRadius: "4px",
+                      fontSize: "0.72rem", fontWeight: 700, cursor: "pointer",
+                      background: p === invoicePage.page ? "#C9924B" : "none",
+                      color: p === invoicePage.page ? "#ffffff" : "#6B6260",
+                      border: p === invoicePage.page ? "1px solid #C9924B" : "1px solid rgba(12,12,10,0.12)",
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: "4px" }}>
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  style={{
+                    width: "30px", height: "30px", borderRadius: "4px", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    background: "rgba(201,146,75,0.08)", border: "1px solid rgba(201,146,75,0.2)",
+                    color: page === 1 ? "rgba(201,146,75,0.3)" : "#C9924B",
+                    cursor: page === 1 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(invoicePage.totalPages, p + 1))}
+                  disabled={page === invoicePage.totalPages}
+                  style={{
+                    width: "30px", height: "30px", borderRadius: "4px", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    background: "rgba(201,146,75,0.08)", border: "1px solid rgba(201,146,75,0.2)",
+                    color: page === invoicePage.totalPages ? "rgba(201,146,75,0.3)" : "#C9924B",
+                    cursor: page === invoicePage.totalPages ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
       </div>
     </div>
   )

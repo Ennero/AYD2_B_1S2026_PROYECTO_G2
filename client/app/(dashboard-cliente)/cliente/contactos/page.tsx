@@ -1,24 +1,16 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import {
-  Users,
-  Plus,
-  Pencil,
-  Trash2,
-  X,
-  Mail,
-  Phone,
-  Briefcase,
-  Search,
-  UserPlus,
+  Users, Plus, Pencil, Trash2, X,
+  Mail, Phone, Briefcase, Search, UserPlus,
 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
-import { cn } from "@/lib/utils/cn"
-import Button from "@/components/ui/Button"
-import Input from "@/components/ui/Input"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -37,46 +29,75 @@ interface ContactForm {
   positionTitle: string
 }
 
-const EMPTY_FORM: ContactForm = {
-  contactName: "",
-  contactEmail: "",
-  contactPhone: "",
-  positionTitle: "",
-}
+const EMPTY_FORM: ContactForm = { contactName: "", contactEmail: "", contactPhone: "", positionTitle: "" }
 
-/* ─── Avatar inicial ────────────────────────────────────────────────────── */
+/* ─── Avatar ─────────────────────────────────────────────────────────────── */
+
+const AVATAR_COLORS = [
+  { bg: "rgba(201,146,75,0.12)", color: "#C9924B" },
+  { bg: "rgba(58,142,42,0.10)",  color: "#3A8E2A" },
+  { bg: "rgba(37,99,235,0.10)",  color: "#2563EB" },
+  { bg: "rgba(139,92,246,0.10)", color: "#8B5CF6" },
+  { bg: "rgba(229,62,62,0.10)",  color: "#E53E3E" },
+]
 
 function ContactAvatar({ name }: { name: string }) {
-  const initials = name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-
-  const colors = [
-    "bg-[#095556]/15 text-[#095556]",
-    "bg-[#53B73E]/15 text-[#3A8E2A]",
-    "bg-[#0A3B7C]/15 text-[#0A3B7C]",
-    "bg-amber-100 text-amber-700",
-    "bg-purple-100 text-purple-700",
-  ]
-  const color = colors[name.charCodeAt(0) % colors.length]
-
+  const initials = name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase()
+  const { bg, color } = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length]
   return (
-    <div className={cn("h-11 w-11 rounded-xl flex items-center justify-center font-bold text-sm shrink-0", color)}>
+    <div style={{
+      width: "40px", height: "40px", borderRadius: "6px", flexShrink: 0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: bg, color, fontSize: "0.82rem", fontWeight: 900, letterSpacing: "-0.02em",
+    }}>
       {initials}
     </div>
   )
 }
 
-/* ─── Modal de agregar / editar ──────────────────────────────────────────── */
+/* ─── Field component ───────────────────────────────────────────────────── */
+
+function FormField({
+  label, type = "text", value, onChange, placeholder, disabled,
+}: {
+  label: string
+  type?: string
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  disabled?: boolean
+}) {
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: "0.52rem", letterSpacing: "0.15em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        style={{
+          width: "100%", boxSizing: "border-box",
+          padding: "0.6rem 0.85rem",
+          background: disabled ? "rgba(12,12,10,0.03)" : "#F5F2EC",
+          border: "1px solid rgba(12,12,10,0.12)",
+          borderRadius: "4px", color: "#0C0C0A", fontSize: "0.85rem",
+          outline: "none", transition: "border-color 0.15s",
+          opacity: disabled ? 0.6 : 1,
+        }}
+        onFocus={e => { if (!disabled) e.target.style.borderColor = "#C9924B" }}
+        onBlur={e => { e.target.style.borderColor = "rgba(12,12,10,0.12)" }}
+      />
+    </div>
+  )
+}
+
+/* ─── Contact Modal ─────────────────────────────────────────────────────── */
 
 function ContactModal({
-  open,
-  editing,
-  onClose,
-  onSaved,
+  open, editing, onClose, onSaved,
 }: {
   open: boolean
   editing: Contact | null
@@ -88,15 +109,9 @@ function ContactModal({
 
   useEffect(() => {
     if (open) {
-      setForm(
-        editing
-          ? {
-              contactName: editing.contactName,
-              contactEmail: editing.contactEmail,
-              contactPhone: editing.contactPhone ?? "",
-              positionTitle: editing.positionTitle ?? "",
-            }
-          : EMPTY_FORM,
+      setForm(editing
+        ? { contactName: editing.contactName, contactEmail: editing.contactEmail, contactPhone: editing.contactPhone ?? "", positionTitle: editing.positionTitle ?? "" }
+        : EMPTY_FORM
       )
     }
   }, [open, editing])
@@ -115,7 +130,6 @@ function ContactModal({
         contactPhone: form.contactPhone.trim() || undefined,
         positionTitle: form.positionTitle.trim() || undefined,
       }
-
       let contact: Contact
       if (editing) {
         const res = await api.patch<{ data: Contact }>(ENDPOINTS.CLIENT.CONTACT(editing.contactId), payload)
@@ -124,12 +138,11 @@ function ContactModal({
         const res = await api.post<{ data: Contact }>(ENDPOINTS.CLIENT.CONTACTS, payload)
         contact = res.data.data
       }
-
       toast.success(editing ? "Contacto actualizado correctamente" : "Contacto agregado correctamente")
       onSaved(contact)
       onClose()
     } catch {
-      // api client already shows toast
+      // api client shows toast
     } finally {
       setSaving(false)
     }
@@ -138,65 +151,89 @@ function ContactModal({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-black/5 animate-in fade-in zoom-in-95 duration-200">
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
+        background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)",
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "#ffffff", borderRadius: "6px",
+          width: "100%", maxWidth: "460px", overflow: "hidden",
+          boxShadow: "0 24px 64px rgba(12,12,10,0.2)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ height: "3px", background: "#C9924B" }} />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#F1F5F9]">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-[#095556]/10 flex items-center justify-center">
-              <UserPlus size={18} className="text-[#095556]" />
-            </div>
-            <h2 className="text-base font-bold text-[#1A202C]">
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <UserPlus size={15} style={{ color: "#C9924B" }} />
+            <h2 style={{ fontSize: "0.95rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>
               {editing ? "Editar Contacto" : "Nuevo Contacto"}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#64748B] hover:text-[#1A202C] hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+            style={{
+              width: "30px", height: "30px", borderRadius: "4px", display: "flex",
+              alignItems: "center", justifyContent: "center", background: "rgba(12,12,10,0.04)",
+              border: "1px solid rgba(12,12,10,0.08)", color: "#9A9489", cursor: "pointer",
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = "rgba(12,12,10,0.08)")}
+            onMouseOut={e => (e.currentTarget.style.background = "rgba(12,12,10,0.04)")}
           >
-            <X size={18} />
+            <X size={14} />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={(e) => void handleSubmit(e)} className="p-6 space-y-4">
-          <Input
-            label="Nombre completo *"
-            value={form.contactName}
-            onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
-            placeholder="Ej. María García"
-            disabled={saving}
-          />
-          <Input
-            label="Correo electrónico *"
-            type="email"
-            value={form.contactEmail}
-            onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
-            placeholder="contacto@empresa.com"
-            disabled={saving}
-          />
-          <Input
-            label="Teléfono"
-            value={form.contactPhone}
-            onChange={(e) => setForm((f) => ({ ...f, contactPhone: e.target.value }))}
-            placeholder="+502 5555-0000"
-            disabled={saving}
-          />
-          <Input
-            label="Cargo / Puesto"
-            value={form.positionTitle}
-            onChange={(e) => setForm((f) => ({ ...f, positionTitle: e.target.value }))}
-            placeholder="Ej. Gerente de Logística"
-            disabled={saving}
-          />
+        <form onSubmit={(e) => void handleSubmit(e)} style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <FormField label="Nombre completo *" value={form.contactName} onChange={(v) => setForm((f) => ({ ...f, contactName: v }))} placeholder="Ej. María García" disabled={saving} />
+          <FormField label="Correo electrónico *" type="email" value={form.contactEmail} onChange={(v) => setForm((f) => ({ ...f, contactEmail: v }))} placeholder="contacto@empresa.com" disabled={saving} />
+          <FormField label="Teléfono" value={form.contactPhone} onChange={(v) => setForm((f) => ({ ...f, contactPhone: v }))} placeholder="+502 5555-0000" disabled={saving} />
+          <FormField label="Cargo / Puesto" value={form.positionTitle} onChange={(v) => setForm((f) => ({ ...f, positionTitle: v }))} placeholder="Ej. Gerente de Logística" disabled={saving} />
 
-          <div className="flex gap-3 pt-2">
-            <Button type="submit" loading={saving} className="flex-1">
-              {editing ? "Guardar cambios" : "Agregar contacto"}
-            </Button>
-            <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
+          <div style={{ display: "flex", gap: "10px", paddingTop: "0.5rem" }}>
+            <button
+              type="submit"
+              disabled={saving}
+              style={{
+                flex: 1, padding: "0.65rem 1rem",
+                background: saving ? "rgba(201,146,75,0.5)" : "#C9924B",
+                border: "none", borderRadius: "4px", color: "#ffffff",
+                fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+                textTransform: "uppercase", cursor: saving ? "not-allowed" : "pointer",
+                transition: "background 0.15s",
+              }}
+              onMouseOver={e => { if (!saving) e.currentTarget.style.background = "#b5833f" }}
+              onMouseOut={e => { if (!saving) e.currentTarget.style.background = "#C9924B" }}
+            >
+              {saving ? "Guardando…" : (editing ? "Guardar cambios" : "Agregar contacto")}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              style={{
+                padding: "0.65rem 1.1rem", background: "none",
+                border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
+                color: "#6B6260", fontSize: "0.62rem", fontWeight: 700,
+                letterSpacing: "0.1em", textTransform: "uppercase",
+                cursor: saving ? "not-allowed" : "pointer", transition: "border-color 0.15s",
+              }}
+              onMouseOver={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.25)")}
+              onMouseOut={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
+            >
               Cancelar
-            </Button>
+            </button>
           </div>
         </form>
       </div>
@@ -204,7 +241,7 @@ function ContactModal({
   )
 }
 
-/* ─── Main page ─────────────────────────────────────────────────────────── */
+/* ─── Main Page ──────────────────────────────────────────────────────────── */
 
 export default function ContactosPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
@@ -219,15 +256,13 @@ export default function ContactosPage() {
       const res = await api.get<{ data: Contact[] }>(ENDPOINTS.CLIENT.CONTACTS)
       setContacts(res.data.data)
     } catch {
-      // api client already shows toast
+      // api client shows toast
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    void fetchContacts()
-  }, [fetchContacts])
+  useEffect(() => { void fetchContacts() }, [fetchContacts])
 
   const handleSaved = (contact: Contact) => {
     setContacts((prev) => {
@@ -248,41 +283,17 @@ export default function ContactosPage() {
       toast.success("Contacto eliminado")
       setContacts((prev) => prev.filter((c) => c.contactId !== contactId))
     } catch {
-      // api client already shows toast
+      // api client shows toast
     } finally {
       setDeleting(null)
     }
   }
 
-  const openEdit = (contact: Contact) => {
-    setEditing(contact)
-    setModalOpen(true)
-  }
-
-  const openCreate = () => {
-    setEditing(null)
-    setModalOpen(true)
-  }
-
-  const filtered = contacts.filter(
-    (c) =>
-      c.contactName.toLowerCase().includes(search.toLowerCase()) ||
-      c.contactEmail.toLowerCase().includes(search.toLowerCase()) ||
-      (c.positionTitle ?? "").toLowerCase().includes(search.toLowerCase()),
+  const filtered = contacts.filter((c) =>
+    c.contactName.toLowerCase().includes(search.toLowerCase()) ||
+    c.contactEmail.toLowerCase().includes(search.toLowerCase()) ||
+    (c.positionTitle ?? "").toLowerCase().includes(search.toLowerCase()),
   )
-
-  /* Skeleton */
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-4">
-        <div className="h-9 w-64 bg-[#095556]/10 rounded-xl animate-pulse mb-6" />
-        <div className="bg-white rounded-2xl h-16 animate-pulse" />
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl h-20 animate-pulse" />
-        ))}
-      </div>
-    )
-  }
 
   return (
     <>
@@ -293,125 +304,226 @@ export default function ContactosPage() {
         onSaved={handleSaved}
       />
 
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
+      <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+        <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+          backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+          backgroundSize: "72px 72px",
+        }} />
+        <div aria-hidden style={{
+          position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+          fontSize: "clamp(18rem,30vw,28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+          color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+        }}>CK</div>
 
-        {/* Page header */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A202C] tracking-tight uppercase">
-              Contactos Clave
-            </h1>
-            <p className="text-sm text-[#64748B] mt-1">
-              Personas de tu empresa autorizadas para coordinar con LogiTrans.
-            </p>
-          </div>
-          <Button onClick={openCreate}>
-            <Plus size={16} />
-            Agregar Contacto
-          </Button>
-        </div>
+        <div className="relative z-10 max-w-4xl mx-auto px-8 py-14">
 
-        {/* Search + count */}
-        <div className="bg-white rounded-2xl shadow-sm border border-black/5 p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-          <div className="relative w-full sm:w-72">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre, correo o cargo..."
-              className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-[#1A202C] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#095556]/30 focus:border-[#095556]/50"
-            />
-          </div>
-          <span className="text-xs text-[#94A3B8] shrink-0">
-            {filtered.length} contacto{filtered.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-
-        {/* Contact list */}
-        {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-black/5 py-16 flex flex-col items-center gap-4 text-center">
-            <div className="h-14 w-14 rounded-2xl bg-[#095556]/8 flex items-center justify-center">
-              <Users size={26} className="text-[#095556]/50" />
+          {/* Header */}
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+              <div>
+                <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+                  Portal Cliente
+                </p>
+                <div style={{ overflow: "hidden" }}>
+                  <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+                    style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+                    Contactos Clave
+                  </motion.h1>
+                </div>
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                  style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "44ch" }}>
+                  Personas de tu empresa autorizadas para coordinar con LogiTrans.
+                </motion.p>
+              </div>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+                <button
+                  onClick={() => { setEditing(null); setModalOpen(true) }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "6px",
+                    padding: "0.6rem 1.1rem", background: "#C9924B", border: "none",
+                    borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                    letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff", cursor: "pointer",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseOver={e => (e.currentTarget.style.background = "#b5833f")}
+                  onMouseOut={e => (e.currentTarget.style.background = "#C9924B")}
+                >
+                  <Plus size={12} />
+                  Agregar Contacto
+                </button>
+              </motion.div>
             </div>
-            <div>
-              <p className="font-semibold text-[#1A202C]">
+            <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+              transition={{ delay: 0.4, duration: 0.9, ease: EASE }}
+              style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+          </motion.div>
+
+          {/* Search bar */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: EASE }}
+            style={{
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "6px", padding: "1rem 1.25rem", marginBottom: "1rem",
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem",
+            }}>
+            <div style={{ position: "relative", flex: 1, maxWidth: "340px" }}>
+              <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#9A9489", pointerEvents: "none" }} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por nombre, correo o cargo..."
+                style={{
+                  width: "100%", boxSizing: "border-box",
+                  paddingLeft: "32px", paddingRight: "0.75rem", paddingTop: "0.5rem", paddingBottom: "0.5rem",
+                  background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.12)",
+                  borderRadius: "4px", color: "#0C0C0A", fontSize: "0.82rem", outline: "none",
+                }}
+                onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.12)")}
+              />
+            </div>
+            <p style={{ fontSize: "0.62rem", color: "#9A9489", flexShrink: 0 }}>
+              {filtered.length} contacto{filtered.length !== 1 ? "s" : ""}
+            </p>
+          </motion.div>
+
+          {/* Loading */}
+          {loading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} style={{ height: "72px", borderRadius: "6px", background: "rgba(12,12,10,0.05)" }} />
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!loading && filtered.length === 0 && (
+            <div style={{
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "6px", padding: "4rem 2rem", textAlign: "center",
+            }}>
+              <div style={{
+                width: "48px", height: "48px", borderRadius: "6px",
+                background: "rgba(201,146,75,0.08)", margin: "0 auto 1rem",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Users size={22} style={{ color: "rgba(201,146,75,0.5)" }} />
+              </div>
+              <p style={{ fontSize: "0.9rem", fontWeight: 700, color: "#0C0C0A", marginBottom: "4px" }}>
                 {search ? "Sin resultados" : "Aún no hay contactos"}
               </p>
-              <p className="text-sm text-[#64748B] mt-1">
+              <p style={{ fontSize: "0.78rem", color: "#9A9489", marginBottom: "1.5rem" }}>
                 {search
                   ? "Intenta con otro término de búsqueda."
                   : "Agrega el primer contacto clave de tu empresa."}
               </p>
+              {!search && (
+                <button
+                  onClick={() => { setEditing(null); setModalOpen(true) }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "6px",
+                    padding: "0.55rem 1.1rem", background: "#C9924B", border: "none",
+                    borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                    letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff", cursor: "pointer",
+                  }}
+                >
+                  <Plus size={12} />
+                  Agregar contacto
+                </button>
+              )}
             </div>
-            {!search && (
-              <Button size="sm" onClick={openCreate}>
-                <Plus size={14} />
-                Agregar contacto
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filtered.map((contact) => (
-              <div
-                key={contact.contactId}
-                className="bg-white rounded-2xl shadow-sm border border-black/5 px-5 py-4 flex items-center gap-4 group hover:shadow-md transition-shadow"
-              >
-                <ContactAvatar name={contact.contactName} />
+          )}
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#1A202C] text-sm truncate">
-                    {contact.contactName}
-                  </p>
-                  {contact.positionTitle && (
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <Briefcase size={11} className="text-[#94A3B8] shrink-0" />
-                      <span className="text-xs text-[#64748B] truncate">{contact.positionTitle}</span>
-                    </div>
-                  )}
-                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <Mail size={11} className="text-[#095556] shrink-0" />
-                      <span className="text-xs text-[#475569] truncate">{contact.contactEmail}</span>
-                    </div>
-                    {contact.contactPhone && (
-                      <div className="flex items-center gap-1.5">
-                        <Phone size={11} className="text-[#095556] shrink-0" />
-                        <span className="text-xs text-[#475569]">{contact.contactPhone}</span>
+          {/* Contact list */}
+          {!loading && filtered.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {filtered.map((contact, i) => (
+                <motion.div key={contact.contactId}
+                  initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.04, duration: 0.5, ease: EASE }}>
+                  <div
+                    style={{
+                      background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+                      borderRadius: "6px", padding: "1rem 1.25rem",
+                      display: "flex", alignItems: "center", gap: "1rem",
+                      transition: "box-shadow 0.15s",
+                    }}
+                    onMouseOver={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 12px rgba(12,12,10,0.06)"; const btns = (e.currentTarget as HTMLDivElement).querySelectorAll("[data-action]"); btns.forEach((b) => ((b as HTMLElement).style.opacity = "1")) }}
+                    onMouseOut={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; const btns = (e.currentTarget as HTMLDivElement).querySelectorAll("[data-action]"); btns.forEach((b) => ((b as HTMLElement).style.opacity = "0")) }}
+                  >
+                    <ContactAvatar name={contact.contactName} />
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {contact.contactName}
+                      </p>
+                      {contact.positionTitle && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" }}>
+                          <Briefcase size={10} style={{ color: "#9A9489", flexShrink: 0 }} />
+                          <span style={{ fontSize: "0.68rem", color: "#6B6260", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{contact.positionTitle}</span>
+                        </div>
+                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0 1rem", marginTop: "4px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                          <Mail size={10} style={{ color: "#C9924B", flexShrink: 0 }} />
+                          <span style={{ fontSize: "0.68rem", color: "#6B6260" }}>{contact.contactEmail}</span>
+                        </div>
+                        {contact.contactPhone && (
+                          <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                            <Phone size={10} style={{ color: "#C9924B", flexShrink: 0 }} />
+                            <span style={{ fontSize: "0.68rem", color: "#6B6260" }}>{contact.contactPhone}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => openEdit(contact)}
-                    title="Editar"
-                    className="h-8 w-8 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#0A3B7C] hover:bg-[#0A3B7C]/8 transition-colors cursor-pointer"
-                  >
-                    <Pencil size={15} />
-                  </button>
-                  <button
-                    onClick={() => void handleDelete(contact.contactId)}
-                    disabled={deleting === contact.contactId}
-                    title="Eliminar"
-                    className={cn(
-                      "h-8 w-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer",
-                      deleting === contact.contactId
-                        ? "opacity-50 cursor-not-allowed"
-                        : "text-[#64748B] hover:text-red-600 hover:bg-red-50",
-                    )}
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                    {/* Actions */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+                      <button
+                        data-action="edit"
+                        onClick={() => { setEditing(contact); setModalOpen(true) }}
+                        title="Editar"
+                        style={{
+                          width: "30px", height: "30px", borderRadius: "4px", display: "flex",
+                          alignItems: "center", justifyContent: "center", opacity: 0,
+                          background: "rgba(12,12,10,0.04)", border: "1px solid rgba(12,12,10,0.08)",
+                          color: "#6B6260", cursor: "pointer", transition: "opacity 0.15s, background 0.15s",
+                        }}
+                        onMouseOver={e => (e.currentTarget.style.background = "rgba(201,146,75,0.10)")}
+                        onMouseOut={e => (e.currentTarget.style.background = "rgba(12,12,10,0.04)")}
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        data-action="delete"
+                        onClick={() => void handleDelete(contact.contactId)}
+                        disabled={deleting === contact.contactId}
+                        title="Eliminar"
+                        style={{
+                          width: "30px", height: "30px", borderRadius: "4px", display: "flex",
+                          alignItems: "center", justifyContent: "center", opacity: 0,
+                          background: "rgba(12,12,10,0.04)", border: "1px solid rgba(12,12,10,0.08)",
+                          color: "#6B6260", cursor: deleting === contact.contactId ? "not-allowed" : "pointer",
+                          transition: "opacity 0.15s, background 0.15s",
+                        }}
+                        onMouseOver={e => { if (deleting !== contact.contactId) e.currentTarget.style.background = "rgba(229,62,62,0.08)" }}
+                        onMouseOut={e => (e.currentTarget.style.background = "rgba(12,12,10,0.04)")}
+                      >
+                        <Trash2 size={13} style={{ color: deleting === contact.contactId ? "#9A9489" : undefined }} />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+        </div>
       </div>
     </>
   )

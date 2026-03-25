@@ -1,20 +1,106 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { CheckCircle2, Search, Wallet } from "lucide-react"
+import { motion } from "framer-motion"
+import { CheckCircle2, Search, Wallet, X } from "lucide-react"
 import { toast } from "sonner"
-import Card from "@/components/ui/Card"
-import Button from "@/components/ui/Button"
-import Modal from "@/components/ui/Modal"
-import StatusBadge from "@/components/shared/StatusBadge"
-import FinancePageShell from "@/components/finance/FinancePageShell"
 import { approveFinancePayment, fetchFinancePayments } from "@/lib/api/finance"
 import type { FinancePayment } from "@/types/finance"
 
-function formatAmount(value: number): string {
-  return `Q ${value.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+const EASE = [0.16, 1, 0.3, 1] as const
+
+function formatQ(v: number) {
+  return `Q ${v.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+const COL6 = "1.4fr 1fr 1fr 1fr 1.2fr 0.8fr"
+
+/* ─── Approve Modal ─────────────────────────────── */
+function ApproveModal({ payment, onClose, onConfirm, loading }: {
+  payment: FinancePayment
+  onClose: () => void
+  onConfirm: () => void
+  loading: boolean
+}) {
+  const fields = [
+    { label: "Cliente",     value: payment.clientName },
+    { label: "Factura",     value: payment.invoiceNumber },
+    { label: "Monto",       value: formatQ(payment.amount) },
+    { label: "Banco",       value: payment.bankName ?? "—" },
+    { label: "Referencia",  value: payment.bankReference ?? "—" },
+  ]
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 50,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)", padding: "1rem",
+    }}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.26, ease: EASE }}
+        style={{ background: "#ffffff", borderRadius: "6px", maxWidth: "420px", width: "100%", overflow: "hidden", border: "1px solid rgba(12,12,10,0.07)" }}>
+        <div style={{ height: "2px", background: "#3A8E2A" }} />
+        <div style={{ padding: "1.75rem 2rem 2rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
+            <div>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#3A8E2A", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Confirmar aprobación de pago</p>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>
+                {payment.bankReference ?? payment.paymentId}
+              </h2>
+            </div>
+            <button onClick={onClose} disabled={loading} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A9489" }}><X size={16} /></button>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "1.25rem" }}>
+            <Wallet size={14} style={{ color: "#6B6260" }} />
+            <p style={{ fontSize: "0.72rem", color: "#6B6260" }}>El pago se registrará como <strong style={{ color: "#3A8E2A" }}>APROBADO</strong> en tesorería.</p>
+          </div>
+
+          <div style={{
+            background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "4px", padding: "1rem 1.1rem", marginBottom: "1.5rem",
+            display: "flex", flexDirection: "column", gap: "6px",
+          }}>
+            {fields.map(f => (
+              <div key={f.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "0.6rem", letterSpacing: "0.12em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>{f.label}</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0C0C0A" }}>{f.value}</span>
+              </div>
+            ))}
+            <div style={{ paddingTop: "6px", borderTop: "1px solid rgba(12,12,10,0.07)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "0.6rem", letterSpacing: "0.12em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Estado actual</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(201,146,75,0.1)", borderRadius: "3px", padding: "2px 7px" }}>
+                <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#C9924B" }} />
+                <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#C9924B" }}>Pendiente</span>
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button onClick={onClose} disabled={loading} style={{
+              flex: 1, padding: "0.65rem", background: "none",
+              border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "#6B6260", cursor: "pointer",
+            }}>Cancelar</button>
+            <button onClick={onConfirm} disabled={loading} style={{
+              flex: 1, padding: "0.65rem",
+              background: loading ? "rgba(58,142,42,0.4)" : "#3A8E2A",
+              border: "none", borderRadius: "4px",
+              fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              color: "#ffffff", cursor: loading ? "not-allowed" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+            }}>
+              <CheckCircle2 size={11} /> {loading ? "Aprobando..." : "Confirmar aprobación"}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════ */
 export default function FinancePaymentsPage() {
   const [search, setSearch] = useState("")
   const [pendingPayments, setPendingPayments] = useState<FinancePayment[]>([])
@@ -28,34 +114,24 @@ export default function FinancePaymentsPage() {
       const payments = await fetchFinancePayments("PENDIENTE")
       setPendingPayments(payments)
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No fue posible cargar los pagos pendientes"
-      toast.error(message)
+      toast.error(error instanceof Error ? error.message : "No fue posible cargar los pagos pendientes")
     } finally {
       setLoadingPayments(false)
     }
   }
 
-  useEffect(() => {
-    void refreshPendingPayments()
-  }, [])
+  useEffect(() => { void refreshPendingPayments() }, [])
 
   const filteredPayments = useMemo(() => {
     const needle = search.trim().toLowerCase()
-    if (!needle) {
-      return pendingPayments
-    }
-
-    return pendingPayments.filter((payment) => {
-      const scope = `${payment.clientName} ${payment.invoiceNumber} ${payment.bankReference ?? ""}`.toLowerCase()
-      return scope.includes(needle)
-    })
+    if (!needle) return pendingPayments
+    return pendingPayments.filter(p =>
+      `${p.clientName} ${p.invoiceNumber} ${p.bankReference ?? ""}`.toLowerCase().includes(needle)
+    )
   }, [pendingPayments, search])
 
-  const confirmApprovePayment = async () => {
-    if (!selectedPayment) {
-      return
-    }
-
+  const confirmApprove = async () => {
+    if (!selectedPayment) return
     setApproving(true)
     try {
       await approveFinancePayment(selectedPayment.paymentId)
@@ -63,115 +139,167 @@ export default function FinancePaymentsPage() {
       setSelectedPayment(null)
       await refreshPendingPayments()
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No fue posible aprobar el pago"
-      toast.error(message)
+      toast.error(error instanceof Error ? error.message : "No fue posible aprobar el pago")
     } finally {
       setApproving(false)
     }
   }
 
   return (
-    <FinancePageShell
-      title="Conciliar Pagos"
-      subtitle="Autorización de pagos registrados para liberar crédito a clientes"
-    >
-      <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        Esta aprobacion no pertenece al proceso FEL. Ocurre despues de certificar y enviar la factura,
-        cuando tesoreria valida el pago para liberar credito.
-      </div>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem,30vw,28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>CP</div>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1 relative">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#64748B]" />
-          <input
-            type="text"
-            placeholder="Buscar por cliente, factura o referencia bancaria"
-            className="w-full border border-[#0A3B7C]/30 rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:ring-4 focus:ring-[#0A3B7C]/10 bg-white/95"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-        <span className="text-secondary tracking-widest text-xs uppercase font-medium">Acción Requerida</span>
-      </div>
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
 
-      <Card className="rounded-3xl border-black/5 bg-white/95 p-0 overflow-hidden">
-        <div className="grid grid-cols-6 gap-4 p-4 bg-[#0A3B7C]/5 border-b border-black/5 text-sm font-bold uppercase tracking-[0.12em] text-[#0A3B7C]/70">
-          <div>Cliente</div>
-          <div>Factura</div>
-          <div>Monto</div>
-          <div>Banco</div>
-          <div>Referencia</div>
-          <div className="text-right">Accion</div>
-        </div>
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Módulo Financiero
+          </p>
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Conciliar Pagos
+            </motion.h1>
+          </div>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "50ch" }}>
+            Autorización de pagos registrados para liberar crédito a clientes.
+          </motion.p>
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.4, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+        </motion.div>
 
-        {loadingPayments ? (
-          <div className="p-8 text-center text-[#64748B]">Cargando pagos pendientes...</div>
-        ) : filteredPayments.length === 0 ? (
-          <div className="p-8 text-center text-[#64748B]">No hay pagos pendientes por conciliar.</div>
-        ) : (
-          filteredPayments.map((payment) => (
-            <div
-              key={payment.paymentId}
-              className="grid grid-cols-6 gap-4 p-4 items-center border-b border-black/5 hover:bg-black/[0.02]"
-            >
-              <div className="font-semibold text-[#1A202C]">{payment.clientName}</div>
-              <div className="text-[#0A3B7C] font-bold">{payment.invoiceNumber}</div>
-              <div className="text-[#1A202C] font-bold">{formatAmount(payment.amount)}</div>
-              <div className="text-[#64748B]">{payment.bankName ?? "-"}</div>
-              <div className="text-sm font-mono text-[#64748B]">{payment.bankReference ?? "-"}</div>
-              <div className="text-right">
-                <Button size="sm" onClick={() => setSelectedPayment(payment)}>
-                  <CheckCircle2 size={15} /> Aprobar
-                </Button>
+        {/* Info strip */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+          style={{
+            background: "rgba(201,146,75,0.06)", border: "1px solid rgba(201,146,75,0.2)",
+            borderLeft: "3px solid #C9924B", borderRadius: "4px",
+            padding: "0.85rem 1.25rem", marginBottom: "1.5rem",
+            display: "flex", alignItems: "flex-start", gap: "10px",
+          }}>
+          <Wallet size={13} style={{ color: "#C9924B", flexShrink: 0, marginTop: "1px" }} />
+          <p style={{ fontSize: "0.72rem", color: "#6B6260", lineHeight: 1.5 }}>
+            Esta aprobación no pertenece al proceso FEL. Ocurre <strong style={{ color: "#0C0C0A" }}>después</strong> de certificar y enviar la factura,
+            cuando tesorería valida el pago para liberar crédito.
+          </p>
+        </motion.div>
+
+        {/* Search + count */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+          style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "1.5rem" }}>
+          <div style={{ flex: 1, position: "relative" }}>
+            <Search size={13} style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#9A9489" }} />
+            <input
+              type="text"
+              placeholder="Buscar por cliente, factura o referencia bancaria"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                padding: "0.65rem 0.9rem 0.65rem 2.5rem",
+                background: "#ffffff", border: "1px solid rgba(12,12,10,0.1)",
+                borderRadius: "4px", color: "#0C0C0A", fontSize: "0.82rem", outline: "none",
+              }}
+              onFocus={e => (e.target.style.borderColor = "#C9924B")}
+              onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
+            />
+          </div>
+          {filteredPayments.length > 0 && (
+            <span style={{ fontSize: "0.55rem", letterSpacing: "0.18em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, flexShrink: 0 }}>
+              {filteredPayments.length} pago{filteredPayments.length !== 1 ? "s" : ""} · Acción requerida
+            </span>
+          )}
+        </motion.div>
+
+        {/* Table */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.6, ease: EASE }}>
+          <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+
+            {/* Header */}
+            <div style={{
+              display: "grid", gridTemplateColumns: COL6, gap: "0 1rem",
+              padding: "0.55rem 1.25rem",
+              background: "rgba(12,12,10,0.03)", borderBottom: "1px solid rgba(12,12,10,0.07)",
+            }}>
+              {["Cliente", "Factura", "Monto", "Banco", "Referencia", "Acción"].map((h, i) => (
+                <span key={h} style={{
+                  fontSize: "0.47rem", letterSpacing: "0.22em", color: "#9A9489",
+                  textTransform: "uppercase", fontWeight: 700,
+                  textAlign: i === 5 ? "right" : "left",
+                }}>{h}</span>
+              ))}
+            </div>
+
+            {loadingPayments ? (
+              <p style={{ padding: "2rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>Cargando pagos pendientes...</p>
+            ) : filteredPayments.length === 0 ? (
+              <div style={{ padding: "3rem", textAlign: "center" }}>
+                <CheckCircle2 size={28} style={{ color: "#9A9489", margin: "0 auto 0.75rem" }} />
+                <p style={{ fontSize: "0.55rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Sin pendientes</p>
+                <p style={{ fontSize: "0.78rem", color: "#6B6260" }}>No hay pagos pendientes por conciliar.</p>
               </div>
-            </div>
-          ))
-        )}
-      </Card>
-
-      <Modal
-        open={Boolean(selectedPayment)}
-        onClose={() => {
-          if (!approving) {
-            setSelectedPayment(null)
-          }
-        }}
-        title="Confirmar aprobacion de pago"
-      >
-        <div className="py-4">
-          <div className="flex items-center gap-3 mb-4 text-[#0A3B7C]">
-            <Wallet size={22} />
-            <p className="font-semibold">El pago se registrara como APROBADO en tesoreria.</p>
+            ) : (
+              filteredPayments.map(payment => (
+                <div key={payment.paymentId} style={{
+                  display: "grid", gridTemplateColumns: COL6, gap: "0 1rem",
+                  alignItems: "center", padding: "0.85rem 1.25rem",
+                  background: "#ffffff", borderBottom: "1px solid rgba(12,12,10,0.06)",
+                  borderLeft: "3px solid #C9924B",
+                  transition: "background 0.12s",
+                }}
+                  onMouseOver={e => (e.currentTarget.style.background = "rgba(12,12,10,0.01)")}
+                  onMouseOut={e => (e.currentTarget.style.background = "#ffffff")}
+                >
+                  <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0C0C0A" }}>{payment.clientName}</span>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#C9924B" }}>{payment.invoiceNumber}</span>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 900, color: "#0C0C0A", letterSpacing: "-0.01em" }}>{formatQ(payment.amount)}</span>
+                  <span style={{ fontSize: "0.72rem", color: "#9A9489" }}>{payment.bankName ?? "—"}</span>
+                  <span style={{ fontSize: "0.68rem", fontFamily: "monospace", color: "#9A9489" }}>{payment.bankReference ?? "—"}</span>
+                  <div style={{ textAlign: "right" }}>
+                    <button onClick={() => setSelectedPayment(payment)} style={{
+                      display: "inline-flex", alignItems: "center", gap: "5px",
+                      padding: "0.35rem 0.85rem",
+                      background: "#3A8E2A", border: "none", borderRadius: "3px",
+                      fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.1em",
+                      textTransform: "uppercase", color: "#ffffff", cursor: "pointer",
+                      transition: "background 0.15s",
+                    }}
+                      onMouseOver={e => (e.currentTarget.style.background = "#2E7321")}
+                      onMouseOut={e => (e.currentTarget.style.background = "#3A8E2A")}
+                    >
+                      <CheckCircle2 size={11} /> Aprobar
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
+        </motion.div>
 
-          <div className="rounded-2xl bg-[#0A3B7C]/5 border border-[#0A3B7C]/15 p-4 mb-8 text-sm space-y-1">
-            <p>
-              Cliente: <strong>{selectedPayment?.clientName}</strong>
-            </p>
-            <p>
-              Factura: <strong>{selectedPayment?.invoiceNumber}</strong>
-            </p>
-            <p>
-              Monto: <strong>{selectedPayment ? formatAmount(selectedPayment.amount) : "-"}</strong>
-            </p>
-            <p>
-              Referencia: <strong>{selectedPayment?.bankReference ?? "-"}</strong>
-            </p>
-            <div className="pt-2">
-              <StatusBadge variant="warning">Estado actual: PENDIENTE</StatusBadge>
-            </div>
-          </div>
+      </div>
 
-          <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => setSelectedPayment(null)} disabled={approving}>
-              Cancelar
-            </Button>
-            <Button onClick={() => void confirmApprovePayment()} loading={approving}>
-              Confirmar aprobacion
-            </Button>
-          </div>
-        </div>
-      </Modal>
-    </FinancePageShell>
+      {selectedPayment && (
+        <ApproveModal
+          payment={selectedPayment}
+          onClose={() => !approving && setSelectedPayment(null)}
+          onConfirm={() => void confirmApprove()}
+          loading={approving}
+        />
+      )}
+    </div>
   )
 }
