@@ -42,7 +42,7 @@ export default function PilotoDashboardPage() {
       if (params.endDate)     query.endDate      = params.endDate
       if (params.clientName)  query.clientName   = params.clientName
       if (params.origin)      query.origin       = params.origin
-      if (params.destination) query.destinantion = params.destination
+      if (params.destination) query.destination = params.destination
       if (params.cargoType)   query.cargoType    = params.cargoType
       if (params.sortByWeight) query.sortByWeight = params.sortByWeight
 

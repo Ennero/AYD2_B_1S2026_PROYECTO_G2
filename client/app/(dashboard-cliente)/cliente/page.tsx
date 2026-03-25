@@ -246,10 +246,7 @@ function TabOrdenes({ orders }: { orders: RecentOrder[] }) {
   return (
     <div className="space-y-4">
       {/* Header row */}
-      <div className="flex items-center justify-between bg-white/70 border border-white/60 rounded-2xl px-4 py-2.5 shadow-sm">
-        <span className="inline-flex items-center gap-2 text-xs font-bold text-primary bg-white border border-primary/20 rounded-full px-3 py-1">
-          GET /api/client/orders?limit=3
-        </span>
+      <div className="flex items-center justify-end bg-white/70 border border-white/60 rounded-2xl px-4 py-2.5 shadow-sm">
         <Link
           href="/cliente/ordenes"
           className="text-xs font-bold text-primary hover:text-primary-hover flex items-center gap-1 transition-colors"

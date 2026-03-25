@@ -9,6 +9,7 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  Eye,
 } from "lucide-react"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
@@ -24,9 +25,16 @@ interface Invoice {
   serviceDescription: string
   felUuid: string | null
   totalAmount: number
+  subtotalAmount: number
+  taxAmount: number
   status: InvoiceStatus
   dueDate: string
   issueDate: string
+  certifiedAt: string | null
+  sentAt: string | null
+  clientName: string
+  clientNit: string
+  clientAddress: string
   pdfPath: string | null
 }
 
@@ -44,12 +52,160 @@ function formatQ(n: number) {
   return `Q ${n.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+function formatDate(d: string | null) {
+  if (!d) return "—"
+  try {
+    return new Date(d).toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" })
+  } catch {
+    return d
+  }
+}
+
 const STATUS_META: Record<InvoiceStatus, { label: string; cls: string }> = {
   BORRADOR:    { label: "Borrador",    cls: "bg-gray-100 text-gray-600" },
   CERTIFICADA: { label: "Certificada", cls: "bg-blue-50 text-blue-700" },
   ENVIADA:     { label: "Pendiente",   cls: "bg-amber-50 text-amber-700" },
   PAGADA:      { label: "Pagada",      cls: "bg-[#53B73E]/10 text-[#3A8E2A]" },
   RECHAZADA:   { label: "Rechazada",   cls: "bg-red-50 text-red-600" },
+}
+
+/* ─── Invoice Detail Modal ──────────────────────────────────────────────── */
+
+function InvoiceDetailModal({
+  invoice,
+  onClose,
+}: {
+  invoice: Invoice
+  onClose: () => void
+}) {
+  const meta = STATUS_META[invoice.status]
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-primary/8 flex items-center justify-center">
+              <Receipt size={18} className="text-primary" />
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-text-primary">{invoice.invoiceNumber}</h2>
+              <span className={cn("inline-block px-2 py-0.5 rounded-full text-xs font-bold mt-0.5", meta.cls)}>
+                {meta.label}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <X size={16} className="text-text-muted" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+
+          {/* Client info */}
+          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted">Datos del Cliente</p>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-text-muted text-xs">Nombre</span>
+                <p className="font-semibold text-text-primary">{invoice.clientName || "—"}</p>
+              </div>
+              <div>
+                <span className="text-text-muted text-xs">NIT</span>
+                <p className="font-semibold text-text-primary">{invoice.clientNit || "—"}</p>
+              </div>
+              <div className="col-span-2">
+                <span className="text-text-muted text-xs">Dirección</span>
+                <p className="font-semibold text-text-primary">{invoice.clientAddress || "—"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Service description */}
+          <div>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted mb-1">Descripción del Servicio</p>
+            <p className="text-sm text-text-primary">{invoice.serviceDescription || "Sin descripción"}</p>
+          </div>
+
+          {/* Financial breakdown */}
+          <div className="bg-[#e8d5c4]/30 rounded-xl p-4 space-y-2">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted">Desglose Financiero</p>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">Subtotal</span>
+                <span className="font-semibold">{formatQ(invoice.subtotalAmount)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-text-muted">IVA (12%)</span>
+                <span className="font-semibold">{formatQ(invoice.taxAmount)}</span>
+              </div>
+              <div className="h-px bg-gray-200 my-1" />
+              <div className="flex justify-between text-base">
+                <span className="font-bold text-text-primary">Total</span>
+                <span className="font-extrabold text-primary">{formatQ(invoice.totalAmount)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-text-muted text-xs">Fecha de Emisión</span>
+              <p className="font-semibold text-text-primary">{formatDate(invoice.issueDate)}</p>
+            </div>
+            <div>
+              <span className="text-text-muted text-xs">Fecha de Vencimiento</span>
+              <p className="font-semibold text-text-primary">{formatDate(invoice.dueDate)}</p>
+            </div>
+            {invoice.certifiedAt && (
+              <div>
+                <span className="text-text-muted text-xs">Fecha de Certificación</span>
+                <p className="font-semibold text-text-primary">{formatDate(invoice.certifiedAt)}</p>
+              </div>
+            )}
+            {invoice.sentAt && (
+              <div>
+                <span className="text-text-muted text-xs">Fecha de Envío</span>
+                <p className="font-semibold text-text-primary">{formatDate(invoice.sentAt)}</p>
+              </div>
+            )}
+          </div>
+
+          {/* FEL UUID */}
+          {invoice.felUuid && (
+            <div>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted mb-1">No. Autorización FEL</p>
+              <p className="font-mono text-xs text-text-primary bg-gray-50 rounded-lg px-3 py-2 break-all">
+                {invoice.felUuid}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-xl text-sm font-bold bg-primary hover:bg-primary-hover text-white transition-colors cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 /* ─── Skeleton ───────────────────────────────────────────────────────────── */
@@ -69,6 +225,7 @@ function TableSkeleton() {
 export default function FacturasPage() {
   const [invoicePage, setInvoicePage] = useState<InvoicePage | null>(null)
   const [loadingInvoices, setLoadingInvoices] = useState(true)
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
 
   const [search, setSearch] = useState("")
   const [searchInput, setSearchInput] = useState("")
@@ -102,6 +259,14 @@ export default function FacturasPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
+
+      {/* Invoice Detail Modal */}
+      {selectedInvoice && (
+        <InvoiceDetailModal
+          invoice={selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
+        />
+      )}
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
@@ -172,7 +337,7 @@ export default function FacturasPage() {
                   <th className="text-left pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">No. Autorización</th>
                   <th className="text-right pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">Monto</th>
                   <th className="text-center pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">Estado</th>
-                  <th className="text-center pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">PDF</th>
+                  <th className="text-center pb-3 px-2 font-extrabold text-text-primary text-xs uppercase tracking-wide">Detalle</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -184,7 +349,7 @@ export default function FacturasPage() {
                         {inv.invoiceNumber}
                       </td>
                       <td className="py-3.5 px-2 text-text-muted max-w-[200px] truncate">
-                        {inv.serviceDescription}
+                        {inv.serviceDescription || "—"}
                       </td>
                       <td className="py-3.5 px-2 font-mono text-xs text-text-muted">
                         {inv.felUuid ?? "—"}
@@ -200,16 +365,11 @@ export default function FacturasPage() {
                       <td className="py-3.5 px-2">
                         <div className="flex items-center justify-center gap-2">
                           <button
-                            title="Descargar PDF"
-                            disabled={!inv.pdfPath}
-                            className={cn(
-                              "w-9 h-9 rounded-lg flex items-center justify-center transition-colors",
-                              inv.pdfPath
-                                ? "bg-red-500 hover:bg-red-600 text-white cursor-pointer shadow-sm"
-                                : "bg-gray-100 text-gray-300 cursor-not-allowed"
-                            )}
+                            title="Ver Detalle"
+                            onClick={() => setSelectedInvoice(inv)}
+                            className="w-9 h-9 rounded-lg flex items-center justify-center bg-primary/10 hover:bg-primary/20 text-primary cursor-pointer shadow-sm transition-colors"
                           >
-                            <FileText size={15} />
+                            <Eye size={15} />
                           </button>
                           {inv.status === "PAGADA" && (
                             <span className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#53B73E]/10 text-[#3A8E2A]">

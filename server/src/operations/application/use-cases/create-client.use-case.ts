@@ -107,7 +107,7 @@ export class CreateClientUseCase {
       return { savedClient };
     });
 
-    const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3001');
+    const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3000');
     this.emailService
       .sendWelcome({
         to: normalizedEmail,
