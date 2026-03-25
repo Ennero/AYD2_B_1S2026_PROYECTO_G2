@@ -10,6 +10,7 @@ export interface RouteItem {
   distanceKm: number;
   estimatedHours: number;
   isInternational: boolean;
+  isActive: boolean;
 }
 
 @Injectable()
@@ -36,6 +37,7 @@ export class GetRoutesUseCase {
       distanceKm: Number(r.distanceKm),
       estimatedHours: Number(r.estimatedHours),
       isInternational: r.isInternational,
+      isActive: r.isActive,
     }));
   }
 }

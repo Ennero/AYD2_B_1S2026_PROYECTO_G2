@@ -2,7 +2,7 @@
 
 > **Propósito**: Este documento es un manual paso a paso que describe el flujo completo del MVP de LogiTrans, desde la pantalla de inicio hasta el pago de una factura y su reflejo en el dashboard gerencial. Sigue cada sección en orden, captura una pantalla en cada `📸 CAPTURA` y pégala en la sección correspondiente.
 >
-> **URL base**: `http://localhost:3000`
+> **Acceso al sistema**: Portal de Clientes LogiTrans (según ambiente configurado)
 >
 > **Credenciales de referencia**: Consultar `docs/mvp_accessos_usuarios.md`
 
@@ -32,7 +32,7 @@
 
 ### 1.1 Pantalla Principal
 
-Al navegar a `http://localhost:3000`, verás la pantalla de bienvenida de **LogiTrans Guatemala**.
+Al ingresar al Portal de Clientes LogiTrans, verás la pantalla de bienvenida de **LogiTrans Guatemala**.
 
 - En el centro de la pantalla aparece lo que puede hacer este sistema.
 
@@ -91,11 +91,13 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Nombre Contacto Principal | `Roberto Álvarez Méndez` |
 | Email Contacto | `deennerparaprobar@gmail.com` |
 | Contraseña | `probando2026` |
-| Teléfono Contacto | `22001234` |
+| Teléfono Contacto | `+502` + `22001234` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
 | Riesgo de Mercancia | `BAJO` |
 | Riesgo Lavado de Dinero | `BAJO` |
+
+> Nota: el teléfono se captura en dos partes (prefijo país y número local), y se almacena en formato canónico `+50222001234` (también aplica para `+503` y `+504`).
 
 4. Una vez completado, presiona el botón **"Guardar"** o **"Registrar"**.
 5. El sistema mostrará un mensaje de confirmación: _"Cliente registrado exitosamente"_.
@@ -183,11 +185,21 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 
 ### 4.1 Login como Cliente
 
-1. Navega a `http://localhost:3000`.
+1. Ingresa al Portal de Clientes LogiTrans.
 2. Ingresa las credenciales del cliente.
 3. Serás redirigido al **Portal del Cliente**, que muestra un resumen de tus órdenes, saldo y contratos.
 
 > 📸 **CAPTURA**: Captura el dashboard del portal cliente con el resumen de su cuenta (contratos, órdenes y saldo).
+
+### 4.1.1 Recuperación de contraseña por token
+
+1. En "¿Olvidaste tu contraseña?", ingresa el correo del usuario.
+2. Revisa el correo recibido: incluye un **token de recuperación** (sin enlaces ni botones).
+3. Abre la pantalla de "Restablecer contraseña" en el portal.
+4. Ingresa manualmente el token, nueva contraseña y confirmación.
+5. Confirma el cambio.
+
+> Nota: el token expira en 30 minutos y es de un solo uso.
 
 ---
 
@@ -195,30 +207,26 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 
 1. En el menú lateral, haz clic en **"Nuevo Servicio"** u **"Ordenes"** → **"Solicitar Servicio"**.
 2. Se presenta el formulario de solicitud de orden.
+3. El sistema aplica automáticamente el **contrato vigente más reciente** del cliente autenticado.
+4. El selector de mercancía solo muestra **tipos autorizados por ese contrato vigente**.
 
 Ingresa los siguientes datos:
 
 | Campo | Valor de ejemplo |
 |-------|-------------------|
-| Ruta | `Ciudad de Guatemala → Puerto Barrios` |
+| Contrato | `Aplicado automáticamente por el sistema` |
 | Tipo de Carga | `CARGA GENERAL` |
 | Descripción de la Carga | `Electrodomésticos para distribución` |
 | Peso Declarado | `8.5 Ton` |
 | Dirección de Recogida | `6a Av. 12-34 Zona 1, Ciudad de Guatemala` |
 | Dirección de Entrega | `Puerto Barrios, Izabal - Almacén Central` |
-| Fecha solicitada | `2026-04-11` |
 
-3. Antes de confirmar, el sistema mostrará el **costo estimado** calculado automáticamente:
-   - Distancia: 300 km
-   - Tarifa camión pesado: Q12.50/km × descuento 5% = Q 11.875/km
-   - Subtotal: Q 3,562.50 + IVA 12% = **Total aprox. Q 3,990.00**
-
-4. Confirma presionando **"Solicitar Servicio"** o **"Crear Orden"**.
-5. La orden será creada con estado **`REGISTRADA`** y se notifica al equipo logístico.
+5. Confirma presionando **"Solicitar Servicio"** o **"Crear Orden"**.
+6. La orden será creada con estado **`REGISTRADA`** y se notifica al equipo logístico.
 
 > 📸 **CAPTURA**: Captura el formulario de nueva orden con los datos de ejemplo ingresados.
 
-> 📸 **CAPTURA**: Captura la confirmación de la orden creada mostrando el número de orden (ej: `ORD-000001`) y el costo estimado.
+> 📸 **CAPTURA**: Captura la confirmación de la orden creada mostrando el número de orden (ej: `ORD-000001`) y el contrato aplicado automáticamente.
 
 ---
 
@@ -600,7 +608,7 @@ El Dashboard Gerencial muestra:
   ```bash
   docker-compose up -d
   ```
-- La URL del sistema es `http://localhost:3000`.
+- El acceso se realiza en el Portal de Clientes LogiTrans según el ambiente configurado.
 - Los datos del seed ya contienen órdenes en diferentes etapas del flujo para enriquecer la demostración; no es necesario crear todo desde cero.
 - Para una demostración más rápida del MVP, puedes saltar al **paso 9** usando una factura `BORRADOR` ya existente en la bandeja de Finanzas (creada por el seed).
 - Las credenciales completas están en `docs/mvp_accessos_usuarios.md`.

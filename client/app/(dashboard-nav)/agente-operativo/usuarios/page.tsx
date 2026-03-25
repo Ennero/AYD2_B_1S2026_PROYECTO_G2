@@ -6,6 +6,13 @@ import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { toast } from "sonner"
 import { Users, Search, Pencil, X, RefreshCw, ChevronDown } from "lucide-react"
+import {
+  buildPrefixedPhone,
+  normalizeLocalPhone,
+  PHONE_COUNTRIES,
+  splitPrefixedPhone,
+  type PhoneCountryCode,
+} from "@/lib/utils/phone"
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -58,7 +65,8 @@ function EditModal({
   const [form, setForm] = useState({
     fullName: user.fullName,
     email: user.email,
-    phone: user.phone ?? "",
+    phoneCountry: splitPrefixedPhone(user.phone).countryCode as PhoneCountryCode,
+    phoneLocal: splitPrefixedPhone(user.phone).localNumber,
     isActive: user.isActive,
   })
   const [saving, setSaving] = useState(false)
@@ -73,7 +81,7 @@ function EditModal({
       const payload = {
         fullName: form.fullName.trim(),
         email: form.email.trim(),
-        phone: form.phone.trim(),
+        phone: buildPrefixedPhone(form.phoneCountry, form.phoneLocal) || undefined,
         isActive: form.isActive,
       }
       const response = await api.patch<UpdateUserResponse>(
@@ -166,13 +174,31 @@ function EditModal({
 
             <div>
               <label style={labelStyle}>Teléfono</label>
-              <input
-                value={form.phone}
-                onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))}
-                style={inputStyle}
-                onFocus={e => (e.target.style.borderColor = "#C9924B")}
-                onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
-              />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
+                <select
+                  value={form.phoneCountry}
+                  onChange={(e) => setForm((s) => ({ ...s, phoneCountry: e.target.value as PhoneCountryCode }))}
+                  style={inputStyle}
+                  onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                  onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
+                >
+                  {PHONE_COUNTRIES.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={form.phoneLocal}
+                  onChange={(e) =>
+                    setForm((s) => ({ ...s, phoneLocal: normalizeLocalPhone(e.target.value) }))
+                  }
+                  placeholder="22001234"
+                  style={inputStyle}
+                  onFocus={e => (e.target.style.borderColor = "#C9924B")}
+                  onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.1)")}
+                />
+              </div>
             </div>
 
             {/* Toggle activo */}

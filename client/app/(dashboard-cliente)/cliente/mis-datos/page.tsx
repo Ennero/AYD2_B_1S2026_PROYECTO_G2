@@ -172,7 +172,7 @@ export default function MisDatosPage() {
     try {
       await api.post(ENDPOINTS.AUTH.RECOVERY, { email: profile.user.email }, { skipAuth: true, silentError: true })
       setRecoverySent(true)
-      toast.success(`Enlace de recuperación enviado a ${profile.user.email}`)
+      toast.success(`Token de recuperación enviado a ${profile.user.email}`)
     } catch {
       toast.error("No se pudo enviar el correo. Intenta más tarde.")
     } finally {
@@ -412,35 +412,22 @@ export default function MisDatosPage() {
                   para restablecerla sin necesidad de la contraseña actual.
                 </p>
 
-                {recoverySent ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#3A8E2A", fontSize: "0.82rem", fontWeight: 600 }}>
-                    <CheckCircle2 size={15} />
-                    Enlace enviado. Revisa tu bandeja de entrada.
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => void handleSendRecovery()}
-                    disabled={sendingRecovery}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: "6px",
-                      padding: "0.55rem 1rem", background: "none",
-                      border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
-                      fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
-                      textTransform: "uppercase", color: "#6B6260",
-                      cursor: sendingRecovery ? "not-allowed" : "pointer",
-                      opacity: sendingRecovery ? 0.6 : 1, transition: "border-color 0.15s",
-                    }}
-                    onMouseOver={e => { if (!sendingRecovery) e.currentTarget.style.borderColor = "rgba(12,12,10,0.25)" }}
-                    onMouseOut={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
-                  >
-                    <Send size={12} />
-                    {sendingRecovery ? "Enviando…" : "Enviar enlace de recuperación"}
-                  </button>
-                )}
-              </div>
+          {recoverySent ? (
+            <div className="flex items-center gap-2 text-[#3A8E2A] text-sm font-medium">
+              <CheckCircle2 size={16} />
+              Token enviado. Revisa tu bandeja de entrada.
             </div>
-          </motion.div>
-
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              loading={sendingRecovery}
+              onClick={() => void handleSendRecovery()}
+            >
+              <Send size={14} />
+              Enviar token de recuperación
+            </Button>
+          )}
         </div>
       </div>
     </div>

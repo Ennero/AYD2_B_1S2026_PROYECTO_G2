@@ -9,8 +9,16 @@ import {
 import { toast } from "sonner"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
-
-const EASE = [0.16, 1, 0.3, 1] as const
+import { cn } from "@/lib/utils/cn"
+import Button from "@/components/ui/Button"
+import Input from "@/components/ui/Input"
+import {
+  buildPrefixedPhone,
+  normalizeLocalPhone,
+  PHONE_COUNTRIES,
+  splitPrefixedPhone,
+  type PhoneCountryCode,
+} from "@/lib/utils/phone"
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -25,11 +33,18 @@ interface Contact {
 interface ContactForm {
   contactName: string
   contactEmail: string
-  contactPhone: string
+  contactPhoneCountry: PhoneCountryCode
+  contactPhoneLocal: string
   positionTitle: string
 }
 
-const EMPTY_FORM: ContactForm = { contactName: "", contactEmail: "", contactPhone: "", positionTitle: "" }
+const EMPTY_FORM: ContactForm = {
+  contactName: "",
+  contactEmail: "",
+  contactPhoneCountry: "+502",
+  contactPhoneLocal: "",
+  positionTitle: "",
+}
 
 /* ─── Avatar ─────────────────────────────────────────────────────────────── */
 
@@ -109,9 +124,16 @@ function ContactModal({
 
   useEffect(() => {
     if (open) {
-      setForm(editing
-        ? { contactName: editing.contactName, contactEmail: editing.contactEmail, contactPhone: editing.contactPhone ?? "", positionTitle: editing.positionTitle ?? "" }
-        : EMPTY_FORM
+      setForm(
+        editing
+          ? {
+              contactName: editing.contactName,
+              contactEmail: editing.contactEmail,
+              contactPhoneCountry: splitPrefixedPhone(editing.contactPhone).countryCode,
+              contactPhoneLocal: splitPrefixedPhone(editing.contactPhone).localNumber,
+              positionTitle: editing.positionTitle ?? "",
+            }
+          : EMPTY_FORM,
       )
     }
   }, [open, editing])
@@ -127,7 +149,7 @@ function ContactModal({
       const payload = {
         contactName: form.contactName.trim(),
         contactEmail: form.contactEmail.trim(),
-        contactPhone: form.contactPhone.trim() || undefined,
+        contactPhone: buildPrefixedPhone(form.contactPhoneCountry, form.contactPhoneLocal) || undefined,
         positionTitle: form.positionTitle.trim() || undefined,
       }
       let contact: Contact
@@ -195,43 +217,62 @@ function ContactModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={(e) => void handleSubmit(e)} style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <FormField label="Nombre completo *" value={form.contactName} onChange={(v) => setForm((f) => ({ ...f, contactName: v }))} placeholder="Ej. María García" disabled={saving} />
-          <FormField label="Correo electrónico *" type="email" value={form.contactEmail} onChange={(v) => setForm((f) => ({ ...f, contactEmail: v }))} placeholder="contacto@empresa.com" disabled={saving} />
-          <FormField label="Teléfono" value={form.contactPhone} onChange={(v) => setForm((f) => ({ ...f, contactPhone: v }))} placeholder="+502 5555-0000" disabled={saving} />
-          <FormField label="Cargo / Puesto" value={form.positionTitle} onChange={(v) => setForm((f) => ({ ...f, positionTitle: v }))} placeholder="Ej. Gerente de Logística" disabled={saving} />
+        <form onSubmit={(e) => void handleSubmit(e)} className="p-6 space-y-4">
+          <Input
+            label="Nombre completo *"
+            value={form.contactName}
+            onChange={(e) => setForm((f) => ({ ...f, contactName: e.target.value }))}
+            placeholder="Ej. María García"
+            disabled={saving}
+          />
+          <Input
+            label="Correo electrónico *"
+            type="email"
+            value={form.contactEmail}
+            onChange={(e) => setForm((f) => ({ ...f, contactEmail: e.target.value }))}
+            placeholder="contacto@empresa.com"
+            disabled={saving}
+          />
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-1.5" style={{ color: "#0C0C0A", letterSpacing: "0.01em" }}>
+              Teléfono
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={form.contactPhoneCountry}
+                onChange={(e) => setForm((f) => ({ ...f, contactPhoneCountry: e.target.value as PhoneCountryCode }))}
+                disabled={saving}
+                className="w-full rounded-lg px-3 py-2.5 text-sm bg-white border border-black/15 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              >
+                {PHONE_COUNTRIES.map((country) => (
+                  <option key={country.code} value={country.code}>{country.label}</option>
+                ))}
+              </select>
+              <input
+                value={form.contactPhoneLocal}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, contactPhoneLocal: normalizeLocalPhone(e.target.value) }))
+                }
+                placeholder="22001234"
+                disabled={saving}
+                className="w-full rounded-lg px-4 py-2.5 text-sm bg-white border border-black/15 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              />
+            </div>
+            <p className="mt-1 text-xs text-text-muted">Formato guardado: +50X seguido de 8 dígitos.</p>
+          </div>
+          <Input
+            label="Cargo / Puesto"
+            value={form.positionTitle}
+            onChange={(e) => setForm((f) => ({ ...f, positionTitle: e.target.value }))}
+            placeholder="Ej. Gerente de Logística"
+            disabled={saving}
+          />
 
-          <div style={{ display: "flex", gap: "10px", paddingTop: "0.5rem" }}>
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                flex: 1, padding: "0.65rem 1rem",
-                background: saving ? "rgba(201,146,75,0.5)" : "#C9924B",
-                border: "none", borderRadius: "4px", color: "#ffffff",
-                fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
-                textTransform: "uppercase", cursor: saving ? "not-allowed" : "pointer",
-                transition: "background 0.15s",
-              }}
-              onMouseOver={e => { if (!saving) e.currentTarget.style.background = "#b5833f" }}
-              onMouseOut={e => { if (!saving) e.currentTarget.style.background = "#C9924B" }}
-            >
-              {saving ? "Guardando…" : (editing ? "Guardar cambios" : "Agregar contacto")}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={saving}
-              style={{
-                padding: "0.65rem 1.1rem", background: "none",
-                border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
-                color: "#6B6260", fontSize: "0.62rem", fontWeight: 700,
-                letterSpacing: "0.1em", textTransform: "uppercase",
-                cursor: saving ? "not-allowed" : "pointer", transition: "border-color 0.15s",
-              }}
-              onMouseOver={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.25)")}
-              onMouseOut={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
-            >
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" loading={saving} className="flex-1">
+              {editing ? "Guardar cambios" : "Agregar contacto"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
               Cancelar
             </button>
           </div>

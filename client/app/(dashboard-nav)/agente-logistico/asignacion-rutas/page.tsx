@@ -17,7 +17,14 @@ export default function AsignacionRutasPage() {
   useEffect(() => {
     api
       .get<{ data: RouteInfo[] }>(ENDPOINTS.LOGISTICS.ROUTES)
-      .then(({ data }) => setRoutes(data.data))
+      .then(({ data }) =>
+        setRoutes(
+          (data.data ?? []).map((route) => ({
+            ...route,
+            isActive: route.isActive ?? true,
+          }))
+        )
+      )
       .catch(() => setRoutes([]))
       .finally(() => setLoading(false))
   }, [])

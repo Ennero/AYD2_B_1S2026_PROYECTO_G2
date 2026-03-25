@@ -1,5 +1,7 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsEmail, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsEmail, MinLength, Matches } from 'class-validator';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
+
+const PHONE_PATTERN = /^\+50[234]\d{8}$/;
 
 export class CreateClientDto {
   @IsString()
@@ -30,6 +32,9 @@ export class CreateClientDto {
 
   @IsString()
   @IsOptional()
+  @Matches(PHONE_PATTERN, {
+    message: 'primaryContactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+  })
   primaryContactPhone?: string;
 
   @IsEnum(RiskLevel)

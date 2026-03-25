@@ -39,6 +39,12 @@ Todas las cuentas de prueba comparten la misma contrasena para facilitar la cali
   - Antes de certificar, es obligatorio validar NIT en la bandeja FEL.
 - **Estado ENVIADA**: Significa que la factura ya fue **certificada** (tiene UUID FEL) y **enviada** por correo al cliente final.
 
+## Notas utiles de autenticacion y comunicaciones
+
+- **Recuperacion de contrasena**: el correo envia un token hexadecimal largo (64 caracteres), sin enlace directo. El usuario debe copiarlo y pegarlo en la pantalla de restablecimiento.
+- **Politica de correos MVP**: los correos transaccionales se envian sin botones ni links; incluyen instrucciones operativas y datos de referencia (portal, contrato, factura, token).
+- **Telefonos de contacto**: en formularios clave se capturan con prefijo de pais (`+502`, `+503`, `+504`) y se persisten en formato canonico prefijado.
+
 ### Endpoints tecnicos (FEL)
 - Endpoint de validacion NIT: `POST /api/certifier/invoices/{INVOICE_ID}/validate-nit`.
 - Endpoint de rechazo FEL: `PATCH /api/certifier/invoices/{INVOICE_ID}/reject`.
