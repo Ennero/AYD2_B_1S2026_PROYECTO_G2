@@ -30,7 +30,7 @@ export class EmailService {
     @Inject(EMAIL_SERVICE_TOKEN) private readonly transport: IEmailService,
     private readonly config: ConfigService,
   ) {
-    this.portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3001');
+    this.portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3000');
   }
 
   // ─── HU-02: Bienvenida con credenciales ──────────────────────────────────

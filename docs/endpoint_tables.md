@@ -776,11 +776,12 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
   },
   "body": {
-    "ORIGIN": "CIUDAD DE GUATEMALA",
-    "DESTINATION": "PUERTO BARRIOS",
-    "DISTANCE_KM": 295,
-    "ESTIMATED_HOURS": 6.5,
-    "IS_ACTIVE": true
+    "routeCode": "GUA-ZAC",
+    "origin": "CIUDAD DE GUATEMALA",
+    "destination": "ZACAPA",
+    "distanceKm": 145.5,
+    "estimatedHours": 3.5,
+    "isInternational": false
   }
 }</pre></td>
       <td><pre>{

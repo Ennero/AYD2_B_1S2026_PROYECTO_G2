@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
+import { TransportUnit } from '../../../infrastructure/database/typeorm/entities/transport-unit.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
 
 export interface AssignOrderInput {
@@ -33,6 +34,7 @@ export class AssignOrderUseCase {
     const unitId = parseInt(unitIdStr, 10);
 
     const orderRepo = this.dataSource.getRepository(Order);
+    const unitRepo = this.dataSource.getRepository(TransportUnit);
 
     const order = await orderRepo.findOne({
       where: { orderId: input.orderId },
@@ -57,6 +59,9 @@ export class AssignOrderUseCase {
 
     // save() genera un UPDATE que activa los triggers de la DB
     const saved = await orderRepo.save(order);
+
+    // Marcar unidad como no disponible
+    await unitRepo.update(unitId, { isAvailable: false });
 
     return {
       orderId: saved.orderId,

@@ -31,22 +31,22 @@
       - [Sprint Retrospective](#sprint-retrospective)
   - [Fase 2 — Desarrollo Principal](#fase-2--desarrollo-principal)
     - [Sprint 3](#sprint-3)
+      - [Daily Scrum 1 — 16 de marzo de 2026](#daily-scrum-1--16-de-marzo-de-2026)
+      - [Daily Scrum 2 — 17 de marzo de 2026](#daily-scrum-2--17-de-marzo-de-2026)
+      - [Sprint Retrospective — 18 de marzo de 2026](#sprint-retrospective--18-de-marzo-de-2026)
+    - [Sprint 4](#sprint-4)
+      - [Daily Scrum 1 — 20 de marzo de 2026](#daily-scrum-1--20-de-marzo-de-2026)
+      - [Daily Scrum 2 — 21 de marzo de 2026](#daily-scrum-2--21-de-marzo-de-2026)
+      - [Sprint Retrospective — 22 de marzo de 2026](#sprint-retrospective--22-de-marzo-de-2026)
+  - [Fase 3 — Integración y QA](#fase-3--integración-y-qa)
+    - [Sprint 5](#sprint-5)
       - [Daily Scrum 1](#daily-scrum-1-1)
       - [Daily Scrum 2](#daily-scrum-2-1)
       - [Sprint Retrospective](#sprint-retrospective-1)
-    - [Sprint 4](#sprint-4)
+    - [Sprint 6](#sprint-6)
       - [Daily Scrum 1](#daily-scrum-1-2)
       - [Daily Scrum 2](#daily-scrum-2-2)
       - [Sprint Retrospective](#sprint-retrospective-2)
-  - [Fase 3 — Integración y QA](#fase-3--integración-y-qa)
-    - [Sprint 5](#sprint-5)
-      - [Daily Scrum 1](#daily-scrum-1-3)
-      - [Daily Scrum 2](#daily-scrum-2-3)
-      - [Sprint Retrospective](#sprint-retrospective-3)
-    - [Sprint 6](#sprint-6)
-      - [Daily Scrum 1](#daily-scrum-1-4)
-      - [Daily Scrum 2](#daily-scrum-2-4)
-      - [Sprint Retrospective](#sprint-retrospective-4)
   - [Herramientas Utilizadas](#herramientas-utilizadas)
 
 ---
@@ -128,10 +128,10 @@
 **202302220 - Enner Esaí Mendizabal Castro**
 
 *¿Qué hice ayer?*
-- Finalizó la definición de los drivers de restricción y calidad, así como los requerimientos funcionales, no funcionales y arquitecturales del sistema
+- Dejé cerrados los drivers de calidad/restricción y consolidé el paquete de requisitos (funcionales, no funcionales y arquitecturales)
 
 *¿Qué voy a hacer hoy?*
-- Se enfocará en levantar las características priorizadas del sistema, elaborar los diagramas de casos de uso y matrices de trazabilidad, e identificar a los stakeholders con sus respectivas preocupaciones arquitectónicas
+- Voy a levantar características priorizadas, avanzar en los diagramas de casos de uso y trazabilidad, e identificar stakeholders con sus preocupaciones
 
 *¿Tengo algún impedimento?*
 - No
@@ -141,23 +141,23 @@
 **202202410 - Marcos Daniel Bonifasi de León**
 
 *¿Qué hice ayer?*
-- Concluyó la elaboración del diagrama de contexto del sistema
+- Terminé el diagrama de contexto del sistema
 
 *¿Qué voy a hacer hoy?*
-- Iniciará el trabajo en los mockups de la interfaz de usuario
+- Empezaré a desarrollar los mockups de la interfaz
 
 *¿Tengo algún impedimento?*
-- Tuvo dudas sobre el formato correcto del diagrama, pero las resolvió de manera autónoma mediante investigación propia
+- Al inicio tuve dudas con el formato del diagrama, pero las resolví investigando por mi cuenta
 
 ---
 
 **202300670 - David Estuardo Barrios Ramírez**
 
 *¿Qué hice ayer?*
-- Inició la redacción de la justificación del diseño arquitectónico del sistema
+- Inicié la redacción de la justificación de las decisiones de diseño arquitectónico
 
 *¿Qué voy a hacer hoy?*
-- Ajustará la documentación conforme evolucione la planificación arquitectónica y comenzará con los mockups
+- Ajustaré la documentación conforme evolucione la arquitectura y arrancaré con los mockups
 
 *¿Tengo algún impedimento?*
 - No
@@ -167,36 +167,36 @@
 **201807398 - Anyelo Gustavo Hernández Ayala**
 
 *¿Qué hice ayer?*
-- Concluyó la lectura integral del proyecto, avanzó en el diagrama de bloques y estableció la base de los mockups para el módulo de registro de transportes
+- Terminé de leer el enunciado, avancé en el diagrama de bloques y dejé una base de mockups para el registro de transportes
 
 *¿Qué voy a hacer hoy?*
-- Completará el diagrama de bloques del sistema
+- Voy a cerrar el diagrama de bloques del sistema
 
 *¿Tengo algún impedimento?*
-- Limitaciones de tiempo derivadas de compromisos académicos paralelos
+- Tengo limitaciones de tiempo por otros compromisos académicos
 
 ---
 
 **202200214 - Pablo Alejandro Marroquin Cutz**
 
 *¿Qué hice ayer?*
-- Inició el diagrama de despliegue y dedicó tiempo a comprender el alcance del proyecto
+- Arranqué el diagrama de despliegue y me enfoqué en entender el alcance del proyecto
 
 *¿Qué voy a hacer hoy?*
-- Finalizará el diagrama de despliegue
+- Voy a finalizar el diagrama de despliegue
 
 *¿Tengo algún impedimento?*
-- Limitaciones de tiempo por compromisos académicos paralelos
+- Tengo poco tiempo por evaluaciones/compromisos de la universidad
 
 ---
 
 **202004071 - Henry David Quel Santos**
 
 *¿Qué hice ayer?*
-- Terminó de revisar el enunciado y la documentación existente, avanzó en el diagrama de componentes y estableció los lineamientos visuales de los mockups para garantizar consistencia en el equipo
+- Terminé de revisar el enunciado y la documentación, avancé con el diagrama de componentes y definí lineamientos visuales para unificar los mockups
 
 *¿Qué voy a hacer hoy?*
-- Continuará con el desarrollo de los mockups
+- Seguiré desarrollando los mockups
 
 *¿Tengo algún impedimento?*
 - No
@@ -204,7 +204,7 @@
 ---
 
 **Resumen del Daily:**
-El equipo avanzó en paralelo en la documentación arquitectónica y los primeros bosquejos del sistema. Enner centralizó el cierre del DDA, mientras el resto del equipo distribuyó el esfuerzo entre los distintos diagramas del sistema y los mockups iniciales. Henry tomó la iniciativa de definir los lineamientos visuales para asegurar coherencia en el diseño. Dos integrantes señalaron restricciones de tiempo por evaluaciones académicas coincidentes.
+El equipo avanzó en paralelo: se cerraron piezas de documentación arquitectónica y se dieron los primeros pasos en mockups. Enner consolidó DDA y requisitos; el resto repartió esfuerzos entre diagramas y prototipos. Henry impulsó lineamientos visuales para mantener consistencia. Dos integrantes reportaron limitaciones de tiempo por evaluaciones académicas.
 
 **Notas Importantes:**
 - Henry lideró la definición de los lineamientos visuales para mantener consistencia en los mockups del equipo
@@ -225,36 +225,36 @@ El equipo avanzó en paralelo en la documentación arquitectónica y los primero
 **202302220 - Enner Esaí Mendizabal Castro**
 
 *¿Qué hice ayer?*
-- Consolidó los drivers de calidad y restricción, junto con los requerimientos funcionales, no funcionales y arquitecturales del sistema
+- Terminé de consolidar drivers y requisitos del sistema
 
 *¿Qué voy a hacer hoy?*
-- Se dedicará a estructurar y documentar el Scrum Management del proyecto
+- Hoy me enfocaré en estructurar y documentar el Scrum Management
 
 *¿Tengo algún impedimento?*
-- Enfrenta limitaciones generales de tiempo, aunque no reporta ningún bloqueo relacionado con el proyecto
+- Hay restricciones generales de tiempo, pero sin bloqueos directos del proyecto
 
 ---
 
 **202202410 - Marcos Daniel Bonifasi de León**
 
 *¿Qué hice ayer?*
-- Inició el desarrollo de los mockups y concluyó el diagrama que tenía asignado
+- Empecé los mockups y dejé finalizado el diagrama asignado
 
 *¿Qué voy a hacer hoy?*
-- Seguirá avanzando en el diseño de los mockups
+- Continuaré avanzando con los mockups
 
 *¿Tengo algún impedimento?*
-- El diagrama requirió múltiples iteraciones y cambios, lo que representó un obstáculo durante el proceso
+- El diagrama tomó varias iteraciones, lo que consumió más tiempo del esperado
 
 ---
 
 **202300670 - David Estuardo Barrios Ramírez**
 
 *¿Qué hice ayer?*
-- Concluyó la justificación de las decisiones de diseño de los componentes arquitectónicos
+- Cerré la justificación de las decisiones de diseño de componentes
 
 *¿Qué voy a hacer hoy?*
-- Continuará con los mockups del módulo de clientes y cubrirá los pendientes restantes
+- Seguiré con mockups del módulo de clientes y atenderé pendientes
 
 *¿Tengo algún impedimento?*
 - No
@@ -264,23 +264,23 @@ El equipo avanzó en paralelo en la documentación arquitectónica y los primero
 **201807398 - Anyelo Gustavo Hernández Ayala**
 
 *¿Qué hice ayer?*
-- Estuvo pendiente de la revisión de su diagrama por parte del equipo
+- Estuve esperando retroalimentación del equipo sobre mi diagrama
 
 *¿Qué voy a hacer hoy?*
-- Incorporará las correcciones y ajustes solicitados a su diagrama
+- Integraré correcciones y ajustes solicitados
 
 *¿Tengo algún impedimento?*
-- Tuvo inconvenientes de salud personales, aunque estos no afectaron su avance en el proyecto
+- Hubo un tema personal de salud, pero no afectó el avance en el proyecto
 
 ---
 
 **202200214 - Pablo Alejandro Marroquin Cutz**
 
 *¿Qué hice ayer?*
-- Completó la elaboración del diagrama de despliegue del sistema
+- Finalicé el diagrama de despliegue
 
 *¿Qué voy a hacer hoy?*
-- Aguardará la revisión de su diagrama para incorporar ajustes, y en paralelo comenzará con los mockups
+- Quedo atento a revisión para ajustar y, en paralelo, empezaré mockups
 
 *¿Tengo algún impedimento?*
 - No
@@ -290,10 +290,10 @@ El equipo avanzó en paralelo en la documentación arquitectónica y los primero
 **202004071 - Henry David Quel Santos**
 
 *¿Qué hice ayer?*
-- Continuó con el desarrollo de los mockups y finalizó el diagrama que tenía asignado
+- Seguí con mockups y dejé listo el diagrama asignado
 
 *¿Qué voy a hacer hoy?*
-- Seguirá avanzando en los mockups y realizará ajustes al diagrama en caso de ser necesario
+- Continuaré con mockups y haré ajustes si el diagrama lo requiere
 
 *¿Tengo algún impedimento?*
 - No
@@ -301,7 +301,7 @@ El equipo avanzó en paralelo en la documentación arquitectónica y los primero
 ---
 
 **Resumen del Daily:**
-El equipo se encontraba en la recta final de la documentación inicial. Enner completó los drivers y requerimientos y se focalizó en el Scrum Management. Marcos finalizó su diagrama tras varias iteraciones y avanzó en los mockups. David cerró la justificación de componentes y continuó con los mockups del módulo de clientes. Anyelo estuvo en espera de retroalimentación para iterar su diagrama. Pablo completó el diagrama de despliegue y se preparó para comenzar los mockups. Henry cerró su diagrama y continuó avanzando en los mockups.
+El equipo entró en la recta final de documentación base y mockups. Enner consolidó drivers/requisitos y se enfocó en Scrum Management. Marcos cerró su diagrama tras varias iteraciones y avanzó en prototipos. David terminó la justificación de componentes y siguió con mockups de clientes. Anyelo esperó retro para iterar. Pablo cerró despliegue y se alistó para mockups. Henry concluyó su diagrama y continuó con prototipos.
 
 **Notas Importantes:**
 - Anyelo reportó problemas de salud personales que no afectaron su rendimiento en el proyecto
@@ -322,107 +322,111 @@ El equipo se encontraba en la recta final de la documentación inicial. Enner co
 **202302220 - Enner Esaí Mendizabal Castro**
 
 *¿Qué salió bien en este sprint?*
-- La documentación, pese a los desafíos que presentó, cumplió satisfactoriamente con todos los requisitos del enunciado. Aunque el esfuerzo no fue completamente equitativo, el proceso se convirtió en una oportunidad de aprendizaje colectivo
+- A pesar de las dificultades, se logró entregar documentación completa y alineada al enunciado; el proceso sirvió para aprender como equipo
 
 *¿Qué no salió tan bien?*
-- La comprensión lectora del equipo en general dejó que desear, lo que generó retrabajo e interpretaciones erróneas a lo largo del sprint
+- Hubo problemas de interpretación del enunciado que provocaron retrabajo y ajustes innecesarios
 
 *¿Qué hemos aprendido?*
-- Que cada integrante tiene su propio ritmo y forma de trabajar, y que hay que respetar los tiempos personales de cada uno sin imponer sincronías que no son realistas
+- Que cada integrante trabaja a ritmos distintos y conviene coordinar sin imponer sincronías poco realistas
 
 *¿Qué haremos diferente la próxima vez?*
-- Dedicar tiempo real a leer y comprender el enunciado antes de comenzar, y gestionar de manera más consciente los tiempos individuales para que el equipo colabore de forma más equilibrada
+- Invertir tiempo real en una lectura y comprensión previa del enunciado, y balancear mejor la carga considerando tiempos individuales
 
 ---
 
 **202202410 - Marcos Daniel Bonifasi de León**
 
 *¿Qué salió bien en este sprint?*
-- Adquirió conocimiento sobre cómo elaborar documentación técnica y comprendió la importancia de entender el caso de negocio antes de diseñar una solución de software
+- Me sirvió para aprender cómo documentar técnicamente y entender que primero se debe clarificar el negocio antes de diseñar
 
 *¿Qué no salió tan bien?*
-- No dedicó suficiente tiempo al análisis detallado del proyecto, lo cual limitó su comprensión general del sistema
+- Faltó profundizar en el análisis inicial, lo que limitó la visión global del sistema
 
 *¿Qué hemos aprendido?*
-- Que la documentación técnica es una pieza fundamental en cualquier proyecto de software, tanto para el diseño como para la comunicación del equipo
+- Que la documentación técnica sostiene tanto el diseño como la comunicación interna
 
 *¿Qué haremos diferente la próxima vez?*
-- Invertir más tiempo y atención en la lectura y comprensión del enunciado del proyecto desde el inicio
+- Dedicar más tiempo desde el inicio a leer y comprender el enunciado
 
 ---
 
 **202300670 - David Estuardo Barrios Ramírez**
 
 *¿Qué salió bien en este sprint?*
-- Se logró construir una documentación completa y el ambiente de trabajo entre compañeros fue positivo y colaborativo
+- Se consiguió una documentación completa y se mantuvo un buen ambiente colaborativo
 
 *¿Qué no salió tan bien?*
-- La comunicación entre miembros del equipo fue insuficiente en ciertos momentos, lo que generó descoordinación
+- En algunos momentos faltó comunicación y eso generó descoordinación
 
 *¿Qué hemos aprendido?*
-- Que una documentación bien elaborada es esencial para el éxito del proyecto y la alineación del equipo
+- Que una documentación sólida es clave para alinear al equipo y asegurar el éxito
 
 *¿Qué haremos diferente la próxima vez?*
-- Mejorar los canales y la frecuencia de comunicación para que todos estén siempre alineados
+- Fortalecer canales y frecuencia de comunicación para mantener alineación constante
 
 ---
 
 **201807398 - Anyelo Gustavo Hernández Ayala**
 
 *¿Qué salió bien en este sprint?*
-- La documentación resultó ser completa y clara, siendo un entregable de calidad para el sprint
+- La documentación quedó clara y completa; fue un entregable sólido para el sprint
 
 *¿Qué no salió tan bien?*
-- La complejidad del proyecto dificultó su interpretación correcta, lo que pudo haber afectado las decisiones de diseño arquitectónico
+- La complejidad del proyecto hizo más difícil interpretar el enunciado y pudo influir en decisiones de diseño
 
 *¿Qué hemos aprendido?*
-- Que los cambios y correcciones son parte del proceso y representan un esfuerzo adicional considerable para el Scrum Master, por lo que deben valorarse y reconocerse adecuadamente
+- Que iterar con cambios y correcciones es normal, pero impacta bastante en el esfuerzo de coordinación (especialmente del Scrum Master)
 
 *¿Qué haremos diferente la próxima vez?*
-- Fortalecer la comunicación del equipo para anticipar y resolver ambigüedades antes de que se conviertan en problemas
+- Reforzar comunicación para detectar ambigüedades temprano y evitar problemas posteriores
 
 ---
 
 **202200214 - Pablo Alejandro Marroquin Cutz**
 
 *¿Qué salió bien en este sprint?*
-- El equipo demostró capacidad de adaptación para resolver los desafíos que surgieron durante el sprint
+- El equipo se adaptó bien y logró resolver los retos que fueron apareciendo
 
 *¿Qué no salió tan bien?*
-- Los cambios de último momento generaron presión innecesaria y afectaron el flujo de trabajo
+- Los ajustes de último momento aumentaron presión y cortaron el ritmo de trabajo
 
 *¿Qué hemos aprendido?*
-- Que la flexibilidad es una competencia esencial en el desarrollo de proyectos, donde los ajustes son parte inevitable del proceso
+- Que la flexibilidad es esencial, porque los ajustes del proyecto son inevitables
 
 *¿Qué haremos diferente la próxima vez?*
-- Mejorar la organización interna del equipo para reducir la acumulación de cambios tardíos y trabajar de manera más planificada
+- Ordenar mejor la planificación para reducir cambios tardíos y trabajar con mayor previsión
 
 ---
 
 **202004071 - Henry David Quel Santos**
 
 *¿Qué salió bien en este sprint?*
-- Se completó la documentación incorporando todas las mejoras propuestas, se definió el diseño visual inicial de los mockups y se desarrollaron los primeros prototipos del sistema
+- Se cerró la documentación con mejoras, se definió una base visual para mockups y se avanzó con prototipos iniciales
 
 *¿Qué no salió tan bien?*
-- La coordinación del equipo presentó fallos en algunos momentos, generando confusión sobre las formas de trabajo y lo que cada integrante debía implementar
+- Hubo momentos de descoordinación que causaron confusión sobre la forma de trabajo y responsabilidades
 
 *¿Qué hemos aprendido?*
-- Que una lectura detallada del enunciado es crucial para evitar malentendidos, y que los cambios propuestos por el Scrum Master son valiosos y deben ser bien recibidos
+- Que leer bien el enunciado evita malentendidos y que los ajustes propuestos por Scrum Master ayudan a mejorar el entregable
 
 *¿Qué haremos diferente la próxima vez?*
-- Hacer una lectura más rigurosa del proyecto desde el principio para que todos partan del mismo entendimiento antes de comenzar a trabajar
+- Hacer una lectura inicial más rigurosa para arrancar con un entendimiento común
 
 ---
 
 **Resumen del Sprint:**
-El primer sprint cerró con una documentación completa que cumplió con los requisitos establecidos. El equipo identificó como principales áreas de mejora la comprensión lectora del enunciado y la comunicación interna. Surgieron patrones comunes en las reflexiones: la necesidad de leer mejor el proyecto antes de distribuir tareas, mejorar la gestión del tiempo individual y fortalecer la coordinación del equipo. Los miembros valoraron el aprendizaje colectivo y reconocieron el esfuerzo del Scrum Master en mantener la calidad del entregable.
+El sprint cerró con documentación completa y alineada a los requisitos. Como mejoras principales, el equipo identificó la interpretación del enunciado y la comunicación interna. Se repitieron conclusiones: leer mejor antes de repartir tareas, coordinar tiempos individuales con más realismo y fortalecer la sincronización del equipo. También se reconoció el esfuerzo de coordinación del Scrum Master para sostener la calidad.
 
 **Notas Importantes:**
 - La comprensión insuficiente del enunciado fue el impedimento más recurrente del sprint
 - El Scrum Master asumió una carga considerable de correcciones y ajustes
 - El equipo reconoció la importancia de la documentación técnica como base del proyecto
 - La flexibilidad y la adaptación fueron habilidades que el equipo ejerció a lo largo del sprint
+
+**Tablero del Sprint (referencia):**
+
+![Tablero Sprint 1](imgs/kanban/kanban1.jpeg)
 
 ---
 
@@ -451,10 +455,10 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 **202302220 - Enner Esaí Mendizabal Castro**
 
 *¿Qué hice ayer?*
-- Comenzó a explorar los mockups ya distribuidos con Anyelo y aprendió a utilizar Figma como herramienta de diseño
+- Empecé a trabajar con los mockups asignados junto a Anyelo y me familiaricé con Figma
 
 *¿Qué voy a hacer hoy?*
-- Se enfocará en completar los mockups que tiene asignados
+- Me enfocaré en completar los mockups que tengo asignados
 
 *¿Tengo algún impedimento?*
 - No
@@ -464,10 +468,10 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 **202202410 - Marcos Daniel Bonifasi de León**
 
 *¿Qué hice ayer?*
-- Inició la elaboración de la presentación requerida para la evaluación de la primera fase del proyecto
+- Inicié la preparación de la presentación para la evaluación de la fase
 
 *¿Qué voy a hacer hoy?*
-- Continuará avanzando tanto en los mockups como en la presentación para la calificación
+- Continuaré avanzando con mockups y con la presentación
 
 *¿Tengo algún impedimento?*
 - No
@@ -477,10 +481,10 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 **202300670 - David Estuardo Barrios Ramírez**
 
 *¿Qué hice ayer?*
-- Intentó finalizar los mockups, aunque no logró completarlos por haber tenido una interpretación incorrecta de los requisitos
+- Intenté cerrar los mockups, pero detecté que tenía una interpretación incorrecta de parte de los requisitos
 
 *¿Qué voy a hacer hoy?*
-- Revisará con detenimiento los lineamientos de la presentación para identificar claramente las responsabilidades de cada integrante
+- Revisaré lineamientos de la presentación para aclarar responsabilidades y alcance por integrante
 
 *¿Tengo algún impedimento?*
 - No
@@ -490,10 +494,10 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 **201807398 - Anyelo Gustavo Hernández Ayala**
 
 *¿Qué hice ayer?*
-- Inició el desarrollo de los mockups asignados en coordinación con Enner
+- Arranqué los mockups asignados coordinándome con Enner
 
 *¿Qué voy a hacer hoy?*
-- Continuará hasta completar todos los mockups que le corresponden
+- Continuaré hasta terminar los mockups a mi cargo
 
 *¿Tengo algún impedimento?*
 - No
@@ -503,10 +507,10 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 **202200214 - Pablo Alejandro Marroquin Cutz**
 
 *¿Qué hice ayer?*
-- Inició el trabajo en sus mockups asignados
+- Empecé mis mockups asignados
 
 *¿Qué voy a hacer hoy?*
-- Seguirá avanzando en el desarrollo de los mockups
+- Seguiré avanzando con los mockups
 
 *¿Tengo algún impedimento?*
 - No
@@ -516,10 +520,10 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 **202004071 - Henry David Quel Santos**
 
 *¿Qué hice ayer?*
-- Continuó con el desarrollo de los mockups del sistema
+- Seguí avanzando con mockups del sistema
 
 *¿Qué voy a hacer hoy?*
-- Revisará los requisitos de la presentación para comprender con claridad las tareas a desarrollar por el equipo
+- Revisaré los requisitos de la presentación para aclarar qué debe desarrollar cada quien
 
 *¿Tengo algún impedimento?*
 - No
@@ -527,7 +531,7 @@ El primer sprint cerró con una documentación completa que cumplió con los req
 ---
 
 **Resumen del Daily:**
-El equipo inició el Sprint 2 con el foco puesto en los mockups y la preparación de la presentación para la primera fase. Enner comenzó a familiarizarse con Figma para el desarrollo de sus mockups. Marcos y Henry balancearon el avance en los mockups con la preparación de la presentación. David reconoció haber avanzado con una interpretación incorrecta de los requisitos y ajustó su enfoque. Anyelo y Pablo continuaron con el desarrollo de sus mockups de manera estable.
+El equipo arrancó el Sprint 2 enfocado en mockups y en la presentación de la fase. Enner se puso al día con Figma para ejecutar sus prototipos. Marcos y Henry dividieron esfuerzo entre mockups y presentación. David detectó un malentendido de requisitos y corrigió el rumbo. Anyelo y Pablo mantuvieron un avance estable en sus entregables.
 
 **Notas Importantes:**
 - David identificó un malentendido en los requisitos de sus mockups, requiriendo ajuste de enfoque
@@ -547,36 +551,36 @@ El equipo inició el Sprint 2 con el foco puesto en los mockups y la preparació
 **202302220 - Enner Esaí Mendizabal Castro**
 
 *¿Qué hice ayer?*
-- Completó los mockups que tenía asignados y elaboró el diagrama de flujo del sistema
+- Cerré mis mockups asignados y avancé con el diagrama de flujo del sistema
 
 *¿Qué voy a hacer hoy?*
-- Se dedicará a revisar el avance general del equipo para asegurar que todo esté en orden
+- Me dedicaré a revisar el avance general para asegurar consistencia y cierre
 
 *¿Tengo algún impedimento?*
-- Surgió incertidumbre sobre cómo distribuir correctamente las vistas, dado que la división se realizó por casos de uso en lugar de por módulos
+- Hay incertidumbre sobre cómo dividir vistas (por casos de uso vs. por módulos), lo que requiere alineación
 
 ---
 
 **202202410 - Marcos Daniel Bonifasi de León**
 
 *¿Qué hice ayer?*
-- Completó tanto los mockups como la presentación para la calificación
+- Terminé mockups y dejé lista la presentación
 
 *¿Qué voy a hacer hoy?*
-- Ha concluido todas sus tareas del sprint
+- Ya tengo el sprint cerrado desde mi lado
 
 *¿Tengo algún impedimento?*
-- Identificó que el sistema requería contemplar la escalabilidad hacia otras regiones con esquemas de impuestos diferentes, lo que implicó ajustes en su trabajo
+- Detecté un tema de escalabilidad por impuestos/regiones que obligó a ajustar el enfoque
 
 ---
 
 **202300670 - David Estuardo Barrios Ramírez**
 
 *¿Qué hice ayer?*
-- Repasó el trabajo realizado y profundizó en el estudio de las decisiones arquitectónicas documentadas
+- Revisé el trabajo realizado y profundicé en decisiones arquitectónicas documentadas
 
 *¿Qué voy a hacer hoy?*
-- Ha concluido todas sus tareas del sprint
+- Concluí mis tareas del sprint
 
 *¿Tengo algún impedimento?*
 - No
@@ -586,10 +590,10 @@ El equipo inició el Sprint 2 con el foco puesto en los mockups y la preparació
 **201807398 - Anyelo Gustavo Hernández Ayala**
 
 *¿Qué hice ayer?*
-- Concluyó la revisión de los lineamientos de la presentación y finalizó el desarrollo de sus mockups
+- Terminé de revisar lineamientos de la presentación y cerré mis mockups
 
 *¿Qué voy a hacer hoy?*
-- Ha concluido todas sus tareas del sprint
+- Ya cerré mis tareas del sprint
 
 *¿Tengo algún impedimento?*
 - No
@@ -599,10 +603,10 @@ El equipo inició el Sprint 2 con el foco puesto en los mockups y la preparació
 **202200214 - Pablo Alejandro Marroquin Cutz**
 
 *¿Qué hice ayer?*
-- Completó el mockup que tenía asignado
+- Finalicé el mockup asignado
 
 *¿Qué voy a hacer hoy?*
-- Se mantendrá atento a la asignación de secciones para la presentación final de la fase
+- Quedo atento a la asignación de secciones para la presentación final
 
 *¿Tengo algún impedimento?*
 - No
@@ -612,10 +616,10 @@ El equipo inició el Sprint 2 con el foco puesto en los mockups y la preparació
 **202004071 - Henry David Quel Santos**
 
 *¿Qué hice ayer?*
-- Finalizó los mockups asignados y revisó la presentación para validar su contenido
+- Terminé mockups y revisé la presentación para validar contenido
 
 *¿Qué voy a hacer hoy?*
-- Ha concluido todas sus tareas del sprint
+- Ya concluí mis tareas del sprint
 
 *¿Tengo algún impedimento?*
 - No
@@ -623,7 +627,7 @@ El equipo inició el Sprint 2 con el foco puesto en los mockups y la preparació
 ---
 
 **Resumen del Daily:**
-Al cierre del Sprint 2, la mayoría del equipo había concluido sus tareas. Enner asumió un rol de revisión general y planteó la interrogante sobre la distribución de vistas por CDU versus módulos. Marcos identificó el requerimiento de escalabilidad regional e incorporó los ajustes necesarios a su entregable. El resto de los integrantes completaron sus respectivos entregables y se encontraban en espera de las asignaciones para la presentación.
+Al cierre del Sprint 2, la mayoría del equipo ya había terminado. Enner tomó el rol de revisión y levantó la duda sobre cómo dividir vistas (CDU vs módulos). Marcos detectó un requisito de escalabilidad regional y ajustó su entregable. El resto quedó en espera de asignaciones para la presentación.
 
 **Notas Importantes:**
 - Enner identificó una ambigüedad en la división de vistas por CDU vs módulos, punto a clarificar para sprints futuros
@@ -643,107 +647,111 @@ Al cierre del Sprint 2, la mayoría del equipo había concluido sus tareas. Enne
 **202302220 - Enner Esaí Mendizabal Castro**
 
 *¿Qué salió bien en este sprint?*
-- El equipo logró compensar y superar las deficiencias del sprint anterior, especialmente en lo relacionado con la gestión del tiempo
+- Hubo un avance claro frente al sprint anterior, sobre todo en organización y manejo del tiempo
 
 *¿Qué no salió tan bien?*
-- Se arrastraron problemas del sprint anterior derivados de una comprensión insuficiente del enunciado, que impactaron el inicio de este sprint
+- Se heredaron confusiones del sprint anterior por interpretación del enunciado, y eso afectó el arranque
 
 *¿Qué hemos aprendido?*
-- El equipo reconoció la necesidad de una lectura colectiva y profunda del enunciado antes de comenzar la distribución de tareas
+- Se volvió evidente que necesitamos una lectura más profunda (idealmente conjunta) antes de repartir trabajo
 
 *¿Qué haremos diferente la próxima vez?*
-- Planificar de manera más estructurada antes de distribuir el trabajo, asegurándose de que todos hayan leído y comprendido el enunciado con anterioridad
+- Estructurar mejor la planificación previa y confirmar que todos comprendan el enunciado antes de distribuir tareas
 
 ---
 
 **202202410 - Marcos Daniel Bonifasi de León**
 
 *¿Qué salió bien en este sprint?*
-- Se adoptaron buenas prácticas de control de versiones, asegurándose de guardar los cambios antes de finalizar la jornada
+- Se mejoró la disciplina de versionamiento y cierre ordenado de cambios
 
 *¿Qué no salió tan bien?*
-- Tendió a depender de asistentes de IA en lugar de investigar por cuenta propia, lo que puede limitar el aprendizaje real
+- En algunos puntos se dependió demasiado de asistentes de IA, lo que puede frenar el aprendizaje profundo
 
 *¿Qué hemos aprendido?*
-- La colaboración cercana y la comunicación fluida con el Scrum Master facilita el trabajo y mejora los resultados del equipo
+- Que trabajar en cercanía con Scrum Master y comunicar a tiempo mejora resultados
 
 *¿Qué haremos diferente la próxima vez?*
-- Desarrollar el hábito de leer y analizar los materiales del proyecto con mayor profundidad y atención
+- Ser más rigurosos con lectura y análisis de materiales del proyecto
 
 ---
 
 **202300670 - David Estuardo Barrios Ramírez**
 
 *¿Qué salió bien en este sprint?*
-- La guía constante del Scrum Master fue determinante para mantener al equipo orientado y encaminado
+- La guía del Scrum Master ayudó a mantener al equipo enfocado y encaminado
 
 *¿Qué no salió tan bien?*
-- La interpretación del enunciado continuó siendo un punto débil, generando desalineamiento en algunos entregables
+- Persistieron fallas de interpretación del enunciado que generaron desalineación
 
 *¿Qué hemos aprendido?*
-- Contar con documentación sólida desde el inicio facilita significativamente el desarrollo y la toma de decisiones del equipo
+- Que una buena base documental facilita el desarrollo y las decisiones
 
 *¿Qué haremos diferente la próxima vez?*
-- Incrementar la frecuencia de reuniones de coordinación para establecer con mayor claridad el alcance y los lineamientos del trabajo a realizar
+- Aumentar reuniones de coordinación para aclarar alcance y lineamientos
 
 ---
 
 **201807398 - Anyelo Gustavo Hernández Ayala**
 
 *¿Qué salió bien en este sprint?*
-- El equipo trabajó de manera eficiente, logrando avanzar de forma constante durante el sprint
+- El equipo mantuvo un ritmo constante y eficiente durante el sprint
 
 *¿Qué no salió tan bien?*
-- Experimentó un nivel elevado de estrés durante el sprint, lo que afectó su experiencia de trabajo
+- Hubo bastante estrés durante el sprint, afectando la experiencia de trabajo
 
 *¿Qué hemos aprendido?*
-- Adquirió experiencia en la elaboración de documentación de calidad profesional, lo cual es un activo valioso para el proyecto
+- Que producir documentación con estándar profesional es un activo importante para el proyecto
 
 *¿Qué haremos diferente la próxima vez?*
-- Buscar mayor claridad y alineación en las directrices del equipo para reducir la incertidumbre durante el sprint
+- Alinear directrices con más claridad para reducir incertidumbre y estrés
 
 ---
 
 **202200214 - Pablo Alejandro Marroquin Cutz**
 
 *¿Qué salió bien en este sprint?*
-- El equipo logró cumplir con todos los entregables comprometidos para el sprint
+- Se cumplieron los entregables comprometidos del sprint
 
 *¿Qué no salió tan bien?*
-- Los cambios frecuentes e impredecibles durante el sprint generaron dificultades en el flujo de trabajo
+- Los cambios frecuentes y poco predecibles dificultaron el flujo de trabajo
 
 *¿Qué hemos aprendido?*
-- Desarrollaron como equipo la capacidad de adaptarse a las necesidades cambiantes del proyecto
+- Como equipo, fortalecimos la capacidad de adaptación a cambios
 
 *¿Qué haremos diferente la próxima vez?*
-- Gestionar mejor el tiempo y las reuniones, evitando subestimar el esfuerzo requerido y asumiendo los compromisos con mayor responsabilidad
+- Mejorar gestión de tiempo/reuniones y comprometerse con estimaciones más realistas
 
 ---
 
 **202004071 - Henry David Quel Santos**
 
 *¿Qué salió bien en este sprint?*
-- Logró generar los diagramas requeridos de manera satisfactoria durante el sprint
+- Se lograron producir los diagramas requeridos de forma satisfactoria
 
 *¿Qué no salió tan bien?*
-- La gestión personal del tiempo y las prioridades no fue la óptima durante el sprint
+- La priorización y autogestión del tiempo pudo ser mejor
 
 *¿Qué hemos aprendido?*
-- Ganó experiencia en la creación de documentación técnica con estándares profesionales
+- Se ganó experiencia en documentación técnica con estándar profesional
 
 *¿Qué haremos diferente la próxima vez?*
-- Mejorar la autogestión y la organización personal para abordar el trabajo de manera más efectiva en los siguientes sprints
+- Mejorar autogestión y organización personal para ejecutar con más eficacia
 
 ---
 
 **Resumen del Sprint:**
-El segundo sprint mostró una mejora respecto al anterior, con el equipo completando todos los entregables comprometidos. Sin embargo, los problemas de comprensión del enunciado persistieron parcialmente como herencia del sprint anterior. Se identificaron como áreas de mejora prioritarias la autogestión individual y la planificación colectiva antes del inicio del trabajo, así como una mayor frecuencia de comunicación para alinear expectativas y directrices entre todos los integrantes.
+El Sprint 2 evidenció una mejora frente al anterior: se cumplieron los entregables comprometidos. Aun así, persistieron algunas confusiones heredadas por interpretación del enunciado. Quedaron como áreas prioritarias: autogestión individual, planificación colectiva antes de ejecutar y más comunicación para alinear expectativas.
 
 **Notas Importantes:**
 - El equipo completó todos los entregables del sprint, mostrando mejora en la gestión del tiempo respecto al Sprint 1
 - La dependencia de herramientas de IA en lugar de investigación propia fue identificada como un riesgo de aprendizaje
 - La guía del Scrum Master fue reconocida por varios integrantes como un factor clave de éxito
 - Se recomienda incrementar la frecuencia de reuniones de coordinación en los siguientes sprints
+
+**Tablero del Sprint (referencia):**
+
+![Tablero Sprint 2](imgs/kanban/kanban2.jpeg)
 
 ---
 
@@ -753,65 +761,643 @@ El segundo sprint mostró una mejora respecto al anterior, con el equipo complet
 
 ### Sprint 3
 
-**Período:** _(pendiente)_
-**Objetivo:** _(pendiente de definir en Sprint Planning)_
+**Período:** 15 – 18 de marzo de 2026
+**Objetivo:** Implementar la base técnica (infra, autenticación e integración) y entregar los primeros módulos funcionales de la fase
 
 | Ceremonia | Fecha |
 |-----------|-------|
-| **Sprint Planning** | _(pendiente)_ |
-| **Daily Scrum 1** | _(pendiente)_ |
-| **Daily Scrum 2** | _(pendiente)_ |
-| **Sprint Retrospective** | _(pendiente)_ |
+| **Sprint Planning** | 15 de marzo de 2026 — 22:00 |
+| **Daily Scrum 1** | 16 de marzo de 2026 — 22:00 |
+| **Daily Scrum 2** | 17 de marzo de 2026 — 22:00 |
+| **Sprint Retrospective** | 18 de marzo de 2026 — 22:00 |
 
 ---
 
-#### Daily Scrum 1
+#### Daily Scrum 1 — 16 de marzo de 2026
 
-> _Pendiente de documentar._
+**Hora:** 22:00
 
----
-
-#### Daily Scrum 2
-
-> _Pendiente de documentar._
+**Participantes:**
 
 ---
 
-#### Sprint Retrospective
+**202302220 - Enner Esaí Mendizabal Castro**
 
-> _Pendiente de documentar._
+*¿Qué hice ayer?*
+- Cerré el planteamiento de endpoints y avancé en la creación de la base de datos
+
+*¿Qué voy a hacer hoy?*
+- Quiero completar e iniciar pruebas del módulo FEL, y terminar seeds y ajustes de base de datos
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Dejé configurado el backend (TypeORM, entidades, Clean Architecture, JWT y middlewares) y avancé con la infraestructura (on‑premise y balanceo)
+
+*¿Qué voy a hacer hoy?*
+- Continuaré con dockerización, pruebas e implementación de login en el backend
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Me dediqué a entender la estructura del frontend para arrancar bien el desarrollo
+
+*¿Qué voy a hacer hoy?*
+- Avanzaré para cerrar la parte frontend y apoyar en lo backend que se me asignó
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Avancé en frontend mientras esperaba que el backend quedara listo
+
+*¿Qué voy a hacer hoy?*
+- Ahora que ya está el backend, trabajaré en integrarlo, conectarlo con el frontend y hacer pruebas
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Avancé con parte del backend en módulos de logística
+
+*¿Qué voy a hacer hoy?*
+- Buscaré cerrar el backend para pasar a etapa de pruebas
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Definí la estructura base del frontend para que el equipo pudiera trabajar sobre una misma base
+
+*¿Qué voy a hacer hoy?*
+- Implementaré el login y el frontend del módulo de patio
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El equipo se enfocó en sentar la base técnica: backend con arquitectura limpia, infraestructura con Docker/on‑premise y autenticación. En paralelo se preparó la estructura del frontend y se inició la integración para avanzar hacia pruebas.
+
+**Notas Importantes:**
+- Se priorizó el setup (infra, auth y arquitectura) para habilitar el desarrollo de módulos
+- Frontend y backend empezaron a sincronizar integración y pruebas
+
+---
+
+#### Daily Scrum 2 — 17 de marzo de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué hice ayer?*
+- Terminé el módulo FEL (frontend y backend) y avancé en pruebas de seeds y el diseño de endpoints que se están implementando
+
+*¿Qué voy a hacer hoy?*
+- Haré pruebas integrales a lo desarrollado (backend y frontend) para validar funcionamiento
+
+*¿Tengo algún impedimento?*
+- Hubo una fricción leve con JWT porque el login todavía no estaba completamente integrado mientras desarrollaba
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Se integró login en el backend, se probó la infraestructura simulada con Docker y se realizó merge de cambios
+
+*¿Qué voy a hacer hoy?*
+- Terminaré de validar el login y aplicaré ajustes si aparecen issues
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Cerré frontend y backend asignados y ejecuté pruebas básicas que salieron bien
+
+*¿Qué voy a hacer hoy?*
+- Me quedo atento a revisiones; mi parte está cerrada
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Terminé el backend asignado y lo conecté con el frontend
+
+*¿Qué voy a hacer hoy?*
+- Quedo pendiente de revisión; si hay feedback, aplico cambios
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Terminé mis tareas y quedé a la espera de aprobación de QA
+
+*¿Qué voy a hacer hoy?*
+- Apoyaré en lo que haga falta para cerrar el sprint de forma exitosa
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Finalicé el frontend asignado y lo integré con backend
+
+*¿Qué voy a hacer hoy?*
+- Haré pruebas de funcionalidad en conjunto con Marcos
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El equipo entró en etapa de pruebas e integración. Se consolidó el login, se validó infraestructura en Docker, y se cerraron módulos como FEL y patio. Varias tareas quedaron listas para revisión/QA, mientras se coordinó testing conjunto.
+
+**Notas Importantes:**
+- La integración de login/JWT fue crítica para habilitar pruebas completas
+- Se reforzó la coordinación para QA y pruebas cruzadas
+
+---
+
+#### Sprint Retrospective — 18 de marzo de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué salió bien en este sprint?*
+- La implementación avanzó rápido y la coordinación con Gitflow facilitó integrar cambios con orden
+
+*¿Qué no salió tan bien?*
+- El arranque fue lento por inercia de la fase anterior y porque el login tomó más coordinación de lo esperado
+
+*¿Qué hemos aprendido?*
+- Que el desarrollo actual se apoya en más capas de abstracción/herramientas, y aprovecharlas bien acelera el trabajo
+
+*¿Qué haremos diferente la próxima vez?*
+- Arrancar antes y con acuerdos claros para no correr al final
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué salió bien en este sprint?*
+- El setup de infraestructura y base del backend quedó sólido
+
+*¿Qué no salió tan bien?*
+- El tiempo de desarrollo se sintió ajustado
+
+*¿Qué hemos aprendido?*
+- Que Nginx y la arquitectura limpia son piezas clave para escalar el proyecto
+
+*¿Qué haremos diferente la próxima vez?*
+- Reutilizar conceptos/plantillas para avanzar más rápido en los módulos restantes
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué salió bien en este sprint?*
+- La organización y claridad del objetivo permitió que todos implementaran con menos fricción
+
+*¿Qué no salió tan bien?*
+- Se inició tarde y se trabajó contra reloj antes de los dailies
+
+*¿Qué hemos aprendido?*
+- Aplicar los patrones de arquitectura propuestos mejora consistencia del desarrollo
+
+*¿Qué haremos diferente la próxima vez?*
+- Trabajar con más anticipación y no concentrar el esfuerzo al final
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué salió bien en este sprint?*
+- Mejoró el trabajo en equipo y la coordinación; hubo más confianza para integrar cambios
+
+*¿Qué no salió tan bien?*
+- El arranque costó y tomó tiempo alinear el inicio
+
+*¿Qué hemos aprendido?*
+- Que apoyarse en IA puede ayudar a cumplir tiempos, siempre que se use con criterio
+
+*¿Qué haremos diferente la próxima vez?*
+- Reaprovechar el código bien estructurado que salió de esta fase
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué salió bien en este sprint?*
+- Hubo mejor coordinación entre front y back para empujar entregables de forma conjunta
+
+*¿Qué no salió tan bien?*
+- Costó organizar responsabilidades al inicio para repartir carga de forma equitativa
+
+*¿Qué hemos aprendido?*
+- Que la IA puede ser muy útil si se entiende el proyecto y se respetan los protocolos internos
+
+*¿Qué haremos diferente la próxima vez?*
+- Definir estándares desde el inicio para trabajar bajo una misma línea
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué salió bien en este sprint?*
+- Se completaron las vistas/entregables que el equipo se propuso para el sprint
+
+*¿Qué no salió tan bien?*
+- Se concentró demasiado trabajo al final, cerca de los dailies
+
+*¿Qué hemos aprendido?*
+- Se ganó experiencia práctica con NestJS y el stack del backend
+
+*¿Qué haremos diferente la próxima vez?*
+- Acordar mejor herramientas y forma de trabajo desde el inicio
+
+---
+
+**Resumen del Sprint:**
+El Sprint 3 consolidó la base técnica y permitió cerrar módulos iniciales con integración y pruebas. Como mejoras, el equipo identificó la necesidad de arrancar antes, definir estándares/plantillas reutilizables y distribuir mejor el trabajo para evitar presión al final.
+
+**Notas Importantes:**
+- Gitflow y la coordinación de merges ayudaron a integrar sin bloquear al equipo
+- El login/JWT fue un punto de acoplamiento que requirió sincronización
+
+**Tablero del Sprint (referencia):**
+
+![Tablero Sprint 3](imgs/kanban/kanban3.jpeg)
 
 ---
 
 ### Sprint 4
 
-**Período:** _(pendiente)_
-**Objetivo:** _(pendiente de definir en Sprint Planning)_
+**Período:** 19 – 22 de marzo de 2026
+**Objetivo:** Consolidar módulos de negocio de la fase, completar integraciones y dejar entregables listos para QA
 
 | Ceremonia | Fecha |
 |-----------|-------|
-| **Sprint Planning** | _(pendiente)_ |
-| **Daily Scrum 1** | _(pendiente)_ |
-| **Daily Scrum 2** | _(pendiente)_ |
-| **Sprint Retrospective** | _(pendiente)_ |
+| **Sprint Planning** | 19 de marzo de 2026 — 22:00 |
+| **Daily Scrum 1** | 20 de marzo de 2026 — 22:00 |
+| **Daily Scrum 2** | 21 de marzo de 2026 — 22:00 |
+| **Sprint Retrospective** | 22 de marzo de 2026 — 22:00 |
 
 ---
 
-#### Daily Scrum 1
+#### Daily Scrum 1 — 20 de marzo de 2026
 
-> _Pendiente de documentar._
+**Hora:** 22:00
 
----
-
-#### Daily Scrum 2
-
-> _Pendiente de documentar._
+**Participantes:**
 
 ---
 
-#### Sprint Retrospective
+**202302220 - Enner Esaí Mendizabal Castro**
 
-> _Pendiente de documentar._
+*¿Qué hice ayer?*
+- Terminé el backend del área asignada
+
+*¿Qué voy a hacer hoy?*
+- Completaré el frontend, lo integraré con backend y coordinaré con lo de Anyelo para luego probar todo en conjunto
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Arranqué con las vistas de frontend en coordinación con David y Pablo
+
+*¿Qué voy a hacer hoy?*
+- Continuaré el desarrollo del frontend
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Empecé a revisar el backend con más anticipación para entender bien lo que debía integrar
+
+*¿Qué voy a hacer hoy?*
+- Avanzaré con backend y seguiré con el frontend
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Avancé en frontend y progresé con el backend asignado
+
+*¿Qué voy a hacer hoy?*
+- Integraré todo y ejecutaré pruebas
+
+*¿Tengo algún impedimento?*
+- No he encontrado complicaciones por ahora
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Empecé el desarrollo del backend y revisé validaciones necesarias
+
+*¿Qué voy a hacer hoy?*
+- Buscaré terminar backend para pasar al frontend
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Recopilé ideas de frontend e investigué librerías para reutilizar en el proyecto
+
+*¿Qué voy a hacer hoy?*
+- Implementaré esas bases en código para que el equipo pueda usarlas
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El equipo avanzó en paralelo: backend con validaciones y endpoints, frontend con vistas y librerías compartidas, y trabajo de integración para pruebas. Se reforzó la coordinación entre integrantes para acelerar entregables.
+
+**Notas Importantes:**
+- Se priorizó integración temprana para detectar fallos antes de QA
+- Se buscó reutilización de componentes/librerías para acelerar el frontend
+
+---
+
+#### Daily Scrum 2 — 21 de marzo de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué hice ayer?*
+- Finalicé frontend e integración con backend, incluyendo la unificación con lo trabajado por Anyelo
+
+*¿Qué voy a hacer hoy?*
+- Voy a probarlo y validar que todo funcione correctamente
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Terminé endpoints de backend e integré con el frontend que ya tenía avanzado
+
+*¿Qué voy a hacer hoy?*
+- Haré pruebas de lo realizado
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Avancé mi parte del módulo de clientes en backend
+
+*¿Qué voy a hacer hoy?*
+- Terminaré el frontend; estoy recibiendo apoyo para cerrar a tiempo
+
+*¿Tengo algún impedimento?*
+- No hay bloqueos, pero sí atraso en frontend que se está cubriendo con ayuda del equipo
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Se avanzó fuerte, se cerró la integración y quedó conectado
+
+*¿Qué voy a hacer hoy?*
+- Haré una revisión final para detectar fallos
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Terminé mi parte del backend e inicié el frontend
+
+*¿Qué voy a hacer hoy?*
+- Cerraré el frontend para enviarlo a QA
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Terminé las vistas y funciones asignadas (incluyendo gerente con visualizaciones)
+
+*¿Qué voy a hacer hoy?*
+- Probaré todo en conjunto con el equipo
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El equipo cerró integraciones y pasó a una etapa fuerte de pruebas y QA. Se destacó apoyo cruzado para cerrar el frontend a tiempo, y se prepararon entregables para revisión final.
+
+**Notas Importantes:**
+- El apoyo entre integrantes ayudó a compensar atrasos en frontend
+- La transición a QA se priorizó al cierre del sprint
+
+---
+
+#### Sprint Retrospective — 22 de marzo de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué salió bien en este sprint?*
+- La meta final se mantuvo clara y el uso de IA ayudó a acelerar implementación y cierre de tareas
+
+*¿Qué no salió tan bien?*
+- El cansancio acumulado y la carga de otros cursos afectaron motivación y ritmo
+
+*¿Qué hemos aprendido?*
+- Que la calidad del trabajo con IA depende mucho de prompts y de mantener disciplina técnica
+
+*¿Qué haremos diferente la próxima vez?*
+- Cuidar energía/ritmo y definir mejor guías de trabajo (incluyendo prompts/estándares) para evitar retrabajo
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué salió bien en este sprint?*
+- La asistencia de código y conceptos ya establecidos ayudaron a avanzar más rápido
+
+*¿Qué no salió tan bien?*
+- La comunicación en detalles y el tiempo disponible limitaron la ejecución
+
+*¿Qué hemos aprendido?*
+- Que integrar todo (y preparar despliegue/demo) siempre destapa fallos, por lo que hay que planear integración temprano
+
+*¿Qué haremos diferente la próxima vez?*
+- Reforzar integración anticipada y comunicación fina para reducir sorpresas al unir trabajo
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué salió bien en este sprint?*
+- La documentación ayudó a guiar el desarrollo y la IA redujo la curva al aprender tecnologías nuevas
+
+*¿Qué no salió tan bien?*
+- Aprender nuevas tecnologías consumió tiempo, aunque se mitigó parcialmente con asistencia
+
+*¿Qué hemos aprendido?*
+- Que adoptar herramientas nuevas requiere planificar curva de aprendizaje e integración
+
+*¿Qué haremos diferente la próxima vez?*
+- Calendarizar mejor el aprendizaje e ir integrando por etapas para no atrasar entregables
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué salió bien en este sprint?*
+- La cohesión del equipo y el uso de IA ayudaron a sostener el avance
+
+*¿Qué no salió tan bien?*
+- El tiempo y la procrastinación fueron un freno, dado el tamaño del proyecto
+
+*¿Qué hemos aprendido?*
+- Que mantener disciplina (incluyendo formato de commits) es clave para no introducir fricción en el flujo
+
+*¿Qué haremos diferente la próxima vez?*
+- Cuidar estándares desde el inicio (por ejemplo, convención de commits) y trabajar con más constancia
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué salió bien en este sprint?*
+- Se identificó que optimizar el uso de recursos y herramientas puede mejorar el avance
+
+*¿Qué no salió tan bien?*
+- La comunicación de ideas no siempre fue clara y eso generó retrabajo; además, hubo fricción por herramientas/recursos usados
+
+*¿Qué hemos aprendido?*
+- Que comunicar con precisión (y estandarizar cómo se trabaja) es tan importante como programar
+
+*¿Qué haremos diferente la próxima vez?*
+- Establecer guías de comunicación/estándares y revisar optimización para no desperdiciar recursos
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué salió bien en este sprint?*
+- Se mantuvo el objetivo final y la IA ayudó a repetir patrones ya conocidos con rapidez
+
+*¿Qué no salió tan bien?*
+- La IA a veces generó errores y, sumado al tamaño del proyecto, incrementó tiempo de corrección
+
+*¿Qué hemos aprendido?*
+- Que la IA acelera, pero requiere validación y pruebas constantes para no arrastrar fallos
+
+*¿Qué haremos diferente la próxima vez?*
+- Fortalecer pruebas y revisiones, y dividir mejor el trabajo por módulos para controlar complejidad
+
+---
+
+**Resumen del Sprint:**
+El Sprint 4 reforzó la importancia de estandarizar la forma de trabajo y de manejar la complejidad del proyecto. El equipo confirmó que la IA acelera el desarrollo, pero exige disciplina (prompts, validación, pruebas y estándares) para que no se convierta en fuente de retrabajo.
+
+**Notas Importantes:**
+- Se identificaron riesgos por fatiga, motivación y tamaño del proyecto
+- Se resaltó la necesidad de mejorar comunicación y estándares (incluyendo convenciones de commits y guías de QA)
+
+**Tablero del Sprint (referencia):**
+
+![Tablero Sprint 4](imgs/kanban/kanban4.jpeg)
 
 ---
 
@@ -893,5 +1479,5 @@ El segundo sprint mostró una mejora respecto al anterior, con el equipo complet
 
 ---
 
-**Fecha de última actualización:** 4 de marzo de 2026
+**Fecha de última actualización:** 24 de marzo de 2026
 **Equipo:** Grupo 2 — Análisis y Diseño de Sistemas 2

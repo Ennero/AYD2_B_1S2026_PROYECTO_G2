@@ -37,8 +37,14 @@ export class Contract {
   @Column({ name: 'accepted_at', type: 'timestamptz', nullable: true })
   acceptedAt: Date | null;
 
-  @Column({ name: 'credit_limit', type: 'numeric', precision: 14, scale: 2 })
-  creditLimit: number;
+  @Column({
+    name: 'credit_limit',
+    type: 'numeric',
+    precision: 14,
+    scale: 2,
+    nullable: true,
+  })
+  creditLimit: number | null;
 
   @Column({ name: 'payment_term_days', type: 'smallint' })
   paymentTermDays: number;

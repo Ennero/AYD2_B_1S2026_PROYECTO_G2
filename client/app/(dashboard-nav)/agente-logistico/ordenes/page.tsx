@@ -108,7 +108,7 @@ function FilterBar({
               marginTop: "8px",
               background: "#1E1E1B", borderRadius: "6px",
               padding: "1.25rem 1.5rem",
-              display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: "12px", alignItems: "end",
+              display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: "12px", alignItems: "end",
             }}>
               {/* Estado */}
               <div>
@@ -163,6 +163,25 @@ function FilterBar({
                     background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
                     borderRadius: "4px", color: "#F5F2EC", fontSize: "0.8rem",
                     outline: "none", colorScheme: "dark",
+                  }}
+                />
+              </div>
+
+              {/* Nombre cliente */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
+                  Nombre cliente
+                </label>
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre..."
+                  value={local.clientName ?? ""}
+                  onChange={(e) => set("clientName", e.target.value)}
+                  style={{
+                    width: "100%", padding: "0.55rem 0.75rem",
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "4px", color: "#F5F2EC", fontSize: "0.8rem",
+                    outline: "none",
                   }}
                 />
               </div>
@@ -319,10 +338,11 @@ export default function OrdenesPage() {
     setLoading(true)
     try {
       const query: Record<string, string> = {}
-      if (params.status)    query.status    = params.status
-      if (params.startDate) query.startDate = params.startDate
-      if (params.endDate)   query.endDate   = params.endDate
-      if (params.clientId)  query.clientId  = params.clientId
+      if (params.status)     query.status     = params.status
+      if (params.startDate)  query.startDate  = params.startDate
+      if (params.endDate)    query.endDate    = params.endDate
+      if (params.clientId)   query.clientId   = params.clientId
+      if (params.clientName) query.clientName = params.clientName
 
       const qs = new URLSearchParams(query).toString()
       const url = qs ? `${ENDPOINTS.LOGISTICS.ORDERS_LIST}?${qs}` : ENDPOINTS.LOGISTICS.ORDERS_LIST

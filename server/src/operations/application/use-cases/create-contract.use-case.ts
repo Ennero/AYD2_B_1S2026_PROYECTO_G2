@@ -187,7 +187,7 @@ export class CreateContractUseCase {
     }
 
     // ── 4. Notificación al cliente (fire-and-forget) ──────────────────────────
-    const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3001');
+    const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3000');
     const routeLabels = routes.map((r) => `${r.origin} → ${r.destination}`);
 
     this.emailService

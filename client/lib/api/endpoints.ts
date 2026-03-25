@@ -35,6 +35,7 @@ export const ENDPOINTS = {
   OPERATIONS: {
     ROUTES: `/api/operations/routes`,
     CARGO_TYPES: `/api/operations/cargo-types`,
+    CARGO_TYPE: (id: string | number) => `/api/operations/cargo-types/${id}`,
     USERS: `/api/operations/users`,
     USER: (id: string | number) => `/api/operations/users/${id}`,
   },
@@ -117,9 +118,6 @@ export const ENDPOINTS = {
     ORDERS: `/api/client/orders`,
     ORDER_TRACKING: (id: string) => `/api/client/orders/${id}/tracking`,
     INVOICES: `/api/client/invoices`,
-    CARDS: `/api/client/cards`,
-    CARD: (id: string) => `/api/client/cards/${id}`,
-    PAYMENTS: `/api/client/payments`,
     CONTACTS: `/api/client/contacts`,
     CONTACT: (id: string) => `/api/client/contacts/${id}`,
   },

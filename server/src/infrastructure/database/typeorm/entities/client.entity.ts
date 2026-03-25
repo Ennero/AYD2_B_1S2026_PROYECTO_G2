@@ -2,7 +2,6 @@ import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { RiskLevel } from '../../../../domain/enums/risk-level.enum';
 import { User } from './user.entity';
 import { ClientContact } from './client-contact.entity';
-import { ClientCard } from './client-card.entity';
 import { Contract } from './contract.entity';
 import { Invoice } from './invoice.entity';
 
@@ -36,9 +35,6 @@ export class Client {
     nullable: true })
   primaryContactPhone: string | null;
 
-  @Column({ name: 'credit_limit', type: 'numeric', precision: 14, scale: 2, default: 0 })
-  creditLimit: number;
-
   @Column({ name: 'payment_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
   paymentRisk: RiskLevel;
 
@@ -63,9 +59,6 @@ export class Client {
 
   @OneToMany(() => ClientContact, (contact) => contact.client)
   contacts: ClientContact[];
-
-  @OneToMany(() => ClientCard, (card) => card.client)
-  cards: ClientCard[];
 
   @OneToMany(() => Contract, (contract) => contract.client)
   contracts: Contract[];

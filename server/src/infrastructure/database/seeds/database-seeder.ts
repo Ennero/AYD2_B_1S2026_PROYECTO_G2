@@ -11,7 +11,6 @@ import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 import { UserRole } from '../../../domain/enums/user-role.enum';
 import { Branch } from '../typeorm/entities/branch.entity';
 import { CargoType } from '../typeorm/entities/cargo-type.entity';
-import { ClientCard } from '../typeorm/entities/client-card.entity';
 import { ClientContact } from '../typeorm/entities/client-contact.entity';
 import { Client } from '../typeorm/entities/client.entity';
 import { ContractRate } from '../typeorm/entities/contract-rate.entity';
@@ -1078,7 +1077,6 @@ export class DatabaseSeeder {
       const clients = await this.seedClients(manager);
       const clientUsers = await this.seedClientUsers(manager, clients);
       await this.seedClientContacts(manager, clients);
-      const clientCards = await this.seedClientCards(manager, clients);
       const contracts = await this.seedContracts(manager, clients, references.cargoTypes);
       const contractRoutes = await this.seedContractRoutes(
         manager,
@@ -1108,7 +1106,7 @@ export class DatabaseSeeder {
       );
       await this.seedOrderLogs(manager, createdOrders);
       const invoices = await this.seedInvoices(manager, createdOrders, contracts);
-      await this.seedPayments(manager, invoices, clientCards, internalUsers);
+      await this.seedPayments(manager, invoices, internalUsers);
 
       return {
         seeded: true,
@@ -1121,7 +1119,6 @@ export class DatabaseSeeder {
             (total, blueprint) => total + blueprint.contactPeople.length,
             0,
           ),
-          cards: clientCards.length,
           contracts: contracts.length,
           contractRoutes: contractRoutes.length,
           contractRates: contractRates.length,
@@ -1204,7 +1201,6 @@ export class DatabaseSeeder {
           primaryContactName: client.primaryContactName,
           primaryContactEmail: client.primaryContactEmail,
           primaryContactPhone: client.primaryContactPhone,
-          creditLimit: client.creditLimit,
           paymentRisk: client.paymentRisk,
           customsRisk: client.customsRisk,
           cargoRisk: client.cargoRisk,
@@ -1277,35 +1273,6 @@ export class DatabaseSeeder {
     await repository.save(contacts);
   }
 
-  private async seedClientCards(
-    manager: EntityManager,
-    clients: Client[],
-  ): Promise<ClientCard[]> {
-    const repository = manager.getRepository(ClientCard);
-    const clientByNit = new Map(clients.map((client) => [client.nit, client]));
-
-    let cardCounter = 0;
-    const cards = CLIENT_BLUEPRINTS.flatMap((blueprint) => {
-      const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
-      return blueprint.cards.map((card) => {
-        cardCounter++;
-        return repository.create({
-          clientId: client.clientId,
-          cardAlias: card.alias,
-          cardholderName: card.cardholderName,
-          cardBrand: card.brand,
-          lastFour: card.lastFour,
-          expirationMonth: card.expirationMonth,
-          expirationYear: card.expirationYear,
-          isActive: true,
-        });
-      });
-    });
-
-    await repository.save(cards);
-    return cards;
-  }
-
   private async seedContracts(
     manager: EntityManager,
     clients: Client[],
@@ -1326,7 +1293,10 @@ export class DatabaseSeeder {
           blueprint.contractStatus === ContractStatus.VIGENTE
             ? daysFromNow(blueprint.contractStartOffsetDays + 1)
             : null,
-        creditLimit: blueprint.creditLimit,
+        creditLimit:
+          blueprint.contractStatus === ContractStatus.VIGENTE
+            ? blueprint.creditLimit
+            : null,
         paymentTermDays: blueprint.paymentTermDays,
         discountPercentage: blueprint.discountPercentage,
         notes: `Contrato marco para ${blueprint.legalName}.`,
@@ -1686,7 +1656,10 @@ export class DatabaseSeeder {
         const declaredWeight = unit
           ? this.calculateDeclaredWeight(Number(unit.capacityTon), plan.preferredVehicleTypeCode)
           : roundCurrency(1.2 + planIndex * 0.35 + clientIndex * 0.1);
-        const loadedWeight = unit ? roundCurrency(declaredWeight * 0.98) : null;
+        const isStowageConfirmed = ['LISTA', 'TRANSITO', 'ENTREGADA'].includes(plan.stage);
+        const loadedWeight = unit && isStowageConfirmed
+          ? roundCurrency(declaredWeight + (planIndex % 2 === 0 ? 0.01 : -0.01))
+          : null;
         const fuelCost = unit && distance > 0 ? roundCurrency(distance * 2.15) : 0;
         const viaticsCost = unit && distance > 0 ? roundCurrency(distance * 0.42) : 0;
         const maintenanceCost = unit && distance > 0 ? roundCurrency(distance * 0.28) : 0;
@@ -1739,6 +1712,11 @@ export class DatabaseSeeder {
             notes: `Orden seed ${plan.stage.toLowerCase()} para ${blueprint.legalName}`,
           }),
         );
+
+        // Update unit availability if it's assigned to an active order (ASIGNADA, LISTA, TRANSITO)
+        if (unit && ['ASIGNADA', 'LISTA', 'TRANSITO'].includes(plan.stage)) {
+          await manager.getRepository(TransportUnit).update(unit.unitId, { isAvailable: false });
+        }
 
         createdOrders.push({
           order,
@@ -2080,20 +2058,12 @@ export class DatabaseSeeder {
   private async seedPayments(
     manager: EntityManager,
     invoices: Invoice[],
-    clientCards: ClientCard[],
     internalUsers: User[],
   ): Promise<void> {
     const repository = manager.getRepository(Payment);
     const financeUsers = internalUsers.filter(
       (user) => user.role === UserRole.AGENTE_FINANCIERO,
     );
-    const cardByClientId = new Map<number, ClientCard>();
-
-    for (const card of clientCards) {
-      if (!cardByClientId.has(card.clientId)) {
-        cardByClientId.set(card.clientId, card);
-      }
-    }
 
     const invoicesForApprovedPayments = invoices
       .filter((invoice) => invoice.status === InvoiceStatus.ENVIADA)
@@ -2114,23 +2084,17 @@ export class DatabaseSeeder {
         financeUsers[index % financeUsers.length],
         'revisor financiero',
       );
-      const card = cardByClientId.get(invoice.clientId);
-      const method = index % 3 === 0 ? PaymentMethod.TARJETA : index % 3 === 1 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE;
+      const method = index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE;
 
       await repository.save(
         repository.create({
           invoiceId: invoice.invoiceId,
           method,
           status: PaymentStatus.APROBADO,
-          cardId: method === PaymentMethod.TARJETA ? card?.cardId : null,
-          bankName:
-            method === PaymentMethod.TARJETA ? null : method === PaymentMethod.CHEQUE ? 'BANCO INDUSTRIAL' : 'BAC CREDOMATIC',
-          bankAccountNumber:
-            method === PaymentMethod.TARJETA ? null : `0100-2000-${100 + index}`,
-          bankReference:
-            method === PaymentMethod.TARJETA ? null : `REF-PAG-${index + 1}`,
-          supportDocumentPath:
-            method === PaymentMethod.TARJETA ? null : `/seed/payments/support-${invoice.invoiceId}.pdf`,
+          bankName: method === PaymentMethod.CHEQUE ? 'BANCO INDUSTRIAL' : 'BAC CREDOMATIC',
+          bankAccountNumber: `0100-2000-${100 + index}`,
+          bankReference: `REF-PAG-${index + 1}`,
+          supportDocumentPath: `/seed/payments/support-${invoice.invoiceId}.pdf`,
           amount: Number(invoice.totalAmount),
           paymentDate: hoursAfter(new Date(invoice.sentAt ?? invoice.issueDate), 24 + index * 2),
           reviewedByUserId: financeReviewer.userId,
@@ -2147,7 +2111,6 @@ export class DatabaseSeeder {
           invoiceId: invoice.invoiceId,
           method: index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE,
           status,
-          cardId: null,
           bankName: index % 2 === 0 ? 'BANRURAL' : 'BANCO G&T',
           bankAccountNumber: `0200-3000-${200 + index}`,
           bankReference: `REF-REV-${index + 1}`,

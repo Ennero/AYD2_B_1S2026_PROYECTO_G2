@@ -18,10 +18,9 @@ import { USER_ROLE } from '../../../auth/domain/enums/user-role.enum';
 import type { JwtPayload } from '../../../auth/domain/interfaces/jwt-payload.interface';
 import { ClientService } from '../../application/services/client.service';
 import {
-  AddCardDto,
   CreateContactDto,
   CreateOrderDto,
-  RegisterPaymentDto,
+  AcceptContractDto,
   UpdateClientProfileDto,
   UpdateContactDto,
   UpdatePasswordDto,
@@ -74,8 +73,9 @@ export class ClientController {
   async acceptContract(
     @CurrentUser() user: JwtPayload,
     @Param('contractId', ParseIntPipe) contractId: number,
+    @Body() dto: AcceptContractDto,
   ) {
-    const data = await this.clientService.acceptContract(user.sub, contractId);
+    const data = await this.clientService.acceptContract(user.sub, contractId, dto);
     return { message: 'Contrato aceptado correctamente', data };
   }
 
@@ -142,32 +142,6 @@ export class ClientController {
     return { message: 'Facturas obtenidas correctamente', data };
   }
 
-  // ── Tarjetas ──────────────────────────────────────────────────────────
-
-  @Get('cards')
-  async getCards(@CurrentUser() user: JwtPayload) {
-    const data = await this.clientService.getCards(user.sub);
-    return { message: 'Tarjetas obtenidas correctamente', data };
-  }
-
-  @Post('cards')
-  async addCard(
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: AddCardDto,
-  ) {
-    const data = await this.clientService.addCard(user.sub, dto);
-    return { message: 'Tarjeta registrada correctamente', data };
-  }
-
-  @Delete('cards/:cardId')
-  async removeCard(
-    @CurrentUser() user: JwtPayload,
-    @Param('cardId', ParseIntPipe) cardId: number,
-  ) {
-    const data = await this.clientService.removeCard(user.sub, cardId);
-    return data;
-  }
-
   // ── Contactos ─────────────────────────────────────────────────────────
 
   @Get('contacts')
@@ -203,19 +177,6 @@ export class ClientController {
     const data = await this.clientService.removeContact(user.sub, contactId);
     return data;
   }
-
-  // ── Pagos ─────────────────────────────────────────────────────────────
-
-  @Post('payments')
-  async registerPayment(
-    @CurrentUser() user: JwtPayload,
-    @Body() dto: RegisterPaymentDto,
-  ) {
-    const data = await this.clientService.registerPayment(user.sub, dto);
-    return { message: 'Pago registrado correctamente', data };
-  }
-
-  // ── Estado de cuenta ──────────────────────────────────────────────────
 
   @Get('account-statement')
   async getAccountStatement(@CurrentUser() user: JwtPayload) {

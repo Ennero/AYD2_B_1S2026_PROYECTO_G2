@@ -203,9 +203,9 @@ export default function EstadoCuentaPage() {
           <div className="flex justify-center">
             <Link
               href="/cliente/facturas"
-              className="inline-flex items-center gap-2 bg-[#0A3B7C] hover:bg-[#083066] text-white font-bold py-3 px-8 rounded-xl shadow-md transition-colors text-sm"
+              className="inline-flex items-center gap-2 bg-[#C9924B] hover:bg-[#B8813C] text-[#0C0C0A] font-bold py-3 px-8 rounded-xl shadow-md transition-colors text-sm"
             >
-              Ver Facturas para Pagar
+              Ver Mis Facturas
               <ArrowRight size={16} />
             </Link>
           </div>

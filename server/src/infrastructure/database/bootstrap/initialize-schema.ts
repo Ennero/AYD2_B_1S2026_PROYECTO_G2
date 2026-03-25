@@ -135,6 +135,57 @@ async function dropDeprecatedClientCommercialNameColumn(
   );
 }
 
+async function dropDeprecatedClientCreditLimitColumn(
+  dataSource: DataSource,
+): Promise<void> {
+  await dataSource.query(
+    'ALTER TABLE public."clients" DROP COLUMN IF EXISTS "credit_limit"',
+  );
+}
+
+async function dropDeprecatedClientCardsTable(dataSource: DataSource): Promise<void> {
+  await dataSource.query('DROP TABLE IF EXISTS public."client_cards" CASCADE');
+}
+
+async function dropDeprecatedPaymentCardIdColumn(
+  dataSource: DataSource,
+): Promise<void> {
+  await dataSource.query(
+    'ALTER TABLE public."payments" DROP COLUMN IF EXISTS "card_id"',
+  );
+}
+
+async function ensurePaymentsMethodSupportConstraint(
+  dataSource: DataSource,
+): Promise<void> {
+  const rows = await dataSource.query<{ exists: boolean }>(
+    `SELECT EXISTS(
+        SELECT 1
+        FROM pg_constraint c
+        JOIN pg_class t ON t.oid = c.conrelid
+        JOIN pg_namespace n ON n.oid = t.relnamespace
+        WHERE n.nspname = 'public'
+          AND t.relname = 'payments'
+          AND c.conname = 'chk_payments_method_support'
+      ) AS exists`,
+  );
+
+  if (rows[0]?.exists) {
+    return;
+  }
+
+  await dataSource.query(
+    `ALTER TABLE public."payments"
+      ADD CONSTRAINT chk_payments_method_support CHECK (
+        method IN ('TRANSFERENCIA', 'CHEQUE')
+        AND bank_name IS NOT NULL
+        AND bank_account_number IS NOT NULL
+        AND bank_reference IS NOT NULL
+        AND support_document_path IS NOT NULL
+      )`,
+  );
+}
+
 type IdentityColumnRow = {
   table_name: string;
   column_name: string;
@@ -229,6 +280,10 @@ export async function ensureCanonicalSchema(
 
   if (isCanonicalSchema(state)) {
     await dropDeprecatedClientCommercialNameColumn(dataSource);
+    await dropDeprecatedClientCreditLimitColumn(dataSource);
+    await dropDeprecatedClientCardsTable(dataSource);
+    await dropDeprecatedPaymentCardIdColumn(dataSource);
+    await ensurePaymentsMethodSupportConstraint(dataSource);
     await relaxIdentityColumnsToByDefault(dataSource);
     await alignIdentitySequences(dataSource);
     await refreshCanonicalRoutines(dataSource);
@@ -244,6 +299,10 @@ export async function ensureCanonicalSchema(
   const sql = await readCanonicalSql();
   await dataSource.query(sql);
   await dropDeprecatedClientCommercialNameColumn(dataSource);
+  await dropDeprecatedClientCreditLimitColumn(dataSource);
+  await dropDeprecatedClientCardsTable(dataSource);
+  await dropDeprecatedPaymentCardIdColumn(dataSource);
+  await ensurePaymentsMethodSupportConstraint(dataSource);
   await relaxIdentityColumnsToByDefault(dataSource);
   await alignIdentitySequences(dataSource);
 

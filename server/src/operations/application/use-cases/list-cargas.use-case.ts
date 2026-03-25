@@ -34,7 +34,7 @@ export class ListCargasUseCase {
       origen: order.origin || order.pickupAddress,
       destino: order.destination || order.deliveryAddress,
       estado: order.status === OrderStatus.LISTA_PARA_DESPACHO ? 'FORMALIZADO' : 'PENDIENTE',
-      peso: order.loadedWeightTon || 0,
+      peso: order.loadedWeightTon || order.declaredWeightTon || 0,
       estibaValida: order.stowageConfirmed || false,
     }));
   }

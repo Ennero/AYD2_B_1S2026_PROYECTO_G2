@@ -50,6 +50,9 @@ export class TransportUnit {
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
+  @Column({ name: 'is_available', type: 'boolean', default: true })
+  isAvailable: boolean;
+
   @ManyToOne(() => Branch, (branch) => branch.transportUnits)
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;

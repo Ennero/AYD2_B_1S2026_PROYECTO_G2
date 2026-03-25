@@ -40,6 +40,7 @@ export class GetUnitBinomialsUseCase {
       .innerJoinAndSelect('u.vehicleType', 'vt')
       .leftJoinAndSelect('u.pilotUser', 'pilot')
       .where('u.is_active = true')
+      .andWhere('u.is_available = true')
       .andWhere('u.pilot_license_expiration >= :today', { today })
       .andWhere('u.vehicle_document_expiration >= :today', { today })
       .andWhere('u.capacity_ton >= :weight', {
