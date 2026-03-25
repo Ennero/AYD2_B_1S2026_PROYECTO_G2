@@ -16,25 +16,28 @@ export function welcomeTemplate(data: WelcomeTemplateData): { subject: string; h
 
   const html = baseTemplate(
     `
+    <p class="eyebrow">Alta de Cuenta</p>
     <h2>Bienvenido a LogiTrans, ${data.clientName}</h2>
-    <p>Su cuenta ha sido registrada exitosamente en nuestra plataforma de gestión logística. A continuación encontrará sus credenciales de acceso:</p>
+    <p>Su cuenta fue registrada exitosamente en nuestra plataforma de gestión logística. A continuación encontrará su información de acceso:</p>
 
     <div class="info-box">
       <p><strong>Correo electrónico:</strong> ${data.email}</p>
       <p><strong>Contraseña temporal:</strong> ${data.temporaryPassword}</p>
     </div>
 
-    <p>Por seguridad, le recomendamos cambiar su contraseña en su primer inicio de sesión.</p>
-
-    <p style="text-align:center;">
-      <a class="btn" href="${data.portalUrl}">Acceder al portal</a>
-    </p>
+    <div class="info-box">
+      <p><strong>Instrucciones de acceso</strong></p>
+      <ol class="steps">
+        <li>Abra la plataforma en <code>${data.portalUrl}</code>.</li>
+        <li>Inicie sesión con el correo y la contraseña temporal indicados arriba.</li>
+        <li>Al entrar, cambie su contraseña para mayor seguridad.</li>
+      </ol>
+    </div>
 
     <hr class="divider" />
 
     <p style="font-size:13px; color:#888888;">
-      Si usted no solicitó esta cuenta, ignore este correo o contáctenos a
-      <a href="mailto:soporte@logitrans.com">soporte@logitrans.com</a>.
+      Si usted no solicitó esta cuenta, ignore este correo o contáctenos en: soporte@logitrans.com.
     </p>
     `,
     subject,
@@ -47,7 +50,10 @@ Sus credenciales de acceso:
   Correo electrónico: ${data.email}
   Contraseña temporal: ${data.temporaryPassword}
 
-Acceda al portal en: ${data.portalUrl}
+Instrucciones:
+  1) Abra la plataforma en ${data.portalUrl}
+  2) Inicie sesión con las credenciales enviadas en este correo
+  3) Cambie su contraseña en el primer ingreso
 
 Por seguridad, cambie su contraseña en su primer inicio de sesión.
   `.trim();

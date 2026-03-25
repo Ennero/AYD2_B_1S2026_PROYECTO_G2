@@ -678,7 +678,9 @@ export class ClientService {
         .andWhere('contract_id <> :contractId', { contractId })
         .execute();
 
-      contract.creditLimit = dto.creditLimit;
+      if (dto.creditLimit !== undefined) {
+        contract.creditLimit = dto.creditLimit;
+      }
       contract.status = ContractStatus.VIGENTE;
       contract.acceptedAt = new Date();
       await repo.save(contract);
@@ -688,7 +690,7 @@ export class ClientService {
         contractNumber: contract.contractNumber,
         status: contract.status,
         acceptedAt: contract.acceptedAt,
-        creditLimit: Number(contract.creditLimit),
+        creditLimit: contract.creditLimit !== null ? Number(contract.creditLimit) : null,
       };
     });
   }

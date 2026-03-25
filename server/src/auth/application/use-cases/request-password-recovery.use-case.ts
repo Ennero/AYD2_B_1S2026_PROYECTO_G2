@@ -48,14 +48,14 @@ export class RequestPasswordRecoveryUseCase {
       await this.recoveryRepo.create({ userId: user.userId, tokenHash, expiresAt });
 
       const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3000');
-      const recoveryUrl = `${portalUrl}/auth/reset-password?token=${rawToken}`;
 
       // Fire-and-forget: no bloqueamos la respuesta por fallos de email
       this.emailService
         .sendPasswordRecovery({
           to: user.email,
           clientName: user.fullName,
-          recoveryUrl,
+          recoveryToken: rawToken,
+          portalUrl,
           expiresInMinutes: EXPIRES_IN_MINUTES,
           ipAddress: input.ipAddress,
         })

@@ -92,10 +92,8 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
       <td>POST</td>
       <td>/api/auth/password</td>
       <td><pre>{
-  "headers": {
-    "Authorization": "Bearer recovery-token-o-jwt"
-  },
   "body": {
+    "token": "<token_hex_64>",
     "password": "NuevaClave2026!",
     "confirmation": "NuevaClave2026!"
   }
@@ -104,7 +102,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "message": "Contrasena modificada correctamente",
   "data": {}
 }</pre></td>
-      <td>Actualiza <strong>USERS.PASSWORD_HASH</strong>.<br>Marca <strong>PASSWORD_RECOVERY_TOKENS.USED_AT</strong> para inutilizar el token.<br>Debe impedir reutilizar la misma contrasena actual.</td>
+  <td>Actualiza <strong>USERS.PASSWORD_HASH</strong>.<br>Marca <strong>PASSWORD_RECOVERY_TOKENS.USED_AT</strong> para inutilizar el token.<br>El token de recuperacion se envia en el cuerpo de la solicitud (no en Authorization).<br>Debe impedir reutilizar la misma contrasena actual.</td>
     </tr>
   </tbody>
 </table>

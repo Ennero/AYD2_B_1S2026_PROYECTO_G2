@@ -5,16 +5,22 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
   MinLength,
 } from 'class-validator';
 
+const PHONE_PATTERN = /^\+50[234]\d{8}$/;
+
 export class UpdateClientProfileDto {
   @IsOptional()
   @IsString()
   @MaxLength(30)
+  @Matches(PHONE_PATTERN, {
+    message: 'phone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+  })
   phone?: string;
 }
 
@@ -30,10 +36,10 @@ export class UpdatePasswordDto {
 }
 
 export class AcceptContractDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  creditLimit: number;
+  creditLimit?: number;
 }
 
 export class CreateOrderDto {
@@ -78,6 +84,9 @@ export class CreateContactDto {
   @IsOptional()
   @IsString()
   @MaxLength(30)
+  @Matches(PHONE_PATTERN, {
+    message: 'contactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+  })
   contactPhone?: string;
 
   @IsOptional()
@@ -100,6 +109,9 @@ export class UpdateContactDto {
   @IsOptional()
   @IsString()
   @MaxLength(30)
+  @Matches(PHONE_PATTERN, {
+    message: 'contactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+  })
   contactPhone?: string;
 
   @IsOptional()

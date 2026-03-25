@@ -29,12 +29,13 @@ export function invoiceTemplate(
     ? `<p><strong>No. autorización SAT (FEL):</strong> ${data.felAuthorizationCode}</p>`
     : '';
 
-  const pdfButton = data.pdfUrl
-    ? `<p style="text-align:center;"><a class="btn" href="${data.pdfUrl}" target="_blank">Descargar factura PDF</a></p>`
-    : '';
+  const pdfInstruction = data.pdfUrl
+    ? `<p>La factura PDF ya está disponible en tu cuenta del portal para su descarga.</p>`
+    : `<p>La factura quedará disponible en tu cuenta del portal para su consulta.</p>`;
 
   const html = baseTemplate(
     `
+    <p class="eyebrow">Facturación FEL</p>
     <h2>Factura Electrónica Emitida</h2>
     <p>Estimado/a <strong>${data.clientName}</strong>,</p>
     <p>Le informamos que se ha emitido la siguiente factura electrónica (FEL) correspondiente a sus servicios de transporte:</p>
@@ -53,18 +54,23 @@ export function invoiceTemplate(
       <p style="font-size:16px;"><strong>Total a pagar: ${data.currency} ${data.total}</strong></p>
     </div>
 
-    ${pdfButton}
-
-    <p>También puede gestionar sus pagos y consultar su estado de cuenta desde el portal:</p>
-    <p style="text-align:center;">
-      <a class="btn" href="${data.portalUrl}">Ver estado de cuenta</a>
-    </p>
+    <div class="info-box">
+      ${pdfInstruction}
+      <p><strong>Instrucciones:</strong></p>
+      <ol class="steps">
+        <li>Ingresa al Portal de Clientes LogiTrans.</li>
+        <li>Abre el módulo de facturación o estado de cuenta.</li>
+        <li>Localiza la factura ${data.invoiceNumber} para descargar PDF o gestionar el pago.</li>
+      </ol>
+      <p style="margin-top:10px;">Portal de acceso: <code>${data.portalUrl}</code></p>
+      <p style="margin-top:8px;">Este correo no contiene enlaces directos por política de seguridad.</p>
+    </div>
 
     <hr class="divider" />
 
     <p style="font-size:13px; color:#888888;">
       Para consultas sobre esta factura, comuníquese con el área financiera en
-      <a href="mailto:facturacion@logitrans.com">facturacion@logitrans.com</a>.
+      facturacion@logitrans.com.
     </p>
     `,
     subject,
@@ -80,7 +86,10 @@ Vencimiento: ${data.dueDate}
 Total:       ${data.currency} ${data.total}
 ${data.felAuthorizationCode ? `No. SAT FEL: ${data.felAuthorizationCode}` : ''}
 
-Gestione su pago en: ${data.portalUrl}
+Instrucciones:
+  1) Ingrese al Portal de Clientes LogiTrans: ${data.portalUrl}
+  2) Abra facturación/estado de cuenta
+  3) Busque la factura ${data.invoiceNumber} para descargar PDF y gestionar el pago
   `.trim();
 
   return { subject, html, text };

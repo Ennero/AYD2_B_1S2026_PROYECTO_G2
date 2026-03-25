@@ -60,7 +60,8 @@ export class EmailService {
   ): Promise<EmailSendResult> {
     const tpl = passwordRecoveryTemplate({
       clientName: data.clientName,
-      recoveryUrl: data.recoveryUrl,
+      recoveryToken: data.recoveryToken,
+      portalUrl: data.portalUrl ?? this.portalUrl,
       expiresInMinutes: data.expiresInMinutes ?? 30,
       ipAddress: data.ipAddress,
     });

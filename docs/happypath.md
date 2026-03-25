@@ -91,11 +91,13 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Nombre Contacto Principal | `Roberto Álvarez Méndez` |
 | Email Contacto | `deennerparaprobar@gmail.com` |
 | Contraseña | `probando2026` |
-| Teléfono Contacto | `22001234` |
+| Teléfono Contacto | `+502` + `22001234` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
 | Riesgo de Mercancia | `BAJO` |
 | Riesgo Lavado de Dinero | `BAJO` |
+
+> Nota: el teléfono se captura en dos partes (prefijo país y número local), y se almacena en formato canónico `+50222001234` (también aplica para `+503` y `+504`).
 
 4. Una vez completado, presiona el botón **"Guardar"** o **"Registrar"**.
 5. El sistema mostrará un mensaje de confirmación: _"Cliente registrado exitosamente"_.
@@ -188,6 +190,16 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 3. Serás redirigido al **Portal del Cliente**, que muestra un resumen de tus órdenes, saldo y contratos.
 
 > 📸 **CAPTURA**: Captura el dashboard del portal cliente con el resumen de su cuenta (contratos, órdenes y saldo).
+
+### 4.1.1 Recuperación de contraseña por token
+
+1. En "¿Olvidaste tu contraseña?", ingresa el correo del usuario.
+2. Revisa el correo recibido: incluye un **token de recuperación** (sin enlaces ni botones).
+3. Abre la pantalla de "Restablecer contraseña" en el portal.
+4. Ingresa manualmente el token, nueva contraseña y confirmación.
+5. Confirma el cambio.
+
+> Nota: el token expira en 30 minutos y es de un solo uso.
 
 ---
 

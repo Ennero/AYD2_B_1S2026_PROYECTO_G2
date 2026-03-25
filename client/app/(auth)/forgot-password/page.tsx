@@ -53,9 +53,7 @@ export default function ForgotPasswordPage() {
 
     try {
       setIsChanging(true)
-      await api.post("/api/auth/password", { password, confirmation }, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await api.post("/api/auth/password", { token, password, confirmation })
       toast.success("Contraseña actualizada exitosamente")
       router.push("/login")
     } catch (error: any) {

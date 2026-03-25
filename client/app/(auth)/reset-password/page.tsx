@@ -134,15 +134,15 @@ function ResetPasswordForm() {
             <AlertTriangle size={28} className="text-red-600" />
           </div>
         </div>
-        <h2 className="text-xl font-bold text-[#1A202C] mb-2">Enlace inválido</h2>
+        <h2 className="text-xl font-bold text-[#1A202C] mb-2">Token inválido</h2>
         <p className="text-sm text-[#64748B] mb-6">
-          El enlace de recuperación no contiene un token válido. Solicita uno nuevo desde la página de recuperación.
+          El token de recuperación no es válido o no fue proporcionado. Solicita uno nuevo desde la página de recuperación.
         </p>
         <Link
           href="/forgot-password"
           className="text-sm font-medium text-[#0A3B7C] hover:underline"
         >
-          Solicitar nuevo enlace →
+          Solicitar nuevo token →
         </Link>
       </Card>
     )
