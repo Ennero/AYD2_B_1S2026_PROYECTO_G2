@@ -412,22 +412,36 @@ export default function MisDatosPage() {
                   para restablecerla sin necesidad de la contraseña actual.
                 </p>
 
-          {recoverySent ? (
-            <div className="flex items-center gap-2 text-[#3A8E2A] text-sm font-medium">
-              <CheckCircle2 size={16} />
-              Token enviado. Revisa tu bandeja de entrada.
+                {recoverySent ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#3A8E2A", fontSize: "0.82rem", fontWeight: 600 }}>
+                    <CheckCircle2 size={15} />
+                    Token enviado. Revisa tu bandeja de entrada.
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => void handleSendRecovery()}
+                    disabled={sendingRecovery}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: "6px",
+                      padding: "0.55rem 1rem", background: "none",
+                      border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
+                      fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+                      textTransform: "uppercase", color: "#6B6260",
+                      cursor: sendingRecovery ? "not-allowed" : "pointer",
+                      opacity: sendingRecovery ? 0.6 : 1,
+                      transition: "border-color 0.15s",
+                    }}
+                    onMouseOver={e => { if (!sendingRecovery) e.currentTarget.style.borderColor = "rgba(12,12,10,0.25)" }}
+                    onMouseOut={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
+                  >
+                    <Send size={12} />
+                    {sendingRecovery ? "Enviando…" : "Enviar token de recuperación"}
+                  </button>
+                )}
+              </div>
             </div>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              loading={sendingRecovery}
-              onClick={() => void handleSendRecovery()}
-            >
-              <Send size={14} />
-              Enviar token de recuperación
-            </Button>
-          )}
+          </motion.div>
+
         </div>
       </div>
     </div>

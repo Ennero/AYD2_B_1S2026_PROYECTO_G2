@@ -9,7 +9,6 @@ import {
 import { toast } from "sonner"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
-import { cn } from "@/lib/utils/cn"
 import Button from "@/components/ui/Button"
 import Input from "@/components/ui/Input"
 import {
@@ -19,6 +18,8 @@ import {
   splitPrefixedPhone,
   type PhoneCountryCode,
 } from "@/lib/utils/phone"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -66,45 +67,6 @@ function ContactAvatar({ name }: { name: string }) {
       background: bg, color, fontSize: "0.82rem", fontWeight: 900, letterSpacing: "-0.02em",
     }}>
       {initials}
-    </div>
-  )
-}
-
-/* ─── Field component ───────────────────────────────────────────────────── */
-
-function FormField({
-  label, type = "text", value, onChange, placeholder, disabled,
-}: {
-  label: string
-  type?: string
-  value: string
-  onChange: (v: string) => void
-  placeholder?: string
-  disabled?: boolean
-}) {
-  return (
-    <div>
-      <label style={{ display: "block", fontSize: "0.52rem", letterSpacing: "0.15em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        style={{
-          width: "100%", boxSizing: "border-box",
-          padding: "0.6rem 0.85rem",
-          background: disabled ? "rgba(12,12,10,0.03)" : "#F5F2EC",
-          border: "1px solid rgba(12,12,10,0.12)",
-          borderRadius: "4px", color: "#0C0C0A", fontSize: "0.85rem",
-          outline: "none", transition: "border-color 0.15s",
-          opacity: disabled ? 0.6 : 1,
-        }}
-        onFocus={e => { if (!disabled) e.target.style.borderColor = "#C9924B" }}
-        onBlur={e => { e.target.style.borderColor = "rgba(12,12,10,0.12)" }}
-      />
     </div>
   )
 }
@@ -274,7 +236,7 @@ function ContactModal({
             </Button>
             <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </form>
       </div>
