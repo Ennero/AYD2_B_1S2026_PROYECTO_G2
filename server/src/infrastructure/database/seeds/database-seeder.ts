@@ -947,7 +947,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     pilotEmail: 'piloto.08@logitrans.gt',
     plateNumber: 'TC-400MNL',
     vehicleModel: 'Freightliner Cascadia 2020',
-    capacityTon: 24.5,
+    capacityTon: 40,
     hasRefrigeration: false,
     pilotLicenseNumber: 'LIC-PLT-0008',
   },
@@ -957,7 +957,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     pilotEmail: 'piloto.09@logitrans.gt',
     plateNumber: 'TC-405MNL',
     vehicleModel: 'Kenworth T680 2021',
-    capacityTon: 25.2,
+    capacityTon: 40,
     hasRefrigeration: true,
     pilotLicenseNumber: 'LIC-PLT-0009',
   },
@@ -967,7 +967,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     pilotEmail: 'piloto.10@logitrans.gt',
     plateNumber: 'TC-407MNL',
     vehicleModel: 'Volvo VNL 2022',
-    capacityTon: 23.8,
+    capacityTon: 40,
     hasRefrigeration: false,
     pilotLicenseNumber: 'LIC-PLT-0010',
   },
@@ -977,7 +977,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     pilotEmail: 'piloto.11@logitrans.gt',
     plateNumber: 'TC-410MNL',
     vehicleModel: 'Freightliner Cascadia 2023',
-    capacityTon: 24.1,
+    capacityTon: 40,
     hasRefrigeration: true,
     pilotLicenseNumber: 'LIC-PLT-0011',
   },
@@ -987,7 +987,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     pilotEmail: 'piloto.12@logitrans.gt',
     plateNumber: 'TC-415MNL',
     vehicleModel: 'Kenworth T880 2021',
-    capacityTon: 24.8,
+    capacityTon: 40,
     hasRefrigeration: false,
     pilotLicenseNumber: 'LIC-PLT-0012',
   },
@@ -997,7 +997,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     pilotEmail: 'piloto.13@logitrans.gt',
     plateNumber: 'TC-418MNL',
     vehicleModel: 'Mack Anthem 2022',
-    capacityTon: 25.5,
+    capacityTon: 40,
     hasRefrigeration: true,
     pilotLicenseNumber: 'LIC-PLT-0013',
   },
@@ -1007,7 +1007,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     pilotEmail: 'piloto.14@logitrans.gt',
     plateNumber: 'TC-420MNL',
     vehicleModel: 'International LT 2020',
-    capacityTon: 23.5,
+    capacityTon: 40,
     hasRefrigeration: false,
     pilotLicenseNumber: 'LIC-PLT-0014',
   },
@@ -2231,7 +2231,7 @@ export class DatabaseSeeder {
     }
 
     if (preferredVehicleTypeCode === 'TRAILER') {
-      return roundCurrency(Math.min(capacityTon - 0.8, 24.2));
+      return roundCurrency(Math.min(capacityTon - 0.8, 39.2));
     }
 
     return roundCurrency(Math.max(1.2, capacityTon * 0.65));

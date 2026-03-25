@@ -107,6 +107,12 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 ![Datos Fiscales Cliente](imgs/happypath/06_registro_datos_fiscales.jpeg)
 ![Perfil de Riesgo Cliente](imgs/happypath/07_registro_perfil_riesgo.jpeg)
 
+### 2.3.1 Correo de bienvenida con credenciales
+
+Después del registro exitoso, el cliente recibe un correo de bienvenida con sus credenciales de acceso.
+
+![Correo - Bienvenida con credenciales](imgs/happypath/42_email_bienvenida_credenciales.png)
+
 
 
 
@@ -171,6 +177,12 @@ Ingresa los siguientes datos para el contrato:
 ![Formulario Formalizar Contrato](imgs/happypath/09_formalizar_contrato.jpeg)
 ![Propuesta Generada Correctamente](imgs/happypath/10_propuesta_generada.jpeg)
 
+### 3.2.1 Correo de propuesta de contrato
+
+Al generar la propuesta, el cliente recibe un correo con el código de contrato, rutas y pasos para revisión/aceptación.
+
+![Correo - Propuesta de Contrato](imgs/happypath/43_email_propuesta_contrato.png)
+
 
 ---
 
@@ -219,6 +231,7 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 
 ![Cliente - Seguridad antes de solicitar token](imgs/happypath/31_cliente_seguridad_sin_token.jpeg)
 ![Cliente - Token de recuperación enviado](imgs/happypath/32_cliente_seguridad_token_enviado.jpeg)
+![Correo - Recuperación de contraseña con token](imgs/happypath/44_email_recuperacion_contrasena.png)
 
 ### 4.1.2 Módulos disponibles para el Cliente
 
@@ -264,19 +277,20 @@ Ingresa los siguientes datos:
 |-------|-------------------|
 | Contrato | `Aplicado automáticamente por el sistema` |
 | Tipo de Carga | `CARGA GENERAL` |
-| Descripción de la Carga | `Electrodomésticos para distribución` |
-| Peso Declarado | `8.5 Ton` |
-| Dirección de Recogida | `6a Av. 12-34 Zona 1, Ciudad de Guatemala` |
-| Dirección de Entrega | `Puerto Barrios, Izabal - Almacén Central` |
+| Descripción de la Carga | `Sacos de cemento de Dora la exploradora` |
+| Peso Declarado | `92 Ton` *(caso extremo para validar disponibilidad logística)* |
+| Dirección de Recogida | `Mi casita` |
+| Dirección de Entrega | `La casita en puerto barrios` |
 
 5. Confirma presionando **"Solicitar Servicio"** o **"Crear Orden"**.
 6. La orden será creada con estado **`REGISTRADA`** y se notifica al equipo logístico.
 
-![Cliente - Formulario Nueva Orden](imgs/happypath/19_cliente_nueva_orden_formulario.jpeg)
-> En esta imagen, no se puede generar una nueva orden debido a que, en este caso, no se ha aceptado aún algún contrato
+![Cliente - Nueva Orden con contrato vigente y peso extremo](imgs/happypath/33_cliente_orden_peso_extremo_paso1.jpeg)
+![Cliente - Revisión y Confirmación de la Orden extrema](imgs/happypath/34_cliente_orden_peso_extremo_confirmacion.jpeg)
+![Cliente - Confirmación visual de orden creada](imgs/happypath/35_cliente_dashboard_orden_creada.jpeg)
+![Cliente - Orden visible en Órdenes Recientes](imgs/happypath/36_cliente_dashboard_orden_reciente.jpeg)
 
-
-![Cliente - Historial de Órdenes tras creación](imgs/happypath/20_cliente_historial_ordenes.jpeg)
+> Nota: este caso se documenta como escenario extremo para validación operativa de asignación. En la versión actual, el formulario de cliente limita el peso máximo permitido a `40 Ton`.
 
 ---
 
@@ -292,7 +306,7 @@ Ingresa los siguientes datos:
 2. Inicia sesión con las credenciales del Agente Logístico.
 3. Tu dashboard mostrará las **órdenes pendientes de asignación**.
 
-> 📸 **CAPTURA**: Captura el dashboard del Agente Logístico con el resumen de órdenes por estado.
+![Logística - Dashboard inicial](imgs/happypath/37_logistica_dashboard_inicio.jpeg)
 
 ---
 
@@ -302,18 +316,17 @@ Ingresa los siguientes datos:
 2. Localiza la orden recién creada de `DISTRIBUIDORA EL PROGRESO, S.A.` en estado **`REGISTRADA`**.
 3. Haz clic en la orden para ver su detalle.
 4. Verás un botón **"Asignar Binomio"** o similar.
-5. El sistema muestra la lista de binomios disponibles (pares piloto-vehículo). Selecciona:
-   - **Piloto**: Carlos Méndez
-   - **Vehículo**: Camión Pesado con capacidad suficiente para 8.5 Ton
-6. El sistema valida automáticamente que:
-   - La capacidad del camión ≥ 8.5 Ton ✅
-   - La licencia del piloto esté vigente ✅
-   - Los documentos del vehículo estén vigentes ✅
-7. Confirma la asignación. La orden cambia a estado **`ASIGNADA`**.
+5. Para este caso extremo, filtra la orden por cliente y verifica que el peso declarado es alto.
+6. Al abrir **"Asignar Binomio"**, el sistema intenta buscar unidades compatibles.
+7. Si no existe un vehículo disponible con capacidad suficiente para ese peso, se mostrará el mensaje: **"No hay unidades disponibles para esta orden"**.
+8. En este escenario, la orden **no cambia de estado** y se mantiene en `REGISTRADA` hasta que exista capacidad disponible.
 
-> 📸 **CAPTURA**: Captura la pantalla de selección de binomio mostrando los filtros de compatibilidad y el binomio seleccionado.
+![Logística - Catálogo de Rutas](imgs/happypath/38_logistica_catalogo_rutas.jpeg)
+![Logística - Órdenes de Servicio (vista general)](imgs/happypath/39_logistica_ordenes_lista_general.jpeg)
+![Logística - Orden filtrada con peso extremo](imgs/happypath/40_logistica_orden_filtrada_peso_extremo.jpeg)
+![Logística - Modal sin unidad disponible](imgs/happypath/41_logistica_modal_sin_unidad_disponible.jpeg)
 
-> 📸 **CAPTURA**: Captura el detalle de la orden ya en estado `ASIGNADA` con el binomio asignado visible.
+> Resultado esperado del caso: la aplicación bloquea la asignación cuando no hay capacidad de transporte suficiente entre las unidades disponibles.
 
 ---
 

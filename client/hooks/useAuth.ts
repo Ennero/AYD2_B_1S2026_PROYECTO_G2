@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react"
 import { api, setToken, removeToken } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import type { UserProfile, UserRole } from "@/lib/api/types"
+import { normalizeUtf8Text } from "@/lib/utils/text"
 
 /**
  * Hook de autenticación.
@@ -27,7 +28,7 @@ export function useAuth() {
         const payload = JSON.parse(atob(token.split('.')[1]))
         setUser({
           userId: payload.sub,
-          fullName: payload.fullName,
+          fullName: normalizeUtf8Text(payload.fullName),
           email: payload.email,
           role: payload.role as UserRole,
         })
@@ -59,7 +60,7 @@ export function useAuth() {
     
     const userProfile = {
       userId: backendData.userId,
-      fullName: backendData.fullName,
+      fullName: normalizeUtf8Text(backendData.fullName),
       email,
       role: backendData.role,
     }
