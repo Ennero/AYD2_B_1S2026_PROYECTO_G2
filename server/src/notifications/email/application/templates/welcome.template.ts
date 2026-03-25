@@ -21,14 +21,14 @@ export function welcomeTemplate(data: WelcomeTemplateData): { subject: string; h
 
     <div class="info-box">
       <p><strong>Correo electrónico:</strong> ${data.email}</p>
-      <p><strong>Contraseña temporal:</strong> ${data.temporaryPassword}</p>
+      <p><strong>Contraseña:</strong> ${data.temporaryPassword}</p>
     </div>
 
     <div class="info-box">
       <p><strong>Instrucciones de acceso</strong></p>
       <ol class="steps">
         <li>Ingrese al Portal de Clientes LogiTrans.</li>
-        <li>Inicie sesión con el correo y la contraseña temporal indicados arriba.</li>
+        <li>Inicie sesión con el correo y la contraseña indicados arriba.</li>
         <li>Al entrar, cambie su contraseña para mayor seguridad.</li>
       </ol>
     </div>
@@ -47,7 +47,7 @@ Bienvenido a LogiTrans, ${data.clientName}.
 
 Sus credenciales de acceso:
   Correo electrónico: ${data.email}
-  Contraseña temporal: ${data.temporaryPassword}
+  Contraseña: ${data.temporaryPassword}
 
 Instrucciones:
   1) Ingrese al Portal de Clientes LogiTrans

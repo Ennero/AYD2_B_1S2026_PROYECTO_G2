@@ -94,7 +94,7 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Teléfono Contacto | `+502` + `22001234` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
-| Riesgo de Mercancia | `BAJO` |
+| Riesgo de Mercancía | `BAJO` |
 | Riesgo Lavado de Dinero | `BAJO` |
 
 > Nota: el teléfono se captura en dos partes (prefijo país y número local), y se almacena en formato canónico `+50222001234` (también aplica para `+503` y `+504`).
@@ -114,7 +114,7 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 
 En esta pantalla, se pueden observar todos los usuario dentro de la plataforma y filtrar a gusto.
 
-Y también se mostrarán las opciones de editar y eliminar usuario. Asi de activarlo o desactivarlo.
+Y también se mostrarán las opciones de editar y eliminar usuario, así como activarlo o desactivarlo.
 
 ![Listado de Usuarios](imgs/happypath/11_gestion_usuarios_lista.jpeg)
 ![Edición de Usuario](imgs/happypath/12_editar_usuario_modal.jpeg)
@@ -185,9 +185,9 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 5. Presiona **"Aceptar"**.
 6. El contrato cambia a estado **`VIGENTE`**.
 
-> 📸 **CAPTURA**: Captura la pantalla del portal cliente mostrando la propuesta pendiente con el botón "Aceptar".
-
-> 📸 **CAPTURA**: Captura el contrato ya en estado `VIGENTE`.
+![Cliente - Contrato Pendiente](imgs/happypath/21_cliente_contratos_pendiente.jpeg)
+![Cliente - Detalle de Contrato Pendiente](imgs/happypath/22_cliente_contrato_detalle_pendiente.jpeg)
+![Cliente - Contrato Aceptado y Vigente](imgs/happypath/23_cliente_contrato_aceptado_vigente.jpeg)
 
 ---
 
@@ -205,7 +205,7 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 2. Ingresa las credenciales del cliente.
 3. Serás redirigido al **Portal del Cliente**, que muestra un resumen de tus órdenes, saldo y contratos.
 
-> 📸 **CAPTURA**: Captura el dashboard del portal cliente con el resumen de su cuenta (contratos, órdenes y saldo).
+![Portal Cliente - Dashboard Inicio](imgs/happypath/18_cliente_dashboard_inicio.jpeg)
 
 ### 4.1.1 Recuperación de contraseña por token
 
@@ -217,11 +217,43 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 
 > Nota: el token expira en 30 minutos y es de un solo uso.
 
+![Cliente - Seguridad antes de solicitar token](imgs/happypath/31_cliente_seguridad_sin_token.jpeg)
+![Cliente - Token de recuperación enviado](imgs/happypath/32_cliente_seguridad_token_enviado.jpeg)
+
+### 4.1.2 Módulos disponibles para el Cliente
+
+Desde el menú lateral del portal cliente se puede acceder a estos módulos principales:
+
+1. **Órdenes**: historial y creación de nuevas órdenes.
+2. **Contratos**: visualización de contratos y estado vigente.
+3. **Facturas**: historial de facturación FEL.
+4. **Estado de Cuenta**: resumen de crédito y saldos.
+5. **Contactos**: administración de contactos clave.
+6. **Mis Datos**: perfil empresarial y seguridad de cuenta.
+
+![Cliente - Historial de Órdenes](imgs/happypath/20_cliente_historial_ordenes.jpeg)
+![Cliente - Contratos](imgs/happypath/21_cliente_contratos_pendiente.jpeg)
+![Cliente - Mis Facturas](imgs/happypath/24_cliente_mis_facturas.jpeg)
+![Cliente - Estado de Cuenta](imgs/happypath/26_cliente_estado_cuenta.jpeg)
+![Cliente - Contactos Clave](imgs/happypath/25_cliente_contactos_vacio.jpeg)
+![Cliente - Mi Perfil Empresarial](imgs/happypath/30_cliente_perfil_empresarial.jpeg)
+
+### 4.1.3 Gestión de contactos del Cliente
+
+1. Ingresa a **"Contactos"**.
+2. Presiona **"Agregar Contacto"** para registrar un nuevo contacto.
+3. Verifica que aparezca en el listado con mensaje de confirmación.
+4. También puedes editar un contacto existente desde el mismo módulo.
+
+![Cliente - Nuevo Contacto (Modal)](imgs/happypath/27_cliente_contacto_nuevo_modal.jpeg)
+![Cliente - Contacto Agregado](imgs/happypath/29_cliente_contacto_agregado.jpeg)
+![Cliente - Editar Contacto (Modal)](imgs/happypath/28_cliente_contacto_editar_modal.jpeg)
+
 ---
 
 ### 4.2 Crear una Nueva Orden de Servicio
 
-1. En el menú lateral, haz clic en **"Nuevo Servicio"** u **"Ordenes"** → **"Solicitar Servicio"**.
+1. En el menú lateral, haz clic en **"Nuevo Servicio"** u **"Órdenes"** → **"Solicitar Servicio"**.
 2. Se presenta el formulario de solicitud de orden.
 3. El sistema aplica automáticamente el **contrato vigente más reciente** del cliente autenticado.
 4. El selector de mercancía solo muestra **tipos autorizados por ese contrato vigente**.
@@ -240,9 +272,11 @@ Ingresa los siguientes datos:
 5. Confirma presionando **"Solicitar Servicio"** o **"Crear Orden"**.
 6. La orden será creada con estado **`REGISTRADA`** y se notifica al equipo logístico.
 
-> 📸 **CAPTURA**: Captura el formulario de nueva orden con los datos de ejemplo ingresados.
+![Cliente - Formulario Nueva Orden](imgs/happypath/19_cliente_nueva_orden_formulario.jpeg)
+> En esta imagen, no se puede generar una nueva orden debido a que, en este caso, no se ha aceptado aún algún contrato
 
-> 📸 **CAPTURA**: Captura la confirmación de la orden creada mostrando el número de orden (ej: `ORD-000001`) y el contrato aplicado automáticamente.
+
+![Cliente - Historial de Órdenes tras creación](imgs/happypath/20_cliente_historial_ordenes.jpeg)
 
 ---
 

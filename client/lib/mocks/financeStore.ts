@@ -120,7 +120,7 @@ const INITIAL_STATE: FinanceMockState = {
     {
       vehicleTypeId: 2,
       typeCode: "HEAVY",
-      typeName: "Camion Pesado",
+      typeName: "Camión Pesado",
       minCapacityTon: 10,
       maxCapacityTon: 12,
       ratePerKm: 12.5,
@@ -128,7 +128,7 @@ const INITIAL_STATE: FinanceMockState = {
     {
       vehicleTypeId: 3,
       typeCode: "TRAILER",
-      typeName: "Cabezal Trailer",
+      typeName: "Cabezal Tráiler",
       minCapacityTon: 22,
       maxCapacityTon: null,
       ratePerKm: 18,
