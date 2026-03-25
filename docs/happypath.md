@@ -102,10 +102,11 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 4. Una vez completado, presiona el botón **"Guardar"** o **"Registrar"**.
 5. El sistema mostrará un mensaje de confirmación: _"Cliente registrado exitosamente"_.
 
+![Datos Generales Cliente Completados](imgs/happypath/05_registro_datos_generales_completados.jpeg)
+![Confirmación Cliente Registrado](imgs/happypath/08_registro_completado.jpeg)
 ![Datos Fiscales Cliente](imgs/happypath/06_registro_datos_fiscales.jpeg)
 ![Perfil de Riesgo Cliente](imgs/happypath/07_registro_perfil_riesgo.jpeg)
 
-![Confirmación Cliente Registrado](imgs/happypath/08_registro_completado.jpeg)
 
 
 
@@ -120,6 +121,21 @@ Y también se mostrarán las opciones de editar y eliminar usuario. Asi de activ
 
 
 ### 2.5 Gestión de catálogo
+
+En esta pantalla se administran rutas y tipos de carga permitidos.
+
+1. Desde el menú lateral, ingresa a **"Gestión de Catálogos"**.
+2. Verifica la vista general con ambos paneles: rutas y tipos de carga.
+3. Prueba agregar un tipo de carga y confirma el mensaje de éxito.
+4. Prueba agregar una ruta y confirma el mensaje de éxito.
+5. Prueba eliminar un tipo de carga y confirma el mensaje de éxito.
+6. Prueba editar un registro existente (ruta o tipo de carga).
+
+![Gestión de Catálogos - Vista General](imgs/happypath/13_catalogos_vista_general.jpeg)
+![Gestión de Catálogos - Tipo de Carga Agregada](imgs/happypath/14_catalogos_tipo_carga_agregada.jpeg)
+![Gestión de Catálogos - Ruta Agregada](imgs/happypath/15_catalogos_ruta_agregada.jpeg)
+![Gestión de Catálogos - Tipo de Carga Eliminada](imgs/happypath/16_catalogos_tipo_carga_eliminada.jpeg)
+![Gestión de Catálogos - Edición](imgs/happypath/17_catalogos_edicion.jpeg)
 
 
 
