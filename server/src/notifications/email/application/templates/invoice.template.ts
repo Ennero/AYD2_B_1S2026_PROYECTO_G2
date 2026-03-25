@@ -11,7 +11,6 @@ export interface InvoiceTemplateData {
   total: string;
   currency: string;
   pdfUrl?: string;
-  portalUrl: string;
   felAuthorizationCode?: string;
 }
 
@@ -62,7 +61,6 @@ export function invoiceTemplate(
         <li>Abre el módulo de facturación o estado de cuenta.</li>
         <li>Localiza la factura ${data.invoiceNumber} para descargar PDF o gestionar el pago.</li>
       </ol>
-      <p style="margin-top:10px;">Portal de acceso: <code>${data.portalUrl}</code></p>
       <p style="margin-top:8px;">Este correo no contiene enlaces directos por política de seguridad.</p>
     </div>
 
@@ -87,7 +85,7 @@ Total:       ${data.currency} ${data.total}
 ${data.felAuthorizationCode ? `No. SAT FEL: ${data.felAuthorizationCode}` : ''}
 
 Instrucciones:
-  1) Ingrese al Portal de Clientes LogiTrans: ${data.portalUrl}
+  1) Ingrese al Portal de Clientes LogiTrans
   2) Abra facturación/estado de cuenta
   3) Busque la factura ${data.invoiceNumber} para descargar PDF y gestionar el pago
   `.trim();

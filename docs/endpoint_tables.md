@@ -142,7 +142,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
       <td>Se apoya principalmente en la vista <strong>V_CLIENT_BALANCES</strong>.<br>Cuenta ordenes activas desde <strong>ORDERS</strong> por cliente autenticado.<br>No modifica datos.</td>
     </tr>
     <tr>
-      <td>POST</td>
+      <td>GET</td>
       <td>/api/client/cargo-types</td>
       <td><pre>{
   "headers": {
@@ -164,7 +164,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>CARGO_TYPES</strong> activos para poblar el combobox del formulario de ordenes del cliente.</td>
+      <td>Devuelve solo tipos de mercancia autorizados por el contrato vigente mas reciente del cliente autenticado.</td>
     </tr>
     <tr>
       <td>POST</td>
@@ -174,24 +174,22 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
   },
   "body": {
-    "CONTRACT_ID": "a73b5271-6cb9-4c91-bd67-3794c5eb5a7b",
-    "CARGO_TYPE_ID": 2,
-    "DECLARED_WEIGHT_TON": 10.5,
-    "CARGO_DESCRIPTION": "Producto refrigerado",
-    "PICKUP_ADDRESS": "Zona 12, Ciudad de Guatemala",
-    "DELIVERY_ADDRESS": "San Salvador, El Salvador",
-    "NOTES": "Entregar antes de las 16:00"
+    "cargoTypeId": 2,
+    "declaredWeightTon": 10.5,
+    "cargoDescription": "Producto refrigerado",
+    "pickupAddress": "Zona 12, Ciudad de Guatemala",
+    "deliveryAddress": "San Salvador, El Salvador"
   }
 }</pre></td>
       <td><pre>{
-  "message": "Orden registrada correctamente",
+  "message": "Orden creada correctamente",
   "data": {
-    "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
-    "orderNumber": "ORD-000085",
+    "orderId": 85,
+    "orderNumber": "ORD-2026-0085",
     "status": "REGISTRADA"
   }
 }</pre></td>
-      <td>Inserta en <strong>ORDERS</strong> con <strong>REQUESTED_BY_USER_ID</strong>, <strong>CONTRACT_ID</strong>, <strong>PICKUP_ADDRESS</strong> y <strong>DELIVERY_ADDRESS</strong>.<br>El trigger <strong>VALIDATE_ORDER_COMMERCIAL_RULES</strong> impide crear la orden si el contrato no esta vigente, si el cliente esta bloqueado, si tiene mora o si excedio su credito.<br>La <strong>CONTRACT_ROUTE_ID</strong> todavia no viene en esta etapa; la asigna Logistica despues.</td>
+      <td>Inserta en <strong>ORDERS</strong> con <strong>REQUESTED_BY_USER_ID</strong> y usa automaticamente el contrato vigente mas reciente del cliente autenticado.<br>No recibe <strong>contractId</strong> en el payload.<br>El tipo de mercancia se valida contra los autorizados por contrato vigente; si no pertenece, retorna error 400.<br>La <strong>CONTRACT_ROUTE_ID</strong> todavia no viene en esta etapa; la asigna Logistica despues.</td>
     </tr>
     <tr>
       <td>GET</td>

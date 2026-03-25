@@ -7,7 +7,6 @@ export interface ContractProposalTemplateData {
   validUntil: string;
   totalAmount: string;
   currency: string;
-  portalUrl: string;
   agentName: string;
 }
 
@@ -43,7 +42,7 @@ export function contractProposalTemplate(
     <div class="info-box">
       <p><strong>Pasos para revisar y responder</strong></p>
       <ol class="steps">
-        <li>Ingrese a la plataforma en <code>${data.portalUrl}</code>.</li>
+        <li>Ingrese al Portal de Clientes LogiTrans.</li>
         <li>Abra el módulo de contratos y busque el código <code>${data.contractCode}</code>.</li>
         <li>Revise términos y seleccione Aceptar o Rechazar.</li>
       </ol>
@@ -70,7 +69,7 @@ Monto: ${data.currency} ${data.totalAmount}
 Válido hasta: ${data.validUntil}
 
 Para revisar y responder:
-  1) Ingrese a ${data.portalUrl}
+  1) Ingrese al Portal de Clientes LogiTrans
   2) Abra el módulo de contratos y busque ${data.contractCode}
   3) Seleccione Aceptar o Rechazar
   `.trim();

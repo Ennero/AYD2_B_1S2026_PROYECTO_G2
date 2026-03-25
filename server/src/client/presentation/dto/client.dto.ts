@@ -45,10 +45,6 @@ export class AcceptContractDto {
 export class CreateOrderDto {
   @IsInt()
   @Min(1)
-  contractId: number;
-
-  @IsInt()
-  @Min(1)
   cargoTypeId: number;
 
   @IsNotEmpty()

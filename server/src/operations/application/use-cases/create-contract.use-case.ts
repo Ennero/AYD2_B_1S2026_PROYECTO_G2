@@ -1,5 +1,4 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { DataSource, In, QueryFailedError } from 'typeorm';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 import { CargoType } from '../../../infrastructure/database/typeorm/entities/cargo-type.entity';
@@ -30,7 +29,6 @@ export class CreateContractUseCase {
   constructor(
     private readonly dataSource: DataSource,
     private readonly emailService: EmailService,
-    private readonly config: ConfigService,
   ) {}
 
   async execute(input: CreateContractInput, agentName: string): Promise<CreateContractOutput> {
@@ -187,7 +185,6 @@ export class CreateContractUseCase {
     }
 
     // ── 4. Notificación al cliente (fire-and-forget) ──────────────────────────
-    const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3000');
     const routeLabels = routes.map((r) => `${r.origin} → ${r.destination}`);
 
     this.emailService
@@ -200,7 +197,6 @@ export class CreateContractUseCase {
         totalAmount: Number(input.creditLimit).toFixed(2),
         currency: 'GTQ',
         agentName,
-        portalUrl: `${portalUrl}/contratos`,
       })
       .catch((err: Error) =>
         this.logger.error(

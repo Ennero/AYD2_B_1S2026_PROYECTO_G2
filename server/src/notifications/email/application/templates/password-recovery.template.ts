@@ -3,10 +3,8 @@ import { baseTemplate } from './base.template';
 export interface PasswordRecoveryTemplateData {
   clientName: string;
   recoveryToken: string;
-  portalUrl: string;
   /** Minutos de vigencia del token (por RNF: 30 minutos) */
   expiresInMinutes: number;
-  ipAddress?: string;
 }
 
 /**
@@ -33,7 +31,7 @@ export function passwordRecoveryTemplate(
       <div class="token-box">${data.recoveryToken}</div>
       <p style="margin-top:10px;">Ingresa este token manualmente dentro de la plataforma.</p>
       <ol class="steps">
-        <li>Abre <code>${data.portalUrl}</code>.</li>
+        <li>Ingresa al Portal de Clientes LogiTrans.</li>
         <li>Ve a la pantalla de recuperación de contraseña.</li>
         <li>Pega el token y registra tu nueva contraseña.</li>
       </ol>
@@ -44,11 +42,6 @@ export function passwordRecoveryTemplate(
       <p style="margin:0 0 6px;">
         <strong>Uso único:</strong> El token expira al primer uso o al cumplir su vigencia.
       </p>
-      ${
-        data.ipAddress
-          ? `<p style="font-size:12px; color:#888; margin:8px 0 0;">Solicitud originada desde: <code>${data.ipAddress}</code></p>`
-          : ''
-      }
     </div>
 
     <hr class="divider" />
@@ -71,7 +64,7 @@ Token de recuperación (válido por ${data.expiresInMinutes} minutos):
 ${data.recoveryToken}
 
 Instrucciones:
-  1) Ingresa a ${data.portalUrl}
+  1) Ingresa al Portal de Clientes LogiTrans
   2) Abre la sección de recuperación
   3) Ingresa el token y define tu nueva contraseña
 

@@ -4,7 +4,6 @@ export interface WelcomeTemplateData {
   clientName: string;
   email: string;
   temporaryPassword: string;
-  portalUrl: string;
 }
 
 /**
@@ -28,7 +27,7 @@ export function welcomeTemplate(data: WelcomeTemplateData): { subject: string; h
     <div class="info-box">
       <p><strong>Instrucciones de acceso</strong></p>
       <ol class="steps">
-        <li>Abra la plataforma en <code>${data.portalUrl}</code>.</li>
+        <li>Ingrese al Portal de Clientes LogiTrans.</li>
         <li>Inicie sesión con el correo y la contraseña temporal indicados arriba.</li>
         <li>Al entrar, cambie su contraseña para mayor seguridad.</li>
       </ol>
@@ -51,7 +50,7 @@ Sus credenciales de acceso:
   Contraseña temporal: ${data.temporaryPassword}
 
 Instrucciones:
-  1) Abra la plataforma en ${data.portalUrl}
+  1) Ingrese al Portal de Clientes LogiTrans
   2) Inicie sesión con las credenciales enviadas en este correo
   3) Cambie su contraseña en el primer ingreso
 

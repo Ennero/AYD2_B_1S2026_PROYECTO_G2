@@ -1,5 +1,4 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
@@ -40,7 +39,6 @@ export class CreateClientUseCase {
     private readonly dataSource: DataSource,
     private readonly clientFactory: ClientFactory,
     private readonly emailService: EmailService,
-    private readonly config: ConfigService,
   ) {}
 
   async execute(input: CreateClientInput): Promise<CreateClientOutput> {
@@ -101,14 +99,12 @@ export class CreateClientUseCase {
       return { savedClient };
     });
 
-    const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3000');
     this.emailService
       .sendWelcome({
         to: normalizedEmail,
         clientName: client.legalName,
         email: normalizedEmail,
         temporaryPassword: portalPassword,
-        portalUrl,
       })
       .catch((err: Error) =>
         this.logger.error(
