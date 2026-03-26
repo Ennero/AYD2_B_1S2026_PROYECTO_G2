@@ -40,6 +40,7 @@ export default function MonitoreoPage() {
   const [showEntrega, setShowEntrega] = useState(false)
   const [savingEntrega, setSavingEntrega] = useState(false)
   const [newLogIds, setNewLogIds]     = useState<Set<string>>(new Set())
+  const [previewMedia, setPreviewMedia] = useState<string | null>(null)
   const entregaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { fetchDetalle() }, [orderId])
@@ -72,7 +73,13 @@ export default function MonitoreoPage() {
         payload as unknown as Record<string, unknown>
       )
       const d = (r.data as any)?.data ?? r.data
-      const nuevoLog: LogEvento = { logId: d.logId, eventType: payload.eventType, eventTime: d.eventTime, description: payload.description }
+      const nuevoLog: LogEvento = {
+        logId: d.logId,
+        eventType: payload.eventType,
+        eventTime: d.eventTime,
+        description: payload.description,
+        imagePath: d.imagePath ?? null,
+      }
       setViaje(prev => prev ? { ...prev, logs: [...(prev.logs ?? []), nuevoLog] } : prev)
       setNewLogIds(prev => new Set(prev).add(d.logId))
       setModalOpen(false)
@@ -328,6 +335,75 @@ export default function MonitoreoPage() {
           </div>
         </motion.div>
 
+        {(viaje.receiverSignaturePath || (viaje.deliveryEvidencePaths?.length ?? 0) > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6, ease: EASE }}
+            style={{
+              background: "#ffffff",
+              border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "8px",
+              padding: "1.2rem 1.5rem",
+              marginBottom: "1.5rem",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "0.55rem",
+                letterSpacing: "0.3em",
+                color: "#C9924B",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                marginBottom: "0.6rem",
+              }}
+            >
+              Evidencia de cierre
+            </p>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem" }}>
+              {viaje.receiverSignaturePath && (
+                <button
+                  onClick={() => setPreviewMedia(viaje.receiverSignaturePath ?? null)}
+                  style={{
+                    padding: "0.45rem 0.8rem",
+                    borderRadius: "4px",
+                    border: "1px solid rgba(12,12,10,0.18)",
+                    background: "#fff",
+                    fontSize: "0.62rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                  }}
+                >
+                  Ver Firma
+                </button>
+              )}
+
+              {(viaje.deliveryEvidencePaths ?? []).map((path, idx) => (
+                <button
+                  key={`${path}-${idx}`}
+                  onClick={() => setPreviewMedia(path)}
+                  style={{
+                    padding: "0.45rem 0.8rem",
+                    borderRadius: "4px",
+                    border: "1px solid rgba(12,12,10,0.18)",
+                    background: "#fff",
+                    fontSize: "0.62rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                  }}
+                >
+                  Ver Evidencia {idx + 1}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* ── Entrega form ── */}
         {showEntrega && (
           <motion.div ref={entregaRef}
@@ -348,6 +424,37 @@ export default function MonitoreoPage() {
       </div>
 
       <RegistrarEventoModal open={modalOpen} loading={savingLog} onConfirm={handleRegistrarEvento} onClose={() => setModalOpen(false)} />
+
+      {previewMedia && (
+        <div
+          onClick={() => setPreviewMedia(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(12,12,10,0.65)",
+            zIndex: 90,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1.25rem",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={previewMedia}
+            alt="Evidencia del viaje"
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              maxWidth: "min(92vw, 900px)",
+              maxHeight: "85vh",
+              borderRadius: "8px",
+              border: "1px solid rgba(245,242,236,0.2)",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+              background: "#fff",
+            }}
+          />
+        </div>
+      )}
     </div>
   )
 }

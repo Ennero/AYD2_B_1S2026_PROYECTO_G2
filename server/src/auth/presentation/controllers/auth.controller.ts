@@ -76,7 +76,7 @@ export class AuthController {
       throw new UnauthorizedException('No se encontró token de sesión.');
     }
     const data = await this.refreshSessionUseCase.execute(sessionToken);
-    return { message: 'Sesion renovada correctamente', data };
+    return { message: 'Sesión renovada correctamente', data };
   }
 
   /** POST /api/auth/logout — requiere JWT válido + cookie de sesión */
@@ -94,7 +94,7 @@ export class AuthController {
       sessionUuid: user?.sessionUuid,
     });
     res.clearCookie(SESSION_COOKIE);
-    return { message: 'Sesion cerrada correctamente', data: {} };
+    return { message: 'Sesión cerrada correctamente', data: {} };
   }
 
   /** POST /api/auth/recovery — envía email con token de un solo uso */
@@ -105,7 +105,7 @@ export class AuthController {
       email: dto.email,
       ipAddress: req.ip,
     });
-    return { message: 'Correo con token unico enviado', data };
+    return { message: 'Correo con token único enviado', data };
   }
 
   /**
@@ -120,6 +120,6 @@ export class AuthController {
       password: dto.password,
       confirmation: dto.confirmation,
     });
-    return { message: 'Contrasena modificada correctamente', data: {} };
+    return { message: 'Contraseña modificada correctamente', data: {} };
   }
 }

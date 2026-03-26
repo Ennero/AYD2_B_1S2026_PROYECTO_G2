@@ -186,6 +186,26 @@ async function ensurePaymentsMethodSupportConstraint(
   );
 }
 
+async function ensureOrderRouteLogImageField(
+  dataSource: DataSource,
+): Promise<void> {
+  await dataSource.query(
+    'ALTER TABLE public."order_route_logs" ADD COLUMN IF NOT EXISTS "image_path" TEXT',
+  );
+}
+
+async function normalizeDraftInvoiceDescriptions(
+  dataSource: DataSource,
+): Promise<void> {
+  await dataSource.query(
+    `UPDATE public."invoices"
+      SET "service_description" = ''
+      WHERE "status" = 'BORRADOR'
+        AND "sent_at" IS NULL
+        AND ("service_description" ILIKE 'SERVICIO LOGISTICO DE LA ORDEN %')`,
+  );
+}
+
 type IdentityColumnRow = {
   table_name: string;
   column_name: string;
@@ -284,6 +304,8 @@ export async function ensureCanonicalSchema(
     await dropDeprecatedClientCardsTable(dataSource);
     await dropDeprecatedPaymentCardIdColumn(dataSource);
     await ensurePaymentsMethodSupportConstraint(dataSource);
+    await ensureOrderRouteLogImageField(dataSource);
+    await normalizeDraftInvoiceDescriptions(dataSource);
     await relaxIdentityColumnsToByDefault(dataSource);
     await alignIdentitySequences(dataSource);
     await refreshCanonicalRoutines(dataSource);
@@ -303,6 +325,8 @@ export async function ensureCanonicalSchema(
   await dropDeprecatedClientCardsTable(dataSource);
   await dropDeprecatedPaymentCardIdColumn(dataSource);
   await ensurePaymentsMethodSupportConstraint(dataSource);
+  await ensureOrderRouteLogImageField(dataSource);
+  await normalizeDraftInvoiceDescriptions(dataSource);
   await relaxIdentityColumnsToByDefault(dataSource);
   await alignIdentitySequences(dataSource);
 

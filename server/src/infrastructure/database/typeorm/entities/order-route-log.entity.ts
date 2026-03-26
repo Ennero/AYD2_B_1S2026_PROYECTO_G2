@@ -19,6 +19,9 @@ export class OrderRouteLog {
   @Column({ name: 'description', type: 'text' })
   description: string;
 
+  @Column({ name: 'image_path', type: 'text', nullable: true })
+  imagePath: string | null;
+
   @ManyToOne(() => Order, (order) => order.logs)
   @JoinColumn({ name: 'order_id' })
   order: Order;

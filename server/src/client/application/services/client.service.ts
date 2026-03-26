@@ -274,6 +274,13 @@ export class ClientService {
       dispatchedAt: order.dispatchedAt,
       deliveredAt: order.deliveredAt,
       receiverName: order.receiverName,
+      receiverSignaturePath: order.receiverSignaturePath,
+      deliveryEvidencePaths: order.deliveryEvidencePath
+        ? order.deliveryEvidencePath
+            .split(',')
+            .map((path) => path.trim())
+            .filter((path) => path.length > 0)
+        : [],
       stowageConfirmed: order.stowageConfirmed,
       isSealed: order.isSealed,
       unitPlate: order.unit?.plateNumber ?? null,
@@ -283,6 +290,7 @@ export class ClientService {
         eventType: l.eventType,
         eventTime: l.eventTime,
         description: l.description,
+        imagePath: l.imagePath,
       })),
     };
   }

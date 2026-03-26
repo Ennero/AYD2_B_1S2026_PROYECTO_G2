@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import type { RouteInfo } from "@/types/logistics"
-import { MapPin, Clock, Search, X, CheckCircle } from "lucide-react"
+import { MapPin, Clock, Search, X, CheckCircle, ChevronDown, ChevronUp } from "lucide-react"
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -13,6 +13,7 @@ export default function AsignacionRutasPage() {
   const [routes, setRoutes] = useState<RouteInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [expandedRouteId, setExpandedRouteId] = useState<string | null>(null)
 
   useEffect(() => {
     api
@@ -21,6 +22,9 @@ export default function AsignacionRutasPage() {
         setRoutes(
           (data.data ?? []).map((route) => ({
             ...route,
+            routeCode: route.routeCode ?? `RUTA-${route.routeId}`,
+            distanceKm: Number(route.distanceKm ?? 0),
+            isInternational: route.isInternational ?? false,
             isActive: route.isActive ?? true,
           }))
         )
@@ -167,7 +171,9 @@ export default function AsignacionRutasPage() {
                   borderLeft: `3px solid ${route.isActive ? "#3A8E2A" : "#9A9489"}`,
                   borderRadius: "4px",
                   padding: "1.1rem 1.5rem",
-                  display: "flex", alignItems: "center", gap: "1.5rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.9rem",
                   opacity: route.isActive ? 1 : 0.6,
                   transition: "box-shadow 0.2s, transform 0.15s",
                 }}
@@ -182,79 +188,145 @@ export default function AsignacionRutasPage() {
                   el.style.transform = "translateY(0)"
                 }}
               >
-                {/* Status */}
-                <div style={{ flexShrink: 0 }}>
-                  {route.isActive ? (
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: "5px",
-                      background: "rgba(58,142,42,0.08)", borderRadius: "3px", padding: "3px 8px",
-                    }}>
-                      <CheckCircle size={10} style={{ color: "#3A8E2A" }} />
-                      <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#3A8E2A" }}>
-                        Activa
+                <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", width: "100%" }}>
+                  {/* Status */}
+                  <div style={{ flexShrink: 0 }}>
+                    {route.isActive ? (
+                      <div style={{
+                        display: "flex", alignItems: "center", gap: "5px",
+                        background: "rgba(58,142,42,0.08)", borderRadius: "3px", padding: "3px 8px",
+                      }}>
+                        <CheckCircle size={10} style={{ color: "#3A8E2A" }} />
+                        <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#3A8E2A" }}>
+                          Activa
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{
+                        display: "flex", alignItems: "center", gap: "5px",
+                        background: "rgba(154,148,137,0.08)", borderRadius: "3px", padding: "3px 8px",
+                      }}>
+                        <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#9A9489" }}>
+                          Inactiva
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ width: "1px", alignSelf: "stretch", background: "rgba(12,12,10,0.07)", flexShrink: 0 }} />
+
+                  {/* Origen */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+                      Origen
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                      <MapPin size={11} style={{ color: "#C9924B", flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {route.origin}
                       </span>
                     </div>
-                  ) : (
-                    <div style={{
-                      display: "flex", alignItems: "center", gap: "5px",
-                      background: "rgba(154,148,137,0.08)", borderRadius: "3px", padding: "3px 8px",
-                    }}>
-                      <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#9A9489" }}>
-                        Inactiva
+                  </div>
+
+                  {/* Arrow connector */}
+                  <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                    <div style={{ width: "24px", height: "1px", background: "rgba(12,12,10,0.15)" }} />
+                    <span style={{ fontSize: "0.6rem", color: "#9A9489" }}>→</span>
+                    <div style={{ width: "24px", height: "1px", background: "rgba(12,12,10,0.15)" }} />
+                  </div>
+
+                  {/* Destino */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+                      Destino
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                      <MapPin size={11} style={{ color: "#3A8E2A", flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {route.destination}
                       </span>
                     </div>
-                  )}
-                </div>
-
-                {/* Divider */}
-                <div style={{ width: "1px", alignSelf: "stretch", background: "rgba(12,12,10,0.07)", flexShrink: 0 }} />
-
-                {/* Origen */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
-                    Origen
-                  </p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <MapPin size={11} style={{ color: "#C9924B", flexShrink: 0 }} />
-                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {route.origin}
-                    </span>
                   </div>
-                </div>
 
-                {/* Arrow connector */}
-                <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                  <div style={{ width: "24px", height: "1px", background: "rgba(12,12,10,0.15)" }} />
-                  <span style={{ fontSize: "0.6rem", color: "#9A9489" }}>→</span>
-                  <div style={{ width: "24px", height: "1px", background: "rgba(12,12,10,0.15)" }} />
-                </div>
+                  {/* Divider */}
+                  <div style={{ width: "1px", alignSelf: "stretch", background: "rgba(12,12,10,0.07)", flexShrink: 0 }} />
 
-                {/* Destino */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
-                    Destino
-                  </p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                    <MapPin size={11} style={{ color: "#3A8E2A", flexShrink: 0 }} />
-                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {route.destination}
-                    </span>
+                  {/* Duración */}
+                  <div style={{ flexShrink: 0, textAlign: "right" }}>
+                    <p style={{ fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+                      Duración
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "5px", justifyContent: "flex-end" }}>
+                      <Clock size={11} style={{ color: "#9A9489" }} />
+                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A" }}>{route.estimatedHours}h</span>
+                    </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const id = String(route.routeId)
+                      setExpandedRouteId((current) => (current === id ? null : id))
+                    }}
+                    style={{
+                      border: "1px solid rgba(12,12,10,0.12)",
+                      borderRadius: "4px",
+                      background: "transparent",
+                      color: "#6B6260",
+                      fontSize: "0.6rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      padding: "0.45rem 0.65rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                    }}
+                  >
+                    Ver detalles
+                    {expandedRouteId === String(route.routeId) ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  </button>
                 </div>
 
-                {/* Divider */}
-                <div style={{ width: "1px", alignSelf: "stretch", background: "rgba(12,12,10,0.07)", flexShrink: 0 }} />
-
-                {/* Duración */}
-                <div style={{ flexShrink: 0, textAlign: "right" }}>
-                  <p style={{ fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
-                    Duración
-                  </p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "5px", justifyContent: "flex-end" }}>
-                    <Clock size={11} style={{ color: "#9A9489" }} />
-                    <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0C0C0A" }}>{route.estimatedHours}h</span>
+                {expandedRouteId === String(route.routeId) && (
+                  <div style={{
+                    borderTop: "1px solid rgba(12,12,10,0.08)",
+                    paddingTop: "0.8rem",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+                    gap: "0.75rem",
+                  }}>
+                    <div>
+                      <p style={{ fontSize: "0.48rem", letterSpacing: "0.18em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "3px" }}>
+                        Código
+                      </p>
+                      <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0C0C0A" }}>{route.routeCode}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: "0.48rem", letterSpacing: "0.18em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "3px" }}>
+                        Distancia
+                      </p>
+                      <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0C0C0A" }}>{route.distanceKm} km</p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: "0.48rem", letterSpacing: "0.18em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "3px" }}>
+                        Tipo de ruta
+                      </p>
+                      <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0C0C0A" }}>
+                        {route.isInternational ? "Internacional" : "Nacional"}
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: "0.48rem", letterSpacing: "0.18em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "3px" }}>
+                        ID Interno
+                      </p>
+                      <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0C0C0A" }}>{route.routeId}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </motion.div>
             ))}
           </div>

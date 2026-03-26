@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { DataSource, Not } from 'typeorm';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { DataSource, In, Not } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
+import { EmailService } from '../../../notifications/email/application/email.service';
+import { UserRole } from '../../../domain/enums/user-role.enum';
+import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
 
 interface DashboardSummaryFilters {
   period?: 'MONTHLY';
@@ -13,7 +16,12 @@ interface DashboardSummaryFilters {
 
 @Injectable()
 export class CertifierService {
-  constructor(private readonly dataSource: DataSource) {}
+  private readonly logger = new Logger(CertifierService.name);
+
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly emailService: EmailService,
+  ) {}
 
   async getDashboardSummary(filters: DashboardSummaryFilters = {}) {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
@@ -34,7 +42,7 @@ export class CertifierService {
     // Counting certified this month as an example for the summary
     const certifiedCount = await invoiceRepo
       .createQueryBuilder('invoice')
-      .where('invoice.status = :status', { status: InvoiceStatus.CERTIFICADA })
+      .where('invoice.certifiedAt IS NOT NULL')
       .andWhere('invoice.certifiedAt >= :start', { start: startOfMonth })
       .andWhere('invoice.certifiedAt < :end', { end: endOfMonth })
       .getCount();
@@ -67,7 +75,10 @@ export class CertifierService {
   }
 
   async certifyInvoice(invoiceId: number, clientNit: string) {
-    const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
+    const invoice = await this.dataSource.getRepository(Invoice).findOne({
+      where: { invoiceId },
+      relations: { order: true },
+    });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
     if (invoice.status !== InvoiceStatus.BORRADOR) {
       throw new BadRequestException('La factura no esta en estado BORRADOR');
@@ -86,8 +97,15 @@ export class CertifierService {
     invoice.status = InvoiceStatus.CERTIFICADA;
     invoice.felUuid = generatedFelUuid;
     invoice.certifiedAt = new Date();
+    invoice.sentAt = null;
 
     await this.dataSource.getRepository(Invoice).save(invoice);
+
+    await this.notifyFinanceTeam(
+      `FEL certificó ${invoice.invoiceNumber}`,
+      `La factura ${invoice.invoiceNumber} fue certificada correctamente en FEL y está lista para envío al cliente desde Finanzas.`,
+      invoice,
+    );
 
     return {
       invoiceId: invoice.invoiceId,
@@ -124,10 +142,68 @@ export class CertifierService {
       });
       await logRepo.save(auditLog);
 
+      await this.notifyFinanceTeam(
+        `FEL rechazó ${invoice.invoiceNumber}`,
+        `La factura ${invoice.invoiceNumber} fue rechazada en FEL. Motivo: ${normalizedReason}`,
+        invoice,
+      );
+
       return {
         invoiceId: invoice.invoiceId,
         status: invoice.status,
       };
     });
+  }
+
+  private async notifyFinanceTeam(
+    subject: string,
+    summary: string,
+    invoice: Invoice,
+  ): Promise<void> {
+    const financeUsers = await this.dataSource.getRepository(User).find({
+      where: {
+        role: UserRole.AGENTE_FINANCIERO,
+        isActive: true,
+      },
+      select: ['email'],
+    });
+
+    const recipients = Array.from(
+      new Set(
+        financeUsers
+          .map((user) => user.email)
+          .filter((email): email is string => Boolean(email && email.trim())),
+      ),
+    );
+
+    if (recipients.length === 0) {
+      this.logger.warn(`No se encontraron agentes financieros activos para notificar ${invoice.invoiceNumber}.`);
+      return;
+    }
+
+    const issueDateText = new Date(invoice.issueDate).toISOString().slice(0, 10);
+
+    await Promise.all(
+      recipients.map((to) =>
+        this.emailService
+          .sendFinanceInvoiceStatus({
+            to,
+            subject,
+            summary,
+            invoiceNumber: invoice.invoiceNumber,
+            clientName: invoice.clientName,
+            issueDate: issueDateText,
+            dueDate: invoice.dueDate,
+            total: Number(invoice.totalAmount).toFixed(2),
+            currency: 'GTQ',
+            felAuthorizationCode: invoice.felUuid ?? undefined,
+          })
+          .catch((err: Error) =>
+            this.logger.error(
+              `Error al notificar a Finanzas (${to}) sobre ${invoice.invoiceNumber}: ${err.message}`,
+            ),
+          ),
+      ),
+    );
   }
 }

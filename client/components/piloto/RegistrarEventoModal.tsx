@@ -13,7 +13,6 @@ import { useState } from "react"
 import { EventType, RegistrarLogPayload } from "@/types/pilot"
 import { X, ClipboardList } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
-import { s } from "framer-motion/client"
 
 interface RegistrarEventoModalProps {
     open: boolean
@@ -24,11 +23,9 @@ interface RegistrarEventoModalProps {
 
 // Opciones del select mapeadas al enum ROUTE_EVENT_TYPE
 const TIPOS_EVENTO: { value: EventType; label: string }[] = [
-    { value: "SALIDA", label: "Salida" },
     { value: "PUNTO_CONTROL", label: "Punto de Control" },
     { value: "ADUANA", label: "Aduana" },
     { value: "INCIDENTE", label: "Incidente" },
-    { value: "LLEGADA", label: "Llegada" },
     { value: "OTRO", label: "Otro" },
 ]
 
@@ -40,6 +37,7 @@ export default function RegistrarEventoModal({
 }: RegistrarEventoModalProps) {
     const [eventType, setEventType] = useState<EventType>("PUNTO_CONTROL")
     const [description, setDescription] = useState("")
+    const [imageBase64, setImageBase64] = useState<string | null>(null)
     const [touched, setTouched] = useState(false)
 
     if (!open) return null
@@ -50,19 +48,40 @@ export default function RegistrarEventoModal({
         setTouched(true)
         if (description.trim().length < 5) return
 
-        onConfirm({ eventType, description: description.trim() })
+        onConfirm({
+            eventType,
+            description: description.trim(),
+            imageBase64: imageBase64 ?? undefined,
+        })
 
         // Resetar para la próxima vez
         setEventType("PUNTO_CONTROL")
         setDescription("")
+        setImageBase64(null)
         setTouched(false)
     }
 
     function handleClose() {
         setEventType("PUNTO_CONTROL")
         setDescription("")
+        setImageBase64(null)
         setTouched(false)
         onClose()
+    }
+
+    function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        const reader = new FileReader()
+        reader.onload = (event) => {
+            const result = event.target?.result
+            if (typeof result === "string") {
+                setImageBase64(result)
+            }
+        }
+        reader.readAsDataURL(file)
+        e.target.value = ""
     }
 
     return (
@@ -133,6 +152,21 @@ export default function RegistrarEventoModal({
                         <p className="text-error text-xs mt-1">
                             La descripción debe tener al menos 5 caracteres.
                         </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-bold text-text-primary mb-1.5">
+                            Imagen del evento (opcional)
+                        </label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="w-full p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white"
+                        />
+                        {imageBase64 && (
+                            <p className="text-xs text-accent mt-1">Imagen lista para enviar.</p>
                         )}
                     </div>
                 </div>

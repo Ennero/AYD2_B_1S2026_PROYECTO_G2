@@ -35,11 +35,14 @@ import { CreateCargoTypeUseCase } from '../../application/use-cases/create-cargo
 import { CreateRouteDto } from '../dtos/create-route.dto';
 import { CreateCargoTypeDto } from '../dtos/create-cargo-type.dto';
 import { UpdateCargoTypeDto } from '../dtos/update-cargo-type.dto';
+import { UpdateRouteDto } from '../dtos/update-route.dto';
 import { UpdateUserUseCase } from '../../application/use-cases/update-user.use-case';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { UserRole } from '../../../domain/enums/user-role.enum';
 import { UpdateCargoTypeUseCase } from '../../application/use-cases/update-cargo-type.use-case';
 import { DeleteCargoTypeUseCase } from '../../application/use-cases/delete-cargo-type.use-case';
+import { UpdateRouteUseCase } from '../../application/use-cases/update-route.use-case';
+import { DeleteRouteUseCase } from '../../application/use-cases/delete-route.use-case';
 
 /**
  * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
@@ -62,6 +65,8 @@ export class OperationsController {
     private readonly getUsersUseCase: GetUsersUseCase,
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly createRouteUseCase: CreateRouteUseCase,
+    private readonly updateRouteUseCase: UpdateRouteUseCase,
+    private readonly deleteRouteUseCase: DeleteRouteUseCase,
     private readonly createCargoTypeUseCase: CreateCargoTypeUseCase,
     private readonly updateCargoTypeUseCase: UpdateCargoTypeUseCase,
     private readonly deleteCargoTypeUseCase: DeleteCargoTypeUseCase,
@@ -115,6 +120,41 @@ export class OperationsController {
   async createRoute(@Body() dto: CreateRouteDto) {
     const data = await this.createRouteUseCase.execute(dto);
     return { message: 'Ruta añadida al catálogo exitosamente', data };
+  }
+
+  /**
+   * PUT /api/operations/routes/:id
+   * Editar una ruta del catálogo.
+   */
+  @Put('routes/:id')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async updateRoute(
+    @Param('id', ParseIntPipe) routeId: number,
+    @Body() dto: UpdateRouteDto,
+  ) {
+    const data = await this.updateRouteUseCase.execute(routeId, {
+      routeCode: dto.routeCode,
+      origin: dto.origin,
+      destination: dto.destination,
+      distanceKm: dto.distanceKm,
+      estimatedHours: dto.estimatedHours,
+      isInternational: dto.isInternational,
+    });
+
+    return { message: 'Ruta actualizada exitosamente', data };
+  }
+
+  /**
+   * DELETE /api/operations/routes/:id
+   * Desactivar una ruta del catálogo (borrado lógico).
+   */
+  @Delete('routes/:id')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async deleteRoute(@Param('id', ParseIntPipe) routeId: number) {
+    const data = await this.deleteRouteUseCase.execute(routeId);
+    return { message: 'Ruta desactivada exitosamente', data };
   }
 
   /**

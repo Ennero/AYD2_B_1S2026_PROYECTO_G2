@@ -9,6 +9,8 @@ import { GetRoutesUseCase } from './application/use-cases/get-routes.use-case';
 import { GetUsersUseCase } from './application/use-cases/get-users.use-case';
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
 import { CreateRouteUseCase } from './application/use-cases/create-route.use-case';
+import { UpdateRouteUseCase } from './application/use-cases/update-route.use-case';
+import { DeleteRouteUseCase } from './application/use-cases/delete-route.use-case';
 import { CreateCargoTypeUseCase } from './application/use-cases/create-cargo-type.use-case';
 import { UpdateCargoTypeUseCase } from './application/use-cases/update-cargo-type.use-case';
 import { DeleteCargoTypeUseCase } from './application/use-cases/delete-cargo-type.use-case';
@@ -33,6 +35,8 @@ import { OperationsController } from './presentation/controllers/operations.cont
     GetUsersUseCase,
     UpdateUserUseCase,
     CreateRouteUseCase,
+    UpdateRouteUseCase,
+    DeleteRouteUseCase,
     CreateCargoTypeUseCase,
     UpdateCargoTypeUseCase,
     DeleteCargoTypeUseCase,

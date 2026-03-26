@@ -48,6 +48,7 @@ export interface LogEvento {
     eventType: EventType
     eventTime: string
     description: string
+    imagePath?: string | null
 }
 
 export interface ViajeDetalle {
@@ -64,6 +65,8 @@ export interface ViajeDetalle {
     scheduledPickupAt?: string
     dispatchedAt?: string // LLama al cambiar a EN_TRANSITO
     deliveredAt?: string  // LLama al cambiar a ENTREGADA
+    receiverSignaturePath?: string | null
+    deliveryEvidencePaths?: string[]
     logs: LogEvento[]
 }
 
@@ -84,6 +87,7 @@ export interface CambiarStatusResponse {
 export interface RegistrarLogPayload {
     eventType: EventType
     description: string
+    imageBase64?: string
 }
 
 export interface RegistrarLogResponse {

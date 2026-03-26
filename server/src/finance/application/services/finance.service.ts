@@ -4,9 +4,13 @@ import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoi
 import { Payment } from '../../../infrastructure/database/typeorm/entities/payment.entity';
 import { VehicleType } from '../../../infrastructure/database/typeorm/entities/vehicle-type.entity';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
+import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
+import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 import { PaymentStatus } from '../../../domain/enums/payment-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
+import { UserRole } from '../../../domain/enums/user-role.enum';
+import { EmailService } from '../../../notifications/email/application/email.service';
 
 interface DashboardSummaryFilters {
   period?: 'MONTHLY';
@@ -27,7 +31,10 @@ function toNumber(value: unknown): number {
 
 @Injectable()
 export class FinanceService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly emailService: EmailService,
+  ) {}
 
   async getDashboardSummary(filters: DashboardSummaryFilters = {}) {
     const now = new Date();
@@ -217,6 +224,10 @@ export class FinanceService {
       throw new BadRequestException('Solo se puede enviar una factura en estado CERTIFICADA');
     }
 
+    if (invoice.sentAt) {
+      throw new BadRequestException('La factura ya fue marcada como enviada anteriormente');
+    }
+
     invoice.status = InvoiceStatus.ENVIADA;
     invoice.sentAt = new Date();
     invoice.pdfPath =
@@ -225,6 +236,37 @@ export class FinanceService {
       `/files/invoices/${invoice.invoiceNumber}.pdf`;
 
     await invoiceRepo.save(invoice);
+
+    const clientUser = await this.dataSource.getRepository(User).findOne({
+      where: {
+        clientId: invoice.clientId,
+        role: UserRole.CLIENTE,
+        isActive: true,
+      },
+    });
+
+    const client = await this.dataSource.getRepository(Client).findOne({
+      where: { clientId: invoice.clientId },
+    });
+
+    const destinationEmail = clientUser?.email ?? client?.primaryContactEmail;
+
+    if (destinationEmail) {
+      await this.emailService.sendInvoice({
+        to: destinationEmail,
+        clientName: invoice.clientName,
+        invoiceNumber: invoice.invoiceNumber,
+        issueDate: new Date(invoice.issueDate).toISOString().slice(0, 10),
+        dueDate: invoice.dueDate,
+        orderCode: `ORD-${invoice.orderId}`,
+        subtotal: Number(invoice.subtotalAmount).toFixed(2),
+        taxes: Number(invoice.taxAmount).toFixed(2),
+        total: Number(invoice.totalAmount).toFixed(2),
+        currency: 'GTQ',
+        pdfUrl: invoice.pdfPath ?? undefined,
+        felAuthorizationCode: invoice.felUuid ?? undefined,
+      });
+    }
 
     return {
       invoiceId: invoice.invoiceId,

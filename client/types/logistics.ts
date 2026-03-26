@@ -74,10 +74,13 @@ export interface UnitBinomial {
 // ------ GET /api/logistics/routes ------
 
 export interface RouteInfo {
-  routeId: string
+  routeId: string | number
+  routeCode: string
   origin: string
   destination: string
+  distanceKm: number
   estimatedHours: number
+  isInternational: boolean
   isActive: boolean
 }
 

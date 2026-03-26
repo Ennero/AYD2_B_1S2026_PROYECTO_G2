@@ -10,6 +10,7 @@ export interface LogOutput {
     eventType: RouteEventType;
     eventTime: string;
     description: string;
+    imagePath: string | null;
 }
 
 export interface GetOrderOutput {
@@ -26,6 +27,8 @@ export interface GetOrderOutput {
     scheduledPickupAt: string | null;
     dispatchedAt: string | null;
     deliveredAt: string | null;
+    receiverSignaturePath: string | null;
+    deliveryEvidencePaths: string[];
     logs: LogOutput[];
 }
 
@@ -92,11 +95,19 @@ export class GetOrderUseCase {
             scheduledPickupAt: order.scheduledPickupAt?.toISOString() ?? null,
             dispatchedAt:      order.dispatchedAt?.toISOString() ?? null,
             deliveredAt:       order.deliveredAt?.toISOString() ?? null,
+            receiverSignaturePath: order.receiverSignaturePath ?? null,
+            deliveryEvidencePaths: order.deliveryEvidencePath
+                ? order.deliveryEvidencePath
+                    .split(',')
+                    .map((path) => path.trim())
+                    .filter((path) => path.length > 0)
+                : [],
             logs: (order.logs ?? []).map((log) => ({
                 logId:       log.logId,
                 eventType:   log.eventType,
                 eventTime:   log.eventTime.toISOString(),
                 description: log.description,
+                imagePath:   log.imagePath ?? null,
             })),
         };
     }

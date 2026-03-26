@@ -58,6 +58,9 @@ export class CreateOrderDto {
   deliveryAddress: string;
 
   @IsNotEmpty()
+  @IsNumber()
+  @Min(0.01)
+  @Max(40)
   declaredWeightTon: number;
 
   @IsOptional()

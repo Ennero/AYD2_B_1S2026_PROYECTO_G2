@@ -90,11 +90,11 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Dirección Fiscal | `6a Av. 12-34 Zona 1, Ciudad de Guatemala` |
 | Nombre Contacto Principal | `Roberto Álvarez Méndez` |
 | Email Contacto | `deennerparaprobar@gmail.com` |
-| Contraseña | `probando2026` |
+| Contraseña | `deennerparaprobar@gmail.com` |
 | Teléfono Contacto | `+502` + `22001234` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
-| Riesgo de Mercancia | `BAJO` |
+| Riesgo de Mercancía | `BAJO` |
 | Riesgo Lavado de Dinero | `BAJO` |
 
 > Nota: el teléfono se captura en dos partes (prefijo país y número local), y se almacena en formato canónico `+50222001234` (también aplica para `+503` y `+504`).
@@ -102,10 +102,17 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 4. Una vez completado, presiona el botón **"Guardar"** o **"Registrar"**.
 5. El sistema mostrará un mensaje de confirmación: _"Cliente registrado exitosamente"_.
 
+![Datos Generales Cliente Completados](imgs/happypath/05_registro_datos_generales_completados.jpeg)
+![Confirmación Cliente Registrado](imgs/happypath/08_registro_completado.jpeg)
 ![Datos Fiscales Cliente](imgs/happypath/06_registro_datos_fiscales.jpeg)
 ![Perfil de Riesgo Cliente](imgs/happypath/07_registro_perfil_riesgo.jpeg)
 
-![Confirmación Cliente Registrado](imgs/happypath/08_registro_completado.jpeg)
+### 2.3.1 Correo de bienvenida con credenciales
+
+Después del registro exitoso, el cliente recibe un correo de bienvenida con sus credenciales de acceso.
+
+![Correo - Bienvenida con credenciales](imgs/happypath/42_email_bienvenida_credenciales.png)
+
 
 
 
@@ -113,13 +120,28 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 
 En esta pantalla, se pueden observar todos los usuario dentro de la plataforma y filtrar a gusto.
 
-Y también se mostrarán las opciones de editar y eliminar usuario. Asi de activarlo o desactivarlo.
+Y también se mostrarán las opciones de editar y eliminar usuario, así como activarlo o desactivarlo.
 
 ![Listado de Usuarios](imgs/happypath/11_gestion_usuarios_lista.jpeg)
 ![Edición de Usuario](imgs/happypath/12_editar_usuario_modal.jpeg)
 
 
 ### 2.5 Gestión de catálogo
+
+En esta pantalla se administran rutas y tipos de carga permitidos.
+
+1. Desde el menú lateral, ingresa a **"Gestión de Catálogos"**.
+2. Verifica la vista general con ambos paneles: rutas y tipos de carga.
+3. Prueba agregar un tipo de carga y confirma el mensaje de éxito.
+4. Prueba agregar una ruta y confirma el mensaje de éxito.
+5. Prueba eliminar un tipo de carga y confirma el mensaje de éxito.
+6. Prueba editar un registro existente (ruta o tipo de carga).
+
+![Gestión de Catálogos - Vista General](imgs/happypath/13_catalogos_vista_general.jpeg)
+![Gestión de Catálogos - Tipo de Carga Agregada](imgs/happypath/14_catalogos_tipo_carga_agregada.jpeg)
+![Gestión de Catálogos - Ruta Agregada](imgs/happypath/15_catalogos_ruta_agregada.jpeg)
+![Gestión de Catálogos - Tipo de Carga Eliminada](imgs/happypath/16_catalogos_tipo_carga_eliminada.jpeg)
+![Gestión de Catálogos - Edición](imgs/happypath/17_catalogos_edicion.jpeg)
 
 
 
@@ -155,6 +177,12 @@ Ingresa los siguientes datos para el contrato:
 ![Formulario Formalizar Contrato](imgs/happypath/09_formalizar_contrato.jpeg)
 ![Propuesta Generada Correctamente](imgs/happypath/10_propuesta_generada.jpeg)
 
+### 3.2.1 Correo de propuesta de contrato
+
+Al generar la propuesta, el cliente recibe un correo con el código de contrato, rutas y pasos para revisión/aceptación.
+
+![Correo - Propuesta de Contrato](imgs/happypath/43_email_propuesta_contrato.png)
+
 
 ---
 
@@ -169,17 +197,17 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 5. Presiona **"Aceptar"**.
 6. El contrato cambia a estado **`VIGENTE`**.
 
-> 📸 **CAPTURA**: Captura la pantalla del portal cliente mostrando la propuesta pendiente con el botón "Aceptar".
-
-> 📸 **CAPTURA**: Captura el contrato ya en estado `VIGENTE`.
+![Cliente - Contrato Pendiente](imgs/happypath/21_cliente_contratos_pendiente.jpeg)
+![Cliente - Detalle de Contrato Pendiente](imgs/happypath/22_cliente_contrato_detalle_pendiente.jpeg)
+![Cliente - Contrato Aceptado y Vigente](imgs/happypath/23_cliente_contrato_aceptado_vigente.jpeg)
 
 ---
 
 ## 4. Portal del Cliente — Crear una Orden de Servicio
 **Actor**: Cliente
 **Credenciales**:
-- Email: `2895884051401+c@ingenieria.usac.edu.gt`
-- Password: `Logi2026`
+- Email: `deennerparaprobar@gmail.com`
+- Password: `probando2026`
 
 > **Nota**: Si ya iniciaste sesión como cliente en el paso 3.3, puedes continuar directamente.
 
@@ -189,7 +217,7 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 2. Ingresa las credenciales del cliente.
 3. Serás redirigido al **Portal del Cliente**, que muestra un resumen de tus órdenes, saldo y contratos.
 
-> 📸 **CAPTURA**: Captura el dashboard del portal cliente con el resumen de su cuenta (contratos, órdenes y saldo).
+![Portal Cliente - Dashboard Inicio](imgs/happypath/18_cliente_dashboard_inicio.jpeg)
 
 ### 4.1.1 Recuperación de contraseña por token
 
@@ -201,11 +229,44 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 
 > Nota: el token expira en 30 minutos y es de un solo uso.
 
+![Cliente - Seguridad antes de solicitar token](imgs/happypath/31_cliente_seguridad_sin_token.jpeg)
+![Cliente - Token de recuperación enviado](imgs/happypath/32_cliente_seguridad_token_enviado.jpeg)
+![Correo - Recuperación de contraseña con token](imgs/happypath/44_email_recuperacion_contrasena.png)
+
+### 4.1.2 Módulos disponibles para el Cliente
+
+Desde el menú lateral del portal cliente se puede acceder a estos módulos principales:
+
+1. **Órdenes**: historial y creación de nuevas órdenes.
+2. **Contratos**: visualización de contratos y estado vigente.
+3. **Facturas**: historial de facturación FEL.
+4. **Estado de Cuenta**: resumen de crédito y saldos.
+5. **Contactos**: administración de contactos clave.
+6. **Mis Datos**: perfil empresarial y seguridad de cuenta.
+
+![Cliente - Historial de Órdenes](imgs/happypath/20_cliente_historial_ordenes.jpeg)
+![Cliente - Contratos](imgs/happypath/21_cliente_contratos_pendiente.jpeg)
+![Cliente - Mis Facturas](imgs/happypath/24_cliente_mis_facturas.jpeg)
+![Cliente - Estado de Cuenta](imgs/happypath/26_cliente_estado_cuenta.jpeg)
+![Cliente - Contactos Clave](imgs/happypath/25_cliente_contactos_vacio.jpeg)
+![Cliente - Mi Perfil Empresarial](imgs/happypath/30_cliente_perfil_empresarial.jpeg)
+
+### 4.1.3 Gestión de contactos del Cliente
+
+1. Ingresa a **"Contactos"**.
+2. Presiona **"Agregar Contacto"** para registrar un nuevo contacto.
+3. Verifica que aparezca en el listado con mensaje de confirmación.
+4. También puedes editar un contacto existente desde el mismo módulo.
+
+![Cliente - Nuevo Contacto (Modal)](imgs/happypath/27_cliente_contacto_nuevo_modal.jpeg)
+![Cliente - Contacto Agregado](imgs/happypath/29_cliente_contacto_agregado.jpeg)
+![Cliente - Editar Contacto (Modal)](imgs/happypath/28_cliente_contacto_editar_modal.jpeg)
+
 ---
 
 ### 4.2 Crear una Nueva Orden de Servicio
 
-1. En el menú lateral, haz clic en **"Nuevo Servicio"** u **"Ordenes"** → **"Solicitar Servicio"**.
+1. En el menú lateral, haz clic en **"Nuevo Servicio"** u **"Órdenes"** → **"Solicitar Servicio"**.
 2. Se presenta el formulario de solicitud de orden.
 3. El sistema aplica automáticamente el **contrato vigente más reciente** del cliente autenticado.
 4. El selector de mercancía solo muestra **tipos autorizados por ese contrato vigente**.
@@ -216,17 +277,20 @@ Ingresa los siguientes datos:
 |-------|-------------------|
 | Contrato | `Aplicado automáticamente por el sistema` |
 | Tipo de Carga | `CARGA GENERAL` |
-| Descripción de la Carga | `Electrodomésticos para distribución` |
-| Peso Declarado | `8.5 Ton` |
-| Dirección de Recogida | `6a Av. 12-34 Zona 1, Ciudad de Guatemala` |
-| Dirección de Entrega | `Puerto Barrios, Izabal - Almacén Central` |
+| Descripción de la Carga | `Sacos de cemento de Dora la exploradora` |
+| Peso Declarado | `92 Ton` *(caso extremo para validar disponibilidad logística)* |
+| Dirección de Recogida | `Mi casita` |
+| Dirección de Entrega | `La casita en puerto barrios` |
 
 5. Confirma presionando **"Solicitar Servicio"** o **"Crear Orden"**.
 6. La orden será creada con estado **`REGISTRADA`** y se notifica al equipo logístico.
 
-> 📸 **CAPTURA**: Captura el formulario de nueva orden con los datos de ejemplo ingresados.
+![Cliente - Nueva Orden con contrato vigente y peso extremo](imgs/happypath/33_cliente_orden_peso_extremo_paso1.jpeg)
+![Cliente - Revisión y Confirmación de la Orden extrema](imgs/happypath/34_cliente_orden_peso_extremo_confirmacion.jpeg)
+![Cliente - Confirmación visual de orden creada](imgs/happypath/35_cliente_dashboard_orden_creada.jpeg)
+![Cliente - Orden visible en Órdenes Recientes](imgs/happypath/36_cliente_dashboard_orden_reciente.jpeg)
 
-> 📸 **CAPTURA**: Captura la confirmación de la orden creada mostrando el número de orden (ej: `ORD-000001`) y el contrato aplicado automáticamente.
+> Nota: este caso se documenta como escenario extremo para validación operativa de asignación. En la versión actual, el formulario de cliente limita el peso máximo permitido a `40 Ton`.
 
 ---
 
@@ -242,7 +306,7 @@ Ingresa los siguientes datos:
 2. Inicia sesión con las credenciales del Agente Logístico.
 3. Tu dashboard mostrará las **órdenes pendientes de asignación**.
 
-> 📸 **CAPTURA**: Captura el dashboard del Agente Logístico con el resumen de órdenes por estado.
+![Logística - Dashboard inicial](imgs/happypath/37_logistica_dashboard_inicio.jpeg)
 
 ---
 
@@ -252,18 +316,18 @@ Ingresa los siguientes datos:
 2. Localiza la orden recién creada de `DISTRIBUIDORA EL PROGRESO, S.A.` en estado **`REGISTRADA`**.
 3. Haz clic en la orden para ver su detalle.
 4. Verás un botón **"Asignar Binomio"** o similar.
-5. El sistema muestra la lista de binomios disponibles (pares piloto-vehículo). Selecciona:
-   - **Piloto**: Carlos Méndez
-   - **Vehículo**: Camión Pesado con capacidad suficiente para 8.5 Ton
-6. El sistema valida automáticamente que:
-   - La capacidad del camión ≥ 8.5 Ton ✅
-   - La licencia del piloto esté vigente ✅
-   - Los documentos del vehículo estén vigentes ✅
-7. Confirma la asignación. La orden cambia a estado **`ASIGNADA`**.
+5. Para este caso de `40 Ton`, filtra la orden por cliente y verifica que el peso declarado coincide.
+6. Al abrir **"Asignar Binomio"**, selecciona la ruta del contrato, el binomio compatible y la fecha/hora de salida.
+7. Confirma la asignación.
+8. El sistema muestra confirmación y la orden cambia a estado **`ASIGNADA`** con unidad y piloto visibles en el detalle.
 
-> 📸 **CAPTURA**: Captura la pantalla de selección de binomio mostrando los filtros de compatibilidad y el binomio seleccionado.
+![Logística - Catálogo de Rutas](imgs/happypath/38_logistica_catalogo_rutas.jpeg)
+![Logística - Órdenes de Servicio (vista general)](imgs/happypath/39_logistica_ordenes_lista_general.jpeg)
+![Logística - Modal Asignar Binomio (40 Ton)](imgs/happypath/45_logistica_modal_asignar_binomio_40t.jpeg)
+![Logística - Confirmación de asignación exitosa](imgs/happypath/46_logistica_asignacion_exitosa_confirmacion.jpeg)
+![Logística - Detalle de orden en estado ASIGNADA](imgs/happypath/47_logistica_detalle_orden_asignada.jpeg)
 
-> 📸 **CAPTURA**: Captura el detalle de la orden ya en estado `ASIGNADA` con el binomio asignado visible.
+> Resultado esperado del caso: la aplicación permite asignar correctamente cuando existe una unidad compatible de 40 Ton.
 
 ---
 
@@ -279,7 +343,8 @@ Ingresa los siguientes datos:
 2. Inicia sesión con las credenciales del Encargado de Patio.
 3. Serás llevado al **Dashboard de Patio** con las órdenes listas para despacho.
 
-> 📸 **CAPTURA**: Captura el dashboard del Encargado de Patio.
+![Patio - Dashboard inicial](imgs/happypath/48_patio_dashboard_inicio.jpeg)
+![Patio - Lista general de cargas por formalizar](imgs/happypath/49_patio_lista_cargas_formalizar_general.jpeg)
 
 ---
 
@@ -293,16 +358,17 @@ Ingresa los siguientes datos:
 | Campo | Valor |
 |-------|-------|
 | Verificación de ID del Piloto | Confirmar que el piloto en patio coincide con el asignado ✅ |
-| Peso real cargado | `8.2 Ton` *(dentro del rango del camión)* |
+| Peso real cargado | `40.02 Ton` *(dentro de tolerancia respecto al declarado de 40.00 Ton)* |
 | Estiba confirmada | `Sí` ✅ |
 | Unidad sellada | `Sí` ✅ |
 
 5. Completa el checklist y presiona **"Autorizar Despacho"**.
 6. La orden cambia a estado **`LISTA_PARA_DESPACHO`**.
+7. Si el peso cargado no cumple la tolerancia, el sistema muestra alerta y no formaliza hasta corregir el dato.
 
-> 📸 **CAPTURA**: Captura el formulario de despacho en patio con los campos completados.
-
-> 📸 **CAPTURA**: Captura la orden ya en estado `LISTA_PARA_DESPACHO`.
+![Patio - Orden filtrada para formalizar (40.00 Ton)](imgs/happypath/50_patio_orden_40t_pendiente_formalizacion.jpeg)
+![Patio - Validación de tolerancia de peso (error)](imgs/happypath/51_patio_alerta_tolerancia_peso.jpeg)
+![Patio - Formalización exitosa de la carga](imgs/happypath/52_patio_formalizacion_exitosa_40_02t.jpeg)
 
 ---
 
@@ -312,13 +378,15 @@ Ingresa los siguientes datos:
 - Email: `2895884051401+t@ingenieria.usac.edu.gt`
 - Password: `LogiPiloto`
 
+Pero puede variar dependiendo del piloto al cual fue asignado todo esto. Refiérase a mvp_accesssos_usuario.md
+
 ### 7.1 Login como Piloto
 
 1. Cierra sesión del Encargado de Patio.
 2. Inicia sesión con las credenciales del Piloto.
 3. Verás el **Dashboard del Piloto** con tu orden asignada.
 
-> 📸 **CAPTURA**: Captura el dashboard del Piloto mostrando la orden activa.
+![Piloto - Dashboard con orden lista para despacho](imgs/happypath/53_piloto_dashboard_orden_lista_despacho.jpeg)
 
 ---
 
@@ -329,7 +397,8 @@ Ingresa los siguientes datos:
 3. Haz clic en **"Iniciar Viaje"** o **"Cambiar a En Tránsito"**.
 4. La orden cambia a estado **`EN_TRANSITO`**.
 
-> 📸 **CAPTURA**: Captura el momento en que la orden está en estado `EN_TRANSITO` en la vista del piloto.
+![Piloto - Detalle de viaje antes de iniciar](imgs/happypath/54_piloto_detalle_viaje_antes_iniciar.jpeg)
+![Piloto - Viaje iniciado en EN_TRANSITO](imgs/happypath/55_piloto_viaje_iniciado_en_transito.jpeg)
 
 ---
 
@@ -346,7 +415,12 @@ Ingresa los siguientes datos:
 3. Presiona **"Registrar"** o **"Agregar Evento"**.
 4. El evento aparece en el historial de la bitácora con la hora automática del sistema.
 
-> 📸 **CAPTURA**: Captura la bitácora del viaje mostrando el evento de punto de control recién registrado.
+![Piloto - Modal Registrar Evento (Punto de Control)](imgs/happypath/56_piloto_modal_registrar_evento_punto_control.jpeg)
+![Piloto - Bitácora con evento de punto de control registrado](imgs/happypath/57_piloto_bitacora_eventos_registrados.jpeg)
+
+Mientras el piloto registra eventos, el cliente puede visualizar el tracking en paralelo:
+
+![Cliente - Tracking de orden en tránsito con bitácora actualizada](imgs/happypath/58_cliente_tracking_orden_en_transito.jpeg)
 
 ---
 
@@ -367,9 +441,10 @@ Ingresa los siguientes datos:
 4. La orden cambia a estado **`ENTREGADA`**.
 5. **Automáticamente**, el sistema genera un **borrador de factura (FEL)** en estado `BORRADOR` para que Finanzas lo revise. Este borrador aparece en la bandeja del Agente Financiero sin descripción de servicio ni fecha de vencimiento (pendientes de completar).
 
-> 📸 **CAPTURA**: Captura el formulario de confirmación de entrega con el nombre del receptor visible.
-
-> 📸 **CAPTURA**: Captura el estado final de la orden en `ENTREGADA`.
+![Piloto - Formulario de confirmación de entrega con evidencia](imgs/happypath/59_piloto_formulario_confirmacion_entrega.jpeg)
+![Piloto - Confirmación de entrega (Misión cumplida)](imgs/happypath/60_piloto_confirmacion_mision_cumplida.jpeg)
+![Piloto - Orden en estado ENTREGADA en Mis Viajes](imgs/happypath/61_piloto_historial_orden_entregada.jpeg)
+![Cliente - Historial de órdenes actualizado a ENTREGADA](imgs/happypath/62_cliente_historial_orden_entregada.jpeg)
 
 ---
 
@@ -464,16 +539,19 @@ Ingresa los siguientes datos:
    - Un **UUID de autorización FEL** (ej.: `FEL-A3B2C1D4-...`)
    - La fecha y hora de certificación
 4. La factura cambia de estado `BORRADOR` → **`CERTIFICADA`**.
+5. El sistema notifica al Agente Financiero para que complete el envío final al cliente desde el módulo financiero.
 
-> 📸 **CAPTURA**: Captura la factura ya en estado `CERTIFICADA` mostrando el UUID FEL generado y la fecha de certificación.
+> 📸 **CAPTURA**: Captura la factura en estado `CERTIFICADA` mostrando el UUID FEL generado y la fecha de certificación.
+
+> 📸 **CAPTURA**: Captura evidencia de la notificación enviada al Agente Financiero después de certificar.
 
 ---
 
 ## 11. Portal del Cliente — Registrar Pago
 **Actor**: Cliente
 **Credenciales**:
-- Email: `2895884051401+c@ingenieria.usac.edu.gt`
-- Password: `Logi2026`
+- Email: `deennerparaprobar@gmail.com`
+- Password: `probando2026`
 
 ### 11.1 Login como Cliente y ver Estado de Cuenta
 
@@ -594,7 +672,7 @@ El Dashboard Gerencial muestra:
        → [Piloto: Iniciar Tránsito + Bitácora] → [Piloto: Confirmar Entrega]
        → [Sistema: Genera Borrador FEL automáticamente]
        → [Finanzas: Completar Descripción + Enviar a Certificador]
-       → [Certificador: Validar NIT + Certificar] → [Sistema: Factura ENVIADA]
+      → [Certificador: Validar NIT + Certificar] → [Finanzas: Enviar factura al cliente (ENVIADA)]
        → [Cliente: Registrar Pago] → [Finanzas: Aprobar Pago]
        → [Sistema: Factura PAGADA + Crédito liberado]
        → [Gerencia: Ver Dashboard + Rentabilidad]

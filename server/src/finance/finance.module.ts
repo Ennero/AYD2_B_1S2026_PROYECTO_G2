@@ -5,8 +5,10 @@ import { FinanceService } from './application/services/finance.service';
 import { GerenciaFinanceReadService } from './application/services/gerencia-finance-read.service';
 import { TypeOrmFinanceReadRepository } from './infrastructure/repositories/typeorm-finance-read.repository';
 import { FINANCE_READ_REPOSITORY_TOKEN } from './domain/repositories/finance-read.repository.interface';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
+  imports: [NotificationsModule],
   controllers: [FinanceController, GerenciaFinanceController],
   providers: [
     FinanceService,

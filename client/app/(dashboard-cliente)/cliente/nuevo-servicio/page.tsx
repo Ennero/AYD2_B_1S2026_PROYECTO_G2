@@ -44,6 +44,8 @@ interface OrderForm {
   cargoDescription: string
 }
 
+const MAX_DECLARED_WEIGHT_TON = 40
+
 /* ─── Step indicator ─────────────────────────────────────────────────────── */
 
 function StepIndicator({ current }: { current: 1 | 2 }) {
@@ -113,6 +115,8 @@ function Step1({
     if (!form.deliveryAddress.trim()) return toast.error("Ingresa la dirección de destino"), false
     if (!form.declaredWeightTon || Number(form.declaredWeightTon) <= 0)
       return toast.error("Ingresa un peso estimado válido"), false
+    if (Number(form.declaredWeightTon) > MAX_DECLARED_WEIGHT_TON)
+      return toast.error(`El peso máximo permitido es ${MAX_DECLARED_WEIGHT_TON} toneladas`), false
     return true
   }
 
@@ -215,6 +219,7 @@ function Step1({
                 <input
                   type="number"
                   min="0.01"
+                  max={MAX_DECLARED_WEIGHT_TON}
                   step="0.01"
                   value={form.declaredWeightTon}
                   onChange={(e) => onUpdate({ declaredWeightTon: e.target.value })}
@@ -330,7 +335,7 @@ function Step2({
         <button
           onClick={onSubmit}
           disabled={submitting}
-          className="flex items-center gap-2 bg-secondary hover:bg-accent text-white font-bold py-2.5 px-8 rounded-xl shadow-md transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          className="flex items-center gap-2 bg-secondary hover:bg-accent text-[#1b1308] hover:text-[#1b1308] font-bold py-2.5 px-8 rounded-xl shadow-md transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
           {submitting ? (
             <RefreshCw size={16} className="animate-spin" />
@@ -403,6 +408,16 @@ export default function NuevoServicioPage() {
       return
     }
 
+    const declaredWeightTon = Number(form.declaredWeightTon)
+    if (!declaredWeightTon || declaredWeightTon <= 0) {
+      toast.error("Ingresa un peso estimado válido")
+      return
+    }
+    if (declaredWeightTon > MAX_DECLARED_WEIGHT_TON) {
+      toast.error(`El peso máximo permitido es ${MAX_DECLARED_WEIGHT_TON} toneladas`)
+      return
+    }
+
     setSubmitting(true)
     try {
       const res = await api.post<{ data: { orderNumber: string } }>(
@@ -411,7 +426,7 @@ export default function NuevoServicioPage() {
           cargoTypeId: form.cargoTypeId,
           pickupAddress: form.pickupAddress,
           deliveryAddress: form.deliveryAddress,
-          declaredWeightTon: Number(form.declaredWeightTon),
+          declaredWeightTon,
           ...(form.cargoDescription ? { cargoDescription: form.cargoDescription } : {}),
         }
       )
