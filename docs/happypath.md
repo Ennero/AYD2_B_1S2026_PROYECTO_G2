@@ -1,6 +1,6 @@
 # LogiTrans Guatemala — Manual de Usuario: Happy Path MVP
 
-> **Propósito**: Este documento es un manual paso a paso que describe el flujo completo del MVP de LogiTrans, desde la pantalla de inicio hasta el pago de una factura y su reflejo en el dashboard gerencial. Sigue cada sección en orden, captura una pantalla en cada `📸 CAPTURA` y pégala en la sección correspondiente.
+> **Propósito**: Este documento describe el happy path del MVP de LogiTrans desde el acceso inicial hasta el envío de la factura al cliente (`ENVIADA`).
 >
 > **Acceso al sistema**: Portal de Clientes LogiTrans (según ambiente configurado)
 >
@@ -22,9 +22,7 @@
 | 8 | Piloto | Confirmar entrega con evidencia |
 | 9 | Agente Financiero | Revisar borrador y enviar a certificador |
 | 10 | Certificador FEL | Validar NIT y certificar factura |
-| 11 | Cliente | Registrar pago |
-| 12 | Agente Financiero | Aprobar el pago |
-| 13 | Gerencia | Ver dashboard y rentabilidad |
+| 11 | Agente Financiero | Enviar factura al cliente |
 
 ---
 
@@ -271,6 +269,10 @@ Desde el menú lateral del portal cliente se puede acceder a estos módulos prin
 3. El sistema aplica automáticamente el **contrato vigente más reciente** del cliente autenticado.
 4. El selector de mercancía solo muestra **tipos autorizados por ese contrato vigente**.
 
+Si aún no hay contrato vigente, el sistema bloquea la creación y muestra advertencia:
+
+![Cliente - Nueva orden bloqueada por falta de contrato vigente](imgs/happypath/19_cliente_nueva_orden_formulario.jpeg)
+
 Ingresa los siguientes datos:
 
 | Campo | Valor de ejemplo |
@@ -323,6 +325,8 @@ Ingresa los siguientes datos:
 
 ![Logística - Catálogo de Rutas](imgs/happypath/38_logistica_catalogo_rutas.jpeg)
 ![Logística - Órdenes de Servicio (vista general)](imgs/happypath/39_logistica_ordenes_lista_general.jpeg)
+![Logística - Orden filtrada por caso extremo](imgs/happypath/40_logistica_orden_filtrada_peso_extremo.jpeg)
+![Logística - Validación sin unidad disponible (caso inicial)](imgs/happypath/41_logistica_modal_sin_unidad_disponible.jpeg)
 ![Logística - Modal Asignar Binomio (40 Ton)](imgs/happypath/45_logistica_modal_asignar_binomio_40t.jpeg)
 ![Logística - Confirmación de asignación exitosa](imgs/happypath/46_logistica_asignacion_exitosa_confirmacion.jpeg)
 ![Logística - Detalle de orden en estado ASIGNADA](imgs/happypath/47_logistica_detalle_orden_asignada.jpeg)
@@ -454,212 +458,87 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 - Email: `2895884051401+f@ingenieria.usac.edu.gt`
 - Password: `LogiFinanzas`
 
-### 9.1 Login como Agente Financiero
+### 9.1 Revisar el borrador generado por la entrega
 
-1. Cierra sesión del Piloto.
-2. Inicia sesión con las credenciales del Agente Financiero.
-3. El dashboard muestra el **resumen financiero**: facturas por certificar, pagos por conciliar, y facturas emitidas.
+1. Cierra sesión del Piloto e inicia sesión como Agente Financiero.
+2. Entra a **"Bandeja de Facturación"**.
+3. Verifica que la factura de la orden `ORD-2026-0081` aparece en sección **BORRADORES** como `FAC-000065`.
+4. Abre la factura para revisión comercial y tributaria.
 
-> 📸 **CAPTURA**: Captura el dashboard del Agente Financiero mostrando las métricas de facturas y pagos.
+![Finanzas - Bandeja con FAC-000065 en BORRADOR](imgs/happypath/Captura de pantalla_25-3-2026_225313_localhost.jpeg)
+![Finanzas - Revisión de factura FAC-000065](imgs/happypath/Captura de pantalla_25-3-2026_225326_localhost.jpeg)
 
----
+### 9.2 Enviar borrador al Certificador FEL
 
-### 9.2 Revisar el Borrador de Factura
+1. Desde la vista de revisión, valida los datos del cliente, NIT y totales.
+2. Presiona **"Enviar a Certificador FEL"**.
+3. La factura deja la etapa de borrador en Finanzas y pasa a la bandeja FEL.
 
-1. Navega a **"Facturación"** en el menú.
-2. Verás la **bandeja de borradores pendientes de revisión** — estas son las facturas `BORRADOR` que aún no tienen descripción de servicio.
-3. Localiza la factura de la orden de `DISTRIBUIDORA EL PROGRESO, S.A.`.
-4. Haz clic en la factura para ver su detalle. Verás los datos pre-cargados:
-   - Cliente: `DISTRIBUIDORA EL PROGRESO, S.A.`
-   - NIT: `1234567890123`
-   - Subtotal, IVA y Total calculados automáticamente.
-5. Los campos **Descripción del Servicio** y **Fecha de Vencimiento** estarán vacíos — debes completarlos.
-
-> 📸 **CAPTURA**: Captura la bandeja de facturación mostrando el borrador pendiente.
-
-> 📸 **CAPTURA**: Captura el detalle de la factura mostrando los campos vacíos de descripción y fecha.
+![Finanzas - Detalle listo para enviar a FEL](imgs/happypath/Captura de pantalla_25-3-2026_225326_localhost.jpeg)
 
 ---
 
-### 9.3 Completar y Enviar a Certificador
-
-1. En el formulario de la factura, ingresa:
-
-| Campo | Valor |
-|-------|-------|
-| Descripción del Servicio | `Servicio logístico de transporte terrestre Ciudad de Guatemala → Puerto Barrios. Orden ORD-000001. Carga general 8.2 Ton.` |
-| Fecha de Vencimiento | `2026-05-11` *(30 días plazo de pago del contrato)* |
-
-2. Presiona el botón **"Enviar a Certificador"**.
-3. El sistema valida que los campos estén completos y la factura desaparece de la bandeja de Finanzas.
-4. La factura ahora es visible únicamente en la **bandeja del Certificador FEL**.
-
-> 📸 **CAPTURA**: Captura el formulario con la descripción y fecha de vencimiento ya completadas, antes de presionar "Enviar a Certificador".
-
-> 📸 **CAPTURA**: Captura la bandeja de Finanzas ya vacía (o mostrando que la factura fue enviada).
-
----
-
-## 10. Módulo Certificador FEL — Validar NIT y Certificar
+## 10. Módulo Certificador FEL — Validar NIT, Rechazar/Certificar
 **Actor**: Certificador FEL
 **Credenciales**:
 - Email: `2895884051401+s@ingenieria.usac.edu.gt`
 - Password: `LogiSAT`
 
-### 10.1 Login como Certificador FEL
+### 10.1 Ver factura pendiente en bandeja de aprobación
 
-1. Cierra sesión del Agente Financiero.
-2. Inicia sesión con las credenciales del Certificador FEL.
-3. Tu dashboard muestra las **facturas pendientes de certificación**.
+1. Cierra sesión de Finanzas.
+2. Inicia sesión como Certificador FEL y abre **"Bandeja de Aprobación"**.
+3. Verifica que `FAC-000065` de `DISTRIBUIDORA EL PROGRESO, S.A.` está pendiente.
 
-> 📸 **CAPTURA**: Captura el dashboard del Certificador FEL mostrando el resumen y la bandeja de facturas.
+![FEL - Bandeja con FAC-000065 pendiente](imgs/happypath/Captura de pantalla_25-3-2026_225435_localhost.jpeg)
 
----
+### 10.2 Flujo de validación de NIT y certificación
 
-### 10.2 Validar NIT
+1. Haz clic en **"Certificar"** para abrir el modal.
+2. Presiona **"Verificar NIT"**.
+3. Confirma que aparece el mensaje **"NIT validado correctamente"** y se habilita la acción final.
+4. Presiona **"Confirmar y Certificar"**.
+5. El sistema muestra confirmación de éxito y la factura sale de pendientes.
 
-1. Navega a **"Bandeja FEL"** o **"Certificación"**.
-2. Verás la factura de `DISTRIBUIDORA EL PROGRESO, S.A.` recién enviada por Finanzas.
-3. Abre el detalle de la factura.
-4. Haz clic en **"Validar NIT"**.
-5. El sistema verifica que el NIT `1234567890123` tiene exactamente 13 dígitos numéricos.
-6. Aparece una confirmación: _"NIT validado correctamente"_.
+![FEL - Modal de certificación antes de validar NIT](imgs/happypath/Captura de pantalla_25-3-2026_225443_localhost.jpeg)
+![FEL - NIT validado correctamente](imgs/happypath/Captura de pantalla_25-3-2026_225449_localhost.jpeg)
+![FEL - Factura certificada con éxito](imgs/happypath/Captura de pantalla_25-3-2026_225456_localhost.jpeg)
 
-> 📸 **CAPTURA**: Captura el detalle de la factura en la bandeja del Certificador con el botón "Validar NIT" visible.
+### 10.3 Flujo alterno de rechazo documentado
 
-> 📸 **CAPTURA**: Captura el mensaje de confirmación de NIT validado.
+Este escenario alterno también quedó registrado para evidenciar control tributario:
 
----
+1. Abrir el modal de **rechazo**.
+2. Ingresar motivo (ejemplo: `NIT no valido`).
+3. Confirmar rechazo y validar que desaparece de pendientes.
 
-### 10.3 Certificar la Factura
-
-1. Después de validar el NIT, aparece el botón **"Certificar"** o **"Certificar DTE"**.
-2. Presiona **"Certificar"**.
-3. El sistema genera automáticamente:
-   - Un **UUID de autorización FEL** (ej.: `FEL-A3B2C1D4-...`)
-   - La fecha y hora de certificación
-4. La factura cambia de estado `BORRADOR` → **`CERTIFICADA`**.
-5. El sistema notifica al Agente Financiero para que complete el envío final al cliente desde el módulo financiero.
-
-> 📸 **CAPTURA**: Captura la factura en estado `CERTIFICADA` mostrando el UUID FEL generado y la fecha de certificación.
-
-> 📸 **CAPTURA**: Captura evidencia de la notificación enviada al Agente Financiero después de certificar.
+![FEL - Modal de rechazo](imgs/happypath/Captura de pantalla_25-3-2026_225514_localhost.jpeg)
+![FEL - Documento rechazado correctamente](imgs/happypath/Captura de pantalla_25-3-2026_225521_localhost.jpeg)
 
 ---
 
-## 11. Portal del Cliente — Registrar Pago
-**Actor**: Cliente
-**Credenciales**:
-- Email: `deennerparaprobar@gmail.com`
-- Password: `probando2026`
-
-### 11.1 Login como Cliente y ver Estado de Cuenta
-
-1. Cierra sesión del Certificador.
-2. Inicia sesión como el Cliente.
-3. Navega a **"Estado de Cuenta"** o **"Mis Facturas"**.
-4. Verás la factura de la orden `ORD-000001` en estado `ENVIADA` con el monto a pagar.
-
-> 📸 **CAPTURA**: Captura el estado de cuenta del cliente mostrando la factura pendiente de pago.
-
----
-
-### 11.2 Registrar el Pago
-
-1. Haz clic en la factura y luego en **"Registrar Pago"** o **"Pagar"**.
-2. Ingresa los datos del pago:
-
-| Campo | Valor |
-|-------|-------|
-| Método de Pago | `TRANSFERENCIA` |
-| Banco de Origen | `BAC CREDOMATIC` |
-| Número de Cuenta | `0100-2000-789` |
-| Número de Autorización Bancaria | `TRF-20260411-001` |
-| Monto | `Q 3,990.00` *(debe coincidir exactamente con el total de la factura)* |
-| Documento de soporte | *(Adjuntar boleta de depósito)* |
-
-3. Presiona **"Confirmar Pago"**.
-4. El pago queda registrado en estado **`PENDIENTE`** (a la espera de aprobación del Agente Financiero).
-
-> 📸 **CAPTURA**: Captura el formulario de registro de pago con los datos de ejemplo completados.
-
-> 📸 **CAPTURA**: Captura la confirmación de que el pago quedó en estado `PENDIENTE`.
-
----
-
-## 12. Módulo Financiero — Aprobar el Pago
+## 11. Módulo Financiero — Enviar Factura al Cliente
 **Actor**: Agente Financiero
-**Credenciales**:
-- Email: `2895884051401+f@ingenieria.usac.edu.gt`
-- Password: `LogiFinanzas`
 
-### 12.1 Revisar Pagos por Conciliar
+### 11.1 Identificar factura certificada lista para envío
 
-1. Inicia sesión como el Agente Financiero.
-2. En el dashboard principal verás la sección **"Pagos por Conciliar"** — estos son todos los pagos en estado `PENDIENTE`.
-3. Navega a **"Pagos"** → **"Pagos Pendientes"** o similar.
-4. Verás el pago de la transferencia registrado por el cliente.
+1. Regresa a la sesión de Finanzas.
+2. Abre **"Bandeja de Facturación"**.
+3. Verifica que `FAC-000065` aparece en sección **CERTIFICADAS POR FEL** con botón **"Enviar"** habilitado.
 
-> 📸 **CAPTURA**: Captura la sección de "Pagos por Conciliar" en el dashboard mostrando el pago pendiente.
+![Finanzas - FAC-000065 certificada y lista para enviar](imgs/happypath/Captura de pantalla_25-3-2026_225556_localhost.jpeg)
 
----
+### 11.2 Confirmar envío al cliente
 
-### 12.2 Aprobar el Pago
+1. Presiona **"Enviar"** sobre `FAC-000065`.
+2. En el modal, confirma con **"Confirmar envío"**.
+3. El sistema muestra toast de éxito: **"Factura FAC-000065 enviada al cliente"**.
+4. La factura queda en estado **`ENVIADA`**.
 
-1. Haz clic en el pago de `DISTRIBUIDORA EL PROGRESO, S.A.`.
-2. Revisa el documento de soporte adjunto (boleta de depósito).
-3. Presiona **"Aprobar Pago"**.
-4. El sistema ejecuta las siguientes acciones automáticamente:
-   - El pago cambia a estado **`APROBADO`**.
-   - La factura cambia a estado **`PAGADA`**.
-   - El límite de crédito del cliente se **libera**.
+![Finanzas - Modal de confirmación de envío](imgs/happypath/Captura de pantalla_25-3-2026_225611_localhost.jpeg)
+![Finanzas - Confirmación de factura enviada](imgs/happypath/Captura de pantalla_25-3-2026_225617_localhost.jpeg)
 
-> 📸 **CAPTURA**: Captura el detalle del pago con el botón "Aprobar" visible.
-
-> 📸 **CAPTURA**: Captura la confirmación de pago aprobado y la factura en estado `PAGADA`.
-
----
-
-## 13. Dashboard Gerencial — Ver Rentabilidad y KPIs
-**Actor**: Gerencia
-**Credenciales**:
-- Email: `2895884051401@ingenieria.usac.edu.gt`
-- Password: `LogiGerencia`
-
-### 13.1 Login como Gerencia
-
-1. Cierra sesión del Agente Financiero.
-2. Inicia sesión con las credenciales de Gerencia.
-3. Serás llevado directamente al **Dashboard Gerencial**.
-
-> 📸 **CAPTURA**: Captura el dashboard gerencial completo mostrando los KPIs principales.
-
----
-
-### 13.2 Revisar el Dashboard Principal
-
-El Dashboard Gerencial muestra:
-
-- **Resumen de Operaciones**: Total de órdenes por estado (Registradas, En Tránsito, Entregadas).
-- **Facturación por Sede**: Corte diario de Guatemala, Quetzaltenango y Puerto Barrios.
-- **KPIs de Cumplimiento**: % de entregas a tiempo vs. con retraso.
-- **Alertas de Desviación**: Órdenes con incidentes activos en ruta.
-
-> 📸 **CAPTURA**: Captura el panel de KPIs mostrando el porcentaje de cumplimiento de entregas.
-
-> 📸 **CAPTURA**: Captura el panel de alertas mostrando las órdenes con incidentes activos.
-
----
-
-### 13.3 Revisar la Rentabilidad
-
-1. Navega a **"Rentabilidad"** en el menú lateral.
-2. Verás el análisis por contrato:
-   - **Ingresos (Facturación)** vs. **Costos Operativos** (combustible + viáticos + mantenimiento)
-   - **Margen bruto** de cada contrato
-3. La transacción de `DISTRIBUIDORA EL PROGRESO, S.A.` ya refleja el ingreso de la orden recién completada.
-
-> 📸 **CAPTURA**: Captura la pantalla de rentabilidad mostrando el análisis por contrato con ingresos, costos y margen.
+> Alcance de esta corrida: el flujo documentado termina en `ENVIADA`. La fase de pago/conciliación se documentará en una corrida posterior.
 
 ---
 
@@ -667,15 +546,13 @@ El Dashboard Gerencial muestra:
 
 ```
 [Login] → [Operativo: Registrar Cliente] → [Operativo: Formalizar Contrato]
-       → [Cliente: Aceptar Contrato] → [Cliente: Crear Orden]
-       → [Logístico: Asignar Binomio] → [Patio: Registrar Despacho]
-       → [Piloto: Iniciar Tránsito + Bitácora] → [Piloto: Confirmar Entrega]
-       → [Sistema: Genera Borrador FEL automáticamente]
-       → [Finanzas: Completar Descripción + Enviar a Certificador]
-      → [Certificador: Validar NIT + Certificar] → [Finanzas: Enviar factura al cliente (ENVIADA)]
-       → [Cliente: Registrar Pago] → [Finanzas: Aprobar Pago]
-       → [Sistema: Factura PAGADA + Crédito liberado]
-       → [Gerencia: Ver Dashboard + Rentabilidad]
+   → [Cliente: Aceptar Contrato] → [Cliente: Crear Orden]
+   → [Logístico: Asignar Binomio] → [Patio: Registrar Despacho]
+   → [Piloto: Iniciar Tránsito + Bitácora] → [Piloto: Confirmar Entrega]
+   → [Sistema: Genera Borrador FEL automáticamente]
+   → [Finanzas: Revisar Borrador + Enviar a Certificador]
+   → [FEL: Validar NIT + Certificar / Rechazar]
+   → [Finanzas: Enviar factura al cliente (ENVIADA)]
 ```
 
 ---

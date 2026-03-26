@@ -156,7 +156,6 @@ export default function RegistrarEventoModal({
               placeholder="Ej. Paso por control km 85, sin novedades."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              onBlur={() => setTouched(true)}
               style={{
                 width: "100%", boxSizing: "border-box",
                 padding: "0.6rem 0.75rem", borderRadius: "4px",
@@ -165,7 +164,10 @@ export default function RegistrarEventoModal({
                 outline: "none", resize: "none", fontFamily: "inherit",
               }}
               onFocus={e => (e.target.style.borderColor = descError ? "#E53E3E" : "#C9924B")}
-              onBlur={e => (e.target.style.borderColor = descError ? "#E53E3E" : "rgba(12,12,10,0.15)")}
+              onBlur={(e) => {
+                setTouched(true)
+                e.target.style.borderColor = descError ? "#E53E3E" : "rgba(12,12,10,0.15)"
+              }}
             />
             {descError && (
               <p style={{ fontSize: "0.68rem", color: "#E53E3E", marginTop: "4px" }}>

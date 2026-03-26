@@ -192,8 +192,8 @@ export default function FinancePaymentsPage() {
           }}>
           <Wallet size={13} style={{ color: "#C9924B", flexShrink: 0, marginTop: "1px" }} />
           <p style={{ fontSize: "0.72rem", color: "#6B6260", lineHeight: 1.5 }}>
-            Esta aprobación no pertenece al proceso FEL. Ocurre <strong style={{ color: "#0C0C0A" }}>después</strong> de certificar y enviar la factura,
-            cuando tesorería valida el pago para liberar crédito.
+            Esta aprobación ocurre <strong style={{ color: "#0C0C0A" }}>después de certificar FEL</strong> y
+            habilita el envío de la factura al cliente, además de liberar crédito.
           </p>
         </motion.div>
 

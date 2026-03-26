@@ -378,13 +378,19 @@ export class ClientService {
       );
     }
 
-    // Bloquear si ya existe un pago PENDIENTE para esta factura
-    const existingPending = await this.dataSource.getRepository(Payment).findOne({
-      where: { invoiceId: dto.invoiceId, status: PaymentStatus.PENDIENTE },
-    });
-    if (existingPending) {
+    // Bloquear si ya existe un pago activo para esta factura
+    const existingActivePayment = await this.dataSource
+      .getRepository(Payment)
+      .createQueryBuilder('payment')
+      .where('payment.invoice_id = :invoiceId', { invoiceId: dto.invoiceId })
+      .andWhere('payment.status IN (:...statuses)', {
+        statuses: [PaymentStatus.PENDIENTE, PaymentStatus.APROBADO],
+      })
+      .getOne();
+
+    if (existingActivePayment) {
       throw new BadRequestException(
-        'Ya existe un pago pendiente de aprobación para esta factura. Espera a que el área financiera lo procese.',
+        'Esta factura ya tiene un pago registrado en el flujo financiero y no admite un nuevo registro.',
       );
     }
 
@@ -501,30 +507,66 @@ export class ClientService {
       requestedAt: o.requestedAt,
     }));
 
-    // ── Crédito (facturas ENVIADA pendientes de pago) ────────────────────
-    const unpaidInvoices = await this.dataSource
+    // ── Crédito (facturas CERTIFICADA y ENVIADA menos pagos aprobados) ───
+    const outstandingInvoices = await this.dataSource
       .getRepository(Invoice)
-      .find({ where: { clientId: client.clientId, status: InvoiceStatus.ENVIADA } });
+      .find({
+        where: {
+          clientId: client.clientId,
+          status: In([InvoiceStatus.CERTIFICADA, InvoiceStatus.ENVIADA]),
+        },
+      });
 
-    const totalOwed = unpaidInvoices.reduce(
-      (sum, inv) => sum + Number(inv.totalAmount),
+    const invoiceIds = outstandingInvoices.map((invoice) => invoice.invoiceId);
+    const approvedPayments = invoiceIds.length
+      ? await this.dataSource
+          .getRepository(Payment)
+          .find({
+            where: {
+              invoiceId: In(invoiceIds),
+              status: PaymentStatus.APROBADO,
+            },
+          })
+      : [];
+
+    const approvedByInvoice = new Map<number, number>();
+    for (const payment of approvedPayments) {
+      approvedByInvoice.set(
+        payment.invoiceId,
+        (approvedByInvoice.get(payment.invoiceId) ?? 0) + Number(payment.amount),
+      );
+    }
+
+    const outstandingAmounts = outstandingInvoices.map((invoice) => {
+      const approvedAmount = approvedByInvoice.get(invoice.invoiceId) ?? 0;
+      return {
+        invoice,
+        pendingAmount: Math.max(Number(invoice.totalAmount) - approvedAmount, 0),
+      };
+    });
+
+    const totalOwed = outstandingAmounts.reduce(
+      (sum, row) => sum + row.pendingAmount,
       0,
     );
 
-    // ── Alertas: facturas ENVIADA vencidas ───────────────────────────────
+    // ── Alertas: facturas con saldo pendiente vencidas ────────────────────
     const todayStr = new Date().toISOString().split('T')[0];
-    const overdueInvoices = unpaidInvoices.filter((inv) => inv.dueDate < todayStr);
+    const overdueInvoices = outstandingAmounts.filter(
+      (row) => row.pendingAmount > 0 && row.invoice.dueDate < todayStr,
+    );
 
-    const alerts = overdueInvoices.map((inv) => ({
+    const alerts = overdueInvoices.map((row) => ({
       type: 'INVOICE_PENDING' as const,
-      invoiceNumber: inv.invoiceNumber,
-      message: `La factura ${inv.invoiceNumber} requiere pago para liberar crédito.`,
-      dueDate: inv.dueDate,
-      amount: Number(inv.totalAmount),
+      invoiceNumber: row.invoice.invoiceNumber,
+      message: `La factura ${row.invoice.invoiceNumber} requiere pago para liberar crédito.`,
+      dueDate: row.invoice.dueDate,
+      amount: row.pendingAmount,
     }));
 
     return {
       clientName: client.legalName,
+      displayName: user.fullName,
       isBlocked: client.isBlocked,
       creditLimit,
       totalOwed,
@@ -549,10 +591,35 @@ export class ClientService {
     });
     const creditLimit = activeContract?.creditLimit != null ? Number(activeContract.creditLimit) : 0;
 
-    // Facturas pendientes de pago (enviadas al cliente, no pagadas aún)
-    const unpaidInvoices = await this.dataSource
+    // Facturas con deuda activa (CERTIFICADA y ENVIADA menos pagos aprobados)
+    const outstandingInvoices = await this.dataSource
       .getRepository(Invoice)
-      .find({ where: { clientId: client.clientId, status: InvoiceStatus.ENVIADA } });
+      .find({
+        where: {
+          clientId: client.clientId,
+          status: In([InvoiceStatus.CERTIFICADA, InvoiceStatus.ENVIADA]),
+        },
+      });
+
+    const invoiceIds = outstandingInvoices.map((invoice) => invoice.invoiceId);
+    const approvedPayments = invoiceIds.length
+      ? await this.dataSource
+          .getRepository(Payment)
+          .find({
+            where: {
+              invoiceId: In(invoiceIds),
+              status: PaymentStatus.APROBADO,
+            },
+          })
+      : [];
+
+    const approvedByInvoice = new Map<number, number>();
+    for (const payment of approvedPayments) {
+      approvedByInvoice.set(
+        payment.invoiceId,
+        (approvedByInvoice.get(payment.invoiceId) ?? 0) + Number(payment.amount),
+      );
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -563,17 +630,24 @@ export class ClientService {
     let overdue30 = 0;
     let critical = 0;
 
-    for (const inv of unpaidInvoices) {
+    for (const inv of outstandingInvoices) {
+      const pendingAmount = Math.max(
+        Number(inv.totalAmount) - (approvedByInvoice.get(inv.invoiceId) ?? 0),
+        0,
+      );
+      if (pendingAmount <= 0) {
+        continue;
+      }
+
       const dueDate = new Date(inv.dueDate);
       dueDate.setHours(0, 0, 0, 0);
-      const amount = Number(inv.totalAmount);
 
       if (dueDate >= today) {
-        current += amount;
+        current += pendingAmount;
       } else if (dueDate >= threshold30) {
-        overdue30 += amount;
+        overdue30 += pendingAmount;
       } else {
-        critical += amount;
+        critical += pendingAmount;
       }
     }
 

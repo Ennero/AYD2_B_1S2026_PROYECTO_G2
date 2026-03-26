@@ -33,6 +33,10 @@ interface FinanceInvoiceApi {
   deliveredAt: string | null
   dueDate?: string | null
   status: FinanceInvoiceStatus
+  paymentState?: {
+    hasPendingPayment: boolean
+    hasApprovedPayment: boolean
+  }
   subtotalAmount?: number | string | null
   taxAmount?: number | string | null
   totalAmount: number | string
@@ -89,6 +93,7 @@ function toFinanceInvoice(invoice: FinanceInvoiceApi): FinanceInvoice {
     taxAmount: toNumber(invoice.taxAmount),
     totalAmount: toNumber(invoice.totalAmount),
     status: invoice.status,
+    paymentState: invoice.paymentState,
     felUuid: invoice.felUuid ?? undefined,
     certifiedAt: invoice.certifiedAt ?? undefined,
     sentAt: invoice.sentAt ?? undefined,

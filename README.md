@@ -1,129 +1,114 @@
-# LogiTrans — Sistema de Gestión Logística y Transporte
+# LogiTrans - Sistema de Gestion Logistica y Transporte
 
-> **Curso:** Análisis y Diseño de Sistemas 2 — Sección B, 1S 2026
-> **Grupo:** 2
+> Curso: Analisis y Diseno de Sistemas 2 - Seccion B, 1S 2026  
+> Grupo: 2
 
----
+## Resumen
 
-## Descripción del Proyecto
+LogiTrans implementa el flujo operativo completo de transporte de carga:
 
-**LogiTrans** es una plataforma integral de gestión logística y transporte de carga diseñada para operar en múltiples sedes (Ciudad de Guatemala, Xela y Puerto Barrios). El sistema cubre el ciclo de vida completo del negocio de transporte, desde la negociación comercial y formalización de contratos digitales, pasando por la generación de órdenes de servicio, planificación logística, despacho en patio y monitoreo de viajes, hasta la facturación electrónica (FEL) certificada ante la SAT y la inteligencia de negocio gerencial.
+1. Gestion comercial y contratos.
+2. Registro y asignacion de ordenes.
+3. Operacion de patio y despacho.
+4. Seguimiento de viaje con bitacora y evidencias.
+5. Facturacion y certificacion FEL.
+6. Conciliacion de pagos y analitica gerencial.
 
-### Módulos Principales
+El estado esperado de facturas durante el happy path es:
 
-| Módulo | Descripción |
-|--------|-------------|
-| **CDU001 — Gestión Comercial y Contratos** | Registro de clientes, validación de NIT, gestión de tarifas, formalización de contratos digitales y validación de riesgo crediticio. |
-| **CDU002 — Gestión de Órdenes y Transporte** | Generación de órdenes, asignación de recursos (piloto/vehículo), despacho en patio, bitácora de viaje y confirmación de entrega con evidencia. |
-| **CDU003 — Gestión Financiera y Facturación** | Emisión de facturas FEL, certificación DTE ante SAT, gestión de estados de cuenta y conciliación de pagos. |
-| **CDU004 — Inteligencia de Negocio y Reportes** | Dashboard gerencial con KPIs, alertas de desviaciones y proyección de capacidad operativa. |
+`BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA`
 
-### Stack Tecnológico
+## Arquitectura y Stack
 
-- **Arquitectura:** Monolito Modular Contenerizado
-- **Backend:** API REST modular por dominio
-- **Frontend:** SPA (Single Page Application)
-- **Base de Datos:** PostgreSQL con replicación activo-pasivo
-- **Contenedores:** Docker
-- **Seguridad:** RBAC + JWT (Short-Lived Tokens)
-- **Protocolo:** HTTP/2 sobre TLS
-- **Infraestructura:** On-premise con diseño Cloud-Ready
-- **Control de versiones:** Git-Flow
+- Backend: NestJS modular (API REST).
+- Frontend: Next.js (App Router).
+- Base de datos: PostgreSQL 15.
+- Contenedores: Docker / Docker Compose.
+- Seguridad: JWT + RBAC.
+- Proxy/LB productivo: Nginx con SSL y balanceo hacia multiples APIs.
 
----
+## Inicio Rapido (entorno del proyecto)
 
-## Integrantes del Equipo
+Este flujo levanta todo el sistema principal con un solo comando usando [docker-compose.yml](docker-compose.yml).
 
-| Carné | Nombre | Rol Scrum | Responsabilidad Técnica Principal |
-|-------|--------|-----------|-----------------------------------|
-| 202302220 | Enner Esaí Mendizabal Castro | Scrum Master | Base de datos / DDA |
-| 201807398 | Anyelo Gustavo Hernández Ayala | Product Owner | Backend — Gestión de Órdenes |
-| 202004071 | Henry David Quel Santos | Development Team | Frontend / Testing E2E |
-| 202200214 | Pablo Alejandro Marroquin Cutz | Development Team | Backend — BI y Reportes |
-| 202202410 | Marcos Daniel Bonifasi de León | Development Team | Backend — Facturación |
-| 202300670 | David Estuardo Barrios Ramírez | Development Team | Frontend |
+### 1) Prerrequisitos
 
----
+- Docker Desktop instalado y ejecutandose.
+- Docker Compose disponible (`docker compose` o `docker-compose`).
 
-## Documentación
-
-Toda la documentación técnica del proyecto se encuentra en la carpeta [`docs/`](docs/):
-
-| Documento | Descripción | Enlace |
-|-----------|-------------|--------|
-| **Arquitectura del Sistema** | Diagramas de contexto, bloques, componentes y despliegue. Estilo arquitectónico, decisiones clave e infraestructura. | [architecture.md](docs/architecture.md) |
-| **Documento de Decisión de Arquitectura (DDA)** | Caso de negocio, stakeholders, requisitos funcionales (RF), requisitos no funcionales (RNF), historias de usuario (HU), escenarios de calidad (EAC), restricciones y matrices de trazabilidad. | [dda.md](docs/dda.md) |
-| **Justificación de Decisiones Arquitectónicas (ADR)** | Justificación detallada de las 7 decisiones arquitectónicas: Monolito Modular Docker, PostgreSQL, API Gateway + Balanceador, RBAC + Auditoría, Git-Flow, HTTP/2 y JWT. | [adr.md](docs/adr.md) |
-| **Gestión Ágil (Scrum)** | Roles del equipo, división del trabajo por módulo, sprints, ceremonias (plannings, dailys, retrospectivas) y métricas del proyecto. | [scrum-management.md](docs/scrum-management.md) |
-| **Diagramas de Arquitectura** | Diagramas en formato imagen (PNG/JPG) y PDF editables. | [docs/imgs/architecture/](docs/imgs/architecture/) — [docs/architecture/](docs/architecture/) |
-| **Diagramas de Casos de Uso** | Diagramas de alto nivel, primera descomposición y CDUs individuales. | [docs/imgs/dda/](docs/imgs/dda/) — [docs/cdu/](docs/cdu/) |
-
----
-
-## Inicio Rápido
-
-> _Esta sección se completará cuando inicie la fase de desarrollo (Fase 2)._
-
-### Prerrequisitos
-
-<!-- TODO: Agregar versiones específicas cuando se defina el stack -->
-
-- Docker y Docker Compose
-- Node.js
-- PostgreSQL
-
-### Instalación
+### 2) Levantar el proyecto completo
 
 ```bash
-# Clonar el repositorio
 git clone https://github.com/<org>/AYD2_B_1S2026_PROYECTO_G2.git
 cd AYD2_B_1S2026_PROYECTO_G2
 
-# Levantar los servicios con Docker
-# docker-compose up -d
-
-# Instalar dependencias del frontend
-# cd client && npm install
-
-# Instalar dependencias del backend
-# cd server && npm install
+docker-compose down -v --rmi all
+docker-compose up -d --build
 ```
 
-### Ejecución
+### 3) Verificar servicios
 
 ```bash
-# TODO: Agregar comandos de ejecución
+docker-compose ps
+docker-compose logs --no-color server | tail -n 200
+docker-compose logs --no-color client | tail -n 200
 ```
 
-### Variables de Entorno
+### 4) URLs principales
 
-```bash
-# TODO: Documentar variables de entorno necesarias
-```
+- Frontend: http://localhost:3000
+- API (NestJS): http://localhost:3006
+- Health endpoint: http://localhost:3006/health
+- PostgreSQL: localhost:5433
 
----
+## Despliegue Completo y Operacion
 
-## Estructura del Proyecto
+Para despliegue detallado (local, productivo, variables, SSL, replica, validaciones, troubleshooting y operacion), consultar:
 
-```
+- [Guia profunda de despliegue](docs/despliegue.md)
+
+Tambien esta disponible la guia productiva historica:
+
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+## Documentacion Clave
+
+Documentacion funcional, tecnica y de arquitectura en [docs/](docs/):
+
+- [Happy Path con evidencia visual](docs/happypath.md)
+- [Accesos por rol para pruebas MVP](docs/mvp_accessos_usuarios.md)
+- [Arquitectura](docs/architecture.md)
+- [DDA](docs/dda.md)
+- [ADR](docs/adr.md)
+- [Gestion Scrum](docs/scrum-management.md)
+- [Tablas y endpoints](docs/endpoint_tables.md)
+
+## Estructura General
+
+```text
 AYD2_B_1S2026_PROYECTO_G2/
-├── client/                  # Frontend (SPA)
-├── server/                  # Backend (API REST modular)
-├── docs/                    # Documentación técnica
-│   ├── architecture.md      # Arquitectura del sistema
-│   ├── dda.md               # Documento de decisión de arquitectura
-│   ├── adr.md               # Justificación de decisiones
-│   ├── scrum-management.md  # Gestión ágil
-│   ├── architecture/        # PDFs editables de diagramas de arquitectura
-│   ├── cdu/                 # PDFs editables de casos de uso
-│   └── imgs/                # Imágenes de diagramas
-│       ├── architecture/    # Diagramas de arquitectura (PNG/JPG)
-│       └── dda/             # Diagramas de casos de uso (PNG)
-├── LICENSE
-└── README.md
+|- client/        # Frontend Next.js
+|- server/        # Backend NestJS
+|- db/            # Scripts y esquema SQL
+|- nginx/         # Reverse proxy y SSL
+|- scripts/       # Automatizaciones (deploy, etc.)
+|- docs/          # Documentacion funcional y tecnica
+|- docker-compose.yml
+|- docker-compose.prod.yml
+`- README.md
 ```
 
----
+## Equipo
 
-**Fecha de última actualización:** 2 de marzo de 2026
-**Equipo:** Grupo 2 — Análisis y Diseño de Sistemas 2, Sección B
+| Carne | Nombre | Rol Scrum | Responsabilidad Principal |
+|---|---|---|---|
+| 202302220 | Enner Esai Mendizabal Castro | Scrum Master | Base de datos / DDA |
+| 201807398 | Anyelo Gustavo Hernandez Ayala | Product Owner | Backend - Ordenes |
+| 202004071 | Henry David Quel Santos | Development Team | Frontend / Testing E2E |
+| 202200214 | Pablo Alejandro Marroquin Cutz | Development Team | Backend - BI y Reportes |
+| 202202410 | Marcos Daniel Bonifasi de Leon | Development Team | Backend - Facturacion |
+| 202300670 | David Estuardo Barrios Ramirez | Development Team | Frontend |
+
+## Nota de Version
+
+Ultima actualizacion documental: 25 de marzo de 2026.

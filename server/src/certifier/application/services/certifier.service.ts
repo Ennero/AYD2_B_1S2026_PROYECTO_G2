@@ -7,6 +7,9 @@ import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
 import { UserRole } from '../../../domain/enums/user-role.enum';
 import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
+import { Payment } from '../../../infrastructure/database/typeorm/entities/payment.entity';
+import { PaymentStatus } from '../../../domain/enums/payment-status.enum';
+import { PaymentMethod } from '../../../domain/enums/payment-method.enum';
 
 interface DashboardSummaryFilters {
   period?: 'MONTHLY';
@@ -75,31 +78,58 @@ export class CertifierService {
   }
 
   async certifyInvoice(invoiceId: number, clientNit: string) {
-    const invoice = await this.dataSource.getRepository(Invoice).findOne({
-      where: { invoiceId },
-      relations: { order: true },
+    const invoice = await this.dataSource.transaction(async (manager) => {
+      const invoiceRepo = manager.getRepository(Invoice);
+      const paymentRepo = manager.getRepository(Payment);
+
+      const targetInvoice = await invoiceRepo.findOne({
+        where: { invoiceId },
+        relations: { order: true },
+      });
+      if (!targetInvoice) throw new NotFoundException('Factura no encontrada');
+      if (targetInvoice.status !== InvoiceStatus.BORRADOR) {
+        throw new BadRequestException('La factura no esta en estado BORRADOR');
+      }
+
+      const nitValidation = await this.validateNit(invoiceId, clientNit);
+      if (!nitValidation.isValid) {
+        throw new BadRequestException(
+          'Debe validar correctamente el NIT del receptor antes de certificar la factura',
+        );
+      }
+
+      const crypto = require('crypto');
+      const generatedFelUuid = crypto.randomUUID();
+
+      targetInvoice.status = InvoiceStatus.CERTIFICADA;
+      targetInvoice.felUuid = generatedFelUuid;
+      targetInvoice.certifiedAt = new Date();
+      targetInvoice.sentAt = null;
+
+      await invoiceRepo.save(targetInvoice);
+
+      const existingActivePayment = await paymentRepo.exist({
+        where: {
+          invoiceId: targetInvoice.invoiceId,
+          status: In([PaymentStatus.PENDIENTE, PaymentStatus.APROBADO]),
+        },
+      });
+
+      if (!existingActivePayment) {
+        const pendingPayment = paymentRepo.create({
+          invoiceId: targetInvoice.invoiceId,
+          method: PaymentMethod.TRANSFERENCIA,
+          status: PaymentStatus.PENDIENTE,
+          amount: targetInvoice.totalAmount,
+          paymentDate: new Date(),
+          bankName: 'PENDIENTE_VALIDACION',
+          bankReference: `AUTO-${targetInvoice.invoiceNumber}`,
+        });
+        await paymentRepo.save(pendingPayment);
+      }
+
+      return targetInvoice;
     });
-    if (!invoice) throw new NotFoundException('Factura no encontrada');
-    if (invoice.status !== InvoiceStatus.BORRADOR) {
-      throw new BadRequestException('La factura no esta en estado BORRADOR');
-    }
-
-    const nitValidation = await this.validateNit(invoiceId, clientNit);
-    if (!nitValidation.isValid) {
-      throw new BadRequestException(
-        'Debe validar correctamente el NIT del receptor antes de certificar la factura',
-      );
-    }
-
-    const crypto = require('crypto');
-    const generatedFelUuid = crypto.randomUUID();
-
-    invoice.status = InvoiceStatus.CERTIFICADA;
-    invoice.felUuid = generatedFelUuid;
-    invoice.certifiedAt = new Date();
-    invoice.sentAt = null;
-
-    await this.dataSource.getRepository(Invoice).save(invoice);
 
     await this.notifyFinanceTeam(
       `FEL certificó ${invoice.invoiceNumber}`,

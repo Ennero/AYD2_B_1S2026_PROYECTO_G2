@@ -196,7 +196,8 @@ export default function FinanceBillingPage() {
           <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#C9924B", flexShrink: 0 }} />
           <p style={{ fontSize: "0.72rem", color: "#9A9489", lineHeight: 1.5 }}>
             Primero aparecen los <span style={{ color: "#C9924B", fontWeight: 700 }}>BORRADOR</span> generados al entregar la orden,
-            luego las facturas <span style={{ color: "#3A8E2A", fontWeight: 700 }}>CERTIFICADAS</span> listas para envío.
+            luego las facturas <span style={{ color: "#3A8E2A", fontWeight: 700 }}>CERTIFICADAS</span>. El envío al cliente se habilita
+            solo cuando Tesorería concilia y aprueba el pago.
           </p>
         </motion.div>
 
@@ -283,7 +284,7 @@ export default function FinanceBillingPage() {
             </p>
           </div>
           <p style={{ fontSize: "0.72rem", color: "#9A9489", marginBottom: "10px" }}>
-            Luego de la aprobación fiscal, quedan listas para envío al cliente.
+            Luego de la aprobación fiscal, requieren conciliación de pago para habilitar su envío.
           </p>
 
           <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
@@ -309,18 +310,34 @@ export default function FinanceBillingPage() {
                     <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#3A8E2A" }}>Certificada</span>
                   </span>
                   <div style={{ textAlign: "right" }}>
+                    {!inv.paymentState?.hasApprovedPayment && (
+                      <p style={{ fontSize: "0.58rem", color: "#9A9489", marginBottom: "4px" }}>
+                        Conciliación pendiente
+                      </p>
+                    )}
                     <button
-                      onClick={() => setSelectedCertified(inv)}
+                      onClick={() => inv.paymentState?.hasApprovedPayment && setSelectedCertified(inv)}
+                      disabled={!inv.paymentState?.hasApprovedPayment}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: "5px",
                         padding: "0.35rem 0.85rem",
-                        background: "#3A8E2A", border: "none",
+                        background: inv.paymentState?.hasApprovedPayment ? "#3A8E2A" : "rgba(58,142,42,0.35)",
+                        border: "none",
                         borderRadius: "3px", fontSize: "0.55rem", fontWeight: 700,
-                        letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff", cursor: "pointer",
+                        letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff",
+                        cursor: inv.paymentState?.hasApprovedPayment ? "pointer" : "not-allowed",
                         transition: "background 0.15s",
                       }}
-                      onMouseOver={e => (e.currentTarget.style.background = "#2E7321")}
-                      onMouseOut={e => (e.currentTarget.style.background = "#3A8E2A")}
+                      onMouseOver={e => {
+                        if (inv.paymentState?.hasApprovedPayment) {
+                          e.currentTarget.style.background = "#2E7321"
+                        }
+                      }}
+                      onMouseOut={e => {
+                        e.currentTarget.style.background = inv.paymentState?.hasApprovedPayment
+                          ? "#3A8E2A"
+                          : "rgba(58,142,42,0.35)"
+                      }}
                     >
                       <Mail size={11} /> Enviar
                     </button>

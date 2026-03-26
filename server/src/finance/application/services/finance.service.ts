@@ -94,7 +94,40 @@ export class FinanceService {
       order: { issueDate: 'DESC' },
     });
 
+    const invoiceIds = invoices.map((invoice) => invoice.invoiceId);
+    const paymentFlags = new Map<number, { hasPendingPayment: boolean; hasApprovedPayment: boolean }>();
+
+    if (invoiceIds.length > 0) {
+      const payments = await this.dataSource
+        .getRepository(Payment)
+        .createQueryBuilder('payment')
+        .select(['payment.invoiceId AS invoice_id', 'payment.status AS status'])
+        .where('payment.invoice_id IN (:...invoiceIds)', { invoiceIds })
+        .getRawMany<{ invoice_id: string; status: PaymentStatus }>();
+
+      for (const payment of payments) {
+        const invoiceId = Number(payment.invoice_id);
+        const current = paymentFlags.get(invoiceId) ?? {
+          hasPendingPayment: false,
+          hasApprovedPayment: false,
+        };
+
+        if (payment.status === PaymentStatus.PENDIENTE) {
+          current.hasPendingPayment = true;
+        }
+        if (payment.status === PaymentStatus.APROBADO) {
+          current.hasApprovedPayment = true;
+        }
+
+        paymentFlags.set(invoiceId, current);
+      }
+    }
+
     return invoices.map((invoice) => ({
+      paymentState: paymentFlags.get(invoice.invoiceId) ?? {
+        hasPendingPayment: false,
+        hasApprovedPayment: false,
+      },
       invoiceId: invoice.invoiceId,
       invoiceNumber: invoice.invoiceNumber,
       orderId: invoice.orderId,
@@ -214,6 +247,7 @@ export class FinanceService {
 
   async sendInvoice(invoiceId: number, pdfPath?: string) {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
+    const paymentRepo = this.dataSource.getRepository(Payment);
     const invoice = await invoiceRepo.findOne({ where: { invoiceId } });
 
     if (!invoice) {
@@ -226,6 +260,19 @@ export class FinanceService {
 
     if (invoice.sentAt) {
       throw new BadRequestException('La factura ya fue marcada como enviada anteriormente');
+    }
+
+    const hasApprovedPayment = await paymentRepo.exist({
+      where: {
+        invoiceId,
+        status: PaymentStatus.APROBADO,
+      },
+    });
+
+    if (!hasApprovedPayment) {
+      throw new BadRequestException(
+        'No se puede enviar la factura al cliente hasta que el pago haya sido conciliado y aprobado.',
+      );
     }
 
     invoice.status = InvoiceStatus.ENVIADA;
@@ -327,8 +374,10 @@ export class FinanceService {
       payment.reviewedByUserId = reviewedByUserId;
       await paymentRepo.save(payment);
 
-      invoice.status = InvoiceStatus.PAGADA;
-      await invoiceRepo.save(invoice);
+      if (invoice.status === InvoiceStatus.ENVIADA) {
+        invoice.status = InvoiceStatus.PAGADA;
+        await invoiceRepo.save(invoice);
+      }
 
       return {
         paymentId: payment.paymentId,

@@ -35,6 +35,7 @@ interface DashboardAlert {
 
 interface DashboardSummary {
   clientName: string
+  displayName?: string
   isBlocked: boolean
   creditLimit: number
   totalOwed: number
@@ -122,7 +123,7 @@ function TabResumen({ data, onSwitchTab }: { data: DashboardSummary; onSwitchTab
         </div>
       </div>
 
-      {/* Saldo pendiente */}
+      {/* Saldo restante */}
       <Link href="/cliente/estado-cuenta" style={{ display: "block", textDecoration: "none" }}>
         <div style={{
           background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px",
@@ -132,9 +133,9 @@ function TabResumen({ data, onSwitchTab }: { data: DashboardSummary; onSwitchTab
           onMouseOver={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "rgba(201,146,75,0.3)"; el.style.transform = "translateY(-2px)" }}
           onMouseOut={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "rgba(12,12,10,0.07)"; el.style.transform = "translateY(0)" }}
         >
-          <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Saldo Pendiente</p>
+          <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Saldo Restante</p>
           <p style={{ fontSize: "clamp(1.6rem, 3vw, 2.5rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#0C0C0A", lineHeight: 1 }}>
-            {formatQShort(data.totalOwed)}
+            {formatQShort(Math.max(data.availableCredit, 0))}
           </p>
           <div style={{ flex: 1, display: "flex", alignItems: "flex-end" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.6rem", color: "#C9924B", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -302,7 +303,11 @@ export default function ClienteDashboardPage() {
               <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
                 transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
                 style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
-                {loading ? "Bienvenido." : data ? `Bienvenido, ${data.clientName.split(" ")[0]}.` : "Dashboard"}
+                {loading
+                  ? "Bienvenido."
+                  : data
+                    ? `Bienvenido, ${(data.displayName || data.clientName).split(" ")[0]}.`
+                    : "Dashboard"}
               </motion.h1>
             </div>
             {data?.isBlocked && (

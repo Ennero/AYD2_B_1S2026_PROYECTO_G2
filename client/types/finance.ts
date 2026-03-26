@@ -20,6 +20,10 @@ export interface FinanceInvoice {
   taxAmount: number
   totalAmount: number
   status: FinanceInvoiceStatus
+  paymentState?: {
+    hasPendingPayment: boolean
+    hasApprovedPayment: boolean
+  }
   felUuid?: string
   certifiedAt?: string
   sentAt?: string
