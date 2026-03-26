@@ -13,7 +13,6 @@ import { useState } from "react"
 import { EventType, RegistrarLogPayload } from "@/types/pilot"
 import { X, ClipboardList } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
-import { s } from "framer-motion/client"
 
 interface RegistrarEventoModalProps {
     open: boolean
@@ -24,11 +23,9 @@ interface RegistrarEventoModalProps {
 
 // Opciones del select mapeadas al enum ROUTE_EVENT_TYPE
 const TIPOS_EVENTO: { value: EventType; label: string }[] = [
-    { value: "SALIDA", label: "Salida" },
     { value: "PUNTO_CONTROL", label: "Punto de Control" },
     { value: "ADUANA", label: "Aduana" },
     { value: "INCIDENTE", label: "Incidente" },
-    { value: "LLEGADA", label: "Llegada" },
     { value: "OTRO", label: "Otro" },
 ]
 

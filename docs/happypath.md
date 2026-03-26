@@ -90,7 +90,7 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Dirección Fiscal | `6a Av. 12-34 Zona 1, Ciudad de Guatemala` |
 | Nombre Contacto Principal | `Roberto Álvarez Méndez` |
 | Email Contacto | `deennerparaprobar@gmail.com` |
-| Contraseña | `probando2026` |
+| Contraseña | `deennerparaprobar@gmail.com` |
 | Teléfono Contacto | `+502` + `22001234` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
@@ -316,17 +316,18 @@ Ingresa los siguientes datos:
 2. Localiza la orden recién creada de `DISTRIBUIDORA EL PROGRESO, S.A.` en estado **`REGISTRADA`**.
 3. Haz clic en la orden para ver su detalle.
 4. Verás un botón **"Asignar Binomio"** o similar.
-5. Para este caso extremo, filtra la orden por cliente y verifica que el peso declarado es alto.
-6. Al abrir **"Asignar Binomio"**, el sistema intenta buscar unidades compatibles.
-7. Si no existe un vehículo disponible con capacidad suficiente para ese peso, se mostrará el mensaje: **"No hay unidades disponibles para esta orden"**.
-8. En este escenario, la orden **no cambia de estado** y se mantiene en `REGISTRADA` hasta que exista capacidad disponible.
+5. Para este caso de `40 Ton`, filtra la orden por cliente y verifica que el peso declarado coincide.
+6. Al abrir **"Asignar Binomio"**, selecciona la ruta del contrato, el binomio compatible y la fecha/hora de salida.
+7. Confirma la asignación.
+8. El sistema muestra confirmación y la orden cambia a estado **`ASIGNADA`** con unidad y piloto visibles en el detalle.
 
 ![Logística - Catálogo de Rutas](imgs/happypath/38_logistica_catalogo_rutas.jpeg)
 ![Logística - Órdenes de Servicio (vista general)](imgs/happypath/39_logistica_ordenes_lista_general.jpeg)
-![Logística - Orden filtrada con peso extremo](imgs/happypath/40_logistica_orden_filtrada_peso_extremo.jpeg)
-![Logística - Modal sin unidad disponible](imgs/happypath/41_logistica_modal_sin_unidad_disponible.jpeg)
+![Logística - Modal Asignar Binomio (40 Ton)](imgs/happypath/45_logistica_modal_asignar_binomio_40t.jpeg)
+![Logística - Confirmación de asignación exitosa](imgs/happypath/46_logistica_asignacion_exitosa_confirmacion.jpeg)
+![Logística - Detalle de orden en estado ASIGNADA](imgs/happypath/47_logistica_detalle_orden_asignada.jpeg)
 
-> Resultado esperado del caso: la aplicación bloquea la asignación cuando no hay capacidad de transporte suficiente entre las unidades disponibles.
+> Resultado esperado del caso: la aplicación permite asignar correctamente cuando existe una unidad compatible de 40 Ton.
 
 ---
 
@@ -342,7 +343,8 @@ Ingresa los siguientes datos:
 2. Inicia sesión con las credenciales del Encargado de Patio.
 3. Serás llevado al **Dashboard de Patio** con las órdenes listas para despacho.
 
-> 📸 **CAPTURA**: Captura el dashboard del Encargado de Patio.
+![Patio - Dashboard inicial](imgs/happypath/48_patio_dashboard_inicio.jpeg)
+![Patio - Lista general de cargas por formalizar](imgs/happypath/49_patio_lista_cargas_formalizar_general.jpeg)
 
 ---
 
@@ -356,16 +358,17 @@ Ingresa los siguientes datos:
 | Campo | Valor |
 |-------|-------|
 | Verificación de ID del Piloto | Confirmar que el piloto en patio coincide con el asignado ✅ |
-| Peso real cargado | `8.2 Ton` *(dentro del rango del camión)* |
+| Peso real cargado | `40.02 Ton` *(dentro de tolerancia respecto al declarado de 40.00 Ton)* |
 | Estiba confirmada | `Sí` ✅ |
 | Unidad sellada | `Sí` ✅ |
 
 5. Completa el checklist y presiona **"Autorizar Despacho"**.
 6. La orden cambia a estado **`LISTA_PARA_DESPACHO`**.
+7. Si el peso cargado no cumple la tolerancia, el sistema muestra alerta y no formaliza hasta corregir el dato.
 
-> 📸 **CAPTURA**: Captura el formulario de despacho en patio con los campos completados.
-
-> 📸 **CAPTURA**: Captura la orden ya en estado `LISTA_PARA_DESPACHO`.
+![Patio - Orden filtrada para formalizar (40.00 Ton)](imgs/happypath/50_patio_orden_40t_pendiente_formalizacion.jpeg)
+![Patio - Validación de tolerancia de peso (error)](imgs/happypath/51_patio_alerta_tolerancia_peso.jpeg)
+![Patio - Formalización exitosa de la carga](imgs/happypath/52_patio_formalizacion_exitosa_40_02t.jpeg)
 
 ---
 
@@ -375,13 +378,15 @@ Ingresa los siguientes datos:
 - Email: `2895884051401+t@ingenieria.usac.edu.gt`
 - Password: `LogiPiloto`
 
+Pero puede variar dependiendo del piloto al cual fue asignado todo esto. Refiérase a mvp_accesssos_usuario.md
+
 ### 7.1 Login como Piloto
 
 1. Cierra sesión del Encargado de Patio.
 2. Inicia sesión con las credenciales del Piloto.
 3. Verás el **Dashboard del Piloto** con tu orden asignada.
 
-> 📸 **CAPTURA**: Captura el dashboard del Piloto mostrando la orden activa.
+![Piloto - Dashboard con orden lista para despacho](imgs/happypath/53_piloto_dashboard_orden_lista_despacho.jpeg)
 
 ---
 
@@ -392,7 +397,8 @@ Ingresa los siguientes datos:
 3. Haz clic en **"Iniciar Viaje"** o **"Cambiar a En Tránsito"**.
 4. La orden cambia a estado **`EN_TRANSITO`**.
 
-> 📸 **CAPTURA**: Captura el momento en que la orden está en estado `EN_TRANSITO` en la vista del piloto.
+![Piloto - Detalle de viaje antes de iniciar](imgs/happypath/54_piloto_detalle_viaje_antes_iniciar.jpeg)
+![Piloto - Viaje iniciado en EN_TRANSITO](imgs/happypath/55_piloto_viaje_iniciado_en_transito.jpeg)
 
 ---
 
@@ -409,7 +415,12 @@ Ingresa los siguientes datos:
 3. Presiona **"Registrar"** o **"Agregar Evento"**.
 4. El evento aparece en el historial de la bitácora con la hora automática del sistema.
 
-> 📸 **CAPTURA**: Captura la bitácora del viaje mostrando el evento de punto de control recién registrado.
+![Piloto - Modal Registrar Evento (Punto de Control)](imgs/happypath/56_piloto_modal_registrar_evento_punto_control.jpeg)
+![Piloto - Bitácora con evento de punto de control registrado](imgs/happypath/57_piloto_bitacora_eventos_registrados.jpeg)
+
+Mientras el piloto registra eventos, el cliente puede visualizar el tracking en paralelo:
+
+![Cliente - Tracking de orden en tránsito con bitácora actualizada](imgs/happypath/58_cliente_tracking_orden_en_transito.jpeg)
 
 ---
 
@@ -430,9 +441,10 @@ Ingresa los siguientes datos:
 4. La orden cambia a estado **`ENTREGADA`**.
 5. **Automáticamente**, el sistema genera un **borrador de factura (FEL)** en estado `BORRADOR` para que Finanzas lo revise. Este borrador aparece en la bandeja del Agente Financiero sin descripción de servicio ni fecha de vencimiento (pendientes de completar).
 
-> 📸 **CAPTURA**: Captura el formulario de confirmación de entrega con el nombre del receptor visible.
-
-> 📸 **CAPTURA**: Captura el estado final de la orden en `ENTREGADA`.
+![Piloto - Formulario de confirmación de entrega con evidencia](imgs/happypath/59_piloto_formulario_confirmacion_entrega.jpeg)
+![Piloto - Confirmación de entrega (Misión cumplida)](imgs/happypath/60_piloto_confirmacion_mision_cumplida.jpeg)
+![Piloto - Orden en estado ENTREGADA en Mis Viajes](imgs/happypath/61_piloto_historial_orden_entregada.jpeg)
+![Cliente - Historial de órdenes actualizado a ENTREGADA](imgs/happypath/62_cliente_historial_orden_entregada.jpeg)
 
 ---
 
