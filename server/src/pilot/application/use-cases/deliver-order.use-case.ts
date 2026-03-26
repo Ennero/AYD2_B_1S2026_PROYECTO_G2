@@ -4,15 +4,17 @@ import {
     ForbiddenException,
     BadRequestException,
     Logger,
+    Inject,
 } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { TransportUnit } from '../../../infrastructure/database/typeorm/entities/transport-unit.entity';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
+import { STORAGE_SERVICE_TOKEN } from '../../../storage/domain/storage.service.interface';
+import type { IStorageService } from '../../../storage/domain/storage.service.interface';
 
 export interface DeliverOrderInput {
     receiverName: string;
@@ -33,7 +35,11 @@ export interface DeliverOrderOutput {
 export class DeliverOrderUseCase {
     private readonly logger = new Logger(DeliverOrderUseCase.name);
 
-    constructor(private readonly dataSource: DataSource) {}
+    constructor(
+        private readonly dataSource: DataSource,
+        private readonly config: ConfigService,
+        @Inject(STORAGE_SERVICE_TOKEN) private readonly storage: IStorageService,
+    ) {}
 
     async execute(
         orderId: number,
@@ -69,25 +75,28 @@ export class DeliverOrderUseCase {
                 );
             }
 
-            // 4. Persistir archivos base64 en disco
-            const signaturePath = await this.saveBase64File(
+            // 4. Subir archivos a Supabase Storage
+            const sigBucket = this.config.get('SUPABASE_BUCKET_SIGNATURES', 'signatures');
+            const eviBucket = this.config.get('SUPABASE_BUCKET_EVIDENCE', 'evidence');
+
+            const signaturePath = await this.uploadBase64File(
                 input.receiverSignatureBase64,
-                `signatures`,
+                sigBucket,
                 `${order.orderNumber}-signature.png`,
+                'image/png',
             );
 
             let evidencePath: string | null = null;
             if (input.deliveryEvidenceBase64?.length) {
-                // Guardar la primera foto como evidencia principal
-                // (el frontend puede enviar un array; guardamos todas con índice)
                 const paths: string[] = [];
                 for (let i = 0; i < input.deliveryEvidenceBase64.length; i++) {
-                const p = await this.saveBase64File(
-                    input.deliveryEvidenceBase64[i],
-                    `evidence`,
-                    `${order.orderNumber}-evidence-${i + 1}.jpg`,
-                );
-                paths.push(p);
+                    const p = await this.uploadBase64File(
+                        input.deliveryEvidenceBase64[i],
+                        eviBucket,
+                        `${order.orderNumber}-evidence-${i + 1}.jpg`,
+                        'image/jpeg',
+                    );
+                    paths.push(p);
                 }
                 evidencePath = paths.join(',');
             }
@@ -128,29 +137,25 @@ export class DeliverOrderUseCase {
         });
     }
 
-    // ── Utilidad privada: decodifica base64 y guarda en disco ─────────────
-    private async saveBase64File(
+    // ── Utilidad privada: decodifica base64 y sube a Supabase Storage ─────
+    private async uploadBase64File(
         base64: string,
-        folder: string,
+        bucket: string,
         filename: string,
+        mimeType: string,
     ): Promise<string> {
         try {
-        // Remover prefijo "data:image/...;base64," si viene del canvas
-        const base64Data = base64.replace(/^data:[^;]+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-
-        const dir = join(process.cwd(), 'uploads', folder);
-        await mkdir(dir, { recursive: true });
-
-        const filePath = join(dir, filename);
-        await writeFile(filePath, buffer);
-
-        // Retornar ruta relativa para guardar en DB
-        return `/files/${folder}/${filename}`;
+            const base64Data = base64.replace(/^data:[^;]+;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+            const result = await this.storage.upload({ buffer, filename, bucket, mimeType });
+            if (!result.success || !result.url) {
+                this.logger.warn(`Storage upload failed for ${filename}: ${result.error}`);
+                return '';
+            }
+            return result.url;
         } catch (err) {
-        this.logger.error(`Error guardando archivo ${filename}: ${(err as Error).message}`);
-        // No bloqueamos la entrega por fallo en guardado de archivo
-        return `/files/${folder}/${filename}`;
+            this.logger.error(`uploadBase64File failed for ${filename}: ${(err as Error).message}`);
+            return '';
         }
     }
-}   
+}

@@ -1,12 +1,20 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    ForbiddenException,
+    BadRequestException,
+    Logger,
+    Inject,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { mkdir, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { TransportUnit } from '../../../infrastructure/database/typeorm/entities/transport-unit.entity';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
+import { STORAGE_SERVICE_TOKEN } from '../../../storage/domain/storage.service.interface';
+import type { IStorageService } from '../../../storage/domain/storage.service.interface';
 
 export interface AddLogInput {
     eventType: RouteEventType;
@@ -24,7 +32,11 @@ export interface AddLogOutput {
 export class AddLogUseCase {
     private readonly logger = new Logger(AddLogUseCase.name);
 
-    constructor(private readonly dataSource: DataSource) {}
+    constructor(
+        private readonly dataSource: DataSource,
+        private readonly config: ConfigService,
+        @Inject(STORAGE_SERVICE_TOKEN) private readonly storage: IStorageService,
+    ) {}
 
     async execute(
         orderId: number,
@@ -61,12 +73,19 @@ export class AddLogUseCase {
         );
         }
 
-        // 5. Insertar el log
-        const logRepo = this.dataSource.getRepository(OrderRouteLog);
+        // 5. Subir imagen a Supabase Storage (si se proporcionó)
         const eventTime = new Date();
+        const logsBucket = this.config.get('SUPABASE_BUCKET_LOGS', 'logs');
         const imagePath = input.imageBase64
-            ? await this.saveBase64File(input.imageBase64, 'logs', `${order.orderNumber}-log-${eventTime.getTime()}.jpg`)
+            ? await this.uploadBase64File(
+                input.imageBase64,
+                logsBucket,
+                `${order.orderNumber}-log-${eventTime.getTime()}.jpg`,
+            )
             : null;
+
+        // 6. Insertar el log
+        const logRepo = this.dataSource.getRepository(OrderRouteLog);
         const log = logRepo.create({
         orderId: order.orderId,
         eventType: input.eventType,
@@ -83,24 +102,23 @@ export class AddLogUseCase {
         };
     }
 
-    private async saveBase64File(
+    // ── Utilidad privada: decodifica base64 y sube a Supabase Storage ─────
+    private async uploadBase64File(
         base64: string,
-        folder: string,
+        bucket: string,
         filename: string,
     ): Promise<string | null> {
         try {
             const base64Data = base64.replace(/^data:[^;]+;base64,/, '');
             const buffer = Buffer.from(base64Data, 'base64');
-
-            const dir = join(process.cwd(), 'uploads', folder);
-            await mkdir(dir, { recursive: true });
-
-            const filePath = join(dir, filename);
-            await writeFile(filePath, buffer);
-
-            return `/files/${folder}/${filename}`;
+            const result = await this.storage.upload({ buffer, filename, bucket, mimeType: 'image/jpeg' });
+            if (!result.success || !result.url) {
+                this.logger.error(`Storage upload failed for ${filename}: ${result.error}`);
+                return null;
+            }
+            return result.url;
         } catch (err) {
-            this.logger.error(`Error guardando imagen de bitacora ${filename}: ${(err as Error).message}`);
+            this.logger.error(`uploadBase64File failed for ${filename}: ${(err as Error).message}`);
             return null;
         }
     }
