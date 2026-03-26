@@ -528,7 +528,16 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 
 ![Finanzas - FAC-000065 certificada y lista para enviar](imgs/happypath/Captura de pantalla_25-3-2026_225556_localhost.jpeg)
 
-### 11.2 Confirmar envío al cliente
+### 11.2 Conciliar pago para habilitar envío
+
+1. En el menú lateral, abre **"Conciliar Pagos"**.
+2. Localiza la factura `FAC-000065` en la lista de pagos con acción requerida.
+3. Presiona **"Aprobar"** para conciliar el pago registrado.
+4. Regresa a **"Bandeja de Facturación"** y verifica que la factura queda habilitada para envío al cliente.
+
+![Finanzas - Conciliación de pagos aprobada para habilitar envío](imgs/happypath/Captura de pantalla_25-3-2026_234236_localhost.jpeg)
+
+### 11.3 Confirmar envío al cliente
 
 1. Presiona **"Enviar"** sobre `FAC-000065`.
 2. En el modal, confirma con **"Confirmar envío"**.
@@ -537,33 +546,3 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 
 ![Finanzas - Modal de confirmación de envío](imgs/happypath/Captura de pantalla_25-3-2026_225611_localhost.jpeg)
 ![Finanzas - Confirmación de factura enviada](imgs/happypath/Captura de pantalla_25-3-2026_225617_localhost.jpeg)
-
-> Alcance de esta corrida: el flujo documentado termina en `ENVIADA`. La fase de pago/conciliación se documentará en una corrida posterior.
-
----
-
-## Resumen del Flujo Completo
-
-```
-[Login] → [Operativo: Registrar Cliente] → [Operativo: Formalizar Contrato]
-   → [Cliente: Aceptar Contrato] → [Cliente: Crear Orden]
-   → [Logístico: Asignar Binomio] → [Patio: Registrar Despacho]
-   → [Piloto: Iniciar Tránsito + Bitácora] → [Piloto: Confirmar Entrega]
-   → [Sistema: Genera Borrador FEL automáticamente]
-   → [Finanzas: Revisar Borrador + Enviar a Certificador]
-   → [FEL: Validar NIT + Certificar / Rechazar]
-   → [Finanzas: Enviar factura al cliente (ENVIADA)]
-```
-
----
-
-## Notas para el Presentador
-
-- Todo el flujo anterior puede ejecutarse en la aplicación local corriendo con:
-  ```bash
-  docker-compose up -d
-  ```
-- El acceso se realiza en el Portal de Clientes LogiTrans según el ambiente configurado.
-- Los datos del seed ya contienen órdenes en diferentes etapas del flujo para enriquecer la demostración; no es necesario crear todo desde cero.
-- Para una demostración más rápida del MVP, puedes saltar al **paso 9** usando una factura `BORRADOR` ya existente en la bandeja de Finanzas (creada por el seed).
-- Las credenciales completas están en `docs/mvp_accessos_usuarios.md`.

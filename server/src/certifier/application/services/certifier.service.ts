@@ -123,7 +123,9 @@ export class CertifierService {
           amount: targetInvoice.totalAmount,
           paymentDate: new Date(),
           bankName: 'PENDIENTE_VALIDACION',
+          bankAccountNumber: 'PENDIENTE',
           bankReference: `AUTO-${targetInvoice.invoiceNumber}`,
+          supportDocumentPath: '/files/system/pending-payment-placeholder.txt',
         });
         await paymentRepo.save(pendingPayment);
       }

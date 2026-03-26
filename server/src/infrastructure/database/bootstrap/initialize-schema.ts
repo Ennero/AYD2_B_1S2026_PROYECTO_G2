@@ -206,6 +206,17 @@ async function normalizeDraftInvoiceDescriptions(
   );
 }
 
+async function normalizePrematurePaidInvoices(
+  dataSource: DataSource,
+): Promise<void> {
+  await dataSource.query(
+    `UPDATE public."invoices"
+      SET "status" = 'CERTIFICADA'
+      WHERE "status" = 'PAGADA'
+        AND "sent_at" IS NULL`,
+  );
+}
+
 type IdentityColumnRow = {
   table_name: string;
   column_name: string;
@@ -306,6 +317,7 @@ export async function ensureCanonicalSchema(
     await ensurePaymentsMethodSupportConstraint(dataSource);
     await ensureOrderRouteLogImageField(dataSource);
     await normalizeDraftInvoiceDescriptions(dataSource);
+    await normalizePrematurePaidInvoices(dataSource);
     await relaxIdentityColumnsToByDefault(dataSource);
     await alignIdentitySequences(dataSource);
     await refreshCanonicalRoutines(dataSource);
@@ -327,6 +339,7 @@ export async function ensureCanonicalSchema(
   await ensurePaymentsMethodSupportConstraint(dataSource);
   await ensureOrderRouteLogImageField(dataSource);
   await normalizeDraftInvoiceDescriptions(dataSource);
+  await normalizePrematurePaidInvoices(dataSource);
   await relaxIdentityColumnsToByDefault(dataSource);
   await alignIdentitySequences(dataSource);
 
