@@ -101,6 +101,7 @@ export class PilotController {
     const data = await this.addLogUseCase.execute(orderId, user.sub, {
       eventType:   dto.eventType,
       description: dto.description,
+      imageBase64: dto.imageBase64,
     });
     return { message: 'Evento registrado correctamente', data };
   }

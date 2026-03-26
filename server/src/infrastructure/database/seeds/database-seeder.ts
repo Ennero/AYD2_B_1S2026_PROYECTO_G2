@@ -1775,8 +1775,8 @@ export class DatabaseSeeder {
         status: OrderStatus.ENTREGADA,
         deliveredAt,
         receiverName: `Recibe ${record.blueprint.legalName}`,
-        receiverSignaturePath: `/seed/signatures/${record.order.orderId}.png`,
-        deliveryEvidencePath: `/seed/evidence/${record.order.orderId}.png`,
+        receiverSignaturePath: `https://picsum.photos/200/300?seed=signature-${record.order.orderId}`,
+        deliveryEvidencePath: `https://picsum.photos/200/300?seed=evidence-${record.order.orderId}`,
       });
 
       record.order.status = OrderStatus.ENTREGADA;
@@ -1831,6 +1831,7 @@ export class DatabaseSeeder {
             eventType: RouteEventType.PUNTO_CONTROL,
             eventTime: hoursAfter(record.dispatchedAt, 2.5),
             description: 'Paso por punto de control intermedio sin novedad.',
+            imagePath: `https://picsum.photos/200/300?seed=log-pc-${record.order.orderId}`,
           }),
         );
 
@@ -1890,6 +1891,7 @@ export class DatabaseSeeder {
             eventType: RouteEventType.LLEGADA,
             eventTime: record.deliveredAt,
             description: `Entrega completada en ${record.route?.destination ?? 'destino final'}.`,
+            imagePath: `https://picsum.photos/200/300?seed=log-arrival-${record.order.orderId}`,
           }),
         );
       }
@@ -1962,7 +1964,7 @@ export class DatabaseSeeder {
           record.blueprint.legalName,
           record.blueprint.nit,
           record.blueprint.taxAddress,
-          `SERVICIO LOGISTICO DE LA ORDEN ${recordOrderId}`,
+          '',
           Number(record.order.subtotalAmount ?? 0),
           Number(record.order.taxAmount ?? 0),
           Number(record.order.totalAmount ?? 0),

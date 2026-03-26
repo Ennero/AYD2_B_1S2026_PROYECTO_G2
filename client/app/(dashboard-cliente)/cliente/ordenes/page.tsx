@@ -47,12 +47,15 @@ interface TrackingLog {
   eventType: EventType
   eventTime: string
   description: string
+  imagePath?: string | null
 }
 
 interface OrderTracking extends OrderSummary {
   cargoDescription: string
   loadedWeightTon: number | null
   receiverName: string | null
+  receiverSignaturePath: string | null
+  deliveryEvidencePaths: string[]
   stowageConfirmed: boolean | null
   isSealed: boolean | null
   logs: TrackingLog[]
@@ -106,6 +109,7 @@ function fmtCurrency(n: number) {
 function TrackingDrawer({ orderId, open, onClose }: { orderId: string | null; open: boolean; onClose: () => void }) {
   const [data, setData] = useState<OrderTracking | null>(null)
   const [loading, setLoading] = useState(false)
+  const [previewMedia, setPreviewMedia] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open || !orderId) return
@@ -275,6 +279,26 @@ function TrackingDrawer({ orderId, open, onClose }: { orderId: string | null; op
                                 </span>
                               </div>
                               <p style={{ fontSize: "0.72rem", color: "#6B6260" }}>{log.description}</p>
+
+                              {log.imagePath && (
+                                <button
+                                  onClick={() => setPreviewMedia(log.imagePath ?? null)}
+                                  style={{
+                                    marginTop: "0.45rem",
+                                    padding: "0.3rem 0.6rem",
+                                    borderRadius: "4px",
+                                    border: "1px solid rgba(12,12,10,0.18)",
+                                    background: "#fff",
+                                    fontSize: "0.58rem",
+                                    fontWeight: 700,
+                                    letterSpacing: "0.08em",
+                                    textTransform: "uppercase",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Ver Imagen
+                                </button>
+                              )}
                             </div>
                           </div>
                         )
@@ -283,9 +307,87 @@ function TrackingDrawer({ orderId, open, onClose }: { orderId: string | null; op
                   </div>
                 )}
               </div>
+
+              {(data.receiverSignaturePath || (data.deliveryEvidencePaths?.length ?? 0) > 0) && (
+                <div>
+                  <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.8rem" }}>
+                    Evidencia de entrega
+                  </p>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {data.receiverSignaturePath && (
+                      <button
+                        onClick={() => setPreviewMedia(data.receiverSignaturePath)}
+                        style={{
+                          padding: "0.35rem 0.7rem",
+                          borderRadius: "4px",
+                          border: "1px solid rgba(12,12,10,0.18)",
+                          background: "#fff",
+                          fontSize: "0.58rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Ver Firma
+                      </button>
+                    )}
+                    {(data.deliveryEvidencePaths ?? []).map((path, idx) => (
+                      <button
+                        key={`${path}-${idx}`}
+                        onClick={() => setPreviewMedia(path)}
+                        style={{
+                          padding: "0.35rem 0.7rem",
+                          borderRadius: "4px",
+                          border: "1px solid rgba(12,12,10,0.18)",
+                          background: "#fff",
+                          fontSize: "0.58rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Ver Evidencia {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
+
+        {previewMedia && (
+          <div
+            onClick={() => setPreviewMedia(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(12,12,10,0.65)",
+              zIndex: 60,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "1.25rem",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewMedia}
+              alt="Evidencia"
+              onClick={(event) => event.stopPropagation()}
+              style={{
+                maxWidth: "min(92vw, 900px)",
+                maxHeight: "85vh",
+                borderRadius: "8px",
+                border: "1px solid rgba(245,242,236,0.2)",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
+                background: "#fff",
+              }}
+            />
+          </div>
+        )}
       </div>
     </>
   )

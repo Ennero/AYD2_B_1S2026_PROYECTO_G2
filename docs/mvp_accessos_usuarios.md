@@ -49,8 +49,8 @@ Regla de seed vigente:
 - Flujo de certificación (FEL):
   - Solo se muestran facturas `BORRADOR` ya revisadas por Finanzas (con descripción).
   - Antes de certificar, es obligatorio validar NIT.
-  - Al certificar (`CERTIFICADA`), el sistema dispara notificación automática por correo al cliente.
-- Estado `ENVIADA`: representa factura certificada y marcada como enviada en el flujo financiero.
+  - Al certificar o rechazar en FEL, el sistema notifica por correo al agente financiero para seguimiento.
+- Estado `ENVIADA`: representa factura certificada y enviada por Finanzas al cliente; en ese momento se dispara el correo al cliente.
 
 ## Notas útiles de autenticación y comunicaciones
 

@@ -538,12 +538,12 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 3. El sistema genera automáticamente:
    - Un **UUID de autorización FEL** (ej.: `FEL-A3B2C1D4-...`)
    - La fecha y hora de certificación
-4. La factura cambia de estado `BORRADOR` → **`ENVIADA`** (incluye certificación FEL y envío automático).
-5. El sistema envía automáticamente la notificación de factura al correo del cliente al momento de certificar.
+4. La factura cambia de estado `BORRADOR` → **`CERTIFICADA`**.
+5. El sistema notifica al Agente Financiero para que complete el envío final al cliente desde el módulo financiero.
 
-> 📸 **CAPTURA**: Captura la factura en estado `ENVIADA` mostrando el UUID FEL generado y la fecha de certificación.
+> 📸 **CAPTURA**: Captura la factura en estado `CERTIFICADA` mostrando el UUID FEL generado y la fecha de certificación.
 
-> 📸 **CAPTURA**: Captura evidencia del correo de factura recibido por el cliente después de certificar.
+> 📸 **CAPTURA**: Captura evidencia de la notificación enviada al Agente Financiero después de certificar.
 
 ---
 
@@ -672,7 +672,7 @@ El Dashboard Gerencial muestra:
        → [Piloto: Iniciar Tránsito + Bitácora] → [Piloto: Confirmar Entrega]
        → [Sistema: Genera Borrador FEL automáticamente]
        → [Finanzas: Completar Descripción + Enviar a Certificador]
-       → [Certificador: Validar NIT + Certificar] → [Sistema: Factura ENVIADA]
+      → [Certificador: Validar NIT + Certificar] → [Finanzas: Enviar factura al cliente (ENVIADA)]
        → [Cliente: Registrar Pago] → [Finanzas: Aprobar Pago]
        → [Sistema: Factura PAGADA + Crédito liberado]
        → [Gerencia: Ver Dashboard + Rentabilidad]

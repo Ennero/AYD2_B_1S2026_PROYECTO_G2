@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { DataSource, Not } from 'typeorm';
+import { DataSource, In, Not } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
@@ -7,7 +7,6 @@ import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
 import { UserRole } from '../../../domain/enums/user-role.enum';
 import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
-import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 
 interface DashboardSummaryFilters {
   period?: 'MONTHLY';
@@ -95,56 +94,18 @@ export class CertifierService {
     const crypto = require('crypto');
     const generatedFelUuid = crypto.randomUUID();
 
-    invoice.status = InvoiceStatus.ENVIADA;
+    invoice.status = InvoiceStatus.CERTIFICADA;
     invoice.felUuid = generatedFelUuid;
     invoice.certifiedAt = new Date();
-    invoice.sentAt = new Date();
+    invoice.sentAt = null;
 
     await this.dataSource.getRepository(Invoice).save(invoice);
 
-    const clientUser = await this.dataSource.getRepository(User).findOne({
-      where: {
-        clientId: invoice.clientId,
-        role: UserRole.CLIENTE,
-        isActive: true,
-      },
-    });
-
-    const client = await this.dataSource.getRepository(Client).findOne({
-      where: { clientId: invoice.clientId },
-    });
-
-    const destinationEmail = clientUser?.email ?? client?.primaryContactEmail;
-
-    if (destinationEmail) {
-      const issueDateText = new Date(invoice.issueDate).toISOString().slice(0, 10);
-      const dueDateText = invoice.dueDate;
-
-      this.emailService
-        .sendInvoice({
-          to: destinationEmail,
-          clientName: invoice.clientName,
-          invoiceNumber: invoice.invoiceNumber,
-          issueDate: issueDateText,
-          dueDate: dueDateText,
-          orderCode: invoice.order?.orderNumber ?? `ORD-${invoice.orderId}`,
-          subtotal: Number(invoice.subtotalAmount).toFixed(2),
-          taxes: Number(invoice.taxAmount).toFixed(2),
-          total: Number(invoice.totalAmount).toFixed(2),
-          currency: 'GTQ',
-          pdfUrl: invoice.pdfPath ?? undefined,
-          felAuthorizationCode: invoice.felUuid ?? undefined,
-        })
-        .catch((err: Error) =>
-          this.logger.error(
-            `Error al enviar factura certificada ${invoice.invoiceNumber}: ${err.message}`,
-          ),
-        );
-    } else {
-      this.logger.warn(
-        `No se encontró correo de destino para la factura ${invoice.invoiceNumber} del cliente ${invoice.clientId}.`,
-      );
-    }
+    await this.notifyFinanceTeam(
+      `FEL certificó ${invoice.invoiceNumber}`,
+      `La factura ${invoice.invoiceNumber} fue certificada correctamente en FEL y está lista para envío al cliente desde Finanzas.`,
+      invoice,
+    );
 
     return {
       invoiceId: invoice.invoiceId,
@@ -181,10 +142,68 @@ export class CertifierService {
       });
       await logRepo.save(auditLog);
 
+      await this.notifyFinanceTeam(
+        `FEL rechazó ${invoice.invoiceNumber}`,
+        `La factura ${invoice.invoiceNumber} fue rechazada en FEL. Motivo: ${normalizedReason}`,
+        invoice,
+      );
+
       return {
         invoiceId: invoice.invoiceId,
         status: invoice.status,
       };
     });
+  }
+
+  private async notifyFinanceTeam(
+    subject: string,
+    summary: string,
+    invoice: Invoice,
+  ): Promise<void> {
+    const financeUsers = await this.dataSource.getRepository(User).find({
+      where: {
+        role: UserRole.AGENTE_FINANCIERO,
+        isActive: true,
+      },
+      select: ['email'],
+    });
+
+    const recipients = Array.from(
+      new Set(
+        financeUsers
+          .map((user) => user.email)
+          .filter((email): email is string => Boolean(email && email.trim())),
+      ),
+    );
+
+    if (recipients.length === 0) {
+      this.logger.warn(`No se encontraron agentes financieros activos para notificar ${invoice.invoiceNumber}.`);
+      return;
+    }
+
+    const issueDateText = new Date(invoice.issueDate).toISOString().slice(0, 10);
+
+    await Promise.all(
+      recipients.map((to) =>
+        this.emailService
+          .sendFinanceInvoiceStatus({
+            to,
+            subject,
+            summary,
+            invoiceNumber: invoice.invoiceNumber,
+            clientName: invoice.clientName,
+            issueDate: issueDateText,
+            dueDate: invoice.dueDate,
+            total: Number(invoice.totalAmount).toFixed(2),
+            currency: 'GTQ',
+            felAuthorizationCode: invoice.felUuid ?? undefined,
+          })
+          .catch((err: Error) =>
+            this.logger.error(
+              `Error al notificar a Finanzas (${to}) sobre ${invoice.invoiceNumber}: ${err.message}`,
+            ),
+          ),
+      ),
+    );
   }
 }

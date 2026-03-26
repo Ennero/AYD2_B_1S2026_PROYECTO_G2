@@ -1,5 +1,7 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { mkdir, writeFile } from 'fs/promises';
+import { join } from 'path';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { TransportUnit } from '../../../infrastructure/database/typeorm/entities/transport-unit.entity';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
@@ -9,15 +11,19 @@ import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 export interface AddLogInput {
     eventType: RouteEventType;
     description: string;
+    imageBase64?: string;
 }
 
 export interface AddLogOutput {
     logId: number;
     eventTime: string;
+    imagePath: string | null;
 }
 
 @Injectable()
 export class AddLogUseCase {
+    private readonly logger = new Logger(AddLogUseCase.name);
+
     constructor(private readonly dataSource: DataSource) {}
 
     async execute(
@@ -58,17 +64,44 @@ export class AddLogUseCase {
         // 5. Insertar el log
         const logRepo = this.dataSource.getRepository(OrderRouteLog);
         const eventTime = new Date();
+        const imagePath = input.imageBase64
+            ? await this.saveBase64File(input.imageBase64, 'logs', `${order.orderNumber}-log-${eventTime.getTime()}.jpg`)
+            : null;
         const log = logRepo.create({
         orderId: order.orderId,
         eventType: input.eventType,
         description: input.description,
         eventTime,
+        imagePath,
         });
         const saved = await logRepo.save(log);
 
         return {
         logId:     saved.logId,
         eventTime: saved.eventTime.toISOString(),
+        imagePath: saved.imagePath ?? null,
         };
+    }
+
+    private async saveBase64File(
+        base64: string,
+        folder: string,
+        filename: string,
+    ): Promise<string | null> {
+        try {
+            const base64Data = base64.replace(/^data:[^;]+;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+
+            const dir = join(process.cwd(), 'uploads', folder);
+            await mkdir(dir, { recursive: true });
+
+            const filePath = join(dir, filename);
+            await writeFile(filePath, buffer);
+
+            return `/files/${folder}/${filename}`;
+        } catch (err) {
+            this.logger.error(`Error guardando imagen de bitacora ${filename}: ${(err as Error).message}`);
+            return null;
+        }
     }
 }
