@@ -1,17 +1,8 @@
 "use client"
 
-// ============================================================
-// app/(dashboard-nav)/piloto/viaje/[id]/page.tsx
-// Vista de detalle de una orden antes de entrar al monitoreo.
-// Muestra toda la info de la orden: ruta, carga, cliente,
-// vehículo y fechas. Desde aquí el piloto puede ir al
-// monitoreo activo si el estado lo permite.
-//
-// Fetch: GET /api/pilot/orders/{ORDER_ID}
-// ============================================================
-
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import { ViajeDetalle } from "@/types/pilot"
@@ -26,21 +17,21 @@ import {
   CalendarDays,
   Navigation,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react"
-import { cn } from "@/lib/utils/cn"
 
-// Colores de estado
-const statusStyles: Record<string, { label: string; cls: string }> = {
-  REGISTRADA:          { label: "Registrada",           cls: "bg-gray-100 text-gray-700" },
-  ASIGNADA:            { label: "Asignada",              cls: "bg-blue-100 text-blue-800" },
-  LISTA_PARA_DESPACHO: { label: "Lista para Despacho",  cls: "bg-warning/20 text-yellow-800" },
-  EN_TRANSITO:         { label: "En Tránsito",           cls: "bg-accent/40 text-primary" },
-  ENTREGADA:           { label: "Entregada",             cls: "bg-green-100 text-green-800" },
-  BLOQUEADA:           { label: "Bloqueada",             cls: "bg-error/10 text-error" },
-  CANCELADA:           { label: "Cancelada",             cls: "bg-gray-200 text-text-muted" },
+const EASE = [0.16, 1, 0.3, 1] as const
+
+const STATUS_CFG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  REGISTRADA:          { label: "Registrada",          color: "#9A9489", bg: "rgba(12,12,10,0.06)",   border: "rgba(12,12,10,0.1)" },
+  ASIGNADA:            { label: "Asignada",             color: "#6B6260", bg: "rgba(12,12,10,0.06)",   border: "rgba(12,12,10,0.1)" },
+  LISTA_PARA_DESPACHO: { label: "Lista para Despacho", color: "#0C0C0A", bg: "rgba(12,12,10,0.06)",   border: "rgba(12,12,10,0.15)" },
+  EN_TRANSITO:         { label: "En Tránsito",          color: "#C9924B", bg: "rgba(201,146,75,0.1)",  border: "rgba(201,146,75,0.25)" },
+  ENTREGADA:           { label: "Entregada",            color: "#3A8E2A", bg: "rgba(58,142,42,0.08)",  border: "rgba(58,142,42,0.2)" },
+  BLOQUEADA:           { label: "Bloqueada",            color: "#E53E3E", bg: "rgba(229,62,62,0.08)",  border: "rgba(229,62,62,0.2)" },
+  CANCELADA:           { label: "Cancelada",            color: "rgba(12,12,10,0.3)", bg: "rgba(12,12,10,0.04)", border: "rgba(12,12,10,0.08)" },
 }
 
-// --- Acción a mostrar según estado
 function getAccionPrincipal(status: string) {
   switch (status) {
     case "LISTA_PARA_DESPACHO":
@@ -50,6 +41,18 @@ function getAccionPrincipal(status: string) {
     default:
       return { label: "Monitoreo no disponible en este estado", habilitado: false }
   }
+}
+
+function DataItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div>
+      <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+        <span style={{ color: "#C9924B", display: "flex" }}>{icon}</span>
+        {label}
+      </p>
+      <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0C0C0A" }}>{value}</p>
+    </div>
+  )
 }
 
 export default function ViajeDetallePage() {
@@ -72,43 +75,41 @@ export default function ViajeDetallePage() {
         setLoading(false)
       }
     }
-    fetchDetalle()
+    void fetchDetalle()
   }, [orderId])
 
-  function irAlMonitoreo() {
-    router.push(`/piloto/monitoreo/${orderId}`)
-  }
-
-  // ---- Estados de la UI -----
+  /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-text-muted">
-          <Truck size={48} className="animate-bounce text-primary" />
-          <p className="font-body text-lg">Cargando detalle del viaje...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#F5F2EC" }}>
+        <p style={{ fontSize: "0.68rem", letterSpacing: "0.24em", color: "#9A9489", textTransform: "uppercase" }}>
+          Cargando viaje…
+        </p>
       </div>
     )
   }
 
+  /* ── Error ── */
   if (error || !viaje) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-error">
-          <AlertCircle size={48} />
-          <p className="font-body text-lg">{error ?? "Viaje no encontrado."}</p>
-          <button
-            onClick={() => router.back()}
-            className="bg-primary text-white font-bold py-2 px-6 rounded hover:bg-primary-hover transition-colors"
-          >
-            Volver
-          </button>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#F5F2EC" }}>
+        <AlertCircle size={32} style={{ color: "#E53E3E" }} />
+        <p style={{ fontSize: "0.82rem", color: "#6B6260" }}>{error ?? "Viaje no encontrado."}</p>
+        <button
+          onClick={() => router.back()}
+          style={{
+            fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", padding: "0.5rem 1.5rem",
+            background: "#0C0C0A", color: "#F5F2EC", borderRadius: "4px", cursor: "pointer",
+          }}
+        >
+          Volver
+        </button>
       </div>
     )
   }
 
-  const statusCfg = statusStyles[viaje.status] ?? statusStyles["REGISTRADA"]
+  const statusCfg = STATUS_CFG[viaje.status] ?? STATUS_CFG["REGISTRADA"]
   const accion = getAccionPrincipal(viaje.status)
 
   const scheduledDisplay = viaje.scheduledPickupAt
@@ -118,78 +119,129 @@ export default function ViajeDetallePage() {
       })
     : "—"
 
-
   return (
-    <div className="min-h-screen bg-background">
-      <main className="w-full max-w-4xl mx-auto px-6 py-8">
-       {/* ── Breadcrumb / Volver ──────────────────────────────── */}
-        <button
-          onClick={() => router.back()}
-          className="mb-6 flex items-center gap-2 text-primary font-bold hover:text-primary-hover transition-colors"
-        >
-          <ArrowLeft size={18} />
-          Volver al Dashboard
-        </button>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
 
-        {/* ── Header: número de orden + badge de estado ────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-text-primary">
-              Detalle del Viaje
-            </h1>
-            <p className="text-text-muted font-body mt-1">
-              Orden:{" "}
-              <span className="font-bold text-primary">{viaje.orderNumber}</span>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
+
+      <div className="relative z-10 max-w-4xl mx-auto px-8 py-10">
+
+        {/* ── Back link ── */}
+        <motion.button
+          initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: EASE }}
+          onClick={() => router.back()}
+          style={{
+            display: "flex", alignItems: "center", gap: "6px",
+            fontSize: "0.68rem", letterSpacing: "0.1em", color: "#9A9489",
+            textTransform: "uppercase", fontWeight: 600, marginBottom: "2rem",
+            cursor: "pointer", background: "none", border: "none",
+          }}
+          onMouseOver={e => (e.currentTarget.style.color = "#0C0C0A")}
+          onMouseOut={e => (e.currentTarget.style.color = "#9A9489")}
+        >
+          <ArrowLeft size={14} /> Mis Viajes
+        </motion.button>
+
+        {/* ── Header ── */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2rem" }}>
+
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Detalle del Viaje
+          </p>
+
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+            <div style={{ overflow: "hidden" }}>
+              <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+                transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+                style={{ fontSize: "clamp(1.8rem,3.5vw,2.6rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+                {viaje.orderNumber}
+              </motion.h1>
+            </div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+              style={{
+                display: "inline-flex", alignItems: "center",
+                padding: "0.35rem 0.85rem", borderRadius: "4px",
+                background: statusCfg.bg, border: `1px solid ${statusCfg.border}`,
+                fontSize: "0.58rem", fontWeight: 700, letterSpacing: "0.18em",
+                textTransform: "uppercase", color: statusCfg.color,
+                flexShrink: 0,
+              }}>
+              {statusCfg.label}
+            </motion.div>
+          </div>
+
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* ── Sección 1: Información del viaje ── */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6, ease: EASE }}
+          style={{
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "6px", overflow: "hidden", marginBottom: "1rem",
+          }}>
+          <div style={{ height: "3px", background: "#C9924B" }} />
+          <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Navigation size={13} style={{ color: "#C9924B" }} />
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>
+              Información del Viaje
             </p>
           </div>
-          <span
-            className={cn(
-              "self-start sm:self-auto px-4 py-2 rounded-full text-sm font-bold",
-              statusCfg.cls
-            )}
-          >
-            {statusCfg.label}
-          </span>
-        </div>
-
-        {/* ── Sección 1: Información del viaje ─────────────────── */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-            <Navigation size={18} />
-            Información del Viaje
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <InfoItem icon={<MapPin size={16} />} label="Origen"       value={viaje.origin} />
-            <InfoItem icon={<MapPin size={16} />} label="Destino"      value={viaje.destination} />
-            <InfoItem icon={<Clock size={16} />}  label="Tiempo Est."  value={`${viaje.estimatedHours} h`} />
-            <InfoItem icon={<CalendarDays size={16} />} label="Salida Prog." value={scheduledDisplay} />
+          <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1.25rem" }}>
+            <DataItem icon={<MapPin size={10} />} label="Origen" value={viaje.origin} />
+            <DataItem icon={<MapPin size={10} />} label="Destino" value={viaje.destination} />
+            <DataItem icon={<Clock size={10} />} label="Tiempo estimado" value={`${viaje.estimatedHours} h`} />
+            <DataItem icon={<CalendarDays size={10} />} label="Salida programada" value={scheduledDisplay} />
           </div>
-        </section>
+        </motion.div>
 
-        {/* ── Sección 2: Información de la carga ───────────────── */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-            <Package size={18} />
-            Información de la Carga
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            <InfoItem icon={<Package size={16} />} label="Tipo de Carga"   value={viaje.cargoType} />
-            <InfoItem icon={<Weight size={16} />}  label="Peso Declarado"  value={`${viaje.declaredWeightTon} T`} />
-            <InfoItem icon={<User size={16} />}    label="Cliente"         value={viaje.clientName} />
+        {/* ── Sección 2: Información de la carga ── */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38, duration: 0.6, ease: EASE }}
+          style={{
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "6px", overflow: "hidden", marginBottom: "1rem",
+          }}>
+          <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Package size={13} style={{ color: "#C9924B" }} />
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>
+              Información de la Carga
+            </p>
           </div>
-        </section>
+          <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1.25rem" }}>
+            <DataItem icon={<Package size={10} />} label="Tipo de Carga" value={viaje.cargoType} />
+            <DataItem icon={<Weight size={10} />} label="Peso declarado" value={`${viaje.declaredWeightTon} T`} />
+            <DataItem icon={<User size={10} />} label="Cliente" value={viaje.clientName} />
+          </div>
+        </motion.div>
 
-        {/* ── Sección 3: Piloto y vehículo ─────────────────────── */}
-        <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-          <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-            <Truck size={18} />
-            Piloto y Vehículo
-          </h2>
-          <div className="grid grid-cols-2 gap-6">
-            <InfoItem icon={<User size={16} />}  label="Piloto Asignado" value={viaje.pilotName} />
+        {/* ── Sección 3: Piloto y vehículo ── */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.46, duration: 0.6, ease: EASE }}
+          style={{
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+            borderRadius: "6px", overflow: "hidden", marginBottom: "2rem",
+          }}>
+          <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)", display: "flex", alignItems: "center", gap: "8px" }}>
+            <Truck size={13} style={{ color: "#C9924B" }} />
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700 }}>
+              Piloto y Vehículo
+            </p>
+          </div>
+          <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "1.25rem" }}>
+            <DataItem icon={<User size={10} />} label="Piloto asignado" value={viaje.pilotName} />
             {viaje.dispatchedAt && (
-              <InfoItem
-                icon={<Clock size={16} />}
+              <DataItem
+                icon={<Clock size={10} />}
                 label="Despachado a las"
                 value={new Date(viaje.dispatchedAt).toLocaleString("es-GT", {
                   day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
@@ -197,8 +249,8 @@ export default function ViajeDetallePage() {
               />
             )}
             {viaje.deliveredAt && (
-              <InfoItem
-                icon={<Clock size={16} />}
+              <DataItem
+                icon={<Clock size={10} />}
                 label="Entregado a las"
                 value={new Date(viaje.deliveredAt).toLocaleString("es-GT", {
                   day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
@@ -206,49 +258,35 @@ export default function ViajeDetallePage() {
               />
             )}
           </div>
-        </section>
+        </motion.div>
 
-        {/* ── Botón de acción principal ─────────────────────────── */}
-        <div className="flex justify-end">
+        {/* ── CTA ── */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 0.55, duration: 0.5 }}
+          style={{ display: "flex", justifyContent: "flex-end" }}>
           <button
-            onClick={irAlMonitoreo}
+            onClick={() => router.push(`/piloto/monitoreo/${orderId}`)}
             disabled={!accion.habilitado}
-            className={cn(
-              "font-bold py-3 px-8 rounded-lg shadow-lg transition-all flex items-center gap-2",
-              accion.habilitado
-                ? "bg-primary hover:bg-primary-hover text-white hover:-translate-y-0.5"
-                : "bg-gray-200 text-text-muted cursor-not-allowed"
-            )}
+            style={{
+              display: "flex", alignItems: "center", gap: "6px",
+              padding: "0.7rem 1.5rem", borderRadius: "4px",
+              fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
+              cursor: accion.habilitado ? "pointer" : "not-allowed",
+              background: accion.habilitado ? "#C9924B" : "rgba(12,12,10,0.08)",
+              color: accion.habilitado ? "#ffffff" : "#9A9489",
+              border: "none", transition: "background 0.15s",
+            }}
+            onMouseOver={e => { if (accion.habilitado) (e.currentTarget as HTMLButtonElement).style.background = "#b5833f" }}
+            onMouseOut={e => { if (accion.habilitado) (e.currentTarget as HTMLButtonElement).style.background = "#C9924B" }}
           >
-            <Navigation size={18} />
+            <Navigation size={14} />
             {accion.label}
+            {accion.habilitado && <ArrowRight size={13} />}
           </button>
-        </div>
-        
-      </main>
-    </div>
-  )
-}
+        </motion.div>
 
-
-// Subcomponente reutilizable para cada dato
-
-function InfoItem({
-  icon,
-  label, 
-  value,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-}) {
-  return (
-    <div>
-      <p className="text-xs text-text-muted font-bold uppercase tracking-wider flex items-center gap-1 mb-1">
-        {icon}
-        {label}
-      </p>
-      <p className="font-semibold text-text-primary">{value}</p>
+        <div style={{ height: "4rem" }} />
+      </div>
     </div>
   )
 }

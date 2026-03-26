@@ -1,21 +1,190 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, FileCheck2, Send } from "lucide-react"
+import { motion } from "framer-motion"
+import { ArrowLeft, FileCheck2, FileText, Send, X } from "lucide-react"
 import { toast } from "sonner"
-import Card from "@/components/ui/Card"
-import Button from "@/components/ui/Button"
-import Modal from "@/components/ui/Modal"
-import StatusBadge from "@/components/shared/StatusBadge"
-import FinancePageShell from "@/components/finance/FinancePageShell"
 import { fetchFinanceInvoiceById, submitFinanceInvoiceForCertification } from "@/lib/api/finance"
 import type { FinanceInvoice } from "@/types/finance"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 function formatAmount(value: number): string {
   return `Q ${value.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
+
+/* ─── FEL Confirm Modal ──────────────────────────────────────────────────── */
+
+function FelModal({
+  open,
+  invoice,
+  submitting,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean
+  invoice: FinanceInvoice | null
+  submitting: boolean
+  onClose: () => void
+  onConfirm: (description: string, dueDate: string) => void
+}) {
+  const [descriptionInput, setDescriptionInput] = useState("")
+  const [dueDateInput, setDueDateInput] = useState("")
+
+  useEffect(() => {
+    if (open && invoice) {
+      setDescriptionInput(invoice.serviceDescription || "")
+      setDueDateInput(
+        invoice.dueDate
+          ? new Date(invoice.dueDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+      )
+    }
+  }, [open, invoice])
+
+  if (!open || !invoice) return null
+
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 50,
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem",
+        background: "rgba(12,12,10,0.6)", backdropFilter: "blur(4px)",
+      }}
+      onClick={() => { if (!submitting) onClose() }}
+    >
+      <div
+        style={{
+          background: "#ffffff", borderRadius: "6px",
+          width: "100%", maxWidth: "480px", overflow: "hidden",
+          boxShadow: "0 24px 64px rgba(12,12,10,0.2)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ height: "3px", background: "#C9924B" }} />
+
+        {/* Header */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(12,12,10,0.07)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <FileCheck2 size={15} style={{ color: "#C9924B" }} />
+            <h2 style={{ fontSize: "0.95rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>
+              Confirmar envío a FEL
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={submitting}
+            style={{
+              width: "30px", height: "30px", borderRadius: "4px", display: "flex",
+              alignItems: "center", justifyContent: "center", background: "rgba(12,12,10,0.04)",
+              border: "1px solid rgba(12,12,10,0.08)", color: "#9A9489", cursor: "pointer",
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = "rgba(12,12,10,0.08)")}
+            onMouseOut={e => (e.currentTarget.style.background = "rgba(12,12,10,0.04)")}
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <p style={{ fontSize: "0.82rem", color: "#6B6260", lineHeight: 1.6 }}>
+            Factura: <strong style={{ color: "#0C0C0A" }}>{invoice.invoiceNumber}</strong><br />
+            Cliente: <strong style={{ color: "#0C0C0A" }}>{invoice.clientName}</strong>
+          </p>
+
+          <div>
+            <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "#0C0C0A", marginBottom: "0.4rem", letterSpacing: "0.01em" }}>
+              Concepto / Descripción servicio
+            </label>
+            <textarea
+              rows={3}
+              value={descriptionInput}
+              onChange={(e) => setDescriptionInput(e.target.value)}
+              placeholder="Ej. Servicios de transporte de carga..."
+              style={{
+                width: "100%", boxSizing: "border-box",
+                padding: "0.6rem 0.75rem", borderRadius: "4px",
+                border: "1px solid rgba(12,12,10,0.15)", background: "#F5F2EC",
+                fontSize: "0.82rem", color: "#0C0C0A", outline: "none", resize: "none",
+                fontFamily: "inherit",
+              }}
+              onFocus={e => (e.target.style.borderColor = "#C9924B")}
+              onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.15)")}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: "0.72rem", fontWeight: 700, color: "#0C0C0A", marginBottom: "0.4rem", letterSpacing: "0.01em" }}>
+              Fecha de vencimiento
+            </label>
+            <input
+              type="date"
+              value={dueDateInput}
+              onChange={(e) => setDueDateInput(e.target.value)}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                padding: "0.6rem 0.75rem", borderRadius: "4px",
+                border: "1px solid rgba(12,12,10,0.15)", background: "#F5F2EC",
+                fontSize: "0.82rem", color: "#0C0C0A", outline: "none",
+              }}
+              onFocus={e => (e.target.style.borderColor = "#C9924B")}
+              onBlur={e => (e.target.style.borderColor = "rgba(12,12,10,0.15)")}
+            />
+          </div>
+
+          <div style={{ display: "flex", gap: "0.75rem", paddingTop: "0.5rem" }}>
+            <button
+              onClick={() => onConfirm(descriptionInput, dueDateInput)}
+              disabled={submitting}
+              style={{
+                flex: 1, padding: "0.6rem 1rem",
+                background: submitting ? "rgba(201,146,75,0.5)" : "#C9924B",
+                border: "none", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff",
+                cursor: submitting ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                transition: "background 0.15s",
+              }}
+              onMouseOver={e => { if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = "#b5833f" }}
+              onMouseOut={e => { if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = "#C9924B" }}
+            >
+              {submitting ? (
+                <>
+                  <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  Enviando…
+                </>
+              ) : (
+                <><Send size={12} /> Confirmar envío</>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              disabled={submitting}
+              style={{
+                padding: "0.6rem 1.25rem", background: "transparent",
+                border: "1px solid rgba(12,12,10,0.12)", borderRadius: "4px",
+                fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+                textTransform: "uppercase", color: "#6B6260",
+                cursor: submitting ? "not-allowed" : "pointer",
+              }}
+              onMouseOver={e => (e.currentTarget.style.background = "rgba(12,12,10,0.04)")}
+              onMouseOut={e => (e.currentTarget.style.background = "transparent")}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Main Page ──────────────────────────────────────────────────────────── */
 
 export default function FinanceInvoiceReviewPage() {
   const params = useParams<{ invoiceId: string }>()
@@ -24,48 +193,30 @@ export default function FinanceInvoiceReviewPage() {
   const [loadingInvoice, setLoadingInvoice] = useState(true)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [descriptionInput, setDescriptionInput] = useState("")
-  const [dueDateInput, setDueDateInput] = useState("")
 
   useEffect(() => {
     const loadInvoice = async () => {
-      if (!params.invoiceId) {
-        setLoadingInvoice(false)
-        return
-      }
-
-      setLoadingInvoice(true)
+      if (!params.invoiceId) { setLoadingInvoice(false); return }
       try {
         const current = await fetchFinanceInvoiceById(params.invoiceId)
         setInvoice(current)
-        setDescriptionInput(current.serviceDescription || "")
-        setDueDateInput(
-          current.dueDate 
-            ? new Date(current.dueDate).toISOString().split('T')[0] 
-            : new Date().toISOString().split('T')[0]
-        )
       } catch (error) {
-        setInvoice(null)
         const message = error instanceof Error ? error.message : "No fue posible cargar el detalle de factura"
         toast.error(message)
       } finally {
         setLoadingInvoice(false)
       }
     }
-
     void loadInvoice()
   }, [params.invoiceId])
 
-  const handleSubmitForCertification = async () => {
-    if (!invoice) {
-      return
-    }
-
+  const handleSubmitForCertification = async (description: string, dueDate: string) => {
+    if (!invoice) return
     setSubmitting(true)
     try {
       await submitFinanceInvoiceForCertification(invoice.invoiceId, {
-        serviceDescription: descriptionInput,
-        dueDate: new Date(dueDateInput).toISOString(),
+        serviceDescription: description,
+        dueDate: new Date(dueDate).toISOString(),
         reviewConfirmed: true,
       })
       toast.success(`Factura ${invoice.invoiceNumber} enviada al flujo FEL`)
@@ -79,161 +230,241 @@ export default function FinanceInvoiceReviewPage() {
     }
   }
 
+  /* ── Loading ── */
   if (loadingInvoice) {
     return (
-      <FinancePageShell title="Cargando factura" subtitle="Obteniendo detalle desde el backend financiero.">
-        <Card className="rounded-3xl bg-white/95 border-black/5">
-          <p className="text-[#64748B]">Cargando informacion de la factura...</p>
-        </Card>
-      </FinancePageShell>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "#F5F2EC" }}>
+        <p style={{ fontSize: "0.68rem", letterSpacing: "0.24em", color: "#9A9489", textTransform: "uppercase" }}>
+          Cargando factura…
+        </p>
+      </div>
     )
   }
 
+  /* ── Not found ── */
   if (!invoice) {
     return (
-      <FinancePageShell title="Factura no encontrada" subtitle="No se encontro el borrador solicitado.">
-        <Card className="rounded-3xl bg-white/95 border-black/5">
-          <p className="text-[#64748B] mb-6">El identificador de factura no existe o no esta disponible.</p>
-          <Link href="/finances/facturacion">
-            <Button variant="outline">
-              <ArrowLeft size={16} /> Volver a bandeja
-            </Button>
-          </Link>
-        </Card>
-      </FinancePageShell>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#F5F2EC" }}>
+        <FileText size={32} style={{ color: "#9A9489" }} />
+        <p style={{ fontSize: "0.82rem", color: "#6B6260" }}>No se encontró la factura solicitada.</p>
+        <button
+          onClick={() => router.push("/finances/facturacion")}
+          style={{
+            fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", padding: "0.5rem 1.5rem",
+            background: "#0C0C0A", color: "#F5F2EC", borderRadius: "4px", cursor: "pointer",
+          }}
+        >
+          Volver a bandeja
+        </button>
+      </div>
     )
   }
 
   return (
-    <FinancePageShell
-      title="Revision de factura borrador"
-      subtitle={`Factura ${invoice.invoiceNumber} asociada a ${invoice.orderNumber}`}
-    >
-      <Link href="/finances/facturacion" className="inline-flex items-center gap-2 text-[#0A3B7C] font-bold mb-6 hover:text-[#083066]">
-        <ArrowLeft size={16} /> Volver a bandeja
-      </Link>
-
-      <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-        Este borrador se genero automaticamente cuando la orden fue marcada como ENTREGADA. Finanzas valida
-        datos comerciales y tributarios antes de enviarlo al certificador FEL.
-      </div>
-
-      <Card className="rounded-3xl bg-white/95 border-black/5">
-        <div className="border-b border-black/5 pb-6 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <p className="text-sm uppercase tracking-[0.15em] text-[#64748B] font-semibold">Documento</p>
-            <h2 className="text-3xl font-extrabold text-[#0A3B7C] mt-2">{invoice.invoiceNumber}</h2>
-            <p className="text-sm text-[#64748B] mt-1">Emitida: {new Date(invoice.issueDate).toLocaleString("es-GT")}</p>
-          </div>
-          <StatusBadge variant="warning" className="w-fit">Borrador</StatusBadge>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-[#0A3B7C]">Datos del receptor</h3>
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">Cliente</p>
-              <p className="text-[#1A202C] font-semibold mt-1">{invoice.clientName}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">NIT</p>
-              <p className="text-[#1A202C] font-semibold mt-1">{invoice.clientNit}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">Direccion fiscal</p>
-              <p className="text-[#1A202C] font-semibold mt-1">{invoice.clientAddress || "-"}</p>
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">Fecha entrega orden</p>
-              <p className="text-[#1A202C] font-semibold mt-1">
-                {invoice.deliveredAt ? new Date(invoice.deliveredAt).toLocaleString("es-GT") : "-"}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-[#0A3B7C]">Concepto y totales</h3>
-            <div>
-              <p className="text-xs uppercase tracking-[0.14em] text-[#64748B] font-semibold">Descripcion servicio</p>
-              <p className="text-[#1A202C] font-semibold mt-1">{invoice.serviceDescription || "-"}</p>
-            </div>
-            <div className="rounded-2xl bg-[#0A3B7C] text-white p-5 mt-4 shadow-inner">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white/80">Subtotal</span>
-                <strong>{formatAmount(invoice.subtotalAmount)}</strong>
-              </div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white/80">IVA (12%)</span>
-                <strong>{formatAmount(invoice.taxAmount)}</strong>
-              </div>
-              <div className="h-px bg-white/20 my-3" />
-              <div className="flex items-center justify-between text-lg">
-                <span className="font-bold">Total</span>
-                <strong>{formatAmount(invoice.totalAmount)}</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 pt-6 border-t border-black/5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <Button className="md:w-auto" onClick={() => setShowSubmitModal(true)}>
-            <Send size={16} /> Enviar a certificador FEL
-          </Button>
-        </div>
-      </Card>
-
-      <Modal
+    <>
+      <FelModal
         open={showSubmitModal}
-        onClose={() => {
-          if (!submitting) {
-            setShowSubmitModal(false)
-          }
-        }}
-        title="Confirmar envio a FEL"
-      >
-        <div className="py-4">
-          <div className="flex items-center gap-3 mb-6 text-[#0A3B7C]">
-            <FileCheck2 size={24} />
-            <p className="font-semibold">Se enviara el borrador para validacion fiscal del certificador.</p>
-          </div>
+        invoice={invoice}
+        submitting={submitting}
+        onClose={() => { if (!submitting) setShowSubmitModal(false) }}
+        onConfirm={(desc, due) => void handleSubmitForCertification(desc, due)}
+      />
 
-          <p className="text-[#1A202C] mb-6">
-            Factura: <strong>{invoice.invoiceNumber}</strong><br />
-            Cliente: <strong>{invoice.clientName}</strong>
-          </p>
+      <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
 
-          <div className="space-y-4 mb-8">
-            <div>
-              <label className="block text-sm font-semibold text-[#1A202C] mb-1">Concepto / Descripcion servicio</label>
-              <textarea
-                className="w-full border border-black/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3B7C]"
-                rows={3}
-                value={descriptionInput}
-                onChange={(e: any) => setDescriptionInput(e.target.value)}
-                placeholder="Ej. Servicios de transporte de carga..."
-              />
+        {/* Grid overlay */}
+        <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+          backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+          backgroundSize: "72px 72px",
+        }} />
+        <div aria-hidden style={{
+          position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+          fontSize: "clamp(18rem,30vw,28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+          color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+        }}>CK</div>
+
+        <div className="relative z-10 max-w-4xl mx-auto px-8 py-14">
+
+          {/* ── Header ── */}
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
+
+            <button
+              onClick={() => router.push("/finances/facturacion")}
+              style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                fontSize: "0.62rem", letterSpacing: "0.1em", color: "#9A9489",
+                textTransform: "uppercase", fontWeight: 600, marginBottom: "1.5rem",
+                cursor: "pointer", background: "none", border: "none", padding: 0,
+              }}
+              onMouseOver={e => (e.currentTarget.style.color = "#0C0C0A")}
+              onMouseOut={e => (e.currentTarget.style.color = "#9A9489")}
+            >
+              <ArrowLeft size={14} /> Bandeja de facturas
+            </button>
+
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+              Finanzas · Facturación
+            </p>
+            <div style={{ overflow: "hidden" }}>
+              <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+                transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+                style={{ fontSize: "clamp(1.9rem,4vw,2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+                Revisión de Factura
+              </motion.h1>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-[#1A202C] mb-1">Fecha de vencimiento</label>
-              <input
-                type="date"
-                className="w-full border border-black/10 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3B7C]"
-                value={dueDateInput}
-                onChange={(e: any) => setDueDateInput(e.target.value)}
-              />
-            </div>
-          </div>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+              style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem" }}>
+              {invoice.invoiceNumber} · Orden {invoice.orderNumber}
+            </motion.p>
+            <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+              transition={{ delay: 0.4, duration: 0.9, ease: EASE }}
+              style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.25rem", transformOrigin: "left" }} />
+          </motion.div>
 
-          <div className="flex justify-end gap-3">
-            <Button variant="ghost" onClick={() => setShowSubmitModal(false)} disabled={submitting}>
-              Cancelar
-            </Button>
-            <Button onClick={() => void handleSubmitForCertification()} loading={submitting}>
-              Confirmar envio
-            </Button>
-          </div>
+          {/* ── Info banner ── */}
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: EASE }}
+            style={{
+              background: "rgba(201,146,75,0.07)", border: "1px solid rgba(201,146,75,0.2)",
+              borderRadius: "6px", padding: "0.9rem 1.25rem", marginBottom: "1.25rem",
+              fontSize: "0.78rem", color: "#6B6260", lineHeight: 1.7,
+            }}>
+            Este borrador se generó automáticamente cuando la orden fue marcada como{" "}
+            <strong style={{ color: "#0C0C0A" }}>ENTREGADA</strong>. Finanzas valida datos
+            comerciales y tributarios antes de enviarlo al certificador FEL.
+          </motion.div>
+
+          {/* ── Invoice card ── */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.7, ease: EASE }}
+            style={{
+              background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
+              borderRadius: "6px", overflow: "hidden",
+            }}>
+
+            <div style={{ height: "3px", background: "#C9924B" }} />
+
+            {/* Document header */}
+            <div style={{
+              padding: "1.5rem 1.75rem",
+              borderBottom: "1px solid rgba(12,12,10,0.07)",
+              display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+              gap: "1rem", flexWrap: "wrap",
+            }}>
+              <div>
+                <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.35rem" }}>
+                  Documento
+                </p>
+                <p style={{ fontSize: "clamp(1.3rem,2.5vw,1.9rem)", fontWeight: 900, letterSpacing: "-0.025em", color: "#0C0C0A", lineHeight: 1 }}>
+                  {invoice.invoiceNumber}
+                </p>
+                <p style={{ fontSize: "0.72rem", color: "#9A9489", marginTop: "0.4rem" }}>
+                  Emitida: {new Date(invoice.issueDate).toLocaleString("es-GT")}
+                </p>
+              </div>
+              <div style={{
+                display: "inline-flex", alignItems: "center",
+                padding: "0.35rem 0.85rem", borderRadius: "4px",
+                background: "rgba(201,146,75,0.1)", border: "1px solid rgba(201,146,75,0.25)",
+                fontSize: "0.58rem", fontWeight: 700, letterSpacing: "0.18em",
+                textTransform: "uppercase", color: "#C9924B",
+              }}>
+                Borrador
+              </div>
+            </div>
+
+            {/* Two-column content */}
+            <div style={{ padding: "1.75rem", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "2rem" }}>
+
+              {/* Receptor */}
+              <div>
+                <p style={{ fontSize: "0.55rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "1rem" }}>
+                  Datos del receptor
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  {[
+                    { label: "Cliente", value: invoice.clientName },
+                    { label: "NIT", value: invoice.clientNit },
+                    { label: "Dirección fiscal", value: invoice.clientAddress || "—" },
+                    {
+                      label: "Fecha entrega orden",
+                      value: invoice.deliveredAt ? new Date(invoice.deliveredAt).toLocaleString("es-GT") : "—",
+                    },
+                  ].map(item => (
+                    <div key={item.label}>
+                      <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "3px" }}>
+                        {item.label}
+                      </p>
+                      <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0C0C0A" }}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Totals */}
+              <div>
+                <p style={{ fontSize: "0.55rem", letterSpacing: "0.3em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "1rem" }}>
+                  Concepto y totales
+                </p>
+
+                <div style={{ marginBottom: "1.25rem" }}>
+                  <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "3px" }}>
+                    Descripción servicio
+                  </p>
+                  <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#0C0C0A" }}>
+                    {invoice.serviceDescription || "—"}
+                  </p>
+                </div>
+
+                <div style={{ background: "#0C0C0A", borderRadius: "6px", padding: "1.25rem 1.5rem" }}>
+                  {[
+                    { label: "Subtotal", value: formatAmount(invoice.subtotalAmount) },
+                    { label: "IVA (12%)", value: formatAmount(invoice.taxAmount) },
+                  ].map(row => (
+                    <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+                      <span style={{ fontSize: "0.78rem", color: "rgba(245,242,236,0.55)" }}>{row.label}</span>
+                      <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#F5F2EC" }}>{row.value}</span>
+                    </div>
+                  ))}
+                  <div style={{ height: "1px", background: "rgba(245,242,236,0.1)", margin: "0.75rem 0" }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#F5F2EC" }}>Total</span>
+                    <span style={{ fontSize: "1rem", fontWeight: 900, color: "#C9924B", letterSpacing: "-0.01em" }}>
+                      {formatAmount(invoice.totalAmount)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA footer */}
+            <div style={{
+              padding: "1.25rem 1.75rem",
+              borderTop: "1px solid rgba(12,12,10,0.07)",
+              display: "flex", justifyContent: "flex-end",
+            }}>
+              <button
+                onClick={() => setShowSubmitModal(true)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "0.6rem 1.25rem", background: "#C9924B", border: "none",
+                  borderRadius: "4px", fontSize: "0.62rem", fontWeight: 700,
+                  letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff",
+                  cursor: "pointer", transition: "background 0.15s",
+                }}
+                onMouseOver={e => (e.currentTarget.style.background = "#b5833f")}
+                onMouseOut={e => (e.currentTarget.style.background = "#C9924B")}
+              >
+                <Send size={12} /> Enviar a certificador FEL
+              </button>
+            </div>
+          </motion.div>
+
         </div>
-      </Modal>
-    </FinancePageShell>
+      </div>
+    </>
   )
 }
