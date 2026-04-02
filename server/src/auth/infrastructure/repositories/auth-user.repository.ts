@@ -12,7 +12,7 @@ export class AuthUserRepository implements IAuthUserRepository {
   ) {}
 
   findByEmail(email: string): Promise<User | null> {
-    return this.repo.findOne({ where: { email } });
+    return this.repo.findOneBy({ email });
   }
 
   findById(id: number): Promise<User | null> {
