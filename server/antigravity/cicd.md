@@ -1,9 +1,10 @@
 # Despliegue
 
 ## Cloud Services
-- Docker HUB
-- Supabase: como servicio cloud serverless para manejo de la base de datos
-- 
+- Supabase: como servicio cloud serverless para manejo de la base de datos (PostgreSQL) y objetos (storage)
+- AWS: utilizaremos servicios como ECS Fargate (Spot), ECR, Route 53(DNS), Certificate Manager(SSL)
+- GitHub Actions: para el CI/CD
+- Resend: para el envio de emails a demanda
 
 
 ## Uso de CI/CD
