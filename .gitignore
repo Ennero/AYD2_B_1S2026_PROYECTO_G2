@@ -138,7 +138,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-.github
 CLAUDE.md
 
 # Playwright E2E
