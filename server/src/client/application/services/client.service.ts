@@ -185,7 +185,7 @@ export class ClientService {
         .where('o.contract_id IN (:...ids)', { ids: contractIds })
         .andWhere('o.order_number ILIKE :s', { s: `%${search}%` })
         .andWhere(status ? 'o.status = :status' : '1=1', status ? { status } : {})
-        .orderBy('o.requested_at', 'DESC')
+        .orderBy('o.requestedAt', 'DESC')
         .skip((page - 1) * limit)
         .take(limit)
         .getManyAndCount();
