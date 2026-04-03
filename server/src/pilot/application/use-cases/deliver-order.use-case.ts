@@ -19,7 +19,7 @@ import type { IStorageService } from '../../../storage/domain/storage.service.in
 export interface DeliverOrderInput {
     receiverName: string;
     receiverSignatureBase64: string;
-    deliveryEvidenceBase64?: string[];
+    deliveryEvidenceBase64: string[];
     deliveredAt?: string;
     notes?: string;
 }
@@ -79,6 +79,16 @@ export class DeliverOrderUseCase {
             const sigBucket = this.config.get('SUPABASE_BUCKET_SIGNATURES', 'signatures');
             const eviBucket = this.config.get('SUPABASE_BUCKET_EVIDENCE', 'evidence');
 
+            const evidenceImages = (input.deliveryEvidenceBase64 ?? []).filter(
+                (image) => typeof image === 'string' && image.trim().length > 0,
+            );
+
+            if (evidenceImages.length === 0) {
+                throw new BadRequestException(
+                    'Debes adjuntar al menos una evidencia fotografica para confirmar la entrega.',
+                );
+            }
+
             const signaturePath = await this.uploadBase64File(
                 input.receiverSignatureBase64,
                 sigBucket,
@@ -86,20 +96,26 @@ export class DeliverOrderUseCase {
                 'image/png',
             );
 
-            let evidencePath: string | null = null;
-            if (input.deliveryEvidenceBase64?.length) {
-                const paths: string[] = [];
-                for (let i = 0; i < input.deliveryEvidenceBase64.length; i++) {
-                    const p = await this.uploadBase64File(
-                        input.deliveryEvidenceBase64[i],
-                        eviBucket,
-                        `${order.orderNumber}-evidence-${i + 1}.jpg`,
-                        'image/jpeg',
-                    );
+            const paths: string[] = [];
+            for (let i = 0; i < Math.min(evidenceImages.length, 3); i++) {
+                const p = await this.uploadBase64File(
+                    evidenceImages[i],
+                    eviBucket,
+                    `${order.orderNumber}-evidence-${i + 1}.jpg`,
+                    'image/jpeg',
+                );
+                if (p) {
                     paths.push(p);
                 }
-                evidencePath = paths.join(',');
             }
+
+            if (paths.length === 0) {
+                throw new BadRequestException(
+                    'No se pudo almacenar la evidencia fotografica. Intenta nuevamente.',
+                );
+            }
+
+            const evidencePath = paths.join(',');
 
             // 5. Actualizar la orden a ENTREGADA
             // El trigger TRG_AUTO_CREATE_DRAFT_INVOICE en la DB crea

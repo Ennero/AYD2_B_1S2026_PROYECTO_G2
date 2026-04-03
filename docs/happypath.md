@@ -121,7 +121,7 @@ En esta pantalla, se pueden observar todos los usuario dentro de la plataforma y
 Y también se mostrarán las opciones de editar y eliminar usuario, así como activarlo o desactivarlo.
 
 ![Listado de Usuarios](imgs/happypath/11_gestion_usuarios_lista.jpeg)
-![Edición de Usuario](imgs/happypath/12_editar_usuario_modal.jpeg)
+![Gestión de Catálogos - Edición](imgs/happypath/17_catalogos_edicion.jpeg)
 
 
 ### 2.5 Gestión de catálogo
@@ -139,7 +139,7 @@ En esta pantalla se administran rutas y tipos de carga permitidos.
 ![Gestión de Catálogos - Tipo de Carga Agregada](imgs/happypath/14_catalogos_tipo_carga_agregada.jpeg)
 ![Gestión de Catálogos - Ruta Agregada](imgs/happypath/15_catalogos_ruta_agregada.jpeg)
 ![Gestión de Catálogos - Tipo de Carga Eliminada](imgs/happypath/16_catalogos_tipo_carga_eliminada.jpeg)
-![Gestión de Catálogos - Edición](imgs/happypath/17_catalogos_edicion.jpeg)
+![Más del catálogo](imgs/happypath/12_editar_usuario_modal.jpeg)
 
 
 
@@ -205,7 +205,7 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 **Actor**: Cliente
 **Credenciales**:
 - Email: `deennerparaprobar@gmail.com`
-- Password: `probando2026`
+- Password: `deennerparaprobar@gmail.com`
 
 > **Nota**: Si ya iniciaste sesión como cliente en el paso 3.3, puedes continuar directamente.
 
@@ -465,8 +465,8 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 3. Verifica que la factura de la orden `ORD-2026-0081` aparece en sección **BORRADORES** como `FAC-000065`.
 4. Abre la factura para revisión comercial y tributaria.
 
-![Finanzas - Bandeja con FAC-000065 en BORRADOR](imgs/happypath/Captura de pantalla_25-3-2026_225313_localhost.jpeg)
-![Finanzas - Revisión de factura FAC-000065](imgs/happypath/Captura de pantalla_25-3-2026_225326_localhost.jpeg)
+![Finanzas - Bandeja con FAC-000065 en BORRADOR](imgs/happypath/63_finanzas_bandeja_borrador_fac_000065.jpeg)
+
 
 ### 9.2 Enviar borrador al Certificador FEL
 
@@ -474,7 +474,7 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 2. Presiona **"Enviar a Certificador FEL"**.
 3. La factura deja la etapa de borrador en Finanzas y pasa a la bandeja FEL.
 
-![Finanzas - Detalle listo para enviar a FEL](imgs/happypath/Captura de pantalla_25-3-2026_225326_localhost.jpeg)
+![Finanzas - Detalle listo para enviar a FEL](imgs/happypath/64_finanzas_revision_factura_fac_000065.jpeg)
 
 ---
 
@@ -490,7 +490,7 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 2. Inicia sesión como Certificador FEL y abre **"Bandeja de Aprobación"**.
 3. Verifica que `FAC-000065` de `DISTRIBUIDORA EL PROGRESO, S.A.` está pendiente.
 
-![FEL - Bandeja con FAC-000065 pendiente](imgs/happypath/Captura de pantalla_25-3-2026_225435_localhost.jpeg)
+![FEL - Bandeja con FAC-000065 pendiente](imgs/happypath/65_fel_bandeja_aprobacion_fac_000065_pendiente.jpeg)
 
 ### 10.2 Flujo de validación de NIT y certificación
 
@@ -500,9 +500,9 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 4. Presiona **"Confirmar y Certificar"**.
 5. El sistema muestra confirmación de éxito y la factura sale de pendientes.
 
-![FEL - Modal de certificación antes de validar NIT](imgs/happypath/Captura de pantalla_25-3-2026_225443_localhost.jpeg)
-![FEL - NIT validado correctamente](imgs/happypath/Captura de pantalla_25-3-2026_225449_localhost.jpeg)
-![FEL - Factura certificada con éxito](imgs/happypath/Captura de pantalla_25-3-2026_225456_localhost.jpeg)
+![FEL - Modal de certificación antes de validar NIT](imgs/happypath/66_fel_modal_certificar_pre_validacion_nit.jpeg)
+![FEL - NIT validado correctamente](imgs/happypath/67_fel_modal_certificar_nit_validado.jpeg)
+![FEL - Factura certificada con éxito](imgs/happypath/68_fel_factura_certificada_exito.jpeg)
 
 ### 10.3 Flujo alterno de rechazo documentado
 
@@ -512,8 +512,8 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 2. Ingresar motivo (ejemplo: `NIT no valido`).
 3. Confirmar rechazo y validar que desaparece de pendientes.
 
-![FEL - Modal de rechazo](imgs/happypath/Captura de pantalla_25-3-2026_225514_localhost.jpeg)
-![FEL - Documento rechazado correctamente](imgs/happypath/Captura de pantalla_25-3-2026_225521_localhost.jpeg)
+![FEL - Modal de rechazo](imgs/happypath/69_fel_modal_rechazo_documento.jpeg)
+![FEL - Documento rechazado correctamente](imgs/happypath/70_fel_rechazo_confirmado.jpeg)
 
 ---
 
@@ -526,7 +526,7 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 2. Abre **"Bandeja de Facturación"**.
 3. Verifica que `FAC-000065` aparece en sección **CERTIFICADAS POR FEL** con botón **"Enviar"** habilitado.
 
-![Finanzas - FAC-000065 certificada y lista para enviar](imgs/happypath/Captura de pantalla_25-3-2026_225556_localhost.jpeg)
+![Finanzas - FAC-000065 certificada y lista para enviar](imgs/happypath/71_finanzas_bandeja_certificada_lista_envio.jpeg)
 
 ### 11.2 Conciliar pago para habilitar envío
 
@@ -535,7 +535,7 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 3. Presiona **"Aprobar"** para conciliar el pago registrado.
 4. Regresa a **"Bandeja de Facturación"** y verifica que la factura queda habilitada para envío al cliente.
 
-![Finanzas - Conciliación de pagos aprobada para habilitar envío](imgs/happypath/Captura de pantalla_25-3-2026_234236_localhost.jpeg)
+![Finanzas - Conciliación de pagos aprobada para habilitar envío](imgs/happypath/74_finanzas_conciliar_pagos_fac_000065.jpeg)
 
 ### 11.3 Confirmar envío al cliente
 
@@ -544,5 +544,15 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 3. El sistema muestra toast de éxito: **"Factura FAC-000065 enviada al cliente"**.
 4. La factura queda en estado **`ENVIADA`**.
 
-![Finanzas - Modal de confirmación de envío](imgs/happypath/Captura de pantalla_25-3-2026_225611_localhost.jpeg)
-![Finanzas - Confirmación de factura enviada](imgs/happypath/Captura de pantalla_25-3-2026_225617_localhost.jpeg)
+![Finanzas - Modal de confirmación de envío](imgs/happypath/72_finanzas_modal_confirmar_envio_cliente.jpeg)
+![Finanzas - Confirmación de factura enviada](imgs/happypath/73_finanzas_envio_cliente_confirmado.jpeg)
+
+### 11.4 Evidencia de recepción en correo y portal del cliente
+
+Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe por correo y también puede verla en su módulo de facturas:
+
+1. El correo del cliente recibe la notificación **"Factura FAC-000065 emitida"** con datos de documento y monto.
+2. En el portal del cliente, módulo **"Mis Facturas"**, ya aparece `FAC-000065` con su monto y estado.
+
+![Cliente - Correo de factura emitida FAC-000065](imgs/happypath/75_email_factura_emitida_fac_000065.png)
+![Cliente - Mis Facturas con FAC-000065 visible](imgs/happypath/76_cliente_mis_facturas_fac_000065.jpeg)
