@@ -23,6 +23,8 @@ interface Invoice {
   totalAmount: number
   subtotalAmount: number
   taxAmount: number
+  taxRate?: number
+  currencyCode?: "GTQ" | "USD" | "HNL"
   status: InvoiceStatus
   dueDate: string
   issueDate: string
@@ -44,8 +46,13 @@ interface InvoicePage {
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
 
-function formatQ(n: number) {
-  return `Q ${n.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function formatCurrency(n: number, currencyCode: "GTQ" | "USD" | "HNL" = "GTQ") {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n)
 }
 
 function formatDate(d: string | null) {
@@ -174,8 +181,12 @@ function InvoiceDetailModal({ invoice, onClose }: { invoice: Invoice; onClose: (
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {[
-                { label: "Subtotal", value: formatQ(invoice.subtotalAmount), bold: false },
-                { label: "IVA (12%)", value: formatQ(invoice.taxAmount), bold: false },
+                { label: "Subtotal", value: formatCurrency(invoice.subtotalAmount, invoice.currencyCode ?? "GTQ"), bold: false },
+                {
+                  label: `Impuesto (${((invoice.taxRate ?? 0.12) * 100).toFixed(0)}%)`,
+                  value: formatCurrency(invoice.taxAmount, invoice.currencyCode ?? "GTQ"),
+                  bold: false,
+                },
               ].map((row) => (
                 <div key={row.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem" }}>
                   <span style={{ color: "#9A9489" }}>{row.label}</span>
@@ -185,7 +196,9 @@ function InvoiceDetailModal({ invoice, onClose }: { invoice: Invoice; onClose: (
               <div style={{ height: "1px", background: "rgba(12,12,10,0.1)", margin: "4px 0" }} />
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1rem" }}>
                 <span style={{ fontWeight: 700, color: "#0C0C0A" }}>Total</span>
-                <span style={{ fontWeight: 900, color: "#C9924B", letterSpacing: "-0.02em" }}>{formatQ(invoice.totalAmount)}</span>
+                <span style={{ fontWeight: 900, color: "#C9924B", letterSpacing: "-0.02em" }}>
+                  {formatCurrency(invoice.totalAmount, invoice.currencyCode ?? "GTQ")}
+                </span>
               </div>
             </div>
           </div>
@@ -440,7 +453,7 @@ export default function FacturasPage() {
                       {inv.felUuid ?? "—"}
                     </p>
                     <p style={{ fontSize: "0.85rem", fontWeight: 900, color: "#0C0C0A", textAlign: "right", letterSpacing: "-0.02em" }}>
-                      {formatQ(inv.totalAmount)}
+                      {formatCurrency(inv.totalAmount, inv.currencyCode ?? "GTQ")}
                     </p>
                     <div style={{ display: "flex", justifyContent: "center" }}>
                       <span style={{

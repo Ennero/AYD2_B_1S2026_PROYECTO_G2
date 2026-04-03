@@ -25,6 +25,9 @@ interface ContractSummary {
   endDate: string
   acceptedAt: string | null
   creditLimit: number
+  currencyCode: "GTQ" | "USD" | "HNL"
+  exchangeRateFromUsd?: number
+  taxRate?: number
   paymentTermDays: number
   discountPercentage: number
   notes: string | null
@@ -78,8 +81,12 @@ function fmtDate(d: string) {
   return new Date(d + "T00:00:00").toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" })
 }
 
-function fmtCurrency(n: number) {
-  return `Q ${n.toLocaleString("es-GT", { minimumFractionDigits: 2 })}`
+function fmtCurrency(n: number, currencyCode: "GTQ" | "USD" | "HNL") {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+  }).format(n)
 }
 
 /* ─── Contract Drawer ───────────────────────────────────────────────────── */
@@ -221,7 +228,7 @@ function ContractDrawer({
                     { label: "Número", value: detail.contractNumber },
                     { label: "Inicio", value: fmtDate(detail.startDate) },
                     { label: "Vencimiento", value: fmtDate(detail.endDate) },
-                    { label: "Límite de Crédito", value: fmtCurrency(detail.creditLimit) },
+                    { label: "Límite de Crédito", value: fmtCurrency(detail.creditLimit, detail.currencyCode) },
                     { label: "Plazo de Pago", value: `${detail.paymentTermDays} días` },
                     ...(detail.discountPercentage > 0 ? [{ label: "Descuento Base", value: `${detail.discountPercentage}%` }] : []),
                   ].map((f) => (
@@ -326,7 +333,7 @@ function ContractDrawer({
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
                           <div style={{ background: "#F5F2EC", borderRadius: "4px", padding: "0.5rem", textAlign: "center" }}>
                             <p style={{ fontSize: "0.48rem", color: "#9A9489", marginBottom: "2px" }}>Tarifa base</p>
-                            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#6B6260" }}>Q{r.baseRatePerKm}/km</p>
+                            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#6B6260" }}>{detail.currencyCode} {r.baseRatePerKm}/km</p>
                           </div>
                           {r.discountPercentage > 0 && (
                             <div style={{ background: "rgba(58,142,42,0.06)", borderRadius: "4px", padding: "0.5rem", textAlign: "center" }}>
@@ -336,7 +343,7 @@ function ContractDrawer({
                           )}
                           <div style={{ background: "rgba(201,146,75,0.08)", border: "1px solid rgba(201,146,75,0.2)", borderRadius: "4px", padding: "0.5rem", textAlign: "center" }}>
                             <p style={{ fontSize: "0.48rem", color: "#C9924B", marginBottom: "2px" }}>Tarifa final</p>
-                            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#C9924B" }}>Q{r.finalRatePerKm}/km</p>
+                            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#C9924B" }}>{detail.currencyCode} {r.finalRatePerKm}/km</p>
                           </div>
                         </div>
                       </div>
@@ -460,7 +467,7 @@ function ContractCard({ contract, onOpen }: { contract: ContractSummary; onOpen:
           {[
             { icon: <Calendar size={11} />, text: `Inicio: ${fmtDate(contract.startDate)}`, warn: false },
             { icon: <Calendar size={11} />, text: `Vence: ${fmtDate(contract.endDate)}`, warn: isExpiringSoon },
-            { icon: <CreditCard size={11} />, text: `Crédito: ${fmtCurrency(contract.creditLimit)}`, warn: false },
+            { icon: <CreditCard size={11} />, text: `Crédito: ${fmtCurrency(contract.creditLimit, contract.currencyCode)}`, warn: false },
             { icon: <Clock size={11} />, text: `Plazo: ${contract.paymentTermDays}d`, warn: false },
             ...(contract.discountPercentage > 0 ? [{ icon: <Tag size={11} />, text: `Descuento: ${contract.discountPercentage}%`, warn: false, green: true }] : []),
           ].map((item, idx) => (

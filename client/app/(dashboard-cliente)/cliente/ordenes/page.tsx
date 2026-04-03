@@ -32,6 +32,7 @@ interface OrderSummary {
   origin: string | null
   destination: string | null
   declaredWeightTon: number
+  currencyCode: "GTQ" | "USD" | "HNL"
   totalAmount: number
   requestedAt: string
   scheduledPickupAt: string | null
@@ -100,8 +101,12 @@ function fmtDate(d: string | null | undefined, withTime = false) {
   })
 }
 
-function fmtCurrency(n: number) {
-  return `Q ${n.toLocaleString("es-GT", { minimumFractionDigits: 2 })}`
+function fmtCurrency(n: number, currencyCode: "GTQ" | "USD" | "HNL") {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+  }).format(n)
 }
 
 /* ─── Tracking Drawer ───────────────────────────────────────────────────── */
@@ -224,7 +229,7 @@ function TrackingDrawer({ orderId, open, onClose }: { orderId: string | null; op
                   ...(data.scheduledPickupAt ? [{ icon: <Calendar size={13} />, label: "Recolección prog.", value: fmtDate(data.scheduledPickupAt, true) }] : []),
                   ...(data.promisedDeliveryAt ? [{ icon: <Calendar size={13} />, label: "Entrega prometida", value: fmtDate(data.promisedDeliveryAt, true) }] : []),
                   ...(data.deliveredAt ? [{ icon: <CheckCircle2 size={13} />, label: "Entregado", value: fmtDate(data.deliveredAt, true) }] : []),
-                  ...(data.totalAmount > 0 ? [{ icon: <DollarSign size={13} />, label: "Total", value: fmtCurrency(data.totalAmount) }] : []),
+                  ...(data.totalAmount > 0 ? [{ icon: <DollarSign size={13} />, label: "Total", value: fmtCurrency(data.totalAmount, data.currencyCode) }] : []),
                 ].map((row, idx) => (
                   <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "0.78rem" }}>
                     <span style={{ color: "#9A9489", flexShrink: 0, marginTop: "1px" }}>{row.icon}</span>

@@ -254,6 +254,8 @@ export class OperationsController {
       primaryContactEmail: dto.primaryContactEmail,
       portalPassword: dto.portalPassword,
       primaryContactPhone: dto.primaryContactPhone,
+      countryCode: dto.countryCode,
+      currencyCode: dto.currencyCode,
       paymentRisk: dto.paymentRisk,
       customsRisk: dto.customsRisk,
       cargoRisk: dto.cargoRisk,

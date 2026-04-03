@@ -1,4 +1,6 @@
 import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { CountryCode } from '../../../../domain/enums/country-code.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { RiskLevel } from '../../../../domain/enums/risk-level.enum';
 import { User } from './user.entity';
 import { ClientContact } from './client-contact.entity';
@@ -34,6 +36,31 @@ export class Client {
     length: 30,
     nullable: true })
   primaryContactPhone: string | null;
+
+  @Column({
+    name: 'country_code',
+    type: 'enum',
+    enum: CountryCode,
+    default: CountryCode.GT,
+  })
+  countryCode: CountryCode;
+
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
+
+  @Column({
+    name: 'tax_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.12,
+  })
+  taxRate: number;
 
   @Column({ name: 'payment_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
   paymentRisk: RiskLevel;

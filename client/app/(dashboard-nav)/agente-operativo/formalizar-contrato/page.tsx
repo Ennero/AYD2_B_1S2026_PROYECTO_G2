@@ -20,6 +20,14 @@ export interface Client {
   clientId: number
   legalName: string
   nit: string
+  countryCode: "GT" | "SV" | "HN"
+  currencyCode: "GTQ" | "USD" | "HNL"
+}
+
+const CURRENCY_SYMBOL: Record<Client["currencyCode"], string> = {
+  GTQ: "Q",
+  USD: "$",
+  HNL: "L",
 }
 
 type RouteItem = {
@@ -65,6 +73,8 @@ export default function FormalizarContratoPage() {
   const [successOpen, setSuccessOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [catalogLoading, setCatalogLoading] = useState(true)
+  const selectedCurrency = selectedClient?.currencyCode ?? "GTQ"
+  const selectedCurrencySymbol = CURRENCY_SYMBOL[selectedCurrency]
 
   // Load catalogs from DB
   useEffect(() => {
@@ -330,9 +340,11 @@ export default function FormalizarContratoPage() {
 
               <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
                 <div>
-                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>Límite de Crédito (GTQ)</span>
+                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>
+                    Límite de Crédito ({selectedCurrency})
+                  </span>
                   <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.82rem", fontWeight: 700, color: "#9A9489", pointerEvents: "none" }}>Q</span>
+                    <span style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.82rem", fontWeight: 700, color: "#9A9489", pointerEvents: "none" }}>{selectedCurrencySymbol}</span>
                     <Input label="" placeholder="10,000.00" inputMode="numeric"
                       value={limiteCredito} onChange={e => setLimiteCredito(e.target.value)}
                       className="pl-8" />
@@ -524,7 +536,7 @@ export default function FormalizarContratoPage() {
               <div style={{ padding: "1.5rem" }}>
                 {[
                   { label: "Cliente", value: selectedClient?.legalName ?? "—" },
-                  { label: "Límite", value: limiteCredito ? `Q ${limiteCredito}` : "—" },
+                  { label: "Límite", value: limiteCredito ? `${selectedCurrency} ${limiteCredito}` : "—" },
                   { label: "Plazo", value: `${plazoPago} días` },
                   { label: "Rutas", value: selectedRouteIds.length ? `${selectedRouteIds.length} ruta${selectedRouteIds.length > 1 ? "s" : ""}` : "—" },
                   { label: "Descuento", value: descuentoPorcentaje ? `${descuentoPorcentaje}%` : "—" },

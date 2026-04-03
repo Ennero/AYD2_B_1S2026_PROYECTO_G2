@@ -2,73 +2,93 @@
 
 This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 
-## Current Priority
-1. Complete remaining real screenshots in docs/happypath.md (mainly Finance/FEL/Payments/Gerencia sections).
-2. Validate runtime behavior end-to-end after recent invoice flow and media-tracking changes.
-3. Keep consistency of invoice states across docs and APIs: BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA.
-4. Preserve 40-ton rules and existing logistics assignment constraints.
+## Session Snapshot
+- Phase 3 multi-currency implementation is completed across SQL, backend, and frontend.
+- Build validation already passed in both server and client.
+- Runtime validation in Docker and API smoke checks already passed.
+- Main invoice lifecycle convention remains: BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA.
 
-## Verified State
-- Full Docker rebuild/start succeeded:
-  - docker-compose down -v --rmi all && docker-compose up -d --build
-- Backend now starts clean after Finance DI fix (FinanceModule imports NotificationsModule).
-- Implemented invoice behavior:
-  - Draft invoice should remain BORRADOR without automatic service_description fill.
-  - Client invoice email is sent from Finance send step (status ENVIADA).
-  - FEL certifier now notifies AGENTE_FINANCIERO on certify/reject.
-- Implemented route log optional image:
-  - image_path added to order_route_logs.
-  - Pilot can upload optional image per log.
-  - Pilot and Client can view log images with "Ver Imagen" modal.
-  - Delivery signature/evidence can be visualized in tracking/monitoring views.
-- Seed image placeholders updated to picsum URLs in media-related fields touched.
+## What Was Implemented In This Chat
 
-## Key Files Recently Touched
-- Finance flow:
-  - server/src/finance/application/services/finance.service.ts
-  - server/src/finance/finance.module.ts
-- FEL flow:
-  - server/src/certifier/application/services/certifier.service.ts
-- Email notifications:
-  - server/src/notifications/email/application/email.service.ts
-- DB/bootstrap:
-  - db/logitrans_postgresql.sql
-  - server/src/infrastructure/database/bootstrap/initialize-schema.ts
-  - server/src/infrastructure/database/typeorm/entities/order-route-log.entity.ts
-- Pilot log image backend:
-  - server/src/pilot/presentation/dtos/add-log.dto.ts
-  - server/src/pilot/presentation/controller/pilot.controller.ts
-  - server/src/pilot/application/use-cases/add-log.use-case.ts
-  - server/src/pilot/application/use-cases/get-order.use-case.ts
-  - server/src/main.ts
-- Client tracking data exposure:
-  - server/src/client/application/services/client.service.ts
-- Frontend pilot/client tracking UI:
-  - client/components/piloto/RegistrarEventoModal.tsx
-  - client/components/piloto/BitacoraTimeline.tsx
-  - client/app/(dashboard-nav)/piloto/monitoreo/[id]/page.tsx
-  - client/app/(dashboard-cliente)/cliente/ordenes/page.tsx
-  - client/types/pilot.ts
-- Seed/docs:
-  - server/src/infrastructure/database/seeds/database-seeder.ts
-  - docs/happypath.md
-  - docs/mvp_accessos_usuarios.md
+### 1) Database and data model
+- Added COUNTRY_CODE and CURRENCY_CODE enums in canonical SQL and DBML.
+- Added EXCHANGE_RATES table and baseline seed rates (USD, GTQ, HNL).
+- Added regional finance fields in core entities/tables:
+  - clients: country_code, currency_code, tax_rate
+  - contracts: currency_code, exchange_rate_from_usd, tax_rate
+  - orders: currency_code, exchange_rate_from_usd, tax_rate
+  - invoices: currency_code, exchange_rate_from_usd, tax_rate
+  - payments: currency_code
+- Updated NIT validation from exact 13 digits to 8-14 digits.
 
-## Notes About Existing Implementation
+### 2) SQL trigger/function behavior
+- Contract default rate sync now uses exchange_rate_from_usd and recalculates rates from USD base.
+- Order assignment tax calculation no longer hardcodes 0.12 and now uses tax_rate.
+- Invoice population now copies currency_code, exchange_rate_from_usd, and tax_rate from order context.
+- Payment validation now enforces payment currency from invoice currency.
+- Trigger sync for contract rates now listens to discount and exchange rate updates.
+
+### 3) Backend propagation
+- Added domain enums/constants:
+  - server/src/domain/enums/country-code.enum.ts
+  - server/src/domain/enums/currency-code.enum.ts
+  - server/src/domain/constants/regional-finance.constants.ts
+- Extended TypeORM entities for client/contract/order/invoice/payment with multi-currency fields.
+- Operations create-client flow now accepts country/currency and applies regional defaults.
+- Operations create-contract flow now resolves exchange rate from exchange_rates and persists currency context.
+- Finance, Certifier, and Client services now expose currencyCode/taxRate/exchange metadata in responses where relevant.
+- initialize-schema canonical checks now require new currency columns and exchange_rates table.
+
+### 4) Frontend updates
+- Agent operational client registration now includes country and currency selectors.
+- Phone prefix suggestion by country is auto-set (+502, +503, +504) and still editable.
+- Contract formalization reflects selected client currency in credit inputs and summary.
+- Client dashboard/account statement/contracts/orders/invoices/new-service views now format amounts by currency.
+- Finance and FEL views now consume dynamic currency fields and show tax labels from taxRate when available.
+- Finance rates UI messaging now reflects USD base tariff context.
+
+## Runtime Validation Already Executed
+
+### Build checks
+- server: npm run build succeeded.
+- client: npm run build succeeded.
+
+### Docker checks
+- Full root stack built and started from docker-compose.yml.
+- Services verified up:
+  - db (healthy)
+  - server (up)
+  - client (up)
+
+### Health and smoke checks
+- Backend health endpoint responded 200.
+- Authenticated API smoke checks passed and returned multi-currency fields:
+  - /api/finance/invoices includes currencyCode and taxRate
+  - /api/finance/rates includes baseCurrency
+  - /api/operations/clients includes countryCode and currencyCode
+- End-to-end operational smoke test passed:
+  - created Honduras client defaulted to HNL and tax 0.15
+  - created contract inherited HNL, exchangeRateFromUsd 24.7, tax 0.15
+
+## Side Effects During Validation
+- Smoke test created test records in DB (new clients/contracts for Honduras flow).
+- Welcome/contract emails were triggered for smoke test users.
+
+## Current Priorities
+1. Keep invoice state consistency across docs and APIs: BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA.
+2. Preserve 40-ton constraints and existing logistics assignment rules.
+3. Optionally automate one full API script for invoice lifecycle validation (BORRADOR to PAGADA).
+4. Continue documentation hardening in happypath only if new UI/flow changes are introduced.
+
+## Notes For Future Copilot Runs
 - Do not edit build artifacts under client/.next.
-- In this workspace, rg may be unavailable in shell; use grep fallback when needed.
-- Ensure static file serving remains enabled for /files paths.
-
-## Acceptance Criteria For Next Changes
-- New delivered-order draft appears in Finance BORRADOR tray and not prematurely in FEL tray.
-- FEL certify/reject sends internal mail to finance users.
-- Finance send marks ENVIADA and sends mail to client.
-- Optional log image upload and visualization works for pilot and client.
-- Signature and delivery evidence remain mandatory at delivery and visible later.
-- docs/happypath.md reflects real captures in pending sections.
+- Ensure static file serving for /files remains enabled.
+- If terminal search tooling is limited, use grep fallback when needed.
+- Prefer canonical schema source: db/logitrans_postgresql.sql.
 
 ## Suggested Verification Commands
-- docker-compose down -v --rmi all && docker-compose up -d --build
-- docker-compose ps
-- docker-compose logs --no-color server | tail -n 200
-- docker-compose logs --no-color client | tail -n 200
+- docker compose down -v --rmi all && docker compose up -d --build
+- docker compose ps
+- docker compose logs --no-color server | tail -n 200
+- docker compose logs --no-color client | tail -n 200
+- curl -i http://localhost:3006/health

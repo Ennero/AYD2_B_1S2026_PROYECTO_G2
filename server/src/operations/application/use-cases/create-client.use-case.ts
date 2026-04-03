@@ -1,6 +1,12 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
+import { CountryCode } from '../../../domain/enums/country-code.enum';
+import { CurrencyCode } from '../../../domain/enums/currency-code.enum';
+import {
+  resolveDefaultCurrency,
+  resolveDefaultTaxRate,
+} from '../../../domain/constants/regional-finance.constants';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
@@ -16,6 +22,8 @@ export interface CreateClientInput {
   primaryContactEmail: string;
   portalPassword: string;
   primaryContactPhone?: string;
+  countryCode?: CountryCode;
+  currencyCode?: CurrencyCode;
   paymentRisk?: RiskLevel;
   customsRisk?: RiskLevel;
   cargoRisk?: RiskLevel;
@@ -28,6 +36,9 @@ export interface CreateClientOutput {
   legalName: string;
   nit: string;
   primaryContactEmail: string;
+  countryCode: CountryCode;
+  currencyCode: CurrencyCode;
+  taxRate: number;
   portalUserEmail: string;
 }
 
@@ -45,9 +56,12 @@ export class CreateClientUseCase {
     const nit = input.nit.trim();
     const normalizedEmail = input.primaryContactEmail.trim().toLowerCase();
     const portalPassword = input.portalPassword?.trim();
+    const countryCode = input.countryCode ?? CountryCode.GT;
+    const currencyCode = input.currencyCode ?? resolveDefaultCurrency(countryCode);
+    const taxRate = resolveDefaultTaxRate(countryCode);
 
-    if (!/^\d{13}$/.test(nit)) {
-      throw new BadRequestException('El NIT debe contener exactamente 13 digitos.');
+    if (!/^\d{8,14}$/.test(nit)) {
+      throw new BadRequestException('El NIT debe contener entre 8 y 14 digitos.');
     }
 
     if (!portalPassword || portalPassword.length < 12) {
@@ -74,6 +88,9 @@ export class CreateClientUseCase {
       primaryContactName: input.primaryContactName,
       primaryContactEmail: normalizedEmail,
       primaryContactPhone: input.primaryContactPhone,
+      countryCode,
+      currencyCode,
+      taxRate,
       paymentRisk: input.paymentRisk,
       customsRisk: input.customsRisk,
       cargoRisk: input.cargoRisk,
@@ -118,6 +135,9 @@ export class CreateClientUseCase {
       legalName: savedClient.legalName,
       nit: savedClient.nit,
       primaryContactEmail: savedClient.primaryContactEmail,
+      countryCode: savedClient.countryCode,
+      currencyCode: savedClient.currencyCode,
+      taxRate: Number(savedClient.taxRate),
       portalUserEmail: normalizedEmail,
     };
   }

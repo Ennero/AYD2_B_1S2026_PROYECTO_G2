@@ -98,7 +98,7 @@ function CertifyModal({
                 {invoice.invoiceNumber}
               </h2>
               <p style={{ fontSize: "0.72rem", color: "#9A9489", marginTop: "2px" }}>
-                {invoice.clientName} · {invoice.currency || "GTQ"} {formatQ(invoice.totalAmount)}
+                {invoice.clientName} · {invoice.currency || invoice.currencyCode || "GTQ"} {formatQ(invoice.totalAmount)}
               </p>
             </div>
             <button onClick={onClose} disabled={isProcessing}
@@ -391,7 +391,7 @@ export default function BandejaAprobacionPage() {
             gap: "0 1rem", padding: "0 1.25rem 0.6rem",
             borderBottom: "1px solid rgba(12,12,10,0.1)", marginBottom: "8px",
           }}>
-            {["Documento", "Cliente", "NIT", "Monto (GTQ)", "Acciones"].map((h, i) => (
+            {["Documento", "Cliente", "NIT", "Monto", "Acciones"].map((h, i) => (
               <span key={h} style={{ fontSize: "0.48rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, textAlign: i === 4 ? "right" : "left" }}>
                 {h}
               </span>
@@ -487,7 +487,7 @@ export default function BandejaAprobacionPage() {
 
                     {/* Monto */}
                     <p style={{ fontSize: "0.85rem", fontWeight: 900, color: "#0C0C0A", letterSpacing: "-0.01em" }}>
-                      {inv.currency || "GTQ"} {formatQ(inv.totalAmount)}
+                      {inv.currency || inv.currencyCode || "GTQ"} {formatQ(inv.totalAmount)}
                     </p>
 
                     {/* Acciones */}

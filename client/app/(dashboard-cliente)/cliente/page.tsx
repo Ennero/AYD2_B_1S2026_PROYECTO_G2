@@ -37,6 +37,7 @@ interface DashboardSummary {
   clientName: string
   displayName?: string
   isBlocked: boolean
+  currencyCode: "GTQ" | "USD" | "HNL"
   creditLimit: number
   totalOwed: number
   availableCredit: number
@@ -46,13 +47,21 @@ interface DashboardSummary {
 }
 
 /* ─── Helpers ────────────────────────────────────── */
-function formatQ(n: number) {
-  return `Q ${n.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function formatCurrency(n: number, currencyCode: "GTQ" | "USD" | "HNL") {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n)
 }
-function formatQShort(n: number) {
-  if (n >= 1_000_000) return `Q${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `Q${(n / 1_000).toFixed(0)}k`
-  return `Q${n}`
+function formatCurrencyShort(n: number, currencyCode: "GTQ" | "USD" | "HNL") {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(n)
 }
 
 const STATUS_META: Record<OrderStatus, { label: string; color: string; bg: string }> = {
@@ -114,11 +123,11 @@ function TabResumen({ data, onSwitchTab }: { data: DashboardSummary; onSwitchTab
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <div>
             <p style={{ fontSize: "0.48rem", letterSpacing: "0.15em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Consumido</p>
-            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#E53E3E" }}>{formatQ(data.totalOwed)}</p>
+            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#E53E3E" }}>{formatCurrency(data.totalOwed, data.currencyCode)}</p>
           </div>
           <div style={{ textAlign: "right" }}>
             <p style={{ fontSize: "0.48rem", letterSpacing: "0.15em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Total</p>
-            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#3A8E2A" }}>{formatQ(data.creditLimit)}</p>
+            <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#3A8E2A" }}>{formatCurrency(data.creditLimit, data.currencyCode)}</p>
           </div>
         </div>
       </div>
@@ -135,7 +144,7 @@ function TabResumen({ data, onSwitchTab }: { data: DashboardSummary; onSwitchTab
         >
           <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>Saldo Restante</p>
           <p style={{ fontSize: "clamp(1.6rem, 3vw, 2.5rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#0C0C0A", lineHeight: 1 }}>
-            {formatQShort(Math.max(data.availableCredit, 0))}
+            {formatCurrencyShort(Math.max(data.availableCredit, 0), data.currencyCode)}
           </p>
           <div style={{ flex: 1, display: "flex", alignItems: "flex-end" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.6rem", color: "#C9924B", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -202,7 +211,13 @@ function TabOrdenes({ orders }: { orders: RecentOrder[] }) {
 }
 
 /* ─── Tab: Alertas ───────────────────────────────── */
-function TabAlertas({ alerts }: { alerts: DashboardAlert[] }) {
+function TabAlertas({
+  alerts,
+  currencyCode,
+}: {
+  alerts: DashboardAlert[]
+  currencyCode: "GTQ" | "USD" | "HNL"
+}) {
   if (alerts.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: "3rem 0" }}>
@@ -229,7 +244,7 @@ function TabAlertas({ alerts }: { alerts: DashboardAlert[] }) {
               </p>
               <p style={{ fontSize: "0.78rem", color: "#0C0C0A", fontWeight: 600, marginBottom: "2px" }}>{alert.message}</p>
               <p style={{ fontSize: "0.68rem", color: "#9A9489" }}>
-                {formatQ(alert.amount)} · Venció: {alert.dueDate}
+                {formatCurrency(alert.amount, currencyCode)} · Venció: {alert.dueDate}
               </p>
             </div>
           </div>
@@ -401,7 +416,7 @@ export default function ClienteDashboardPage() {
                 transition={{ duration: 0.25, ease: EASE }}>
                 {activeTab === "resumen" && <TabResumen data={data} onSwitchTab={setActiveTab} />}
                 {activeTab === "ordenes" && <TabOrdenes orders={data.recentOrders} />}
-                {activeTab === "alertas" && <TabAlertas alerts={data.alerts} />}
+                {activeTab === "alertas" && <TabAlertas alerts={data.alerts} currencyCode={data.currencyCode} />}
               </motion.div>
             </AnimatePresence>
 

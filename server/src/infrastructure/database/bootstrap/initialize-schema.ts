@@ -9,6 +9,8 @@ interface SchemaState {
   hasPrimaryContactColumns: boolean;
   hasUserSessions: boolean;
   hasPaymentSupportField: boolean;
+  hasCurrencyColumns: boolean;
+  hasExchangeRatesTable: boolean;
   hasClientBalanceView: boolean;
 }
 
@@ -28,6 +30,8 @@ async function getSchemaState(dataSource: DataSource): Promise<SchemaState> {
     has_primary_contact_columns: boolean;
     has_user_sessions: boolean;
     has_payment_support_field: boolean;
+    has_currency_columns: boolean;
+    has_exchange_rates_table: boolean;
     has_client_balance_view: boolean;
   }>(
     `SELECT
@@ -54,6 +58,19 @@ async function getSchemaState(dataSource: DataSource): Promise<SchemaState> {
         ) AS has_payment_support_field,
         EXISTS(
           SELECT 1
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name = 'clients'
+            AND column_name = 'currency_code'
+        ) AS has_currency_columns,
+        EXISTS(
+          SELECT 1
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+            AND table_name = 'exchange_rates'
+        ) AS has_exchange_rates_table,
+        EXISTS(
+          SELECT 1
           FROM information_schema.views
           WHERE table_schema = 'public'
             AND table_name = 'v_client_balances'
@@ -66,6 +83,8 @@ async function getSchemaState(dataSource: DataSource): Promise<SchemaState> {
     hasPrimaryContactColumns: Boolean(columns[0]?.has_primary_contact_columns),
     hasUserSessions: Boolean(columns[0]?.has_user_sessions),
     hasPaymentSupportField: Boolean(columns[0]?.has_payment_support_field),
+    hasCurrencyColumns: Boolean(columns[0]?.has_currency_columns),
+    hasExchangeRatesTable: Boolean(columns[0]?.has_exchange_rates_table),
     hasClientBalanceView: Boolean(columns[0]?.has_client_balance_view),
   };
 }
@@ -75,6 +94,8 @@ function isCanonicalSchema(state: SchemaState): boolean {
     state.hasPrimaryContactColumns &&
     state.hasUserSessions &&
     state.hasPaymentSupportField &&
+    state.hasCurrencyColumns &&
+    state.hasExchangeRatesTable &&
     state.hasClientBalanceView
   );
 }

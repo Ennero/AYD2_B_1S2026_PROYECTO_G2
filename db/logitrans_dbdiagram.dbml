@@ -20,6 +20,18 @@ Enum RISK_LEVEL {
   CRITICO
 }
 
+Enum COUNTRY_CODE {
+  GT
+  SV
+  HN
+}
+
+Enum CURRENCY_CODE {
+  USD
+  GTQ
+  HNL
+}
+
 Enum CONTRACT_STATUS {
   BORRADOR
   PENDIENTE
@@ -57,7 +69,6 @@ Enum INVOICE_STATUS {
 }
 
 Enum PAYMENT_METHOD {
-  TARJETA
   TRANSFERENCIA
   CHEQUE
 }
@@ -77,13 +88,22 @@ Table CLIENTS {
   PRIMARY_CONTACT_NAME varchar(160) [not null]
   PRIMARY_CONTACT_EMAIL varchar(320) [not null]
   PRIMARY_CONTACT_PHONE varchar(30)
-  CREDIT_LIMIT numeric(14,2) [not null, default: 0]
+  COUNTRY_CODE COUNTRY_CODE [not null, default: 'GT']
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   PAYMENT_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CUSTOMS_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CARGO_RISK RISK_LEVEL [not null, default: 'MEDIO']
   AML_RISK RISK_LEVEL [not null, default: 'MEDIO']
   IS_BLOCKED boolean [not null, default: false]
   BLOCK_REASON text
+}
+
+Table EXCHANGE_RATES {
+  CURRENCY_CODE CURRENCY_CODE [pk]
+  RATE_FROM_USD numeric(14,6) [not null]
+  SOURCE varchar(50) [not null, default: 'MANUAL']
+  UPDATED_AT timestamptz [not null]
 }
 
 Table USERS {
@@ -196,6 +216,9 @@ Table CONTRACTS {
   END_DATE date [not null]
   ACCEPTED_AT timestamptz
   CREDIT_LIMIT numeric(14,2) [not null]
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  EXCHANGE_RATE_FROM_USD numeric(14,6) [not null, default: 1.000000]
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   PAYMENT_TERM_DAYS smallint [not null]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
   NOTES text
@@ -283,6 +306,9 @@ Table ORDERS {
   BASE_RATE_PER_KM numeric(12,2) [not null, default: 0]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
   FINAL_RATE_PER_KM numeric(12,2) [not null, default: 0]
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  EXCHANGE_RATE_FROM_USD numeric(14,6) [not null, default: 1.000000]
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   SUBTOTAL_AMOUNT numeric(14,2) [not null, default: 0]
   TAX_AMOUNT numeric(14,2) [not null, default: 0]
   TOTAL_AMOUNT numeric(14,2) [not null, default: 0]
@@ -314,6 +340,9 @@ Table INVOICES {
   CLIENT_NIT varchar(20) [not null]
   CLIENT_ADDRESS text [not null]
   SERVICE_DESCRIPTION text [not null]
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  EXCHANGE_RATE_FROM_USD numeric(14,6) [not null, default: 1.000000]
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   SUBTOTAL_AMOUNT numeric(14,2) [not null]
   TAX_AMOUNT numeric(14,2) [not null]
   TOTAL_AMOUNT numeric(14,2) [not null]
@@ -331,6 +360,7 @@ Table PAYMENTS {
   BANK_ACCOUNT_NUMBER varchar(50)
   BANK_REFERENCE varchar(80)
   SUPPORT_DOCUMENT_PATH text
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
   AMOUNT numeric(14,2) [not null]
   PAYMENT_DATE timestamptz [not null]
   REVIEWED_BY_USER_ID int

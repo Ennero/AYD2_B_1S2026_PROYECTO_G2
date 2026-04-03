@@ -12,6 +12,7 @@ const EASE = [0.16, 1, 0.3, 1] as const
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
 interface AccountStatement {
+  currencyCode: "GTQ" | "USD" | "HNL"
   creditLimit: number
   totalOwed: number
   availableCredit: number
@@ -24,13 +25,24 @@ interface AccountStatement {
 
 /* ─── Helpers ───────────────────────────────────────────────────────────── */
 
-function formatQ(amount: number) {
-  return `Q ${amount.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function formatCurrency(amount: number, currencyCode: "GTQ" | "USD" | "HNL") {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
 }
 
 /* ─── Aging Bar ──────────────────────────────────────────────────────────── */
 
-function AgingBar({ aging }: { aging: AccountStatement["aging"] }) {
+function AgingBar({
+  aging,
+  currencyCode,
+}: {
+  aging: AccountStatement["aging"]
+  currencyCode: AccountStatement["currencyCode"]
+}) {
   const total = aging.current + aging.overdue30 + aging.critical
   if (total === 0) return (
     <p style={{ fontSize: "0.78rem", color: "#9A9489" }}>Sin datos de vencimiento.</p>
@@ -95,7 +107,7 @@ function AgingBar({ aging }: { aging: AccountStatement["aging"] }) {
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ width: "10px", height: "10px", borderRadius: "2px", background: item.color, flexShrink: 0 }} />
             <span style={{ fontSize: "0.72rem", color: "#9A9489" }}>{item.label} —</span>
-            <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#0C0C0A" }}>{formatQ(item.value)}</span>
+            <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#0C0C0A" }}>{formatCurrency(item.value, currencyCode)}</span>
           </div>
         ))}
       </div>
@@ -226,7 +238,7 @@ export default function EstadoCuentaPage() {
                   <BarChart2 size={15} style={{ color: "#C9924B" }} />
                 </div>
                 <p style={{ fontSize: "clamp(1.2rem,3vw,1.8rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#C9924B", lineHeight: 1 }}>
-                  {formatQ(data.creditLimit)}
+                  {formatCurrency(data.creditLimit, data.currencyCode)}
                 </p>
                 <p style={{ fontSize: "0.65rem", color: "#6B6260", marginTop: "2px" }}>crédito total asignado</p>
               </div>
@@ -243,7 +255,7 @@ export default function EstadoCuentaPage() {
                   </p>
                 </div>
                 <p style={{ fontSize: "clamp(1.2rem,3vw,1.8rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#0C0C0A", lineHeight: 1 }}>
-                  {formatQ(data.totalOwed)}
+                  {formatCurrency(data.totalOwed, data.currencyCode)}
                 </p>
                 <p style={{ fontSize: "0.65rem", color: "#9A9489", marginTop: "2px" }}>saldo pendiente</p>
               </div>
@@ -260,7 +272,7 @@ export default function EstadoCuentaPage() {
                   </p>
                 </div>
                 <p style={{ fontSize: "clamp(1.2rem,3vw,1.8rem)", fontWeight: 900, letterSpacing: "-0.04em", color: availableColor, lineHeight: 1 }}>
-                  {formatQ(data.availableCredit)}
+                  {formatCurrency(data.availableCredit, data.currencyCode)}
                 </p>
                 <p style={{ fontSize: "0.65rem", color: "#9A9489", marginTop: "2px" }}>para nuevos servicios</p>
               </div>
@@ -278,7 +290,7 @@ export default function EstadoCuentaPage() {
                 <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1.25rem" }}>
                   Reporte de Vencimientos
                 </p>
-                <AgingBar aging={data.aging} />
+                <AgingBar aging={data.aging} currencyCode={data.currencyCode} />
               </div>
             </motion.div>
 

@@ -18,6 +18,9 @@ export interface FinanceInvoice {
   dueDate: string
   subtotalAmount: number
   taxAmount: number
+  taxRate?: number
+  currencyCode?: string
+  exchangeRateFromUsd?: number
   totalAmount: number
   status: FinanceInvoiceStatus
   paymentState?: {
@@ -38,6 +41,7 @@ export interface FinancePayment {
   invoiceId: string
   invoiceNumber: string
   clientName: string
+  currencyCode?: string
   amount: number
   method: FinancePaymentMethod
   bankName?: string
@@ -52,6 +56,7 @@ export interface FinanceRate {
   typeName: string
   minCapacityTon: number
   maxCapacityTon: number | null
+  baseCurrency?: string
   ratePerKm: number
 }
 

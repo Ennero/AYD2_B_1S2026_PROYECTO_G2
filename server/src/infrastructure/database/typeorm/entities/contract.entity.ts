@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
 import { ContractStatus } from '../../../../domain/enums/contract-status.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Client } from './client.entity';
 import { ContractRoute } from './contract-route.entity';
 import { ContractRate } from './contract-rate.entity';
@@ -45,6 +46,32 @@ export class Contract {
     nullable: true,
   })
   creditLimit: number | null;
+
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
+
+  @Column({
+    name: 'exchange_rate_from_usd',
+    type: 'numeric',
+    precision: 14,
+    scale: 6,
+    default: 1,
+  })
+  exchangeRateFromUsd: number;
+
+  @Column({
+    name: 'tax_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.12,
+  })
+  taxRate: number;
 
   @Column({ name: 'payment_term_days', type: 'smallint' })
   paymentTermDays: number;

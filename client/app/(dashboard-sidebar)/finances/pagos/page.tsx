@@ -9,8 +9,13 @@ import type { FinancePayment } from "@/types/finance"
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
-function formatQ(v: number) {
-  return `Q ${v.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function formatCurrency(v: number, currencyCode = "GTQ") {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(v)
 }
 
 const COL6 = "1.4fr 1fr 1fr 1fr 1.2fr 0.8fr"
@@ -25,7 +30,7 @@ function ApproveModal({ payment, onClose, onConfirm, loading }: {
   const fields = [
     { label: "Cliente",     value: payment.clientName },
     { label: "Factura",     value: payment.invoiceNumber },
-    { label: "Monto",       value: formatQ(payment.amount) },
+    { label: "Monto",       value: formatCurrency(payment.amount, payment.currencyCode ?? "GTQ") },
     { label: "Banco",       value: payment.bankName ?? "—" },
     { label: "Referencia",  value: payment.bankReference ?? "—" },
   ]
@@ -266,7 +271,9 @@ export default function FinancePaymentsPage() {
                 >
                   <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0C0C0A" }}>{payment.clientName}</span>
                   <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#C9924B" }}>{payment.invoiceNumber}</span>
-                  <span style={{ fontSize: "0.82rem", fontWeight: 900, color: "#0C0C0A", letterSpacing: "-0.01em" }}>{formatQ(payment.amount)}</span>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 900, color: "#0C0C0A", letterSpacing: "-0.01em" }}>
+                    {formatCurrency(payment.amount, payment.currencyCode ?? "GTQ")}
+                  </span>
                   <span style={{ fontSize: "0.72rem", color: "#9A9489" }}>{payment.bankName ?? "—"}</span>
                   <span style={{ fontSize: "0.68rem", fontFamily: "monospace", color: "#9A9489" }}>{payment.bankReference ?? "—"}</span>
                   <div style={{ textAlign: "right" }}>

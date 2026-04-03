@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { CountryCode } from '../../../domain/enums/country-code.enum';
+import { CurrencyCode } from '../../../domain/enums/currency-code.enum';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
 import { Client } from '../../../infrastructure/database/typeorm/entities/client.entity';
 
@@ -9,6 +11,9 @@ export interface ClientFactoryInput {
   primaryContactName: string;
   primaryContactEmail: string;
   primaryContactPhone?: string;
+  countryCode: CountryCode;
+  currencyCode: CurrencyCode;
+  taxRate: number;
   paymentRisk?: RiskLevel;
   customsRisk?: RiskLevel;
   cargoRisk?: RiskLevel;
@@ -30,6 +35,9 @@ export class ClientFactory {
     client.primaryContactName = input.primaryContactName.trim();
     client.primaryContactEmail = input.primaryContactEmail.trim().toLowerCase();
     client.primaryContactPhone = this.toNullable(input.primaryContactPhone);
+    client.countryCode = input.countryCode;
+    client.currencyCode = input.currencyCode;
+    client.taxRate = input.taxRate;
 
     client.paymentRisk = input.paymentRisk ?? RiskLevel.MEDIO;
     client.customsRisk = input.customsRisk ?? RiskLevel.MEDIO;
