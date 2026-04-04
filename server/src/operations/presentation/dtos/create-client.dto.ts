@@ -4,6 +4,7 @@ import { CurrencyCode } from '../../../domain/enums/currency-code.enum';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
 
 const PHONE_PATTERN = /^\+50[234]\d{8}$/;
+const NIT_PATTERN = /^\d{8,13}$/;
 
 export class CreateClientDto {
   @IsString()
@@ -12,6 +13,9 @@ export class CreateClientDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(NIT_PATTERN, {
+    message: 'nit debe contener entre 8 y 13 dígitos numéricos.',
+  })
   nit: string;
 
   @IsString()

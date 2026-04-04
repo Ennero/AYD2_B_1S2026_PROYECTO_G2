@@ -22,7 +22,15 @@ export class BiService {
     `);
 
     const [billingRow] = await this.dataSource.query<{ total: string }[]>(`
-      SELECT COALESCE(SUM(i.total_amount), 0) AS total FROM invoices i
+      SELECT
+        COALESCE(
+          ROUND(
+            SUM(i.total_amount / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric,
+            2
+          ),
+          0
+        ) AS total
+      FROM invoices i
       WHERE ${invoiceDateFilter}
     `);
 
@@ -117,8 +125,17 @@ export class BiService {
     >(`
       SELECT
         i.client_name,
-        ROUND(SUM(i.total_amount)::numeric, 2)    AS ingresos,
-        ROUND(SUM(i.total_amount - (COALESCE(o.fuel_cost, 0) + COALESCE(o.viatics_cost, 0) + COALESCE(o.maintenance_cost, 0)))::numeric, 2) AS rentabilidad
+        ROUND(
+          SUM(i.total_amount / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric,
+          2
+        ) AS ingresos,
+        ROUND(
+          SUM(
+            (i.total_amount - (COALESCE(o.fuel_cost, 0) + COALESCE(o.viatics_cost, 0) + COALESCE(o.maintenance_cost, 0)))
+            / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1)
+          )::numeric,
+          2
+        ) AS rentabilidad
       FROM invoices i
       JOIN orders o ON o.order_id = i.order_id
       WHERE ${invoiceDateFilter}

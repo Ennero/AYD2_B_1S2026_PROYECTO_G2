@@ -1,6 +1,6 @@
 # LogiTrans Guatemala — Manual de Usuario: Happy Path MVP
 
-> **Propósito**: Este documento describe el happy path del MVP de LogiTrans desde el acceso inicial hasta el envío de la factura al cliente (`ENVIADA`).
+> **Propósito**: Este documento describe el happy path del MVP de LogiTrans con enfoque multivisa (GTQ, USD, HNL), desde el acceso inicial hasta el cierre de pago de factura (`PAGADA`).
 >
 > **Acceso al sistema**: Portal de Clientes LogiTrans (según ambiente configurado)
 >
@@ -22,7 +22,34 @@
 | 8 | Piloto | Confirmar entrega con evidencia |
 | 9 | Agente Financiero | Revisar borrador y enviar a certificador |
 | 10 | Certificador FEL | Validar NIT y certificar factura |
-| 11 | Agente Financiero | Enviar factura al cliente |
+| 11 | Agente Financiero | Enviar factura al cliente y cierre de pago |
+
+---
+
+## 0. Guía de Recaptura Multivisa (para actualizar evidencias)
+
+Este documento ya incluye el flujo funcional, pero debes recapturar evidencias con datos multivisa reales.
+
+### 0.1 Escenarios mínimos a ejecutar
+
+| Escenario | País | Moneda esperada | Impuesto esperado |
+|---|---|---|---|
+| A | Guatemala (GT) | GTQ | 0.12 |
+| B | El Salvador (SV) | USD | 0.13 |
+| C | Honduras (HN) | HNL | 0.15 |
+
+### 0.2 Convención para nuevas capturas
+
+Usa nombres desde `90_` en adelante para distinguir recapturas multivisa. Ejemplo:
+- `90_registro_cliente_datos_generales_hn_hnl.jpeg`
+- `94_formalizar_contrato_hnl_pbar_sps.jpeg`
+- `99_cliente_nueva_orden_datos_operativos.jpeg`
+
+### 0.3 Regla de reemplazo
+
+En cada sección se dejó al menos una referencia **PENDIENTE**. Puedes:
+1. Reemplazar la imagen histórica existente.
+2. O agregar la nueva captura multivisa con nombre `90+` y mantener la histórica.
 
 ---
 
@@ -72,7 +99,7 @@ Al presionar "Iniciar Sesión", aparece el formulario de autenticación con dos 
 1. En el menú lateral izquierdo, haz clic en **"Clientes"** o en la opción de navegación correspondiente.
 2. Haz clic en el botón **"Nuevo Cliente"** o **"Registrar Cliente"** (botón destacado en la esquina superior derecha).
 
-![Formulario de Registro](imgs/happypath/05_registro_datos_generales.jpeg)
+
 
 
 ---
@@ -84,26 +111,28 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Campo | Valor de ejemplo |
 |-------|-------------------|
 | Nombre Legal / Razón Social | `DISTRIBUIDORA EL PROGRESO, S.A.` |
-| NIT | `1234567890123` |
-| Dirección Fiscal | `6a Av. 12-34 Zona 1, Ciudad de Guatemala` |
-| Nombre Contacto Principal | `Roberto Álvarez Méndez` |
+| NIT | `1234567890123` *(válido entre 8 y 13 dígitos)* |
+| País | `Honduras` *(evidencia actualizada con captura real)* |
+| Moneda de operación | `HNL` |
+| Dirección Fiscal | `Tegucigalpa` |
+| Nombre Contacto Principal | `Henry Contreras` |
 | Email Contacto | `deennerparaprobar@gmail.com` |
 | Contraseña | `deennerparaprobar@gmail.com` |
-| Teléfono Contacto | `+502` + `22001234` |
+| Teléfono Contacto | `+504` + `2201234` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
 | Riesgo de Mercancía | `BAJO` |
 | Riesgo Lavado de Dinero | `BAJO` |
 
-> Nota: el teléfono se captura en dos partes (prefijo país y número local), y se almacena en formato canónico `+50222001234` (también aplica para `+503` y `+504`).
+> Nota: el teléfono se captura en dos partes (prefijo y número local). El prefijo se sugiere automáticamente según la moneda elegida y puede cambiarse manualmente a `+502`, `+503` o `+504`.
 
 4. Una vez completado, presiona el botón **"Guardar"** o **"Registrar"**.
 5. El sistema mostrará un mensaje de confirmación: _"Cliente registrado exitosamente"_.
 
-![Datos Generales Cliente Completados](imgs/happypath/05_registro_datos_generales_completados.jpeg)
-![Confirmación Cliente Registrado](imgs/happypath/08_registro_completado.jpeg)
-![Datos Fiscales Cliente](imgs/happypath/06_registro_datos_fiscales.jpeg)
-![Perfil de Riesgo Cliente](imgs/happypath/07_registro_perfil_riesgo.jpeg)
+![Datos Generales Cliente Completados (HN/HNL)](imgs/happypath/90_registro_cliente_datos_generales_hn_hnl.jpeg)
+![Datos Fiscales Cliente](imgs/happypath/91_registro_cliente_datos_fiscales_nit_13.jpeg)
+![Perfil de Riesgo Cliente](imgs/happypath/92_registro_cliente_perfil_riesgo.jpeg)
+![Confirmación Cliente Registrado](imgs/happypath/93_registro_cliente_confirmacion_modal.jpeg)
 
 ### 2.3.1 Correo de bienvenida con credenciales
 
@@ -163,17 +192,19 @@ Ingresa los siguientes datos para el contrato:
 
 | Campo | Valor de ejemplo |
 |-------|-------------------|
-| Límite de Crédito del Contrato | `Q 50,000.00` |
+| Límite de Crédito del Contrato | `120,000.00` *(se visualizará en la moneda del cliente: HNL en este flujo base)* |
 | Días de Pago | `30 días` |
 | Descuento Especial | `5%` |
-| Rutas Autorizadas | `GUA-PBAR` (Ciudad de Guatemala → Puerto Barrios) |
+| Rutas Autorizadas | `PBAR-SPS` (Puerto Barrios ↔ San Pedro Sula) |
 | Tipos de Carga | `CARGA GENERAL` |
+
+> Validación esperada: el formulario debe mostrar símbolo/moneda según el cliente seleccionado. Para recaptura multivisa, usa este mismo flujo con un cliente de otro país/moneda y conserva el resto de pasos.
 
 4. Presiona **"Generar Propuesta"**.
 5. aparecerá un mensaje indicando que la propuesta fue generada correctamente.
 
-![Formulario Formalizar Contrato](imgs/happypath/09_formalizar_contrato.jpeg)
-![Propuesta Generada Correctamente](imgs/happypath/10_propuesta_generada.jpeg)
+![Formulario Formalizar Contrato](imgs/happypath/94_formalizar_contrato_hnl_pbar_sps.jpeg)
+![Propuesta Generada Correctamente](imgs/happypath/95_formalizar_contrato_propuesta_generada_modal.jpeg)
 
 ### 3.2.1 Correo de propuesta de contrato
 
@@ -195,8 +226,8 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 5. Presiona **"Aceptar"**.
 6. El contrato cambia a estado **`VIGENTE`**.
 
-![Cliente - Contrato Pendiente](imgs/happypath/21_cliente_contratos_pendiente.jpeg)
-![Cliente - Detalle de Contrato Pendiente](imgs/happypath/22_cliente_contrato_detalle_pendiente.jpeg)
+![Cliente - Contrato Pendiente](imgs/happypath/97_cliente_contrato_pendiente_lista.jpeg)
+![Cliente - Detalle de Contrato Pendiente](imgs/happypath/98_cliente_contrato_detalle_pendiente_hnl.jpeg)
 ![Cliente - Contrato Aceptado y Vigente](imgs/happypath/23_cliente_contrato_aceptado_vigente.jpeg)
 
 ---
@@ -204,8 +235,8 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 ## 4. Portal del Cliente — Crear una Orden de Servicio
 **Actor**: Cliente
 **Credenciales**:
-- Email: `deennerparaprobar@gmail.com`
-- Password: `deennerparaprobar@gmail.com`
+- Email: `deennerparaprobar@gmail.com` *(mismo usuario creado en 2.3)*
+- Password: `deennerparaprobar@gmail.com` *(o la definida en 2.3)*
 
 > **Nota**: Si ya iniciaste sesión como cliente en el paso 3.3, puedes continuar directamente.
 
@@ -215,7 +246,7 @@ El cliente debe aceptar la propuesta para que el contrato pase a estado `VIGENTE
 2. Ingresa las credenciales del cliente.
 3. Serás redirigido al **Portal del Cliente**, que muestra un resumen de tus órdenes, saldo y contratos.
 
-![Portal Cliente - Dashboard Inicio](imgs/happypath/18_cliente_dashboard_inicio.jpeg)
+![Portal Cliente - Dashboard Inicio](imgs/happypath/96_cliente_dashboard_sin_ordenes_hnl.jpeg)
 
 ### 4.1.1 Recuperación de contraseña por token
 
@@ -243,7 +274,7 @@ Desde el menú lateral del portal cliente se puede acceder a estos módulos prin
 6. **Mis Datos**: perfil empresarial y seguridad de cuenta.
 
 ![Cliente - Historial de Órdenes](imgs/happypath/20_cliente_historial_ordenes.jpeg)
-![Cliente - Contratos](imgs/happypath/21_cliente_contratos_pendiente.jpeg)
+![Cliente - Contratos](imgs/happypath/97_cliente_contrato_pendiente_lista.jpeg)
 ![Cliente - Mis Facturas](imgs/happypath/24_cliente_mis_facturas.jpeg)
 ![Cliente - Estado de Cuenta](imgs/happypath/26_cliente_estado_cuenta.jpeg)
 ![Cliente - Contactos Clave](imgs/happypath/25_cliente_contactos_vacio.jpeg)
@@ -280,19 +311,23 @@ Ingresa los siguientes datos:
 | Contrato | `Aplicado automáticamente por el sistema` |
 | Tipo de Carga | `CARGA GENERAL` |
 | Descripción de la Carga | `Sacos de cemento de Dora la exploradora` |
-| Peso Declarado | `92 Ton` *(caso extremo para validar disponibilidad logística)* |
+| Peso Declarado | `40 Ton` *(límite funcional vigente en UI cliente)* |
 | Dirección de Recogida | `Mi casita` |
 | Dirección de Entrega | `La casita en puerto barrios` |
+
+> Validación esperada: en resumen/detalle de orden, montos y crédito deben respetar la moneda del contrato.
 
 5. Confirma presionando **"Solicitar Servicio"** o **"Crear Orden"**.
 6. La orden será creada con estado **`REGISTRADA`** y se notifica al equipo logístico.
 
-![Cliente - Nueva Orden con contrato vigente y peso extremo](imgs/happypath/33_cliente_orden_peso_extremo_paso1.jpeg)
-![Cliente - Revisión y Confirmación de la Orden extrema](imgs/happypath/34_cliente_orden_peso_extremo_confirmacion.jpeg)
-![Cliente - Confirmación visual de orden creada](imgs/happypath/35_cliente_dashboard_orden_creada.jpeg)
-![Cliente - Orden visible en Órdenes Recientes](imgs/happypath/36_cliente_dashboard_orden_reciente.jpeg)
+![Cliente - Nueva Orden con contrato vigente](imgs/happypath/99_cliente_nueva_orden_datos_operativos.jpeg)
+![Cliente - Revisión y Confirmación de la Orden](imgs/happypath/100_cliente_nueva_orden_revision_confirmacion.jpeg)
+![Cliente - Confirmación visual de orden creada](imgs/happypath/101_cliente_dashboard_orden_creada_hnl.jpeg)
 
 > Nota: este caso se documenta como escenario extremo para validación operativa de asignación. En la versión actual, el formulario de cliente limita el peso máximo permitido a `40 Ton`.
+
+![PENDIENTE - Portal cliente facturas con moneda dinámica](imgs/happypath/79_multivisa_cliente_facturas_moneda.jpeg)
+![PENDIENTE - Portal cliente estado de cuenta con moneda dinámica](imgs/happypath/80_multivisa_cliente_estado_cuenta_moneda.jpeg)
 
 ---
 
@@ -327,9 +362,9 @@ Ingresa los siguientes datos:
 ![Logística - Órdenes de Servicio (vista general)](imgs/happypath/39_logistica_ordenes_lista_general.jpeg)
 ![Logística - Orden filtrada por caso extremo](imgs/happypath/40_logistica_orden_filtrada_peso_extremo.jpeg)
 ![Logística - Validación sin unidad disponible (caso inicial)](imgs/happypath/41_logistica_modal_sin_unidad_disponible.jpeg)
-![Logística - Modal Asignar Binomio (40 Ton)](imgs/happypath/45_logistica_modal_asignar_binomio_40t.jpeg)
-![Logística - Confirmación de asignación exitosa](imgs/happypath/46_logistica_asignacion_exitosa_confirmacion.jpeg)
-![Logística - Detalle de orden en estado ASIGNADA](imgs/happypath/47_logistica_detalle_orden_asignada.jpeg)
+![Logística - Detalle de orden en estado REGISTRADA](imgs/happypath/102_logistica_detalle_orden_registrada.jpeg)
+![Logística - Modal Asignar Binomio](imgs/happypath/103_logistica_modal_asignar_binomio.jpeg)
+![Logística - Confirmación de asignación exitosa](imgs/happypath/104_logistica_asignacion_exitosa_modal.jpeg)
 
 > Resultado esperado del caso: la aplicación permite asignar correctamente cuando existe una unidad compatible de 40 Ton.
 
@@ -390,7 +425,7 @@ Pero puede variar dependiendo del piloto al cual fue asignado todo esto. Refiér
 2. Inicia sesión con las credenciales del Piloto.
 3. Verás el **Dashboard del Piloto** con tu orden asignada.
 
-![Piloto - Dashboard con orden lista para despacho](imgs/happypath/53_piloto_dashboard_orden_lista_despacho.jpeg)
+![Piloto - Dashboard con orden lista para despacho](imgs/happypath/105_piloto_dashboard_lista_despacho_22t.jpeg)
 
 ---
 
@@ -401,8 +436,8 @@ Pero puede variar dependiendo del piloto al cual fue asignado todo esto. Refiér
 3. Haz clic en **"Iniciar Viaje"** o **"Cambiar a En Tránsito"**.
 4. La orden cambia a estado **`EN_TRANSITO`**.
 
-![Piloto - Detalle de viaje antes de iniciar](imgs/happypath/54_piloto_detalle_viaje_antes_iniciar.jpeg)
-![Piloto - Viaje iniciado en EN_TRANSITO](imgs/happypath/55_piloto_viaje_iniciado_en_transito.jpeg)
+![Piloto - Detalle de viaje antes de iniciar](imgs/happypath/106_piloto_detalle_viaje_pre_inicio.jpeg)
+![Piloto - Viaje iniciado en EN_TRANSITO](imgs/happypath/107_piloto_viaje_iniciado_en_transito_bitacora.jpeg)
 
 ---
 
@@ -446,8 +481,8 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 5. **Automáticamente**, el sistema genera un **borrador de factura (FEL)** en estado `BORRADOR` para que Finanzas lo revise. Este borrador aparece en la bandeja del Agente Financiero sin descripción de servicio ni fecha de vencimiento (pendientes de completar).
 
 ![Piloto - Formulario de confirmación de entrega con evidencia](imgs/happypath/59_piloto_formulario_confirmacion_entrega.jpeg)
-![Piloto - Confirmación de entrega (Misión cumplida)](imgs/happypath/60_piloto_confirmacion_mision_cumplida.jpeg)
-![Piloto - Orden en estado ENTREGADA en Mis Viajes](imgs/happypath/61_piloto_historial_orden_entregada.jpeg)
+![Piloto - Confirmación de entrega (Misión cumplida)](imgs/happypath/108_piloto_confirmacion_entrega_mision_cumplida_modal.jpeg)
+![Piloto - Orden en estado ENTREGADA en Mis Viajes](imgs/happypath/109_piloto_dashboard_orden_entregada.jpeg)
 ![Cliente - Historial de órdenes actualizado a ENTREGADA](imgs/happypath/62_cliente_historial_orden_entregada.jpeg)
 
 ---
@@ -462,19 +497,24 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 
 1. Cierra sesión del Piloto e inicia sesión como Agente Financiero.
 2. Entra a **"Bandeja de Facturación"**.
-3. Verifica que la factura de la orden `ORD-2026-0081` aparece en sección **BORRADORES** como `FAC-000065`.
+3. Verifica que la factura de la orden `[ORD-XXXX]` aparece en sección **BORRADORES** como `[FAC-XXXX]`.
 4. Abre la factura para revisión comercial y tributaria.
+5. Confirma que el detalle muestra `currencyCode` correcto según contrato.
+6. Confirma que el detalle muestra `taxRate` correcto según país del cliente.
 
 ![Finanzas - Bandeja con FAC-000065 en BORRADOR](imgs/happypath/63_finanzas_bandeja_borrador_fac_000065.jpeg)
+![Finanzas - Revisión de borrador con moneda e impuesto dinámicos (HNL/15%)](imgs/happypath/110_finanzas_revision_factura_borrador_hnl.jpeg)
 
 
 ### 9.2 Enviar borrador al Certificador FEL
 
 1. Desde la vista de revisión, valida los datos del cliente, NIT y totales.
-2. Presiona **"Enviar a Certificador FEL"**.
-3. La factura deja la etapa de borrador en Finanzas y pasa a la bandeja FEL.
+2. Completa/valida descripción del servicio y fecha de vencimiento en el modal si aplica.
+3. Presiona **"Enviar a Certificador FEL"**.
+4. La factura deja la etapa de borrador en Finanzas y pasa a la bandeja FEL.
 
-![Finanzas - Detalle listo para enviar a FEL](imgs/happypath/64_finanzas_revision_factura_fac_000065.jpeg)
+![Finanzas - Detalle listo para enviar a FEL](imgs/happypath/110_finanzas_revision_factura_borrador_hnl.jpeg)
+![Finanzas - Modal de confirmación de envío a FEL](imgs/happypath/111_finanzas_modal_confirmar_envio_fel.jpeg)
 
 ---
 
@@ -488,9 +528,11 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 
 1. Cierra sesión de Finanzas.
 2. Inicia sesión como Certificador FEL y abre **"Bandeja de Aprobación"**.
-3. Verifica que `FAC-000065` de `DISTRIBUIDORA EL PROGRESO, S.A.` está pendiente.
+3. Verifica que `[FAC-XXXX]` de tu cliente de prueba multivisa está pendiente.
 
-![FEL - Bandeja con FAC-000065 pendiente](imgs/happypath/65_fel_bandeja_aprobacion_fac_000065_pendiente.jpeg)
+4. Confirma que la columna de monto refleja la moneda correcta (no hardcodeada a GTQ).
+
+![FEL - Bandeja con FAC-000065 pendiente y monto en moneda dinámica](imgs/happypath/113_fel_bandeja_pendiente_monto_multimoneda.jpeg)
 
 ### 10.2 Flujo de validación de NIT y certificación
 
@@ -500,9 +542,8 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 4. Presiona **"Confirmar y Certificar"**.
 5. El sistema muestra confirmación de éxito y la factura sale de pendientes.
 
-![FEL - Modal de certificación antes de validar NIT](imgs/happypath/66_fel_modal_certificar_pre_validacion_nit.jpeg)
-![FEL - NIT validado correctamente](imgs/happypath/67_fel_modal_certificar_nit_validado.jpeg)
-![FEL - Factura certificada con éxito](imgs/happypath/68_fel_factura_certificada_exito.jpeg)
+![FEL - NIT validado correctamente](imgs/happypath/114_fel_modal_certificar_nit_validado_hnl.jpeg)
+![FEL - Factura certificada con éxito](imgs/happypath/115_fel_certificacion_exitosa_toast.jpeg)
 
 ### 10.3 Flujo alterno de rechazo documentado
 
@@ -524,24 +565,27 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 
 1. Regresa a la sesión de Finanzas.
 2. Abre **"Bandeja de Facturación"**.
-3. Verifica que `FAC-000065` aparece en sección **CERTIFICADAS POR FEL** con botón **"Enviar"** habilitado.
+3. Verifica que `[FAC-XXXX]` aparece en sección **CERTIFICADAS POR FEL** con botón **"Enviar"** habilitado.
 
-![Finanzas - FAC-000065 certificada y lista para enviar](imgs/happypath/71_finanzas_bandeja_certificada_lista_envio.jpeg)
+![Finanzas - FAC-000065 certificada y lista para enviar](imgs/happypath/116_finanzas_bandeja_certificadas_envio_habilitado.jpeg)
 
 ### 11.2 Conciliar pago para habilitar envío
 
 1. En el menú lateral, abre **"Conciliar Pagos"**.
-2. Localiza la factura `FAC-000065` en la lista de pagos con acción requerida.
+2. Localiza la factura `[FAC-XXXX]` en la lista de pagos con acción requerida.
 3. Presiona **"Aprobar"** para conciliar el pago registrado.
 4. Regresa a **"Bandeja de Facturación"** y verifica que la factura queda habilitada para envío al cliente.
 
-![Finanzas - Conciliación de pagos aprobada para habilitar envío](imgs/happypath/74_finanzas_conciliar_pagos_fac_000065.jpeg)
+5. Valida que el pago use la misma moneda que la factura.
+
+![Finanzas - Conciliación de pagos aprobada para habilitar envío](imgs/happypath/117_finanzas_conciliar_pagos_aprobado_toast.jpeg)
+![Finanzas - Tarifario base referenciado en USD](imgs/happypath/112_finanzas_tarifario_base_usd.jpeg)
 
 ### 11.3 Confirmar envío al cliente
 
-1. Presiona **"Enviar"** sobre `FAC-000065`.
+1. Presiona **"Enviar"** sobre `[FAC-XXXX]`.
 2. En el modal, confirma con **"Confirmar envío"**.
-3. El sistema muestra toast de éxito: **"Factura FAC-000065 enviada al cliente"**.
+3. El sistema muestra toast de éxito: **"Factura [FAC-XXXX] enviada al cliente"**.
 4. La factura queda en estado **`ENVIADA`**.
 
 ![Finanzas - Modal de confirmación de envío](imgs/happypath/72_finanzas_modal_confirmar_envio_cliente.jpeg)
@@ -551,8 +595,95 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 
 Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe por correo y también puede verla en su módulo de facturas:
 
-1. El correo del cliente recibe la notificación **"Factura FAC-000065 emitida"** con datos de documento y monto.
-2. En el portal del cliente, módulo **"Mis Facturas"**, ya aparece `FAC-000065` con su monto y estado.
+1. El correo del cliente recibe la notificación **"Factura [FAC-XXXX] emitida"** con datos de documento y monto en moneda correcta.
+2. En el portal del cliente, módulo **"Mis Facturas"**, ya aparece `[FAC-XXXX]` con su monto y estado.
 
 ![Cliente - Correo de factura emitida FAC-000065](imgs/happypath/75_email_factura_emitida_fac_000065.png)
 ![Cliente - Mis Facturas con FAC-000065 visible](imgs/happypath/76_cliente_mis_facturas_fac_000065.jpeg)
+
+![PENDIENTE - Correo de factura emitida con moneda dinámica](imgs/happypath/86_multivisa_email_factura_moneda.jpeg)
+![PENDIENTE - Cliente mis facturas con moneda dinámica](imgs/happypath/87_multivisa_cliente_mis_facturas_moneda.jpeg)
+
+### 11.5 Cierre del ciclo de pago (`PAGADA`)
+
+1. Registra o aprueba el pago final en Finanzas para la factura `[FAC-XXXX]`.
+2. Verifica que la factura cambie de **`ENVIADA`** a **`PAGADA`**.
+3. Confirma que el estado en portal cliente y módulos financieros sea consistente.
+
+![PENDIENTE - Factura en estado PAGADA en Finanzas](imgs/happypath/88_multivisa_finanzas_factura_pagada.jpeg)
+![PENDIENTE - Factura en estado PAGADA en Portal Cliente](imgs/happypath/89_multivisa_cliente_factura_pagada.jpeg)
+
+---
+
+## 12. Módulo Gerencia — Validación Ejecutiva en USD
+**Actor**: Gerencia
+**Credenciales**:
+- Email: `2895884051401@ingenieria.usac.edu.gt`
+- Password: `LogiGerencia`
+
+### 12.1 Login y acceso al dashboard ejecutivo
+
+1. Cierra sesión de Finanzas.
+2. Inicia sesión con las credenciales de Gerencia.
+3. Verifica acceso a las tres vistas del módulo:
+	- **Operaciones y KPIs** (`/gerencia`)
+	- **Rentabilidad** (`/gerencia/rentabilidad`)
+	- **Alertas y Proyecciones** (`/gerencia/alertas`)
+
+### 12.2 Validar KPIs de facturación en USD
+
+1. En **Operaciones y KPIs**, selecciona período mensual.
+2. Cambia mes/año y confirma que el KPI de **Facturación**:
+	- Se muestra en formato USD (`$`).
+	- Conserva consistencia al refrescar (sin mezclar símbolos de moneda).
+3. Repite la validación en período anual.
+
+> Resultado esperado: la tarjeta de facturación mantiene visualización USD para cualquier período.
+
+### 12.3 Validar rentabilidad y montos por cliente en USD
+
+1. En **Rentabilidad**, valida que:
+	- **Facturación Total** aparece en USD.
+	- El gráfico **Ingresos por Cliente** muestra etiquetas en USD.
+	- El subtítulo de ingresos indica **Monto facturado (USD)**.
+2. Cambia entre período anual y mensual para verificar estabilidad de cálculo.
+
+> Resultado esperado: todos los montos monetarios del módulo de rentabilidad se muestran normalizados a USD.
+
+### 12.4 Validar alertas y proyecciones
+
+1. En **Alertas y Proyecciones**, confirma que:
+	- Incidentes y retrasos se mantienen funcionales.
+	- Tendencia y proyección cargan sin errores al refrescar.
+2. Verifica que no hay regresiones visuales tras normalizar montos de gerencia a USD en el backend.
+
+> Resultado esperado: la vista de alertas conserva su comportamiento y tiempos de respuesta esperados.
+
+### 12.5 Evidencia recomendada para esta sección
+
+Para dejar cerrada la evidencia de Gerencia en este happy path, se recomienda capturar al menos:
+
+1. Vista **Operaciones y KPIs** mostrando Facturación en USD.
+2. Vista **Rentabilidad** mostrando Facturación Total en USD.
+3. Gráfico **Ingresos por Cliente** con etiquetas en USD.
+4. Vista **Alertas y Proyecciones** con datos cargados.
+
+### 12.6 Nomenclatura sugerida para capturas (Gerencia)
+
+Usa esta convención para mantener consistencia con el resto del documento:
+
+| Evidencia | Archivo sugerido |
+|---|---|
+| KPI de Facturación en USD | `118_gerencia_kpi_facturacion_usd.jpeg` |
+| Facturación Total en USD (Rentabilidad) | `119_gerencia_rentabilidad_facturacion_total_usd.jpeg` |
+| Gráfico de ingresos por cliente en USD | `120_gerencia_rentabilidad_ingresos_cliente_usd.jpeg` |
+| Alertas y Proyecciones con datos cargados | `121_gerencia_alertas_proyecciones_dashboard.jpeg` |
+
+Plantilla lista para copiar y pegar cuando las capturas ya estén en `docs/imgs/happypath/`:
+
+```markdown
+![Gerencia - KPI de Facturación en USD](imgs/happypath/118_gerencia_kpi_facturacion_usd.jpeg)
+![Gerencia - Rentabilidad: Facturación Total en USD](imgs/happypath/119_gerencia_rentabilidad_facturacion_total_usd.jpeg)
+![Gerencia - Rentabilidad: Ingresos por Cliente en USD](imgs/happypath/120_gerencia_rentabilidad_ingresos_cliente_usd.jpeg)
+![Gerencia - Alertas y Proyecciones con datos cargados](imgs/happypath/121_gerencia_alertas_proyecciones_dashboard.jpeg)
+```

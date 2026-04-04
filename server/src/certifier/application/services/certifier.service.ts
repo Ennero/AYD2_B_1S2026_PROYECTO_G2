@@ -67,7 +67,7 @@ export class CertifierService {
 
     const normalizedInputNit = clientNit.replace(/\D/g, '');
     const normalizedInvoiceNit = invoice.clientNit.replace(/\D/g, '');
-    const hasValidFormat = /^\d{8,14}$/.test(normalizedInputNit);
+    const hasValidFormat = /^\d{8,13}$/.test(normalizedInputNit);
     const isValid = hasValidFormat && normalizedInputNit === normalizedInvoiceNit;
 
     return {

@@ -46,6 +46,12 @@ const COUNTRY_DEFAULTS: Record<CountryCode, { phone: PhoneCountryCode; currency:
   HN: { phone: "+504", currency: "HNL", label: "Honduras" },
 }
 
+const CURRENCY_PHONE_DEFAULTS: Record<CurrencyCode, PhoneCountryCode> = {
+  GTQ: "+502",
+  USD: "+503",
+  HNL: "+504",
+}
+
 const CURRENCY_OPTIONS: Array<{ value: CurrencyCode; label: string }> = [
   { value: "GTQ", label: "Quetzal (GTQ)" },
   { value: "USD", label: "Dólar (USD)" },
@@ -138,8 +144,8 @@ export default function RegistrarClientePage() {
     if (form.contrasenaAcceso.length < 12) {
       return toast.error("La contraseña de acceso debe tener al menos 12 caracteres.")
     }
-    if (!/^\d{13}$/.test(nitSanitized)) {
-      return toast.error("El NIT debe tener exactamente 13 dígitos.")
+    if (!/^\d{8,13}$/.test(nitSanitized)) {
+      return toast.error("El NIT debe tener entre 8 y 13 dígitos.")
     }
     if (!form.capacidadPago || !form.riesgoMercancia || !form.riesgoAduanas || !form.lavadoDinero) {
       return toast.error("Completa el perfil de riesgo antes de continuar.")
@@ -335,7 +341,14 @@ export default function RegistrarClientePage() {
                       label="Moneda de operación"
                       options={CURRENCY_OPTIONS}
                       value={form.currencyCode}
-                      onChange={(e) => setForm((s) => ({ ...s, currencyCode: e.target.value as CurrencyCode }))}
+                      onChange={(e) => {
+                        const nextCurrency = e.target.value as CurrencyCode
+                        setForm((s) => ({
+                          ...s,
+                          currencyCode: nextCurrency,
+                          telefonoPais: CURRENCY_PHONE_DEFAULTS[nextCurrency],
+                        }))
+                      }}
                     />
                     <Input label="Nombre completo" placeholder="Ej. Henry Contreras"
                       value={form.nombre} onChange={e => setForm(s => ({ ...s, nombre: e.target.value }))} />
@@ -406,8 +419,14 @@ export default function RegistrarClientePage() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
                     <Input label="Razón Social" placeholder="Ej. Logitrans S.A."
                       value={form.razonSocial} onChange={e => setForm(s => ({ ...s, razonSocial: e.target.value }))} />
-                    <Input label="NIT (13 dígitos)" placeholder="Ej. 1234567890123"
-                      value={form.nit} onChange={e => setForm(s => ({ ...s, nit: e.target.value }))} />
+                    <Input
+                      label="NIT (8 a 13 dígitos)"
+                      placeholder="Ej. 80012345 o 1234567890123"
+                      inputMode="numeric"
+                      maxLength={13}
+                      value={form.nit}
+                      onChange={e => setForm(s => ({ ...s, nit: e.target.value.replace(/\D/g, "").slice(0, 13) }))}
+                    />
                     <div style={{ gridColumn: "1 / -1" }}>
                       <Input label="Dirección fiscal" placeholder="Ej. Zona 10, Ciudad de Guatemala"
                         value={form.direccion} onChange={e => setForm(s => ({ ...s, direccion: e.target.value }))} />

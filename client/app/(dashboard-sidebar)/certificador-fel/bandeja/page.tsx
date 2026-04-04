@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { Check, X, FileText, AlertTriangle, ShieldCheck } from "lucide-react"
 
 const EASE = [0.16, 1, 0.3, 1] as const
+const NIT_PATTERN = /^\d{8,13}$/
 
 function formatQ(amount: number | string) {
   return Number(amount).toLocaleString("es-GT", { minimumFractionDigits: 2 })
@@ -35,11 +36,18 @@ function CertifyModal({
   async function validateNit() {
     const val = nitToValidate.trim()
     if (!val) { toast.error("Debe ingresar un NIT para validar"); return }
+    const normalizedNit = val.replace(/\D/g, "")
+    if (!NIT_PATTERN.test(normalizedNit)) {
+      toast.error("El NIT debe tener entre 8 y 13 dígitos.")
+      setNitIsValid(false)
+      setNitValidatedForId(null)
+      return
+    }
     setIsValidatingNit(true)
     try {
       const res = await api.post<{ data: { invoiceId: string; clientNit: string; isValid: boolean } }>(
         ENDPOINTS.CERTIFIER.VALIDATE_NIT(invoice.invoiceId),
-        { clientNit: val },
+        { clientNit: normalizedNit },
       )
       const isValid = res.data.data.isValid
       setNitIsValid(isValid)
@@ -58,7 +66,7 @@ function CertifyModal({
       const pseudoFelUuid = crypto.randomUUID().toUpperCase()
       await api.patch(ENDPOINTS.CERTIFIER.CERTIFY(invoice.invoiceId), {
         felUuid: pseudoFelUuid,
-        clientNit: nitToValidate.trim(),
+        clientNit: nitToValidate.replace(/\D/g, ""),
       })
       toast.success(`Factura ${invoice.invoiceNumber} certificada con éxito`)
       onDone()
@@ -132,9 +140,13 @@ function CertifyModal({
             <div style={{ display: "flex", gap: "8px" }}>
               <input
                 style={inputStyle}
-                placeholder="Ingrese NIT a validar"
+                placeholder="Ingrese NIT (8 a 13 dígitos)"
                 value={nitToValidate}
-                onChange={(e) => { setNitToValidate(e.target.value); setNitIsValid(false); setNitValidatedForId(null) }}
+                onChange={(e) => {
+                  setNitToValidate(e.target.value.replace(/\D/g, "").slice(0, 13))
+                  setNitIsValid(false)
+                  setNitValidatedForId(null)
+                }}
                 disabled={isProcessing}
               />
               <button

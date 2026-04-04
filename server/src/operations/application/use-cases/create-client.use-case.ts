@@ -60,8 +60,8 @@ export class CreateClientUseCase {
     const currencyCode = input.currencyCode ?? resolveDefaultCurrency(countryCode);
     const taxRate = resolveDefaultTaxRate(countryCode);
 
-    if (!/^\d{8,14}$/.test(nit)) {
-      throw new BadRequestException('El NIT debe contener entre 8 y 14 digitos.');
+    if (!/^\d{8,13}$/.test(nit)) {
+      throw new BadRequestException('El NIT debe contener entre 8 y 13 digitos.');
     }
 
     if (!portalPassword || portalPassword.length < 12) {
