@@ -64,7 +64,7 @@ function formatDate(d: string | null) {
 const STATUS_META: Record<InvoiceStatus, { label: string; color: string; bg: string }> = {
   BORRADOR:    { label: "Borrador",    color: "#6B6260", bg: "rgba(107,98,96,0.07)" },
   CERTIFICADA: { label: "Certificada", color: "#2563EB", bg: "rgba(37,99,235,0.08)" },
-  ENVIADA:     { label: "Pendiente",   color: "#C9924B", bg: "rgba(201,146,75,0.10)" },
+  ENVIADA:     { label: "Enviada",     color: "#C9924B", bg: "rgba(201,146,75,0.10)" },
   PAGADA:      { label: "Pagada",      color: "#3A8E2A", bg: "rgba(58,142,42,0.08)" },
   RECHAZADA:   { label: "Rechazada",   color: "#E53E3E", bg: "rgba(229,62,62,0.08)" },
 }

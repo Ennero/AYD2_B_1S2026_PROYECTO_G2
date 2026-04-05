@@ -326,8 +326,8 @@ Ingresa los siguientes datos:
 
 > Nota: este caso se documenta como escenario extremo para validación operativa de asignación. En la versión actual, el formulario de cliente limita el peso máximo permitido a `40 Ton`.
 
-![PENDIENTE - Portal cliente facturas con moneda dinámica](imgs/happypath/79_multivisa_cliente_facturas_moneda.jpeg)
-![PENDIENTE - Portal cliente estado de cuenta con moneda dinámica](imgs/happypath/80_multivisa_cliente_estado_cuenta_moneda.jpeg)
+![Cliente - Mis Facturas con monto en moneda dinámica (HNL)](imgs/happypath/79_multivisa_cliente_facturas_moneda.jpeg)
+![Cliente - Estado de Cuenta con saldos actualizados en moneda dinámica (HNL)](imgs/happypath/80_multivisa_cliente_estado_cuenta_moneda.jpeg)
 
 ---
 
@@ -578,6 +578,8 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 
 5. Valida que el pago use la misma moneda que la factura.
 
+![Finanzas - Lista de pagos con acción requerida para conciliación](imgs/happypath/122_finanzas_conciliar_pagos_lista_accion_requerida.jpeg)
+![Finanzas - Modal de confirmación de aprobación de pago](imgs/happypath/123_finanzas_modal_confirmar_aprobacion_pago.jpeg)
 ![Finanzas - Conciliación de pagos aprobada para habilitar envío](imgs/happypath/117_finanzas_conciliar_pagos_aprobado_toast.jpeg)
 ![Finanzas - Tarifario base referenciado en USD](imgs/happypath/112_finanzas_tarifario_base_usd.jpeg)
 
@@ -602,7 +604,9 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 ![Cliente - Mis Facturas con FAC-000065 visible](imgs/happypath/76_cliente_mis_facturas_fac_000065.jpeg)
 
 ![PENDIENTE - Correo de factura emitida con moneda dinámica](imgs/happypath/86_multivisa_email_factura_moneda.jpeg)
-![PENDIENTE - Cliente mis facturas con moneda dinámica](imgs/happypath/87_multivisa_cliente_mis_facturas_moneda.jpeg)
+![Cliente - Detalle de factura en portal con desglose monetario dinámico](imgs/happypath/87_multivisa_cliente_mis_facturas_moneda.jpeg)
+
+> Importante: el estado de **factura** evoluciona como `BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA` (o `RECHAZADA` si FEL la rechaza). El estado `PENDIENTE` corresponde al **pago** en tesorería, no al estado de la factura.
 
 ### 11.5 Cierre del ciclo de pago (`PAGADA`)
 
@@ -612,6 +616,15 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 
 ![PENDIENTE - Factura en estado PAGADA en Finanzas](imgs/happypath/88_multivisa_finanzas_factura_pagada.jpeg)
 ![PENDIENTE - Factura en estado PAGADA en Portal Cliente](imgs/happypath/89_multivisa_cliente_factura_pagada.jpeg)
+
+### 11.6 Referencia rápida de estados (Factura vs Pago)
+
+| Dominio | Estados válidos | Nota |
+|---|---|---|
+| Factura | `BORRADOR`, `CERTIFICADA`, `ENVIADA`, `PAGADA`, `RECHAZADA` | Se muestra en bandejas de factura y portal cliente. |
+| Pago | `PENDIENTE`, `APROBADO`, `RECHAZADO` | Se muestra en conciliación de pagos y tesorería. |
+
+> Al aprobar pago y enviar factura, el cliente debe ver la factura como `ENVIADA` (no `PENDIENTE`).
 
 ---
 
