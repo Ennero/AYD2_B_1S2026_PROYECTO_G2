@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { OrderStatus } from '../../../../domain/enums/order-status.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Contract } from './contract.entity';
 import { User } from './user.entity';
 import { Branch } from './branch.entity';
@@ -144,6 +145,32 @@ export class Order {
     scale: 2,
     default: 0 })
   finalRatePerKm: number;
+
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
+
+  @Column({
+    name: 'exchange_rate_from_usd',
+    type: 'numeric',
+    precision: 14,
+    scale: 6,
+    default: 1,
+  })
+  exchangeRateFromUsd: number;
+
+  @Column({
+    name: 'tax_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.12,
+  })
+  taxRate: number;
 
   @Column({
     name: 'subtotal_amount',

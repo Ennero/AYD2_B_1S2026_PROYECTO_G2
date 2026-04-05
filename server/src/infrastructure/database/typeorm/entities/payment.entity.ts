@@ -1,6 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { PaymentMethod } from '../../../../domain/enums/payment-method.enum';
 import { PaymentStatus } from '../../../../domain/enums/payment-status.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Invoice } from './invoice.entity';
 import { User } from './user.entity';
 
@@ -41,6 +42,14 @@ export class Payment {
 
   @Column({ name: 'support_document_path', type: 'text', nullable: true })
   supportDocumentPath: string | null;
+
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
 
   @Column({ name: 'amount', type: 'numeric', precision: 14, scale: 2 })
   amount: number;

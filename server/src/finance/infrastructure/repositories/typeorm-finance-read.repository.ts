@@ -40,16 +40,29 @@ export class TypeOrmFinanceReadRepository implements IFinanceReadRepository {
 
     const [draftCount, certifiedCount, pendingCount, collectedRow] = await Promise.all([
       invoiceRepo.count({ where: { status: InvoiceStatus.BORRADOR } }),
-      invoiceRepo.count({ where: { status: InvoiceStatus.CERTIFICADA } }),
+      invoiceRepo.count({ where: { status: InvoiceStatus.PAGADA } }),
       paymentRepo.count({ where: { status: PaymentStatus.PENDIENTE } }),
-      paymentRepo
-        .createQueryBuilder('payment')
-        .select('COALESCE(SUM(payment.amount), 0)', 'collected_amount')
-        .where('payment.status = :status', { status: PaymentStatus.APROBADO })
-        .andWhere('payment.paymentDate >= :start', { start: startOfMonth })
-        .andWhere('payment.paymentDate < :end', { end: endOfMonth })
-        .getRawOne<{ collected_amount: string }>(),
+      this.dataSource.query<{ collected_amount_usd: string }[]>(
+        `
+          SELECT
+            COALESCE(
+              ROUND(
+                SUM(p.amount / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric,
+                2
+              ),
+              0
+            ) AS collected_amount_usd
+          FROM payments p
+          JOIN invoices i ON i.invoice_id = p.invoice_id
+          WHERE p.status = $1
+            AND p.payment_date >= $2
+            AND p.payment_date < $3
+        `,
+        [PaymentStatus.APROBADO, startOfMonth.toISOString(), endOfMonth.toISOString()],
+      ),
     ]);
+
+    const collected = Array.isArray(collectedRow) ? collectedRow[0] : collectedRow;
 
     return {
       period: 'MONTHLY',
@@ -58,7 +71,8 @@ export class TypeOrmFinanceReadRepository implements IFinanceReadRepository {
       draftInvoicesPendingReview: draftCount,
       certifiedInvoicesPendingSend: certifiedCount,
       pendingPayments: pendingCount,
-      collectedAmount: toNumber(collectedRow?.collected_amount),
+      collectedAmount: toNumber(collected?.collected_amount_usd),
+      baseCurrency: 'USD',
     };
   }
 

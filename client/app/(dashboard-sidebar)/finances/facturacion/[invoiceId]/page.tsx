@@ -10,8 +10,13 @@ import type { FinanceInvoice } from "@/types/finance"
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
-function formatAmount(value: number): string {
-  return `Q ${value.toLocaleString("es-GT", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function formatAmount(value: number, currencyCode = "GTQ"): string {
+  return new Intl.NumberFormat("es-GT", {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
 }
 
 /* ─── FEL Confirm Modal ──────────────────────────────────────────────────── */
@@ -421,8 +426,11 @@ export default function FinanceInvoiceReviewPage() {
 
                 <div style={{ background: "#0C0C0A", borderRadius: "6px", padding: "1.25rem 1.5rem" }}>
                   {[
-                    { label: "Subtotal", value: formatAmount(invoice.subtotalAmount) },
-                    { label: "IVA (12%)", value: formatAmount(invoice.taxAmount) },
+                    { label: "Subtotal", value: formatAmount(invoice.subtotalAmount, invoice.currencyCode ?? "GTQ") },
+                    {
+                      label: `Impuesto (${((invoice.taxRate ?? 0.12) * 100).toFixed(0)}%)`,
+                      value: formatAmount(invoice.taxAmount, invoice.currencyCode ?? "GTQ"),
+                    },
                   ].map(row => (
                     <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
                       <span style={{ fontSize: "0.78rem", color: "rgba(245,242,236,0.55)" }}>{row.label}</span>
@@ -433,7 +441,7 @@ export default function FinanceInvoiceReviewPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#F5F2EC" }}>Total</span>
                     <span style={{ fontSize: "1rem", fontWeight: 900, color: "#C9924B", letterSpacing: "-0.01em" }}>
-                      {formatAmount(invoice.totalAmount)}
+                      {formatAmount(invoice.totalAmount, invoice.currencyCode ?? "GTQ")}
                     </span>
                   </div>
                 </div>

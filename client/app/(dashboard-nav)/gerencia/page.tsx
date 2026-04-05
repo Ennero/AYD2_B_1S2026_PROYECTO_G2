@@ -31,8 +31,13 @@ const MONTHS = [
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
 ]
 
-function formatQ(amount: number) {
-  return new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ", minimumFractionDigits: 0 }).format(amount)
+function formatUsd(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
 }
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("es-GT", { day: "2-digit", month: "short", year: "numeric" })
@@ -267,10 +272,10 @@ export default function GerenciaDashboardPage() {
               <div style={{ height: "48px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }} />
             ) : (
               <p style={{ fontSize: "clamp(1.4rem, 3vw, 2.2rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#C9924B", lineHeight: 1 }}>
-                {formatQ(kpis?.billingAmount ?? 0)}
+                {formatUsd(kpis?.billingAmount ?? 0)}
               </p>
             )}
-            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>{periodLabel}</p>
+            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>{periodLabel} · USD</p>
           </div>
 
           {/* Servicios completados */}

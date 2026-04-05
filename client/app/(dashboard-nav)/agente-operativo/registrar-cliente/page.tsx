@@ -20,6 +20,8 @@ const EASE = [0.16, 1, 0.3, 1] as const
 const STEPS = ["Datos Generales", "Datos Fiscales", "Perfil de Riesgo"]
 
 type FormState = {
+  countryCode: CountryCode
+  currencyCode: CurrencyCode
   nombre: string
   telefonoPais: PhoneCountryCode
   telefonoNumero: string
@@ -35,6 +37,26 @@ type FormState = {
 }
 
 type RiskLevel = "BAJO" | "MEDIO" | "ALTO" | "CRITICO"
+type CountryCode = "GT" | "SV" | "HN"
+type CurrencyCode = "GTQ" | "USD" | "HNL"
+
+const COUNTRY_DEFAULTS: Record<CountryCode, { phone: PhoneCountryCode; currency: CurrencyCode; label: string }> = {
+  GT: { phone: "+502", currency: "GTQ", label: "Guatemala" },
+  SV: { phone: "+503", currency: "USD", label: "El Salvador" },
+  HN: { phone: "+504", currency: "HNL", label: "Honduras" },
+}
+
+const CURRENCY_PHONE_DEFAULTS: Record<CurrencyCode, PhoneCountryCode> = {
+  GTQ: "+502",
+  USD: "+503",
+  HNL: "+504",
+}
+
+const CURRENCY_OPTIONS: Array<{ value: CurrencyCode; label: string }> = [
+  { value: "GTQ", label: "Quetzal (GTQ)" },
+  { value: "USD", label: "Dólar (USD)" },
+  { value: "HNL", label: "Lempira (HNL)" },
+]
 
 type CreateClientResponse = {
   message: string
@@ -54,6 +76,7 @@ export default function RegistrarClientePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [form, setForm] = useState<FormState>({
+    countryCode: "GT", currencyCode: "GTQ",
     nombre: "", telefonoPais: "+502", telefonoNumero: "", correo: "", contrasenaAcceso: "",
     razonSocial: "", direccion: "", nit: "",
     capacidadPago: "", riesgoMercancia: "", riesgoAduanas: "", lavadoDinero: "",
@@ -121,8 +144,8 @@ export default function RegistrarClientePage() {
     if (form.contrasenaAcceso.length < 12) {
       return toast.error("La contraseña de acceso debe tener al menos 12 caracteres.")
     }
-    if (!/^\d{13}$/.test(nitSanitized)) {
-      return toast.error("El NIT debe tener exactamente 13 dígitos.")
+    if (!/^\d{8,13}$/.test(nitSanitized)) {
+      return toast.error("El NIT debe tener entre 8 y 13 dígitos.")
     }
     if (!form.capacidadPago || !form.riesgoMercancia || !form.riesgoAduanas || !form.lavadoDinero) {
       return toast.error("Completa el perfil de riesgo antes de continuar.")
@@ -142,6 +165,8 @@ export default function RegistrarClientePage() {
         primaryContactEmail: form.correo,
         portalPassword: form.contrasenaAcceso,
         primaryContactPhone: prefixedPhone || undefined,
+        countryCode: form.countryCode,
+        currencyCode: form.currencyCode,
         paymentRisk: paymentCapacityToRisk(form.capacidadPago),
         cargoRisk: toRiskLevel(form.riesgoMercancia),
         customsRisk: toRiskLevel(form.riesgoAduanas),
@@ -297,6 +322,34 @@ export default function RegistrarClientePage() {
 
                 {currentStep === 0 && (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
+                    <Select
+                      label="País"
+                      options={(Object.entries(COUNTRY_DEFAULTS) as Array<[CountryCode, { label: string; phone: PhoneCountryCode; currency: CurrencyCode }]>).map(([code, data]) => ({ value: code, label: data.label }))}
+                      value={form.countryCode}
+                      onChange={(e) => {
+                        const nextCountry = e.target.value as CountryCode
+                        const defaults = COUNTRY_DEFAULTS[nextCountry]
+                        setForm((s) => ({
+                          ...s,
+                          countryCode: nextCountry,
+                          telefonoPais: defaults.phone,
+                          currencyCode: defaults.currency,
+                        }))
+                      }}
+                    />
+                    <Select
+                      label="Moneda de operación"
+                      options={CURRENCY_OPTIONS}
+                      value={form.currencyCode}
+                      onChange={(e) => {
+                        const nextCurrency = e.target.value as CurrencyCode
+                        setForm((s) => ({
+                          ...s,
+                          currencyCode: nextCurrency,
+                          telefonoPais: CURRENCY_PHONE_DEFAULTS[nextCurrency],
+                        }))
+                      }}
+                    />
                     <Input label="Nombre completo" placeholder="Ej. Henry Contreras"
                       value={form.nombre} onChange={e => setForm(s => ({ ...s, nombre: e.target.value }))} />
                     <div>
@@ -366,8 +419,14 @@ export default function RegistrarClientePage() {
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
                     <Input label="Razón Social" placeholder="Ej. Logitrans S.A."
                       value={form.razonSocial} onChange={e => setForm(s => ({ ...s, razonSocial: e.target.value }))} />
-                    <Input label="NIT (13 dígitos)" placeholder="Ej. 1234567890123"
-                      value={form.nit} onChange={e => setForm(s => ({ ...s, nit: e.target.value }))} />
+                    <Input
+                      label="NIT (8 a 13 dígitos)"
+                      placeholder="Ej. 80012345 o 1234567890123"
+                      inputMode="numeric"
+                      maxLength={13}
+                      value={form.nit}
+                      onChange={e => setForm(s => ({ ...s, nit: e.target.value.replace(/\D/g, "").slice(0, 13) }))}
+                    />
                     <div style={{ gridColumn: "1 / -1" }}>
                       <Input label="Dirección fiscal" placeholder="Ej. Zona 10, Ciudad de Guatemala"
                         value={form.direccion} onChange={e => setForm(s => ({ ...s, direccion: e.target.value }))} />

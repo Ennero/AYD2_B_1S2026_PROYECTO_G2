@@ -53,7 +53,7 @@ export class FinanceService {
     });
 
     const certifiedInvoicesPendingSend = await invoiceRepo.count({
-      where: { status: InvoiceStatus.CERTIFICADA },
+      where: { status: InvoiceStatus.PAGADA },
     });
 
     const paymentRepo = this.dataSource.getRepository(Payment);
@@ -138,6 +138,8 @@ export class FinanceService {
       issueDate: invoice.issueDate,
       deliveredAt: invoice.order?.deliveredAt ?? null,
       status: invoice.status,
+      currencyCode: invoice.currencyCode,
+      taxRate: toNumber(invoice.taxRate),
       totalAmount: toNumber(invoice.totalAmount),
       felUuid: invoice.felUuid,
       certifiedAt: invoice.certifiedAt,
@@ -169,6 +171,9 @@ export class FinanceService {
       dueDate: invoice.dueDate,
       deliveredAt: invoice.order?.deliveredAt ?? null,
       status: invoice.status,
+      currencyCode: invoice.currencyCode,
+      exchangeRateFromUsd: toNumber(invoice.exchangeRateFromUsd),
+      taxRate: toNumber(invoice.taxRate),
       subtotalAmount: toNumber(invoice.subtotalAmount),
       taxAmount: toNumber(invoice.taxAmount),
       totalAmount: toNumber(invoice.totalAmount),
@@ -254,8 +259,8 @@ export class FinanceService {
       throw new NotFoundException('Factura no encontrada');
     }
 
-    if (invoice.status !== InvoiceStatus.CERTIFICADA) {
-      throw new BadRequestException('Solo se puede enviar una factura en estado CERTIFICADA');
+    if (invoice.status !== InvoiceStatus.PAGADA) {
+      throw new BadRequestException('Solo se puede enviar una factura en estado PAGADA');
     }
 
     if (invoice.sentAt) {
@@ -270,9 +275,7 @@ export class FinanceService {
     });
 
     if (!hasApprovedPayment) {
-      throw new BadRequestException(
-        'No se puede enviar la factura al cliente hasta que el pago haya sido conciliado y aprobado.',
-      );
+      throw new BadRequestException('La factura debe tener un pago aprobado antes de enviarse al cliente.');
     }
 
     invoice.status = InvoiceStatus.ENVIADA;
@@ -309,7 +312,7 @@ export class FinanceService {
         subtotal: Number(invoice.subtotalAmount).toFixed(2),
         taxes: Number(invoice.taxAmount).toFixed(2),
         total: Number(invoice.totalAmount).toFixed(2),
-        currency: 'GTQ',
+        currency: invoice.currencyCode,
         pdfUrl: invoice.pdfPath ?? undefined,
         felAuthorizationCode: invoice.felUuid ?? undefined,
       });
@@ -340,6 +343,7 @@ export class FinanceService {
       status: payment.status,
       bankName: payment.bankName,
       bankReference: payment.bankReference,
+      currencyCode: payment.currencyCode,
       amount: toNumber(payment.amount),
       paymentDate: payment.paymentDate,
       reviewedByUserId: payment.reviewedByUserId,
@@ -374,7 +378,7 @@ export class FinanceService {
       payment.reviewedByUserId = reviewedByUserId;
       await paymentRepo.save(payment);
 
-      if (invoice.status === InvoiceStatus.ENVIADA) {
+      if (invoice.status === InvoiceStatus.CERTIFICADA) {
         invoice.status = InvoiceStatus.PAGADA;
         await invoiceRepo.save(invoice);
       }
@@ -399,6 +403,7 @@ export class FinanceService {
       vehicleTypeId: rate.vehicleTypeId,
       typeCode: rate.typeCode,
       typeName: rate.typeName,
+      baseCurrency: 'USD',
       minCapacityTon: toNumber(rate.minCapacityTon),
       maxCapacityTon: rate.maxCapacityTon === null ? null : toNumber(rate.maxCapacityTon),
       ratePerKm: toNumber(rate.ratePerKm),
@@ -424,6 +429,7 @@ export class FinanceService {
       vehicleTypeId: rate.vehicleTypeId,
       typeCode: rate.typeCode,
       typeName: rate.typeName,
+      baseCurrency: 'USD',
       ratePerKm: toNumber(rate.ratePerKm),
     };
   }

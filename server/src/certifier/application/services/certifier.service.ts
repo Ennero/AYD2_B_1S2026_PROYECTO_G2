@@ -56,7 +56,7 @@ export class CertifierService {
   async getPendingInvoices() {
     return this.dataSource.getRepository(Invoice).find({
       where: { status: InvoiceStatus.BORRADOR, serviceDescription: Not('') },
-      select: ['invoiceId', 'invoiceNumber', 'issueDate', 'clientName', 'clientNit', 'totalAmount', 'status'],
+      select: ['invoiceId', 'invoiceNumber', 'issueDate', 'clientName', 'clientNit', 'totalAmount', 'currencyCode', 'status'],
       order: { issueDate: 'ASC' },
     });
   }
@@ -67,7 +67,7 @@ export class CertifierService {
 
     const normalizedInputNit = clientNit.replace(/\D/g, '');
     const normalizedInvoiceNit = invoice.clientNit.replace(/\D/g, '');
-    const hasValidFormat = /^\d{13}$/.test(normalizedInputNit);
+    const hasValidFormat = /^\d{8,13}$/.test(normalizedInputNit);
     const isValid = hasValidFormat && normalizedInputNit === normalizedInvoiceNit;
 
     return {
@@ -120,6 +120,7 @@ export class CertifierService {
           invoiceId: targetInvoice.invoiceId,
           method: PaymentMethod.TRANSFERENCIA,
           status: PaymentStatus.PENDIENTE,
+          currencyCode: targetInvoice.currencyCode,
           amount: targetInvoice.totalAmount,
           paymentDate: new Date(),
           bankName: 'PENDIENTE_VALIDACION',
@@ -135,7 +136,7 @@ export class CertifierService {
 
     await this.notifyFinanceTeam(
       `FEL certificó ${invoice.invoiceNumber}`,
-      `La factura ${invoice.invoiceNumber} fue certificada correctamente en FEL y está lista para envío al cliente desde Finanzas.`,
+      `La factura ${invoice.invoiceNumber} fue certificada correctamente en FEL y quedó lista para conciliación de pago en Finanzas antes del envío al cliente.`,
       invoice,
     );
 
@@ -227,7 +228,7 @@ export class CertifierService {
             issueDate: issueDateText,
             dueDate: invoice.dueDate,
             total: Number(invoice.totalAmount).toFixed(2),
-            currency: 'GTQ',
+            currency: invoice.currencyCode,
             felAuthorizationCode: invoice.felUuid ?? undefined,
           })
           .catch((err: Error) =>

@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { Check, X, FileText, AlertTriangle, ShieldCheck } from "lucide-react"
 
 const EASE = [0.16, 1, 0.3, 1] as const
+const NIT_PATTERN = /^\d{8,13}$/
 
 function formatQ(amount: number | string) {
   return Number(amount).toLocaleString("es-GT", { minimumFractionDigits: 2 })
@@ -35,11 +36,18 @@ function CertifyModal({
   async function validateNit() {
     const val = nitToValidate.trim()
     if (!val) { toast.error("Debe ingresar un NIT para validar"); return }
+    const normalizedNit = val.replace(/\D/g, "")
+    if (!NIT_PATTERN.test(normalizedNit)) {
+      toast.error("El NIT debe tener entre 8 y 13 dígitos.")
+      setNitIsValid(false)
+      setNitValidatedForId(null)
+      return
+    }
     setIsValidatingNit(true)
     try {
       const res = await api.post<{ data: { invoiceId: string; clientNit: string; isValid: boolean } }>(
         ENDPOINTS.CERTIFIER.VALIDATE_NIT(invoice.invoiceId),
-        { clientNit: val },
+        { clientNit: normalizedNit },
       )
       const isValid = res.data.data.isValid
       setNitIsValid(isValid)
@@ -58,7 +66,7 @@ function CertifyModal({
       const pseudoFelUuid = crypto.randomUUID().toUpperCase()
       await api.patch(ENDPOINTS.CERTIFIER.CERTIFY(invoice.invoiceId), {
         felUuid: pseudoFelUuid,
-        clientNit: nitToValidate.trim(),
+        clientNit: nitToValidate.replace(/\D/g, ""),
       })
       toast.success(`Factura ${invoice.invoiceNumber} certificada con éxito`)
       onDone()
@@ -98,7 +106,7 @@ function CertifyModal({
                 {invoice.invoiceNumber}
               </h2>
               <p style={{ fontSize: "0.72rem", color: "#9A9489", marginTop: "2px" }}>
-                {invoice.clientName} · {invoice.currency || "GTQ"} {formatQ(invoice.totalAmount)}
+                {invoice.clientName} · {invoice.currency || invoice.currencyCode || "GTQ"} {formatQ(invoice.totalAmount)}
               </p>
             </div>
             <button onClick={onClose} disabled={isProcessing}
@@ -132,9 +140,13 @@ function CertifyModal({
             <div style={{ display: "flex", gap: "8px" }}>
               <input
                 style={inputStyle}
-                placeholder="Ingrese NIT a validar"
+                placeholder="Ingrese NIT (8 a 13 dígitos)"
                 value={nitToValidate}
-                onChange={(e) => { setNitToValidate(e.target.value); setNitIsValid(false); setNitValidatedForId(null) }}
+                onChange={(e) => {
+                  setNitToValidate(e.target.value.replace(/\D/g, "").slice(0, 13))
+                  setNitIsValid(false)
+                  setNitValidatedForId(null)
+                }}
                 disabled={isProcessing}
               />
               <button
@@ -391,7 +403,7 @@ export default function BandejaAprobacionPage() {
             gap: "0 1rem", padding: "0 1.25rem 0.6rem",
             borderBottom: "1px solid rgba(12,12,10,0.1)", marginBottom: "8px",
           }}>
-            {["Documento", "Cliente", "NIT", "Monto (GTQ)", "Acciones"].map((h, i) => (
+            {["Documento", "Cliente", "NIT", "Monto", "Acciones"].map((h, i) => (
               <span key={h} style={{ fontSize: "0.48rem", letterSpacing: "0.22em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, textAlign: i === 4 ? "right" : "left" }}>
                 {h}
               </span>
@@ -487,7 +499,7 @@ export default function BandejaAprobacionPage() {
 
                     {/* Monto */}
                     <p style={{ fontSize: "0.85rem", fontWeight: 900, color: "#0C0C0A", letterSpacing: "-0.01em" }}>
-                      {inv.currency || "GTQ"} {formatQ(inv.totalAmount)}
+                      {inv.currency || inv.currencyCode || "GTQ"} {formatQ(inv.totalAmount)}
                     </p>
 
                     {/* Acciones */}

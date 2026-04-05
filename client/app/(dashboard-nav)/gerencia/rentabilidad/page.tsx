@@ -23,8 +23,13 @@ const MONTHS = [
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
 ]
 
-function formatQ(n: number) {
-  return new Intl.NumberFormat("es-GT", { style: "currency", currency: "GTQ", minimumFractionDigits: 0 }).format(n)
+function formatUsd(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
 }
 
 /* ─── SVG Bar Chart — Swiss palette ─────────────────────── */
@@ -63,7 +68,7 @@ function BarChart({ data }: { data: RevenueClient[] }) {
           <g key={d.clientName}>
             <rect x={x - barW / 2} y={barY} width={barW} height={barH} fill="url(#barGrad)" rx={2} />
             <text x={x} y={barY - 5} textAnchor="middle" fontSize={7.5} fill="#C9924B" fontWeight="700">
-              {formatQ(d.ingresos)}
+              {formatUsd(d.ingresos)}
             </text>
             <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fontSize={8.5} fill="#9A9489">
               {shortName.length > 9 ? shortName.slice(0, 9) + "…" : shortName}
@@ -289,10 +294,10 @@ export default function RentabilidadPage() {
             </div>
             {loading ? <div style={{ height: "44px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }} /> : (
               <p style={{ fontSize: "clamp(1.4rem, 3vw, 2.2rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#C9924B", lineHeight: 1 }}>
-                {formatQ(totalFacturado)}
+                {formatUsd(totalFacturado)}
               </p>
             )}
-            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>{periodLabel}</p>
+            <p style={{ fontSize: "0.68rem", color: "#6B6260" }}>{periodLabel} · USD</p>
           </div>
 
           {/* Entregas a tiempo */}
@@ -344,7 +349,7 @@ export default function RentabilidadPage() {
               <p style={{ fontSize: "0.5rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
                 Ingresos por Cliente
               </p>
-              <p style={{ fontSize: "0.65rem", color: "#6B6260", marginBottom: "1.25rem" }}>{periodLabel} · Monto facturado (Q)</p>
+              <p style={{ fontSize: "0.65rem", color: "#6B6260", marginBottom: "1.25rem" }}>{periodLabel} · Monto facturado (USD)</p>
               {loading
                 ? <div style={{ height: "180px", background: "rgba(12,12,10,0.04)", borderRadius: "4px" }} />
                 : <BarChart data={data?.revenueByClient ?? []} />}

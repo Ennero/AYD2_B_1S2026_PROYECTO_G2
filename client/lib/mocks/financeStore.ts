@@ -204,7 +204,7 @@ export function getFinanceSummary(): FinanceSummary {
   const state = readState()
 
   const draftInvoicesPendingReview = state.invoices.filter((invoice) => invoice.status === "BORRADOR").length
-  const certifiedInvoicesPendingSend = state.invoices.filter((invoice) => invoice.status === "CERTIFICADA").length
+  const certifiedInvoicesPendingSend = state.invoices.filter((invoice) => invoice.status === "PAGADA").length
   const pendingPayments = state.payments.filter((payment) => payment.status === "PENDIENTE").length
   const collectedAmount = state.payments
     .filter((payment) => payment.status === "APROBADO")
@@ -257,8 +257,8 @@ export function sendCertifiedInvoice(invoiceId: string): FinanceInvoice {
     if (!invoice) {
       throw new Error("Factura no encontrada")
     }
-    if (invoice.status !== "CERTIFICADA") {
-      throw new Error("Solo se puede enviar una factura CERTIFICADA")
+    if (invoice.status !== "PAGADA") {
+      throw new Error("Solo se puede enviar una factura PAGADA")
     }
 
     invoice.status = "ENVIADA"
@@ -292,7 +292,7 @@ export function approvePayment(paymentId: string): FinancePayment {
     payment.status = "APROBADO"
 
     const invoice = draft.invoices.find((item) => item.invoiceId === payment.invoiceId)
-    if (invoice && invoice.status !== "RECHAZADA") {
+    if (invoice && invoice.status === "CERTIFICADA") {
       invoice.status = "PAGADA"
     }
   })

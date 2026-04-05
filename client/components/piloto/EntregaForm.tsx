@@ -8,7 +8,7 @@
 //   - Hora de recepción (obligatorio)
 //   - Observaciones (opcional)
 //   - Firma digital en canvas (obligatorio)
-//   - Evidencia fotográfica — input file + capture (opcional)
+//   - Evidencia fotográfica — input file + capture (obligatorio)
 //
 // Al confirmar construye EntregaPayload y llama onConfirm.
 // ============================================================
@@ -113,8 +113,16 @@ export default function EntregaForm({
     function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
         const files = e.target.files
         if (!files) return
+
+        const remainingSlots = 3 - photos.length
+        if (remainingSlots <= 0) {
+            e.target.value = ""
+            return
+        }
+
+        const selectedFiles = Array.from(files).slice(0, remainingSlots)
     
-        Array.from(files).forEach((file) => {
+        selectedFiles.forEach((file) => {
         const reader = new FileReader()
         reader.onload = (ev) => {
             if (ev.target?.result) {
@@ -134,7 +142,7 @@ export default function EntregaForm({
     // ── Validación y envío ────────────────────────────────────
     function handleConfirm() {
         setTouched(true)
-        if (!receiverName.trim() || !receiverTime || !signatureOk) return
+        if (!receiverName.trim() || !receiverTime || !signatureOk || photos.length === 0) return
     
         const canvas = canvasRef.current
         const signatureBase64 = canvas ? canvas.toDataURL("image/png") : ""
@@ -153,6 +161,7 @@ export default function EntregaForm({
     const nameError = touched && !receiverName.trim()
     const timeError = touched && !receiverTime
     const sigError  = touched && !signatureOk 
+    const photoError = touched && photos.length === 0
     
     return (
         <div className="rounded-xl overflow-hidden shadow-md">
@@ -285,16 +294,21 @@ export default function EntregaForm({
     
             {/* ── Evidencia Fotográfica ──────────────────────────── */}
             <div className="w-full md:w-1/2">
-                <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-4">
+                <div
+                className={cn(
+                    "bg-white border-2 border-dashed rounded-xl p-4",
+                    photoError ? "border-error" : "border-gray-300"
+                )}
+                >
                 <div className="flex items-center gap-2 mb-3">
                     <div className="bg-purple-50 text-purple-500 w-9 h-9 rounded-full flex items-center justify-center">
                     <Camera size={18} />
                     </div>
                     <div>
                     <p className="font-bold text-text-primary text-sm">
-                        Evidencia Fotográfica
+                        Evidencia Fotográfica <span className="text-error">*</span>
                     </p>
-                    <p className="text-xs text-text-muted">Opcional — máx. 3 fotos</p>
+                    <p className="text-xs text-text-muted">Obligatoria — máx. 3 fotos</p>
                     </div>
                 </div>
     
@@ -334,6 +348,12 @@ export default function EntregaForm({
                         onChange={handlePhotoChange}
                     />
                     </label>
+                )}
+
+                {photoError && (
+                    <p className="text-error text-xs mt-2">
+                    Debes adjuntar al menos una foto de evidencia.
+                    </p>
                 )}
                 </div>
             </div>

@@ -48,7 +48,8 @@ export interface Invoice {
   invoiceNumber: string
   issueDate: string
   totalAmount: number
-  currency: string
+  currency?: string
+  currencyCode?: string
   status: "BORRADOR" | "CERTIFICADA" | "RECHAZADA"
   clientName: string
   clientNit: string

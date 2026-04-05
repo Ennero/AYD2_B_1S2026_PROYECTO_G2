@@ -49,7 +49,7 @@ export default function FinanceRatesPage() {
     setSavingRateId(vehicleTypeId)
     try {
       const updated = await updateFinanceRate(vehicleTypeId, parsed)
-      toast.success(`Tarifa ${updated.typeName} actualizada a Q ${updated.ratePerKm.toFixed(2)}`)
+      toast.success(`Tarifa ${updated.typeName} actualizada a USD ${updated.ratePerKm.toFixed(2)}`)
       await refreshRates()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No fue posible actualizar la tarifa")
@@ -145,7 +145,7 @@ export default function FinanceRatesPage() {
                     <div style={{ textAlign: "center", flexShrink: 0 }}>
                       <p style={{ fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>Tarifa actual</p>
                       <p style={{ fontSize: "1.4rem", fontWeight: 900, letterSpacing: "-0.03em", color: dirty ? "#C9924B" : "#0C0C0A", lineHeight: 1 }}>
-                        Q {rate.ratePerKm.toFixed(2)}
+                        USD {rate.ratePerKm.toFixed(2)}
                       </p>
                       <p style={{ fontSize: "0.6rem", color: "#9A9489" }}>por km</p>
                     </div>
@@ -154,7 +154,7 @@ export default function FinanceRatesPage() {
                     <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", minWidth: "280px" }}>
                       <div style={{ flex: 1 }}>
                         <label style={{ display: "block", fontSize: "0.48rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
-                          Nueva tarifa por KM (GTQ)
+                          Nueva tarifa por KM (USD)
                         </label>
                         <input
                           type="number"

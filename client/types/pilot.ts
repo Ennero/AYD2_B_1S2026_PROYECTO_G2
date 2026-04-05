@@ -100,7 +100,7 @@ export interface RegistrarLogResponse {
 export interface EntregaPayload {
     receiverName: string
     receiverSignatureBase64: string          // canvas → base64 PNG
-    deliveryEvidenceBase64: string[]         // arreglo de fotos base64 (opcional)
+    deliveryEvidenceBase64: string[]         // arreglo obligatorio de fotos base64
     deliveredAt?: string                     // ISO string; si no se envía, backend usa NOW()
     notes?: string                           // Observaciones opcionales
 }

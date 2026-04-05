@@ -33,6 +33,9 @@ interface FinanceInvoiceApi {
   deliveredAt: string | null
   dueDate?: string | null
   status: FinanceInvoiceStatus
+  currencyCode?: string | null
+  exchangeRateFromUsd?: number | string | null
+  taxRate?: number | string | null
   paymentState?: {
     hasPendingPayment: boolean
     hasApprovedPayment: boolean
@@ -51,6 +54,7 @@ interface FinancePaymentApi {
   invoiceId: string
   invoiceNumber: string | null
   clientName: string | null
+  currencyCode?: string | null
   amount: number | string
   method: FinancePayment["method"]
   bankName?: string | null
@@ -65,6 +69,7 @@ interface FinanceRateApi {
   typeName: string
   minCapacityTon?: number | null
   maxCapacityTon?: number | null
+  baseCurrency?: string | null
   ratePerKm: number | string
 }
 
@@ -89,8 +94,11 @@ function toFinanceInvoice(invoice: FinanceInvoiceApi): FinanceInvoice {
     issueDate: invoice.issueDate,
     deliveredAt: invoice.deliveredAt ?? "",
     dueDate: invoice.dueDate ?? "",
+    currencyCode: invoice.currencyCode ?? "GTQ",
+    exchangeRateFromUsd: toNumber(invoice.exchangeRateFromUsd),
     subtotalAmount: toNumber(invoice.subtotalAmount),
     taxAmount: toNumber(invoice.taxAmount),
+    taxRate: toNumber(invoice.taxRate),
     totalAmount: toNumber(invoice.totalAmount),
     status: invoice.status,
     paymentState: invoice.paymentState,
@@ -107,6 +115,7 @@ function toFinancePayment(payment: FinancePaymentApi): FinancePayment {
     invoiceId: payment.invoiceId,
     invoiceNumber: payment.invoiceNumber ?? "-",
     clientName: payment.clientName ?? "-",
+    currencyCode: payment.currencyCode ?? undefined,
     amount: toNumber(payment.amount),
     method: payment.method,
     bankName: payment.bankName ?? undefined,
@@ -121,6 +130,7 @@ function toFinanceRate(rate: FinanceRateApi): FinanceRate {
     vehicleTypeId: rate.vehicleTypeId,
     typeCode: rate.typeCode,
     typeName: rate.typeName,
+    baseCurrency: rate.baseCurrency ?? 'USD',
     minCapacityTon: toNumber(rate.minCapacityTon),
     maxCapacityTon: rate.maxCapacityTon === null || rate.maxCapacityTon === undefined ? null : toNumber(rate.maxCapacityTon),
     ratePerKm: toNumber(rate.ratePerKm),

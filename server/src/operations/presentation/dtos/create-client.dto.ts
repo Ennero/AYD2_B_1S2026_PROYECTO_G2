@@ -1,7 +1,10 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum, IsEmail, MinLength, Matches } from 'class-validator';
+import { CountryCode } from '../../../domain/enums/country-code.enum';
+import { CurrencyCode } from '../../../domain/enums/currency-code.enum';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
 
 const PHONE_PATTERN = /^\+50[234]\d{8}$/;
+const NIT_PATTERN = /^\d{8,13}$/;
 
 export class CreateClientDto {
   @IsString()
@@ -10,6 +13,9 @@ export class CreateClientDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(NIT_PATTERN, {
+    message: 'nit debe contener entre 8 y 13 dígitos numéricos.',
+  })
   nit: string;
 
   @IsString()
@@ -36,6 +42,14 @@ export class CreateClientDto {
     message: 'primaryContactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
   })
   primaryContactPhone?: string;
+
+  @IsEnum(CountryCode)
+  @IsOptional()
+  countryCode?: CountryCode;
+
+  @IsEnum(CurrencyCode)
+  @IsOptional()
+  currencyCode?: CurrencyCode;
 
   @IsEnum(RiskLevel)
   @IsOptional()

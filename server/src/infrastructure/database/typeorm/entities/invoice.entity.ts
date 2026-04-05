@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { InvoiceStatus } from '../../../../domain/enums/invoice-status.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Order } from './order.entity';
 import { Client } from './client.entity';
 import { Payment } from './payment.entity';
@@ -48,6 +49,32 @@ export class Invoice {
 
   @Column({ name: 'service_description', type: 'text' })
   serviceDescription: string;
+
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
+
+  @Column({
+    name: 'exchange_rate_from_usd',
+    type: 'numeric',
+    precision: 14,
+    scale: 6,
+    default: 1,
+  })
+  exchangeRateFromUsd: number;
+
+  @Column({
+    name: 'tax_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.12,
+  })
+  taxRate: number;
 
   @Column({ name: 'subtotal_amount', type: 'numeric', precision: 14, scale: 2 })
   subtotalAmount: number;

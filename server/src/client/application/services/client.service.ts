@@ -81,6 +81,7 @@ export class ClientService {
       startDate: c.startDate,
       endDate: c.endDate,
       creditLimit: c.creditLimit !== null ? Number(c.creditLimit) : 0,
+      currencyCode: c.currencyCode,
       paymentTermDays: c.paymentTermDays,
     }));
   }
@@ -140,6 +141,7 @@ export class ClientService {
       orderId: order.orderId,
       orderNumber: order.orderNumber,
       status: order.status,
+      currencyCode: contract.currencyCode,
       pickupAddress: order.pickupAddress,
       deliveryAddress: order.deliveryAddress,
       declaredWeightTon: order.declaredWeightTon,
@@ -216,6 +218,7 @@ export class ClientService {
         origin: o.origin,
         destination: o.destination,
         declaredWeightTon: Number(o.declaredWeightTon),
+        currencyCode: o.currencyCode,
         totalAmount: Number(o.totalAmount),
         requestedAt: o.requestedAt,
         scheduledPickupAt: o.scheduledPickupAt,
@@ -267,6 +270,7 @@ export class ClientService {
       destination: order.destination,
       declaredWeightTon: Number(order.declaredWeightTon),
       loadedWeightTon: order.loadedWeightTon ? Number(order.loadedWeightTon) : null,
+      currencyCode: order.currencyCode,
       totalAmount: Number(order.totalAmount),
       requestedAt: order.requestedAt,
       scheduledPickupAt: order.scheduledPickupAt,
@@ -343,6 +347,8 @@ export class ClientService {
         felUuid: inv.felUuid,
         subtotalAmount: Number(inv.subtotalAmount),
         taxAmount: Number(inv.taxAmount),
+        taxRate: Number(inv.taxRate),
+        currencyCode: inv.currencyCode,
         totalAmount: Number(inv.totalAmount),
         status: inv.status,
         dueDate: inv.dueDate,
@@ -402,6 +408,7 @@ export class ClientService {
       bankAccountNumber: dto.bankAccountNumber,
       bankReference: dto.bankReference,
       supportDocumentPath: dto.supportDocumentPath,
+      currencyCode: invoice.currencyCode,
       amount: invoice.totalAmount,
       paymentDate: new Date(),
     });
@@ -410,6 +417,7 @@ export class ClientService {
     return {
       paymentId: payment.paymentId,
       invoiceNumber: invoice.invoiceNumber,
+      currencyCode: invoice.currencyCode,
       amount: Number(invoice.totalAmount),
       method: payment.method,
       status: payment.status,
@@ -443,6 +451,9 @@ export class ClientService {
             primaryContactName: user.client.primaryContactName,
             primaryContactEmail: user.client.primaryContactEmail,
             primaryContactPhone: user.client.primaryContactPhone,
+            countryCode: user.client.countryCode,
+            currencyCode: user.client.currencyCode,
+            taxRate: Number(user.client.taxRate),
             isBlocked: user.client.isBlocked,
             blockReason: user.client.blockReason,
           }
@@ -481,6 +492,7 @@ export class ClientService {
       where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
     });
     const creditLimit = activeContract?.creditLimit != null ? Number(activeContract.creditLimit) : 0;
+    const currencyCode = activeContract?.currencyCode ?? client.currencyCode;
 
     // ── Órdenes activas (a través de contratos del cliente) ──────────────
     const activeStatuses = [
@@ -568,6 +580,7 @@ export class ClientService {
       clientName: client.legalName,
       displayName: user.fullName,
       isBlocked: client.isBlocked,
+      currencyCode,
       creditLimit,
       totalOwed,
       availableCredit: creditLimit - totalOwed,
@@ -590,6 +603,7 @@ export class ClientService {
       where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
     });
     const creditLimit = activeContract?.creditLimit != null ? Number(activeContract.creditLimit) : 0;
+    const currencyCode = activeContract?.currencyCode ?? client.currencyCode;
 
     // Facturas con deuda activa (CERTIFICADA y ENVIADA menos pagos aprobados)
     const outstandingInvoices = await this.dataSource
@@ -654,6 +668,7 @@ export class ClientService {
     const totalOwed = current + overdue30 + critical;
 
     return {
+      currencyCode,
       creditLimit,
       totalOwed,
       availableCredit: creditLimit - totalOwed,
@@ -677,6 +692,9 @@ export class ClientService {
       endDate: c.endDate,
       acceptedAt: c.acceptedAt,
       creditLimit: c.creditLimit !== null ? Number(c.creditLimit) : null,
+      currencyCode: c.currencyCode,
+      exchangeRateFromUsd: Number(c.exchangeRateFromUsd),
+      taxRate: Number(c.taxRate),
       paymentTermDays: c.paymentTermDays,
       discountPercentage: Number(c.discountPercentage),
       notes: c.notes,
@@ -714,6 +732,9 @@ export class ClientService {
       endDate: contract.endDate,
       acceptedAt: contract.acceptedAt,
       creditLimit: contract.creditLimit !== null ? Number(contract.creditLimit) : null,
+      currencyCode: contract.currencyCode,
+      exchangeRateFromUsd: Number(contract.exchangeRateFromUsd),
+      taxRate: Number(contract.taxRate),
       paymentTermDays: contract.paymentTermDays,
       discountPercentage: Number(contract.discountPercentage),
       notes: contract.notes,
@@ -785,6 +806,9 @@ export class ClientService {
         status: contract.status,
         acceptedAt: contract.acceptedAt,
         creditLimit: contract.creditLimit !== null ? Number(contract.creditLimit) : null,
+        currencyCode: contract.currencyCode,
+        exchangeRateFromUsd: Number(contract.exchangeRateFromUsd),
+        taxRate: Number(contract.taxRate),
       };
     });
   }
@@ -810,6 +834,7 @@ export class ClientService {
       contractId: contract.contractId,
       contractNumber: contract.contractNumber,
       status: contract.status,
+      currencyCode: contract.currencyCode,
     };
   }
 

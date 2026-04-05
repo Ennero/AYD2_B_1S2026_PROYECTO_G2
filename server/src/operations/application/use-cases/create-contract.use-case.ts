@@ -20,6 +20,9 @@ export interface CreateContractOutput {
   contractId: number;
   contractNumber: string;
   status: ContractStatus;
+  currencyCode: string;
+  exchangeRateFromUsd: number;
+  taxRate: number;
 }
 
 @Injectable()
@@ -96,7 +99,24 @@ export class CreateContractUseCase {
       contractNumber: string;
       status: ContractStatus;
       endDate: string;
+      currencyCode: string;
+      exchangeRateFromUsd: number;
+      taxRate: number;
     };
+
+    const resolvedCurrencyCode = client.currencyCode;
+    const resolvedTaxRate = Number(client.taxRate ?? 0.12);
+    const exchangeRateRow = await this.dataSource.query<{ rate_from_usd: string }>(
+      'SELECT rate_from_usd FROM exchange_rates WHERE currency_code = $1 LIMIT 1',
+      [resolvedCurrencyCode],
+    );
+    const resolvedExchangeRate = Number(exchangeRateRow[0]?.rate_from_usd ?? 0);
+
+    if (!Number.isFinite(resolvedExchangeRate) || resolvedExchangeRate <= 0) {
+      throw new BadRequestException(
+        `No existe una tasa de cambio configurada para la moneda ${resolvedCurrencyCode}.`,
+      );
+    }
 
     try {
       savedContract = await this.dataSource.transaction(async (em) => {
@@ -109,22 +129,31 @@ export class CreateContractUseCase {
           contract_number: string;
           status: ContractStatus;
           end_date: string;
+          currency_code: string;
+          exchange_rate_from_usd: string;
+          tax_rate: string;
         }>(
           `INSERT INTO contracts (
             contract_number,
             client_id,
             status,
             credit_limit,
+            currency_code,
+            exchange_rate_from_usd,
+            tax_rate,
             payment_term_days,
             discount_percentage
           )
-          VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING contract_id, contract_number, status, end_date`,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          RETURNING contract_id, contract_number, status, end_date, currency_code, exchange_rate_from_usd, tax_rate`,
           [
             contractNumber,
             normalizedClientId,
             ContractStatus.PENDIENTE,
             input.creditLimit,
+            resolvedCurrencyCode,
+            resolvedExchangeRate,
+            resolvedTaxRate,
             input.paymentTermDays,
             input.discountPercentage ?? 0,
           ],
@@ -166,6 +195,9 @@ export class CreateContractUseCase {
           contractNumber: inserted.contract_number,
           status: inserted.status,
           endDate: inserted.end_date,
+          currencyCode: inserted.currency_code,
+          exchangeRateFromUsd: Number(inserted.exchange_rate_from_usd),
+          taxRate: Number(inserted.tax_rate),
         };
       });
     } catch (error) {
@@ -195,7 +227,7 @@ export class CreateContractUseCase {
         routes: routeLabels,
         validUntil: savedContract.endDate,
         totalAmount: Number(input.creditLimit).toFixed(2),
-        currency: 'GTQ',
+        currency: savedContract.currencyCode,
         agentName,
       })
       .catch((err: Error) =>
@@ -208,6 +240,9 @@ export class CreateContractUseCase {
       contractId: savedContract.contractId,
       contractNumber: savedContract.contractNumber,
       status: savedContract.status,
+      currencyCode: savedContract.currencyCode,
+      exchangeRateFromUsd: savedContract.exchangeRateFromUsd,
+      taxRate: savedContract.taxRate,
     };
   }
 }

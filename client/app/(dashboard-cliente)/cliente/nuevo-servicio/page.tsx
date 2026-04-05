@@ -33,6 +33,7 @@ interface ActiveContract {
   startDate: string
   endDate: string
   creditLimit: number
+  currencyCode: "GTQ" | "USD" | "HNL"
   paymentTermDays: number
 }
 
@@ -311,7 +312,11 @@ function Step2({
               label="Límite de crédito"
               value={
                 activeContract
-                  ? `Q ${activeContract.creditLimit.toLocaleString("es-GT", { minimumFractionDigits: 2 })}`
+                  ? new Intl.NumberFormat("es-GT", {
+                      style: "currency",
+                      currency: activeContract.currencyCode,
+                      minimumFractionDigits: 2,
+                    }).format(activeContract.creditLimit)
                   : "—"
               }
             />

@@ -2,7 +2,7 @@
 export class DeliverOrderDto {
     receiverName: string;
     receiverSignatureBase64: string;
-    deliveryEvidenceBase64?: string[];
+    deliveryEvidenceBase64: string[];
     deliveredAt?: string;
     notes?: string;
 }

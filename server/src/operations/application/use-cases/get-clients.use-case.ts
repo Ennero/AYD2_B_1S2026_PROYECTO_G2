@@ -23,6 +23,8 @@ export class GetClientsUseCase {
       clientCode: client.clientCode,
       legalName: client.legalName,
       nit: client.nit,
+      countryCode: client.countryCode,
+      currencyCode: client.currencyCode,
     }));
   }
 }

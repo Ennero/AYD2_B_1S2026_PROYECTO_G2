@@ -12,6 +12,7 @@ export interface DashboardSummaryData {
   certifiedInvoicesPendingSend: number;
   pendingPayments: number;
   collectedAmount: number;
+  baseCurrency?: 'USD';
 }
 
 /**
