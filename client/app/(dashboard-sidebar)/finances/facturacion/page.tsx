@@ -72,7 +72,7 @@ function SendModal({ invoice, onClose, onConfirm, loading }: {
         <div style={{ padding: "1.75rem 2rem 2rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
             <div>
-              <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#3A8E2A", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Enviar factura certificada</p>
+              <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#3A8E2A", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Enviar factura pagada</p>
               <h2 style={{ fontSize: "1.2rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>{invoice.invoiceNumber}</h2>
             </div>
             <button onClick={onClose} disabled={loading} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A9489" }}><X size={16} /></button>
@@ -118,7 +118,7 @@ export default function FinanceBillingPage() {
     try {
       const [draft, certified] = await Promise.all([
         fetchFinanceInvoices("BORRADOR"),
-        fetchFinanceInvoices("CERTIFICADA"),
+        fetchFinanceInvoices("PAGADA"),
       ])
       setDraftInvoices(draft)
       setCertifiedInvoices(certified)
@@ -196,8 +196,8 @@ export default function FinanceBillingPage() {
           <div style={{ width: "3px", height: "3px", borderRadius: "50%", background: "#C9924B", flexShrink: 0 }} />
           <p style={{ fontSize: "0.72rem", color: "#9A9489", lineHeight: 1.5 }}>
             Primero aparecen los <span style={{ color: "#C9924B", fontWeight: 700 }}>BORRADOR</span> generados al entregar la orden,
-            luego las facturas <span style={{ color: "#3A8E2A", fontWeight: 700 }}>CERTIFICADAS</span>. El envío al cliente se habilita
-            solo cuando Tesorería concilia y aprueba el pago.
+            luego pasan por <span style={{ color: "#3A8E2A", fontWeight: 700 }}>CERTIFICADA</span> y después a <span style={{ color: "#3A8E2A", fontWeight: 700 }}>PAGADA</span>.
+            Solo las facturas PAGADAS se habilitan para envío al cliente.
           </p>
         </motion.div>
 
@@ -274,17 +274,17 @@ export default function FinanceBillingPage() {
           </div>
         </motion.div>
 
-        {/* ── CERTIFICADAS ── */}
+        {/* ── PAGADAS LISTAS PARA ENVIAR ── */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6, ease: EASE }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
             <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: "#3A8E2A" }} />
             <p style={{ fontSize: "0.55rem", letterSpacing: "0.25em", color: "#3A8E2A", textTransform: "uppercase", fontWeight: 700 }}>
-              Certificadas por FEL · {filteredCertified.length}
+              Pagadas listas para envío · {filteredCertified.length}
             </p>
           </div>
           <p style={{ fontSize: "0.72rem", color: "#9A9489", marginBottom: "10px" }}>
-            Luego de la aprobación fiscal, requieren conciliación de pago para habilitar su envío.
+            Estas facturas ya tienen pago aprobado y pueden enviarse al cliente.
           </p>
 
           <div style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
@@ -293,7 +293,7 @@ export default function FinanceBillingPage() {
             {loadingData ? (
               <p style={{ padding: "1.5rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>Cargando...</p>
             ) : filteredCertified.length === 0 ? (
-              <p style={{ padding: "2rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>No hay facturas CERTIFICADAS pendientes de envío.</p>
+              <p style={{ padding: "2rem", fontSize: "0.75rem", color: "#9A9489", textAlign: "center" }}>No hay facturas PAGADAS pendientes de envío.</p>
             ) : (
               filteredCertified.map(inv => (
                 <InvoiceRow key={inv.invoiceId} accent="#3A8E2A">
@@ -307,36 +307,27 @@ export default function FinanceBillingPage() {
                   </span>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(58,142,42,0.08)", borderRadius: "3px", padding: "2px 7px" }}>
                     <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#3A8E2A" }} />
-                    <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#3A8E2A" }}>Certificada</span>
+                    <span style={{ fontSize: "0.48rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#3A8E2A" }}>Pagada</span>
                   </span>
                   <div style={{ textAlign: "right" }}>
-                    {!inv.paymentState?.hasApprovedPayment && (
-                      <p style={{ fontSize: "0.58rem", color: "#9A9489", marginBottom: "4px" }}>
-                        Conciliación pendiente
-                      </p>
-                    )}
                     <button
-                      onClick={() => inv.paymentState?.hasApprovedPayment && setSelectedCertified(inv)}
-                      disabled={!inv.paymentState?.hasApprovedPayment}
+                      onClick={() => setSelectedCertified(inv)}
+                      disabled={false}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: "5px",
                         padding: "0.35rem 0.85rem",
-                        background: inv.paymentState?.hasApprovedPayment ? "#3A8E2A" : "rgba(58,142,42,0.35)",
+                        background: "#3A8E2A",
                         border: "none",
                         borderRadius: "3px", fontSize: "0.55rem", fontWeight: 700,
                         letterSpacing: "0.1em", textTransform: "uppercase", color: "#ffffff",
-                        cursor: inv.paymentState?.hasApprovedPayment ? "pointer" : "not-allowed",
+                        cursor: "pointer",
                         transition: "background 0.15s",
                       }}
                       onMouseOver={e => {
-                        if (inv.paymentState?.hasApprovedPayment) {
-                          e.currentTarget.style.background = "#2E7321"
-                        }
+                        e.currentTarget.style.background = "#2E7321"
                       }}
                       onMouseOut={e => {
-                        e.currentTarget.style.background = inv.paymentState?.hasApprovedPayment
-                          ? "#3A8E2A"
-                          : "rgba(58,142,42,0.35)"
+                        e.currentTarget.style.background = "#3A8E2A"
                       }}
                     >
                       <Mail size={11} /> Enviar

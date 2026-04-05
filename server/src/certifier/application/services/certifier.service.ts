@@ -136,7 +136,7 @@ export class CertifierService {
 
     await this.notifyFinanceTeam(
       `FEL certificó ${invoice.invoiceNumber}`,
-      `La factura ${invoice.invoiceNumber} fue certificada correctamente en FEL y está lista para envío al cliente desde Finanzas.`,
+      `La factura ${invoice.invoiceNumber} fue certificada correctamente en FEL y quedó lista para conciliación de pago en Finanzas antes del envío al cliente.`,
       invoice,
     );
 

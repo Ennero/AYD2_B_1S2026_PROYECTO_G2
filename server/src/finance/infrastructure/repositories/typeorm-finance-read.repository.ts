@@ -40,7 +40,7 @@ export class TypeOrmFinanceReadRepository implements IFinanceReadRepository {
 
     const [draftCount, certifiedCount, pendingCount, collectedRow] = await Promise.all([
       invoiceRepo.count({ where: { status: InvoiceStatus.BORRADOR } }),
-      invoiceRepo.count({ where: { status: InvoiceStatus.CERTIFICADA } }),
+      invoiceRepo.count({ where: { status: InvoiceStatus.PAGADA } }),
       paymentRepo.count({ where: { status: PaymentStatus.PENDIENTE } }),
       this.dataSource.query<{ collected_amount_usd: string }[]>(
         `

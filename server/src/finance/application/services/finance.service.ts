@@ -53,7 +53,7 @@ export class FinanceService {
     });
 
     const certifiedInvoicesPendingSend = await invoiceRepo.count({
-      where: { status: InvoiceStatus.CERTIFICADA },
+      where: { status: InvoiceStatus.PAGADA },
     });
 
     const paymentRepo = this.dataSource.getRepository(Payment);
@@ -259,8 +259,8 @@ export class FinanceService {
       throw new NotFoundException('Factura no encontrada');
     }
 
-    if (invoice.status !== InvoiceStatus.CERTIFICADA) {
-      throw new BadRequestException('Solo se puede enviar una factura en estado CERTIFICADA');
+    if (invoice.status !== InvoiceStatus.PAGADA) {
+      throw new BadRequestException('Solo se puede enviar una factura en estado PAGADA');
     }
 
     if (invoice.sentAt) {
@@ -275,9 +275,7 @@ export class FinanceService {
     });
 
     if (!hasApprovedPayment) {
-      throw new BadRequestException(
-        'No se puede enviar la factura al cliente hasta que el pago haya sido conciliado y aprobado.',
-      );
+      throw new BadRequestException('La factura debe tener un pago aprobado antes de enviarse al cliente.');
     }
 
     invoice.status = InvoiceStatus.ENVIADA;
@@ -380,7 +378,7 @@ export class FinanceService {
       payment.reviewedByUserId = reviewedByUserId;
       await paymentRepo.save(payment);
 
-      if (invoice.status === InvoiceStatus.ENVIADA) {
+      if (invoice.status === InvoiceStatus.CERTIFICADA) {
         invoice.status = InvoiceStatus.PAGADA;
         await invoiceRepo.save(invoice);
       }

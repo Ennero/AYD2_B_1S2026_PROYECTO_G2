@@ -55,7 +55,7 @@ export default function FinanceDashboardPage() {
       color: "#C9924B",
     },
     {
-      label: "Certificadas",
+      label: "Pagadas",
       sub: "Listas para envío",
       value: summary.certifiedInvoicesPendingSend,
       icon: <CheckCircle2 size={16} />,
@@ -87,7 +87,7 @@ export default function FinanceDashboardPage() {
       step: "01",
       icon: <FileClock size={15} />,
       title: "Bandeja de Facturación",
-      desc: "Revisa borradores y envía facturas certificadas al cliente.",
+      desc: "Revisa borradores y envía facturas pagadas al cliente.",
     },
     {
       href: "/finances/pagos",

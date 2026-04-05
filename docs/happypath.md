@@ -1,6 +1,6 @@
 # LogiTrans Guatemala — Manual de Usuario: Happy Path MVP
 
-> **Propósito**: Este documento describe el happy path del MVP de LogiTrans con enfoque multivisa (GTQ, USD, HNL), desde el acceso inicial hasta el cierre de pago de factura (`PAGADA`).
+> **Propósito**: Este documento describe el happy path del MVP de LogiTrans con enfoque multivisa (GTQ, USD, HNL), desde el acceso inicial hasta el envío final de factura al cliente (`ENVIADA`) después de conciliación de pago.
 >
 > **Acceso al sistema**: Portal de Clientes LogiTrans (según ambiente configurado)
 >
@@ -22,7 +22,7 @@
 | 8 | Piloto | Confirmar entrega con evidencia |
 | 9 | Agente Financiero | Revisar borrador y enviar a certificador |
 | 10 | Certificador FEL | Validar NIT y certificar factura |
-| 11 | Agente Financiero | Enviar factura al cliente y cierre de pago |
+| 11 | Agente Financiero | Conciliar pago y enviar factura al cliente |
 
 ---
 
@@ -47,7 +47,8 @@ Usa nombres desde `90_` en adelante para distinguir recapturas multivisa. Ejempl
 
 ### 0.3 Regla de reemplazo
 
-En cada sección se dejó al menos una referencia **PENDIENTE**. Puedes:
+Este documento ya incluye evidencias multivisa consolidadas (sin placeholders pendientes por completar).
+Si en una recaptura futura necesitas actualizar evidencias, puedes:
 1. Reemplazar la imagen histórica existente.
 2. O agregar la nueva captura multivisa con nombre `90+` y mantener la histórica.
 
@@ -544,6 +545,7 @@ Mientras el piloto registra eventos, el cliente puede visualizar el tracking en 
 
 ![FEL - NIT validado correctamente](imgs/happypath/114_fel_modal_certificar_nit_validado_hnl.jpeg)
 ![FEL - Factura certificada con éxito](imgs/happypath/115_fel_certificacion_exitosa_toast.jpeg)
+![FEL - Correo de notificación a Finanzas](imgs/happypath/125_email_finanzas_fel_certifico_fac_000065.png)
 
 ### 10.3 Flujo alterno de rechazo documentado
 
@@ -558,24 +560,23 @@ Este escenario alterno también quedó registrado para evidenciar control tribut
 
 ---
 
-## 11. Módulo Financiero — Enviar Factura al Cliente
+## 11. Módulo Financiero — Conciliar Pago y Enviar Factura al Cliente
 **Actor**: Agente Financiero
 
-### 11.1 Identificar factura certificada lista para envío
+### 11.1 Identificar factura certificada para conciliación
 
 1. Regresa a la sesión de Finanzas.
 2. Abre **"Bandeja de Facturación"**.
-3. Verifica que `[FAC-XXXX]` aparece en sección **CERTIFICADAS POR FEL** con botón **"Enviar"** habilitado.
+3. Verifica que `[FAC-XXXX]` aparece en la etapa **CERTIFICADA**.
 
 ![Finanzas - FAC-000065 certificada y lista para enviar](imgs/happypath/116_finanzas_bandeja_certificadas_envio_habilitado.jpeg)
 
-### 11.2 Conciliar pago para habilitar envío
+### 11.2 Conciliar pago (CERTIFICADA -> PAGADA)
 
 1. En el menú lateral, abre **"Conciliar Pagos"**.
 2. Localiza la factura `[FAC-XXXX]` en la lista de pagos con acción requerida.
 3. Presiona **"Aprobar"** para conciliar el pago registrado.
-4. Regresa a **"Bandeja de Facturación"** y verifica que la factura queda habilitada para envío al cliente.
-
+4. Verifica que la factura pasa al estado interno **`PAGADA`** y queda habilitada para envío al cliente.
 5. Valida que el pago use la misma moneda que la factura.
 
 ![Finanzas - Lista de pagos con acción requerida para conciliación](imgs/happypath/122_finanzas_conciliar_pagos_lista_accion_requerida.jpeg)
@@ -600,31 +601,30 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 1. El correo del cliente recibe la notificación **"Factura [FAC-XXXX] emitida"** con datos de documento y monto en moneda correcta.
 2. En el portal del cliente, módulo **"Mis Facturas"**, ya aparece `[FAC-XXXX]` con su monto y estado.
 
-![Cliente - Correo de factura emitida FAC-000065](imgs/happypath/75_email_factura_emitida_fac_000065.png)
-![Cliente - Mis Facturas con FAC-000065 visible](imgs/happypath/76_cliente_mis_facturas_fac_000065.jpeg)
+![Cliente - Correo de factura emitida FAC-000065 en HNL](imgs/happypath/124_email_cliente_factura_emitida_hnl.png)
+![Cliente - Mis Facturas en estado ENVIADA](imgs/happypath/129_cliente_facturas_estado_enviada_fac_000065.jpeg)
+![Cliente - Detalle de factura en estado ENVIADA](imgs/happypath/130_cliente_factura_detalle_estado_enviada_fac_000065.jpeg)
 
-![PENDIENTE - Correo de factura emitida con moneda dinámica](imgs/happypath/86_multivisa_email_factura_moneda.jpeg)
-![Cliente - Detalle de factura en portal con desglose monetario dinámico](imgs/happypath/87_multivisa_cliente_mis_facturas_moneda.jpeg)
+> Importante: el estado de **factura** evoluciona como `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA` (o `RECHAZADA` si FEL la rechaza). El estado `PENDIENTE` corresponde al **pago** en tesorería, no al estado de la factura.
 
-> Importante: el estado de **factura** evoluciona como `BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA` (o `RECHAZADA` si FEL la rechaza). El estado `PENDIENTE` corresponde al **pago** en tesorería, no al estado de la factura.
+### 11.5 Trazabilidad de estados en portal del cliente
 
-### 11.5 Cierre del ciclo de pago (`PAGADA`)
+1. Verifica que la factura aparezca inicialmente en **`BORRADOR`** cuando se genera automáticamente.
+2. Después de certificación FEL, confirma visualización en **`CERTIFICADA`**.
+3. Tras conciliación y envío desde Finanzas, confirma estado final **`ENVIADA`**.
 
-1. Registra o aprueba el pago final en Finanzas para la factura `[FAC-XXXX]`.
-2. Verifica que la factura cambie de **`ENVIADA`** a **`PAGADA`**.
-3. Confirma que el estado en portal cliente y módulos financieros sea consistente.
-
-![PENDIENTE - Factura en estado PAGADA en Finanzas](imgs/happypath/88_multivisa_finanzas_factura_pagada.jpeg)
-![PENDIENTE - Factura en estado PAGADA en Portal Cliente](imgs/happypath/89_multivisa_cliente_factura_pagada.jpeg)
+![Cliente - Mis Facturas en estado BORRADOR](imgs/happypath/126_cliente_facturas_estado_borrador_fac_000065.jpeg)
+![Cliente - Mis Facturas en estado CERTIFICADA](imgs/happypath/128_cliente_facturas_estado_certificada_fac_000065.jpeg)
+![Cliente - Detalle de factura en estado CERTIFICADA](imgs/happypath/127_cliente_factura_detalle_estado_certificada_fac_000065.jpeg)
 
 ### 11.6 Referencia rápida de estados (Factura vs Pago)
 
 | Dominio | Estados válidos | Nota |
 |---|---|---|
-| Factura | `BORRADOR`, `CERTIFICADA`, `ENVIADA`, `PAGADA`, `RECHAZADA` | Se muestra en bandejas de factura y portal cliente. |
+| Factura | `BORRADOR`, `CERTIFICADA`, `PAGADA`, `ENVIADA`, `RECHAZADA` | Se muestra en bandejas de factura y portal cliente. |
 | Pago | `PENDIENTE`, `APROBADO`, `RECHAZADO` | Se muestra en conciliación de pagos y tesorería. |
 
-> Al aprobar pago y enviar factura, el cliente debe ver la factura como `ENVIADA` (no `PENDIENTE`).
+> Al aprobar pago y luego enviar factura, el cliente debe ver la factura como `ENVIADA` (no `PENDIENTE`).
 
 ---
 
@@ -653,6 +653,9 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 
 > Resultado esperado: la tarjeta de facturación mantiene visualización USD para cualquier período.
 
+![Gerencia - KPI de Facturación en USD (anual)](imgs/happypath/118_gerencia_kpi_facturacion_usd.jpeg)
+![Gerencia - KPI de Facturación en USD (mensual)](imgs/happypath/120_gerencia_kpi_facturacion_usd_mensual.jpeg)
+
 ### 12.3 Validar rentabilidad y montos por cliente en USD
 
 1. En **Rentabilidad**, valida que:
@@ -663,6 +666,8 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 
 > Resultado esperado: todos los montos monetarios del módulo de rentabilidad se muestran normalizados a USD.
 
+![Gerencia - Rentabilidad: Facturación Total e Ingresos por Cliente en USD](imgs/happypath/119_gerencia_rentabilidad_facturacion_total_usd.jpeg)
+
 ### 12.4 Validar alertas y proyecciones
 
 1. En **Alertas y Proyecciones**, confirma que:
@@ -672,31 +677,4 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 
 > Resultado esperado: la vista de alertas conserva su comportamiento y tiempos de respuesta esperados.
 
-### 12.5 Evidencia recomendada para esta sección
-
-Para dejar cerrada la evidencia de Gerencia en este happy path, se recomienda capturar al menos:
-
-1. Vista **Operaciones y KPIs** mostrando Facturación en USD.
-2. Vista **Rentabilidad** mostrando Facturación Total en USD.
-3. Gráfico **Ingresos por Cliente** con etiquetas en USD.
-4. Vista **Alertas y Proyecciones** con datos cargados.
-
-### 12.6 Nomenclatura sugerida para capturas (Gerencia)
-
-Usa esta convención para mantener consistencia con el resto del documento:
-
-| Evidencia | Archivo sugerido |
-|---|---|
-| KPI de Facturación en USD | `118_gerencia_kpi_facturacion_usd.jpeg` |
-| Facturación Total en USD (Rentabilidad) | `119_gerencia_rentabilidad_facturacion_total_usd.jpeg` |
-| Gráfico de ingresos por cliente en USD | `120_gerencia_rentabilidad_ingresos_cliente_usd.jpeg` |
-| Alertas y Proyecciones con datos cargados | `121_gerencia_alertas_proyecciones_dashboard.jpeg` |
-
-Plantilla lista para copiar y pegar cuando las capturas ya estén en `docs/imgs/happypath/`:
-
-```markdown
-![Gerencia - KPI de Facturación en USD](imgs/happypath/118_gerencia_kpi_facturacion_usd.jpeg)
-![Gerencia - Rentabilidad: Facturación Total en USD](imgs/happypath/119_gerencia_rentabilidad_facturacion_total_usd.jpeg)
-![Gerencia - Rentabilidad: Ingresos por Cliente en USD](imgs/happypath/120_gerencia_rentabilidad_ingresos_cliente_usd.jpeg)
 ![Gerencia - Alertas y Proyecciones con datos cargados](imgs/happypath/121_gerencia_alertas_proyecciones_dashboard.jpeg)
-```
