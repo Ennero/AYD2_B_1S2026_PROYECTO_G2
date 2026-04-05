@@ -15,6 +15,7 @@ import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 import { STORAGE_SERVICE_TOKEN } from '../../../storage/domain/storage.service.interface';
 import type { IStorageService } from '../../../storage/domain/storage.service.interface';
+import { EmailService } from '../../../notifications/email/application/email.service';
 
 export interface DeliverOrderInput {
     receiverName: string;
@@ -39,6 +40,7 @@ export class DeliverOrderUseCase {
         private readonly dataSource: DataSource,
         private readonly config: ConfigService,
         @Inject(STORAGE_SERVICE_TOKEN) private readonly storage: IStorageService,
+        private readonly emailService: EmailService,
     ) {}
 
     async execute(
@@ -57,7 +59,10 @@ export class DeliverOrderUseCase {
 
         return this.dataSource.transaction(async (em) => {
             const orderRepo = em.getRepository(Order);
-            const order = await orderRepo.findOneBy({ orderId });
+            const order = await orderRepo.findOne({
+                where: { orderId },
+                relations: { contract: { client: true }, cargoType: true },
+            });
 
             if (!order) {
                 throw new NotFoundException(`Orden ${orderId} no encontrada.`);
@@ -139,6 +144,33 @@ export class DeliverOrderUseCase {
                 eventTime:   deliveredAt,
             });
             await logRepo.save(log);
+
+            const clientEmail = order.contract?.client?.primaryContactEmail;
+            const clientName = order.contract?.client?.primaryContactName;
+
+            if (clientEmail && clientName) {
+                this.emailService
+                    .sendOrderDelivered({
+                        to: clientEmail,
+                        clientName,
+                        orderNumber: order.orderNumber,
+                        destination: order.destination ?? order.deliveryAddress,
+                        deliveredAt: deliveredAt.toLocaleString('es-GT'),
+                        receiverName: input.receiverName,
+                        cargoType: order.cargoType?.cargoName ?? undefined,
+                        totalAmount: Number(order.totalAmount).toFixed(2),
+                        currency: order.currencyCode,
+                    })
+                    .catch((err: Error) =>
+                        this.logger.error(
+                            `Error al enviar email de entrega para ${order.orderNumber}: ${err.message}`,
+                        ),
+                    );
+            } else {
+                this.logger.warn(
+                    `No se envió email de entrega para ${order.orderNumber} por falta de correo/contacto del cliente.`,
+                );
+            }
 
             // 7. Marcar la unidad como disponible nuevamente
             const unitRepo = em.getRepository(TransportUnit);

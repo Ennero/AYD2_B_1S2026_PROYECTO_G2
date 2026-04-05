@@ -1,10 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+    Injectable,
+    NotFoundException,
+    ForbiddenException,
+    BadRequestException,
+    Logger,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { TransportUnit } from '../../../infrastructure/database/typeorm/entities/transport-unit.entity';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
+import { EmailService } from '../../../notifications/email/application/email.service';
 
 export interface StartTripOutput {
     orderId: number;
@@ -14,7 +21,12 @@ export interface StartTripOutput {
 
 @Injectable()
 export class StartTripUseCase {
-    constructor(private readonly dataSource: DataSource) {}
+    private readonly logger = new Logger(StartTripUseCase.name);
+
+    constructor(
+        private readonly dataSource: DataSource,
+        private readonly emailService: EmailService,
+    ) {}
 
     async execute(orderId: number, pilotUserId: number): Promise<StartTripOutput> {
         // 1. Verificar unidad del piloto
@@ -28,7 +40,10 @@ export class StartTripUseCase {
 
         return this.dataSource.transaction(async (em) => {
         const orderRepo = em.getRepository(Order);
-        const order = await orderRepo.findOneBy({ orderId });
+        const order = await orderRepo.findOne({
+            where: { orderId },
+            relations: { contract: { client: true }, cargoType: true, unit: true },
+        });
 
         if (!order) {
             throw new NotFoundException(`Orden ${orderId} no encontrada.`);
@@ -61,6 +76,32 @@ export class StartTripUseCase {
             eventTime: dispatchedAt,
         });
         await logRepo.save(log);
+
+        const clientEmail = order.contract?.client?.primaryContactEmail;
+        const clientName = order.contract?.client?.primaryContactName;
+
+        if (clientEmail && clientName) {
+            this.emailService
+                .sendOrderDispatched({
+                    to: clientEmail,
+                    clientName,
+                    orderNumber: order.orderNumber,
+                    origin: order.origin ?? order.pickupAddress,
+                    destination: order.destination ?? order.deliveryAddress,
+                    dispatchedAt: dispatchedAt.toLocaleString('es-GT'),
+                    cargoType: order.cargoType?.cargoName ?? undefined,
+                    unitPlate: order.unit?.plateNumber ?? undefined,
+                })
+                .catch((err: Error) =>
+                    this.logger.error(
+                        `Error al enviar email de salida para ${order.orderNumber}: ${err.message}`,
+                    ),
+                );
+        } else {
+            this.logger.warn(
+                `No se envió email de salida para ${order.orderNumber} por falta de correo/contacto del cliente.`,
+            );
+        }
 
         return {
             orderId:     order.orderId,

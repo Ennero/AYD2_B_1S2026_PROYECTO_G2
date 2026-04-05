@@ -4,9 +4,75 @@ This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 
 ## Session Snapshot
 - Phase 3 multi-currency implementation is completed across SQL, backend, and frontend.
-- Build validation already passed in both server and client.
-- Runtime validation in Docker and API smoke checks already passed.
-- Main invoice lifecycle convention remains: BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA.
+- Canonical invoice lifecycle is now: BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA.
+- Payment lifecycle remains separate from invoice lifecycle: PENDIENTE -> APROBADO/RECHAZADO.
+- Happy Path documentation is consolidated with updated visual evidence and validated image references.
+
+## Latest Update (2026-04-05)
+
+### 1) Operational notifications for order status
+- Added 2 new transactional email templates in backend notifications:
+  - `server/src/notifications/email/application/templates/order-dispatched.template.ts`
+  - `server/src/notifications/email/application/templates/order-delivered.template.ts`
+- Extended `EmailService` with:
+  - `sendOrderDispatched(...)`
+  - `sendOrderDelivered(...)`
+- Integrated notification dispatch in pilot lifecycle use-cases:
+  - `server/src/pilot/application/use-cases/start-trip.use-case.ts`
+    - Sends customer email when order changes to `EN_TRANSITO` (left yard / dispatch).
+  - `server/src/pilot/application/use-cases/deliver-order.use-case.ts`
+    - Sends customer email when order changes to `ENTREGADA`.
+- Updated pilot module wiring to import notifications:
+  - `server/src/pilot/pilot.module.ts` now imports `NotificationsModule`.
+
+Implementation policy used:
+- Email sending is fire-and-forget and non-blocking for operational transitions.
+- If email fails, order status transition remains valid; error is logged.
+
+### 2) Client orders status refresh behavior
+- Updated client orders page to auto-refresh status progression without relying only on manual refresh:
+  - `client/app/(dashboard-cliente)/cliente/ordenes/page.tsx`
+- Added controlled polling for orders list.
+- Added controlled polling for tracking drawer while it is open.
+- Added list re-sync on tracking drawer close.
+
+State model kept unchanged (no enum migration):
+- `REGISTRADA -> ASIGNADA -> LISTA_PARA_DESPACHO -> EN_TRANSITO -> ENTREGADA`
+- UI keeps showing `LISTA_PARA_DESPACHO` as "Lista p/ despacho".
+
+### 3) New documentation generated
+- Added full user manual:
+  - `docs/USER_MANUAL.md`
+- Added full technical manual:
+  - `docs/TECHNICAL_MANUAL.md`
+
+Both include:
+- Index, objectives, scope, software/hardware requirements.
+- Internet-access operation considerations and AWS-oriented deployment requirements.
+- Consolidated role-based procedures and maintenance guidance.
+
+### 4) Root README synchronized
+- Updated `README.md`:
+  - Corrected invoice lifecycle ordering to `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`.
+  - Explicitly documented separate payment lifecycle.
+  - Added order lifecycle summary.
+  - Linked the new user and technical manuals.
+  - Updated documentation date.
+
+### 5) Validation executed for this update
+- `server`: `npm run build` succeeded.
+- `server`: `npm run test -- --runInBand` succeeded (3 suites, 15 tests).
+- `client`: `npm run build` succeeded.
+
+### 6) Canonical business conventions preserved
+- Invoice lifecycle unchanged and preserved: `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`.
+- Payment lifecycle still separate: `PENDIENTE -> APROBADO/RECHAZADO`.
+- No changes to 40-ton operational constraints.
+- No changes to DB enum for order status.
+
+### 7) Remaining risks / pending technical enhancements
+- Client status updates currently rely on polling (not push events); consider SSE/WebSocket for large scale.
+- New email notifications are non-blocking by design; delivery assurance may require retry queue/outbox pattern if strict guarantees are required.
 
 ## What Was Implemented In This Chat
 
@@ -27,6 +93,7 @@ This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 - Invoice population now copies currency_code, exchange_rate_from_usd, and tax_rate from order context.
 - Payment validation now enforces payment currency from invoice currency.
 - Trigger sync for contract rates now listens to discount and exchange rate updates.
+- Payment approval flow updates invoice status from CERTIFICADA to PAGADA.
 
 ### 3) Backend propagation
 - Added domain enums/constants:
@@ -38,6 +105,7 @@ This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 - Operations create-contract flow now resolves exchange rate from exchange_rates and persists currency context.
 - Finance, Certifier, and Client services now expose currencyCode/taxRate/exchange metadata in responses where relevant.
 - initialize-schema canonical checks now require new currency columns and exchange_rates table.
+- Finance sending flow now requires invoice status PAGADA before ENVIADA.
 
 ### 4) Frontend updates
 - Agent operational client registration now includes country and currency selectors.
@@ -46,6 +114,8 @@ This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 - Client dashboard/account statement/contracts/orders/invoices/new-service views now format amounts by currency.
 - Finance and FEL views now consume dynamic currency fields and show tax labels from taxRate when available.
 - Finance rates UI messaging now reflects USD base tariff context.
+- Finance invoice UI now treats PAGADA as the ready-to-send stage.
+- Dashboard labels for send-ready invoices are aligned with PAGADA.
 
 ## Runtime Validation Already Executed
 
@@ -53,8 +123,12 @@ This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 - server: npm run build succeeded.
 - client: npm run build succeeded.
 
+### Test checks
+- server: npm run test passed (3 suites, 15 tests).
+
 ### Docker checks
-- Full root stack built and started from docker-compose.yml.
+- Clean restart executed with docker compose down -v --remove-orphans.
+- Full root stack rebuilt and started from docker-compose.yml.
 - Services verified up:
   - db (healthy)
   - server (up)
@@ -64,7 +138,7 @@ This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 - Backend health endpoint responded 200.
 - Authenticated API smoke checks passed and returned multi-currency fields:
   - /api/finance/invoices includes currencyCode and taxRate
-  - /api/finance/rates includes baseCurrency
+  - /api/finance/rates includes baseCurrency per rate item
   - /api/operations/clients includes countryCode and currencyCode
 - End-to-end operational smoke test passed:
   - created Honduras client defaulted to HNL and tax 0.15
@@ -75,20 +149,92 @@ This repository is in MVP closure/refinement. Keep this as the handoff baseline.
 - Welcome/contract emails were triggered for smoke test users.
 
 ## Current Priorities
-1. Keep invoice state consistency across docs and APIs: BORRADOR -> CERTIFICADA -> ENVIADA -> PAGADA.
+1. Keep invoice state consistency across docs and APIs: BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA.
 2. Preserve 40-ton constraints and existing logistics assignment rules.
-3. Optionally automate one full API script for invoice lifecycle validation (BORRADOR to PAGADA).
+3. Optionally automate one full API script for invoice lifecycle validation (BORRADOR to ENVIADA).
 4. Continue documentation hardening in happypath only if new UI/flow changes are introduced.
+
+## Mandatory Copilot Maintenance Rule
+- ALWAYS update this file (.github/copilot-instructions.md) at the end of any task that changes code, SQL, docs, configs, runtime procedures, or validated behavior.
+- Do not wait for user request to update this file.
+- Minimum required refresh on each update:
+  - What changed (high-level and key files).
+  - What was validated (build, tests, docker, smoke checks).
+  - Canonical business conventions affected (especially status flows).
+  - Remaining risks or pending work.
+- If a turn is strictly read-only (no changes, no new validation), no update is required.
 
 ## Notes For Future Copilot Runs
 - Do not edit build artifacts under client/.next.
 - Ensure static file serving for /files remains enabled.
 - If terminal search tooling is limited, use grep fallback when needed.
 - Prefer canonical schema source: db/logitrans_postgresql.sql.
+- Keep payment status semantics separate from invoice status semantics in docs and UI copy.
 
 ## Suggested Verification Commands
-- docker compose down -v --rmi all && docker compose up -d --build
+- docker compose down -v --remove-orphans && docker compose up -d --build
 - docker compose ps
 - docker compose logs --no-color server | tail -n 200
 - docker compose logs --no-color client | tail -n 200
 - curl -i http://localhost:3006/health
+- cd server && npm run build && npm run test -- --runInBand
+
+## Documentation Rewrite Update (2026-04-05)
+
+### 1) Markdown-indexed manuals fully reformatted
+- Rewrote user manual with explicit Markdown TOC and section anchors in requested style:
+  - `docs/USER_MANUAL.md`
+- Rewrote technical manual with explicit Markdown TOC and maintenance-oriented structure (no program walkthrough section):
+  - `docs/TECHNICAL_MANUAL.md`
+
+Manual alignment decisions applied:
+- Preserved canonical business lifecycles:
+  - Invoice: `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`
+  - Payment: `PENDIENTE -> APROBADO/RECHAZADO`
+  - Order: `REGISTRADA -> ASIGNADA -> LISTA_PARA_DESPACHO -> EN_TRANSITO -> ENTREGADA`
+- Kept explicit internet operation and AWS-oriented deployment context in both manuals.
+- Kept user-manual functional flow and screenshots oriented to `docs/happypath.md` evidence.
+
+### 2) Root README synchronized to requested structure style
+- Rewrote root README using Markdown-indexed format inspired by requested template but adapted to real project stack/ports/files:
+  - `README.md`
+- Updated sections for:
+  - project overview
+  - canonical lifecycle states
+  - stack versions from current `client/package.json` and `server/package.json`
+  - quick start / detailed setup with `docker compose`
+  - documentation links and project structure
+
+### 3) Validation executed for this update
+- Documentation consistency review completed for:
+  - `README.md`
+  - `docs/USER_MANUAL.md`
+  - `docs/TECHNICAL_MANUAL.md`
+- No build/test/runtime commands were required because this update is documentation-only.
+
+### 4) Remaining risks / pending enhancements
+- The user may request even more exhaustive screenshot-by-screenshot expansion in `docs/USER_MANUAL.md` similar to legacy long-form manuals.
+- If required, next step is extending section 10 flow with deeper per-screen substeps while preserving current canonical states.
+
+## User Manual Flow Expansion Update (2026-04-05)
+
+### 1) Full Happy Path integrated into user manual flow section
+- Expanded section `10. Flujo de funcionalidades del programa` in:
+  - `docs/USER_MANUAL.md`
+- Replaced summarized flow subsection content with the full flow from `docs/happypath.md`, including:
+  - complete step-by-step sequence
+  - role-by-role progression
+  - all embedded evidentiary images used in happy path
+  - multivisa context and validations documented in the same flow body
+
+### 2) Structural consistency adjustments
+- Updated user manual table of contents so section 10 points to the integrated full-flow subsection.
+- Preserved sections 11 and 12 outside the integrated flow block.
+
+### 3) Validation executed for this update
+- Documentation consistency review completed for:
+  - `docs/USER_MANUAL.md`
+- No build/test/runtime commands were required because this update is documentation-only.
+
+### 4) Remaining risks / pending enhancements
+- The integrated flow is intentionally verbose; future updates to `docs/happypath.md` should be mirrored in `docs/USER_MANUAL.md` section 10 to prevent divergence.

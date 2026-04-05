@@ -116,16 +116,30 @@ function TrackingDrawer({ orderId, open, onClose }: { orderId: string | null; op
   const [loading, setLoading] = useState(false)
   const [previewMedia, setPreviewMedia] = useState<string | null>(null)
 
+  const fetchTracking = useCallback(async (silent = false) => {
+    if (!open || !orderId) return
+    if (!silent) setLoading(true)
+    try {
+      const res = await api.get<{ data: OrderTracking }>(ENDPOINTS.CLIENT.ORDER_TRACKING(orderId))
+      setData(res.data.data)
+    } catch {
+      // api client shows toast
+    } finally {
+      if (!silent) setLoading(false)
+    }
+  }, [open, orderId])
+
   useEffect(() => {
     if (!open || !orderId) return
     setData(null)
-    setLoading(true)
-    void api
-      .get<{ data: OrderTracking }>(ENDPOINTS.CLIENT.ORDER_TRACKING(orderId))
-      .then((res) => setData(res.data.data))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [open, orderId])
+    void fetchTracking()
+
+    const trackingInterval = setInterval(() => {
+      void fetchTracking(true)
+    }, 8000)
+
+    return () => clearInterval(trackingInterval)
+  }, [open, orderId, fetchTracking])
 
   if (!open) return null
 
@@ -496,8 +510,8 @@ export default function OrdenesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const fetchOrders = useCallback(async (s: string, st: string, p: number) => {
-    setLoading(true)
+  const fetchOrders = useCallback(async (s: string, st: string, p: number, options?: { silent?: boolean }) => {
+    if (!options?.silent) setLoading(true)
     try {
       const params = new URLSearchParams()
       if (s) params.set("search", s)
@@ -509,7 +523,7 @@ export default function OrdenesPage() {
     } catch {
       // api client shows toast
     } finally {
-      setLoading(false)
+      if (!options?.silent) setLoading(false)
     }
   }, [])
 
@@ -525,12 +539,25 @@ export default function OrdenesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void fetchOrders(search, statusFilter, currentPage) }, [currentPage])
 
+  useEffect(() => {
+    const ordersPolling = setInterval(() => {
+      void fetchOrders(search, statusFilter, currentPage, { silent: true })
+    }, 12000)
+
+    return () => clearInterval(ordersPolling)
+  }, [fetchOrders, search, statusFilter, currentPage])
+
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerOpen(false)
+    void fetchOrders(search, statusFilter, currentPage, { silent: true })
+  }, [fetchOrders, search, statusFilter, currentPage])
+
   const orders = page?.items ?? []
   const totalPages = page?.totalPages ?? 1
 
   return (
     <>
-      <TrackingDrawer orderId={trackingId} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <TrackingDrawer orderId={trackingId} open={drawerOpen} onClose={handleCloseDrawer} />
 
       <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
         <div aria-hidden className="fixed inset-0 pointer-events-none" style={{

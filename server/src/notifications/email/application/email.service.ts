@@ -8,6 +8,8 @@ import { welcomeTemplate, WelcomeTemplateData } from './templates/welcome.templa
 import { passwordRecoveryTemplate, PasswordRecoveryTemplateData } from './templates/password-recovery.template';
 import { contractProposalTemplate, ContractProposalTemplateData } from './templates/contract-proposal.template';
 import { invoiceTemplate, InvoiceTemplateData } from './templates/invoice.template';
+import { orderDispatchedTemplate, OrderDispatchedTemplateData } from './templates/order-dispatched.template';
+import { orderDeliveredTemplate, OrderDeliveredTemplateData } from './templates/order-delivered.template';
 
 interface FinanceInvoiceStatusMail {
   to: string;
@@ -119,6 +121,51 @@ export class EmailService {
       currency: data.currency ?? 'GTQ',
       pdfUrl: data.pdfUrl,
       felAuthorizationCode: data.felAuthorizationCode,
+    });
+
+    return this.transport.send({
+      to: data.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      text: tpl.text,
+    });
+  }
+
+  // ─── Notificaciones operativas de órdenes ──────────────────────────────
+
+  async sendOrderDispatched(
+    data: OrderDispatchedTemplateData & { to: string },
+  ): Promise<EmailSendResult> {
+    const tpl = orderDispatchedTemplate({
+      clientName: data.clientName,
+      orderNumber: data.orderNumber,
+      origin: data.origin,
+      destination: data.destination,
+      dispatchedAt: data.dispatchedAt,
+      cargoType: data.cargoType,
+      unitPlate: data.unitPlate,
+    });
+
+    return this.transport.send({
+      to: data.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      text: tpl.text,
+    });
+  }
+
+  async sendOrderDelivered(
+    data: OrderDeliveredTemplateData & { to: string },
+  ): Promise<EmailSendResult> {
+    const tpl = orderDeliveredTemplate({
+      clientName: data.clientName,
+      orderNumber: data.orderNumber,
+      destination: data.destination,
+      deliveredAt: data.deliveredAt,
+      receiverName: data.receiverName,
+      cargoType: data.cargoType,
+      totalAmount: data.totalAmount,
+      currency: data.currency,
     });
 
     return this.transport.send({

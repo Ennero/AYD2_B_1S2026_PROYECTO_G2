@@ -6,6 +6,7 @@ import { AddLogUseCase } from './application/use-cases/add-log.use-case';
 import { DeliverOrderUseCase } from './application/use-cases/deliver-order.use-case';
 import { PilotController } from './presentation/controller/pilot.controller';
 import { StorageModule } from '../storage/storage.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 /**
  * PilotModule — Portal del Piloto.
@@ -16,7 +17,7 @@ import { StorageModule } from '../storage/storage.module';
  *   - StorageModule provee IStorageService para subir fotos y firmas a Supabase.
  */
 @Module({
-    imports: [StorageModule],
+    imports: [StorageModule, NotificationsModule],
     providers: [
         ListOrdersUseCase,
         GetOrderUseCase,
