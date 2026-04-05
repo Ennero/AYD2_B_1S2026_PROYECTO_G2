@@ -118,7 +118,7 @@ Ingresa los siguientes datos de ejemplo para el nuevo cliente:
 | Nombre Contacto Principal | `Henry Contreras` |
 | Email Contacto | `deennerparaprobar@gmail.com` |
 | Contraseña | `deennerparaprobar@gmail.com` |
-| Teléfono Contacto | `+504` + `2201234` |
+| Teléfono Contacto | `+504` + `22012341` |
 | Riesgo de Pago | `BAJO` |
 | Riesgo en Aduanas | `MEDIO` |
 | Riesgo de Mercancía | `BAJO` |
