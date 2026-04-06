@@ -2293,7 +2293,7 @@ export class DatabaseSeeder {
         financeUsers[index % financeUsers.length],
         'revisor financiero',
       );
-      const method = index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE;
+      const method = PaymentMethod.TRANSFERENCIA;
 
       await repository.save(
         repository.create({
@@ -2315,7 +2315,7 @@ export class DatabaseSeeder {
       await repository.save(
         repository.create({
           invoiceId: invoice.invoiceId,
-          method: index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE,
+          method: PaymentMethod.TRANSFERENCIA,
           status,
           supportDocumentPath: `/seed/payments/review-${invoice.invoiceId}.pdf`,
           amount: Number(invoice.totalAmount),
