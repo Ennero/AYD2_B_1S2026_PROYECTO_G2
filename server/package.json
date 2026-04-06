@@ -23,6 +23,9 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
+    "@nestjs/microservices": "^11.0.1",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.5",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
@@ -41,6 +44,7 @@
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.5",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
