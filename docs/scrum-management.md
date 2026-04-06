@@ -4,7 +4,6 @@
 > **Duración de Sprints:** ~1 semana
 > **Equipo:** 6 desarrolladores
 > **Framework:** Basado en la Guía Scrum 2020
-> **Estado:** ⏳ En progreso
 
 ---
 

@@ -176,6 +176,24 @@ async function dropDeprecatedPaymentCardIdColumn(
   );
 }
 
+async function dropDeprecatedPaymentBankColumns(
+  dataSource: DataSource,
+): Promise<void> {
+  await dataSource.query(
+    'ALTER TABLE public."payments" DROP COLUMN IF EXISTS "bank_name"',
+  );
+  await dataSource.query(
+    'ALTER TABLE public."payments" DROP COLUMN IF EXISTS "bank_account_number"',
+  );
+  await dataSource.query(
+    'ALTER TABLE public."payments" DROP COLUMN IF EXISTS "bank_reference"',
+  );
+  // Remove old constraint if it references bank columns
+  await dataSource.query(
+    'ALTER TABLE public."payments" DROP CONSTRAINT IF EXISTS "chk_payments_method_support"',
+  );
+}
+
 async function ensurePaymentsMethodSupportConstraint(
   dataSource: DataSource,
 ): Promise<void> {
@@ -199,9 +217,6 @@ async function ensurePaymentsMethodSupportConstraint(
     `ALTER TABLE public."payments"
       ADD CONSTRAINT chk_payments_method_support CHECK (
         method IN ('TRANSFERENCIA', 'CHEQUE')
-        AND bank_name IS NOT NULL
-        AND bank_account_number IS NOT NULL
-        AND bank_reference IS NOT NULL
         AND support_document_path IS NOT NULL
       )`,
   );
@@ -335,6 +350,7 @@ export async function ensureCanonicalSchema(
     await dropDeprecatedClientCreditLimitColumn(dataSource);
     await dropDeprecatedClientCardsTable(dataSource);
     await dropDeprecatedPaymentCardIdColumn(dataSource);
+    await dropDeprecatedPaymentBankColumns(dataSource);
     await ensurePaymentsMethodSupportConstraint(dataSource);
     await ensureOrderRouteLogImageField(dataSource);
     await normalizeDraftInvoiceDescriptions(dataSource);
@@ -357,6 +373,7 @@ export async function ensureCanonicalSchema(
   await dropDeprecatedClientCreditLimitColumn(dataSource);
   await dropDeprecatedClientCardsTable(dataSource);
   await dropDeprecatedPaymentCardIdColumn(dataSource);
+  await dropDeprecatedPaymentBankColumns(dataSource);
   await ensurePaymentsMethodSupportConstraint(dataSource);
   await ensureOrderRouteLogImageField(dataSource);
   await normalizeDraftInvoiceDescriptions(dataSource);

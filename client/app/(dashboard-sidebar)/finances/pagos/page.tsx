@@ -18,7 +18,7 @@ function formatCurrency(v: number, currencyCode = "GTQ") {
   }).format(v)
 }
 
-const COL6 = "1.4fr 1fr 1fr 1fr 1.2fr 0.8fr"
+const COL5 = "1.4fr 1fr 1fr 1fr 0.8fr"
 
 /* ─── Approve Modal ─────────────────────────────── */
 function ApproveModal({ payment, onClose, onConfirm, loading }: {
@@ -31,8 +31,7 @@ function ApproveModal({ payment, onClose, onConfirm, loading }: {
     { label: "Cliente",     value: payment.clientName },
     { label: "Factura",     value: payment.invoiceNumber },
     { label: "Monto",       value: formatCurrency(payment.amount, payment.currencyCode ?? "GTQ") },
-    { label: "Banco",       value: payment.bankName ?? "—" },
-    { label: "Referencia",  value: payment.bankReference ?? "—" },
+    { label: "Método",      value: payment.method },
   ]
 
   return (
@@ -50,7 +49,7 @@ function ApproveModal({ payment, onClose, onConfirm, loading }: {
             <div>
               <p style={{ fontSize: "0.5rem", letterSpacing: "0.25em", color: "#3A8E2A", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>Confirmar aprobación de pago</p>
               <h2 style={{ fontSize: "1.1rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A" }}>
-                {payment.bankReference ?? payment.paymentId}
+                {payment.invoiceNumber}
               </h2>
             </div>
             <button onClick={onClose} disabled={loading} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A9489" }}><X size={16} /></button>
@@ -131,7 +130,7 @@ export default function FinancePaymentsPage() {
     const needle = search.trim().toLowerCase()
     if (!needle) return pendingPayments
     return pendingPayments.filter(p =>
-      `${p.clientName} ${p.invoiceNumber} ${p.bankReference ?? ""}`.toLowerCase().includes(needle)
+      `${p.clientName} ${p.invoiceNumber}`.toLowerCase().includes(needle)
     )
   }, [pendingPayments, search])
 
@@ -140,7 +139,7 @@ export default function FinancePaymentsPage() {
     setApproving(true)
     try {
       await approveFinancePayment(selectedPayment.paymentId)
-      toast.success(`Pago ${selectedPayment.bankReference ?? selectedPayment.paymentId} aprobado`)
+      toast.success(`Pago #${selectedPayment.paymentId} aprobado`)
       setSelectedPayment(null)
       await refreshPendingPayments()
     } catch (error) {
@@ -236,15 +235,15 @@ export default function FinancePaymentsPage() {
 
             {/* Header */}
             <div style={{
-              display: "grid", gridTemplateColumns: COL6, gap: "0 1rem",
+              display: "grid", gridTemplateColumns: COL5, gap: "0 1rem",
               padding: "0.55rem 1.25rem",
               background: "rgba(12,12,10,0.03)", borderBottom: "1px solid rgba(12,12,10,0.07)",
             }}>
-              {["Cliente", "Factura", "Monto", "Banco", "Referencia", "Acción"].map((h, i) => (
+              {["Cliente", "Factura", "Monto", "Método", "Acción"].map((h, i) => (
                 <span key={h} style={{
                   fontSize: "0.47rem", letterSpacing: "0.22em", color: "#9A9489",
                   textTransform: "uppercase", fontWeight: 700,
-                  textAlign: i === 5 ? "right" : "left",
+                  textAlign: i === 4 ? "right" : "left",
                 }}>{h}</span>
               ))}
             </div>
@@ -260,7 +259,7 @@ export default function FinancePaymentsPage() {
             ) : (
               filteredPayments.map(payment => (
                 <div key={payment.paymentId} style={{
-                  display: "grid", gridTemplateColumns: COL6, gap: "0 1rem",
+                  display: "grid", gridTemplateColumns: COL5, gap: "0 1rem",
                   alignItems: "center", padding: "0.85rem 1.25rem",
                   background: "#ffffff", borderBottom: "1px solid rgba(12,12,10,0.06)",
                   borderLeft: "3px solid #C9924B",
@@ -274,8 +273,7 @@ export default function FinancePaymentsPage() {
                   <span style={{ fontSize: "0.82rem", fontWeight: 900, color: "#0C0C0A", letterSpacing: "-0.01em" }}>
                     {formatCurrency(payment.amount, payment.currencyCode ?? "GTQ")}
                   </span>
-                  <span style={{ fontSize: "0.72rem", color: "#9A9489" }}>{payment.bankName ?? "—"}</span>
-                  <span style={{ fontSize: "0.68rem", fontFamily: "monospace", color: "#9A9489" }}>{payment.bankReference ?? "—"}</span>
+                  <span style={{ fontSize: "0.72rem", color: "#9A9489", textTransform: "uppercase", letterSpacing: "0.05em" }}>{payment.method}</span>
                   <div style={{ textAlign: "right" }}>
                     <button onClick={() => setSelectedPayment(payment)} style={{
                       display: "inline-flex", alignItems: "center", gap: "5px",

@@ -45,6 +45,9 @@ interface ClientBlueprint {
   primaryContactEmail: string;
   primaryContactPhone: string;
   creditLimit: number;
+  countryCode?: string;
+  currencyCode?: string;
+  taxRate?: number;
   paymentRisk: RiskLevel;
   customsRisk: RiskLevel;
   cargoRisk: RiskLevel;
@@ -142,6 +145,46 @@ const EXTRA_ROUTES = [
     destination: 'SAN SALVADOR',
     distanceKm: 320,
     estimatedHours: 7.5,
+    isInternational: true,
+  },
+  {
+    routeCode: 'SAL-SPS',
+    origin: 'SAN SALVADOR',
+    destination: 'SAN PEDRO SULA',
+    distanceKm: 290,
+    estimatedHours: 6.5,
+    isInternational: true,
+  },
+  {
+    routeCode: 'SPS-SAL',
+    origin: 'SAN PEDRO SULA',
+    destination: 'SAN SALVADOR',
+    distanceKm: 290,
+    estimatedHours: 6.5,
+    isInternational: true,
+  },
+  {
+    routeCode: 'GUA-TGU',
+    origin: 'CIUDAD DE GUATEMALA',
+    destination: 'TEGUCIGALPA',
+    distanceKm: 490,
+    estimatedHours: 11,
+    isInternational: true,
+  },
+  {
+    routeCode: 'TGU-GUA',
+    origin: 'TEGUCIGALPA',
+    destination: 'CIUDAD DE GUATEMALA',
+    distanceKm: 490,
+    estimatedHours: 11,
+    isInternational: true,
+  },
+  {
+    routeCode: 'SAL-PBAR',
+    origin: 'SAN SALVADOR',
+    destination: 'PUERTO BARRIOS',
+    distanceKm: 380,
+    estimatedHours: 8.5,
     isInternational: true,
   },
 ];
@@ -868,6 +911,152 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
       },
     ],
   },
+  // ── Clientes El Salvador (USD) ─────────────────────────────────────────
+  {
+    key: 'distribuidora-sv',
+    legalName: 'DISTRIBUIDORA CENTRAL, S.A. DE C.V.',
+    nit: '0614210193101',
+    taxAddress: 'Bulevar del Hipódromo No. 225, Col. San Benito, San Salvador',
+    primaryContactName: 'Ana Flores',
+    primaryContactEmail: 'ana.flores@distcentral.com.sv',
+    primaryContactPhone: '+50321000001',
+    creditLimit: 85000,
+    countryCode: 'SV',
+    currencyCode: 'USD',
+    taxRate: 0.13,
+    paymentRisk: RiskLevel.BAJO,
+    customsRisk: RiskLevel.MEDIO,
+    cargoRisk: RiskLevel.BAJO,
+    amlRisk: RiskLevel.BAJO,
+    contractStatus: ContractStatus.VIGENTE,
+    paymentTermDays: 30,
+    discountPercentage: 5,
+    contractStartOffsetDays: -150,
+    contractEndOffsetDays: 215,
+    routeCodes: ['SAL-GUA', 'XELA-SAL', 'SAL-PBAR'],
+    cargoNames: ['CARGA GENERAL', 'ELECTRODOMESTICOS'],
+    contactPeople: [
+      {
+        name: 'Roberto Munguia',
+        email: 'roberto.munguia@distcentral.com.sv',
+        phone: '+50321000101',
+        title: 'Gerente de Logistica',
+      },
+      {
+        name: 'Karla Pacheco',
+        email: 'karla.pacheco@distcentral.com.sv',
+        phone: '+50321000102',
+        title: 'Contadora',
+      },
+    ],
+    cards: [],
+  },
+  {
+    key: 'agro-sv',
+    legalName: 'AGROEXPORT SANTA ANA, S.A. DE C.V.',
+    nit: '0611180488003',
+    taxAddress: 'Km 48.5 Carretera Panamericana, Santa Ana, El Salvador',
+    primaryContactName: 'Luis Bonilla',
+    primaryContactEmail: 'luis.bonilla@agrosantaana.com.sv',
+    primaryContactPhone: '+50321000002',
+    creditLimit: 62000,
+    countryCode: 'SV',
+    currencyCode: 'USD',
+    taxRate: 0.13,
+    paymentRisk: RiskLevel.MEDIO,
+    customsRisk: RiskLevel.ALTO,
+    cargoRisk: RiskLevel.MEDIO,
+    amlRisk: RiskLevel.BAJO,
+    contractStatus: ContractStatus.VIGENTE,
+    paymentTermDays: 15,
+    discountPercentage: 3,
+    contractStartOffsetDays: -90,
+    contractEndOffsetDays: 275,
+    routeCodes: ['SAL-GUA', 'SAL-SPS'],
+    cargoNames: ['CARGA GENERAL', 'CARGA REFRIGERADA'],
+    contactPeople: [
+      {
+        name: 'Marta Orellana',
+        email: 'marta.orellana@agrosantaana.com.sv',
+        phone: '+50321000201',
+        title: 'Encargada de Exportaciones',
+      },
+    ],
+    cards: [],
+  },
+  // ── Clientes Honduras (HNL) ────────────────────────────────────────────
+  {
+    key: 'industrias-hn',
+    legalName: 'INDUSTRIAS NACIONALES, S.A.',
+    nit: '0801199012345',
+    taxAddress: 'Blvd. Morazan, Colonia Florencia Norte, Tegucigalpa',
+    primaryContactName: 'Jorge Zuniga',
+    primaryContactEmail: 'jorge.zuniga@indnac.com.hn',
+    primaryContactPhone: '+50422000001',
+    creditLimit: 1200000,
+    countryCode: 'HN',
+    currencyCode: 'HNL',
+    taxRate: 0.15,
+    paymentRisk: RiskLevel.BAJO,
+    customsRisk: RiskLevel.MEDIO,
+    cargoRisk: RiskLevel.MEDIO,
+    amlRisk: RiskLevel.BAJO,
+    contractStatus: ContractStatus.VIGENTE,
+    paymentTermDays: 45,
+    discountPercentage: 7,
+    contractStartOffsetDays: -200,
+    contractEndOffsetDays: 230,
+    routeCodes: ['SPS-GUA', 'PBAR-SPS', 'TGU-GUA'],
+    cargoNames: ['MATERIA PRIMA INDUSTRIAL', 'CARGA GENERAL'],
+    contactPeople: [
+      {
+        name: 'Diana Matamoros',
+        email: 'diana.matamoros@indnac.com.hn',
+        phone: '+50422000101',
+        title: 'Jefa de Compras',
+      },
+      {
+        name: 'Aldrin Reyes',
+        email: 'aldrin.reyes@indnac.com.hn',
+        phone: '+50422000102',
+        title: 'Tesoreria',
+      },
+    ],
+    cards: [],
+  },
+  {
+    key: 'alimentos-hn',
+    legalName: 'ALIMENTOS SAN PEDRO, S.A.',
+    nit: '0504198509876',
+    taxAddress: 'Col. Trejo, Blvd. Centro America, San Pedro Sula, Cortés',
+    primaryContactName: 'Patricia Yanes',
+    primaryContactEmail: 'patricia.yanes@alimspsula.com.hn',
+    primaryContactPhone: '+50422000002',
+    creditLimit: 880000,
+    countryCode: 'HN',
+    currencyCode: 'HNL',
+    taxRate: 0.15,
+    paymentRisk: RiskLevel.MEDIO,
+    customsRisk: RiskLevel.BAJO,
+    cargoRisk: RiskLevel.MEDIO,
+    amlRisk: RiskLevel.BAJO,
+    contractStatus: ContractStatus.VIGENTE,
+    paymentTermDays: 30,
+    discountPercentage: 4,
+    contractStartOffsetDays: -130,
+    contractEndOffsetDays: 250,
+    routeCodes: ['SPS-GUA', 'SPS-SAL'],
+    cargoNames: ['BEBIDAS REFRIGERADAS', 'CARGA REFRIGERADA'],
+    contactPeople: [
+      {
+        name: 'Mario Flores',
+        email: 'mario.flores@alimspsula.com.hn',
+        phone: '+50422000201',
+        title: 'Logistica',
+      },
+    ],
+    cards: [],
+  },
 ];
 
 const TRANSPORT_UNIT_BLUEPRINTS = [
@@ -1207,6 +1396,9 @@ export class DatabaseSeeder {
           amlRisk: client.amlRisk,
           isBlocked: client.isBlocked ?? false,
           blockReason: client.blockReason,
+          ...(client.countryCode && { countryCode: client.countryCode as any }),
+          ...(client.currencyCode && { currencyCode: client.currencyCode as any }),
+          ...(client.taxRate !== undefined && { taxRate: client.taxRate }),
         }),
       ),
     );
@@ -1284,6 +1476,11 @@ export class DatabaseSeeder {
 
     const contracts = CLIENT_BLUEPRINTS.map((blueprint) => {
       const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
+      const currencyCode = blueprint.currencyCode ?? 'GTQ';
+      const exchangeRateFromUsd =
+        currencyCode === 'USD' ? 1.0 :
+        currencyCode === 'HNL' ? 24.80 :
+        7.82; // GTQ default
       return repository.create({
         clientId: client.clientId,
         status: blueprint.contractStatus,
@@ -1297,6 +1494,9 @@ export class DatabaseSeeder {
           blueprint.contractStatus === ContractStatus.VIGENTE
             ? blueprint.creditLimit
             : null,
+        currencyCode: currencyCode as any,
+        exchangeRateFromUsd,
+        taxRate: blueprint.taxRate ?? 0.12,
         paymentTermDays: blueprint.paymentTermDays,
         discountPercentage: blueprint.discountPercentage,
         notes: `Contrato marco para ${blueprint.legalName}.`,
@@ -2093,16 +2293,13 @@ export class DatabaseSeeder {
         financeUsers[index % financeUsers.length],
         'revisor financiero',
       );
-      const method = index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE;
+      const method = PaymentMethod.TRANSFERENCIA;
 
       await repository.save(
         repository.create({
           invoiceId: invoice.invoiceId,
           method,
           status: PaymentStatus.APROBADO,
-          bankName: method === PaymentMethod.CHEQUE ? 'BANCO INDUSTRIAL' : 'BAC CREDOMATIC',
-          bankAccountNumber: `0100-2000-${100 + index}`,
-          bankReference: `REF-PAG-${index + 1}`,
           supportDocumentPath: `/seed/payments/support-${invoice.invoiceId}.pdf`,
           amount: Number(invoice.totalAmount),
           paymentDate: hoursAfter(new Date(invoice.sentAt ?? invoice.issueDate), 24 + index * 2),
@@ -2118,11 +2315,8 @@ export class DatabaseSeeder {
       await repository.save(
         repository.create({
           invoiceId: invoice.invoiceId,
-          method: index % 2 === 0 ? PaymentMethod.TRANSFERENCIA : PaymentMethod.CHEQUE,
+          method: PaymentMethod.TRANSFERENCIA,
           status,
-          bankName: index % 2 === 0 ? 'BANRURAL' : 'BANCO G&T',
-          bankAccountNumber: `0200-3000-${200 + index}`,
-          bankReference: `REF-REV-${index + 1}`,
           supportDocumentPath: `/seed/payments/review-${invoice.invoiceId}.pdf`,
           amount: Number(invoice.totalAmount),
           paymentDate: hoursAfter(new Date(invoice.issueDate), 18 + index * 3),
