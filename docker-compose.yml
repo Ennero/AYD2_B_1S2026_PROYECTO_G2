@@ -24,6 +24,30 @@ services:
       start_period: 10s
 
   # ==========================================================================
+  # Message Broker — RabbitMQ 3 (con Management UI en :15672)
+  # ==========================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: logitrans_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI  →  http://localhost:15672  (guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - logitrans_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ==========================================================================
   # Backend — NestJS
   # ==========================================================================
   server:
@@ -47,8 +71,11 @@ services:
       JWT_SECRET: your_jwt_secret_key_here
       PORT: 3000
       CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
     depends_on:
       db:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     networks:
       - logitrans_network
@@ -80,3 +107,4 @@ networks:
 
 volumes:
   postgres_data:
+  rabbitmq_data:

@@ -2,7 +2,7 @@
 ## Manual Técnico — Plataforma de Gestión Logística
 
 > **Versión:** 3.0
-> **Fecha:** 05 de abril de 2026
+> **Fecha:** 06 de abril de 2026
 > **Desarrollado por:** Grupo 2 — Análisis y Diseño de Sistemas 2
 > **Estado:** Producción
 
@@ -137,6 +137,7 @@ Composición del entorno base (`docker-compose.yml`):
 | `db` | `postgres:15` | `5433` | Base de datos principal |
 | `server` | NestJS build | `3006` | API REST backend |
 | `client` | Next.js build | `3000` | Aplicación web frontend |
+| `rabbitmq` | `rabbitmq:3-management-alpine` | `5672`, `15672` | Message broker (AMQP + Management UI) |
 
 ```yaml
 # Fragmento referencial docker-compose.yml
@@ -144,10 +145,15 @@ services:
   db:
     image: postgres:15
     ports: ["5433:5432"]
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
   server:
     build: ./server
     ports: ["3006:3006"]
-    depends_on: [db]
+    depends_on: [db, rabbitmq]
   client:
     build: ./client
     ports: ["3000:3000"]
@@ -165,11 +171,12 @@ Composición del entorno productivo simulado (`docker-compose.prod.yml`):
 | `api-1`, `api-2` | 2 | Instancias del backend balanceadas |
 | `nginx` | 1 | Proxy inverso con TLS y balanceo round-robin |
 | `client` | 1 | Frontend servido desde contenedor |
+| `rabbitmq` | 1 | Message broker (solo red interna `backend`) |
 
 ```
 Internet → Nginx (443/80) → [api-1 | api-2] → db-primary
-                                             ↑
-                            db-replica (lecturas)
+                                    ↓        ↑
+                                rabbitmq   db-replica (lecturas)
 ```
 
 ### 2.4 Principios arquitectónicos aplicados
@@ -343,13 +350,53 @@ Cada módulo sigue la siguiente estructura de directorios:
 
 ### 5.4 Message Broker
 
-El sistema integra un message broker (RabbitMQ) para la gestión de eventos asíncronos entre módulos, principalmente para:
+#### Tecnología
 
-- Notificaciones de cambio de estado de órdenes.
-- Despacho de correos transaccionales de forma desacoplada.
-- Propagación de eventos de entrega al módulo financiero.
+LogiTrans utiliza **RabbitMQ 3.13** (`rabbitmq:3-management-alpine`) como message broker para la propagación de eventos de negocio asíncronos entre módulos. La integración en NestJS se realiza mediante las librerías:
 
-Esto garantiza que los cambios de estado no queden bloqueados por fallos en el sistema de correo.
+| Dependencia | Versión | Rol |
+|---|---|---|
+| `@nestjs/microservices` | `^11.0.1` | Módulo de transporte de NestJS |
+| `amqp-connection-manager` | `^4.1.14` | Reconexión automática y resiliencia |
+| `amqplib` | `^0.10.5` | Cliente AMQP de bajo nivel |
+
+#### Módulo de infraestructura
+
+El módulo `RabbitMQModule` es `@Global()` — se importa una única vez en `AppModule` y queda disponible como proveedor inyectable en todos los módulos de dominio sin necesidad de reimportarlo.
+
+```
+server/src/infrastructure/messaging/
+├── rabbitmq.constants.ts   # Nombre de cola y constantes AMQP
+├── rabbitmq.module.ts      # Módulo global; conecta a RABBITMQ_URL
+└── rabbitmq.service.ts     # RabbitmqService con método emit(pattern, payload)
+```
+
+**Cola principal:** `logitrans_queue` (`durable: true`)
+
+#### Eventos de negocio implementados
+
+| Patrón (routing key) | Servicio emisor | Archivo | Payload principal |
+|---|---|---|---|
+| `orden.entregada` | `pilot` | `pilot/application/use-cases/deliver-order.use-case.ts` | `{ orderId, pilotId, deliveredAt }` |
+| `factura.certificada` | `certifier` | `certifier/application/services/certifier.service.ts` | `{ invoiceId, felUuid, certifiedAt }` |
+| `factura.rechazada` | `certifier` | `certifier/application/services/certifier.service.ts` | `{ invoiceId, reason, rejectedAt }` |
+| `pago.aprobado` | `finance` | `finance/application/services/finance.service.ts` | `{ paymentId, invoiceId, approvedAt }` |
+
+> Todos los eventos se emiten **después** de que la transacción de base de datos se completa correctamente, nunca antes.
+
+#### Degradación elegante
+
+Si RabbitMQ no está disponible al momento de emitir un evento, el servidor **no falla ni crashea**. `RabbitmqService` captura la excepción y registra un `WARN` en logs, permitiendo que la operación principal de negocio continúe sin interrupciones.
+
+#### Uso desde un módulo de dominio
+
+```typescript
+// Inyectar RabbitmqService (disponible globalmente, sin importar el módulo)
+constructor(private readonly rabbitmq: RabbitmqService) {}
+
+// Emitir un evento tras completar la transacción DB
+await this.rabbitmq.emit('orden.entregada', { orderId, pilotId, deliveredAt });
+```
 
 ---
 
@@ -707,7 +754,7 @@ LogiTrans soporta operación en tres países con monedas y tasas de impuesto esp
 | **Correo transaccional** | Resend SDK | Fire-and-forget | Envío de bienvenida, propuesta de contrato, recuperación de contraseña, notificaciones operativas |
 | **Certificador FEL** | Módulo interno simulado | Síncrono | Validación de NIT y emisión de UUID FEL para facturas electrónicas |
 | **Almacenamiento de evidencia** | Sistema de archivos / S3 compatible | Síncrono | Persistencia de firmas digitales y fotografías de entrega |
-| **Message Broker** | RabbitMQ (o equivalente) | Asíncrono | Propagación de eventos entre módulos |
+| **Message Broker** | RabbitMQ 3.13 (`rabbitmq:3-management-alpine`) | Asíncrono | Propagación de eventos de negocio entre módulos; Management UI disponible en `:15672` |
 
 **Política operativa de correos:**
 
@@ -766,6 +813,9 @@ MAIL_FROM=noreply@logitrans.com.gt
 # Storage
 STORAGE_PATH=/files
 
+# Message Broker
+RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+
 # App
 NODE_ENV=production
 PORT=3006
@@ -792,6 +842,9 @@ curl -i http://localhost:3006/health
 
 # Ver logs del backend
 docker compose logs -f server
+
+# Verificar RabbitMQ Management UI
+curl -s http://localhost:15672/api/healthchecks/node -u guest:guest
 ```
 
 ### 11.3 Entorno productivo simulado
@@ -819,6 +872,7 @@ curl -i https://localhost/health
 - `api-1` y `api-2` — instancias balanceadas del backend.
 - `db-primary` — escrituras.
 - `db-replica` — lecturas; replicación en streaming WAL.
+- `rabbitmq` — message broker interno; sin puertos expuestos al exterior, accesible solo en la red `backend`.
 
 ### 11.4 Contexto cloud para operación a internet
 

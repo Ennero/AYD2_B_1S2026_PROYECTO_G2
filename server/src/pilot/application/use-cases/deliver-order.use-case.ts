@@ -16,6 +16,7 @@ import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 import { STORAGE_SERVICE_TOKEN } from '../../../storage/domain/storage.service.interface';
 import type { IStorageService } from '../../../storage/domain/storage.service.interface';
 import { EmailService } from '../../../notifications/email/application/email.service';
+import { RabbitmqService } from '../../../infrastructure/messaging/rabbitmq.service';
 
 export interface DeliverOrderInput {
     receiverName: string;
@@ -41,6 +42,7 @@ export class DeliverOrderUseCase {
         private readonly config: ConfigService,
         @Inject(STORAGE_SERVICE_TOKEN) private readonly storage: IStorageService,
         private readonly emailService: EmailService,
+        private readonly rabbitmq: RabbitmqService,
     ) {}
 
     async execute(
@@ -135,7 +137,17 @@ export class DeliverOrderUseCase {
             if (input.notes) order.notes = input.notes;
             await orderRepo.save(order);
 
-            // 6. Registrar evento de LLEGADA en bitácora
+            // 6. Publicar evento de dominio en RabbitMQ
+            this.rabbitmq.emit('orden.entregada', {
+                orderId:     order.orderId,
+                orderNumber: order.orderNumber,
+                clientId:    order.contract?.client?.clientId,
+                totalAmount: Number(order.totalAmount),
+                currency:    order.currencyCode,
+                deliveredAt: deliveredAt.toISOString(),
+            });
+
+            // 7. Registrar evento de LLEGADA en bitácora
             const logRepo = em.getRepository(OrderRouteLog);
             const log = logRepo.create({
                 orderId:     order.orderId,
@@ -172,7 +184,7 @@ export class DeliverOrderUseCase {
                 );
             }
 
-            // 7. Marcar la unidad como disponible nuevamente
+            // 8. Marcar la unidad como disponible nuevamente
             const unitRepo = em.getRepository(TransportUnit);
             await unitRepo.update(unit.unitId, { isAvailable: true });
 

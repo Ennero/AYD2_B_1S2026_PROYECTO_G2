@@ -52,6 +52,7 @@ La plataforma adopta una **arquitectura modular orientada a servicios** con los 
 - **Contenerización (Docker):** Todos los servicios se empaquetan en contenedores para garantizar la portabilidad entre ambientes (desarrollo, staging, producción on-premise y futura nube).
 - **Integración con sistemas externos:** El sistema expone y consume interfaces estándar para integrarse con el Certificador FEL (SAT) y potenciales ERPs de clientes corporativos.
 - **Base de datos relacional centralizada:** Almacena la información de todos los módulos con integridad referencial, asegurando consistencia de datos entre Contratos, Órdenes, Facturación y Reportes.
+- **Mensajería asíncrona (RabbitMQ):** Eventos de dominio entre módulos desacoplados mediante un message broker, garantizando que los cambios de estado no queden bloqueados por servicios externos.
 
 ---
 
@@ -188,6 +189,7 @@ Componentes que aíslan la lógica de negocio de las dependencias externas:
 - **Adapter FEL:** Encapsula la comunicación con el Certificador FEL (SAT). Maneja reintentos y errores de indisponibilidad del servicio externo.
 - **Adapter ERP:** Expone endpoints públicos documentados (REST/JSON) para el consumo por parte de ERPs de clientes.
 - **Adapter de Notificaciones (Resend):** Encapsula el envío de correos transaccionales (credenciales, recuperación de contraseña y envío de factura certificada) usando Resend como proveedor del MVP.
+- **Adapter RabbitMQ (`RabbitmqModule`):** Módulo global de NestJS que encapsula la conexión con RabbitMQ. Expone `RabbitmqService.emit(pattern, payload)` para que cualquier módulo publique eventos de dominio sin acoplarse al broker.
 
 ### Capa de Persistencia
 
@@ -207,6 +209,7 @@ Componentes que aíslan la lógica de negocio de las dependencias externas:
 | **Nodo de failover / HA** | El nodo secundario en la infraestructura on-premise garantiza una recuperación en menos de 10 minutos (EAC-01) y el uptime del 99.5% (RNF-01). |
 | **Stack tecnológico maduro** | Cumple la restricción RES-04, evitando tecnologías experimentales que puedan comprometer el time-to-market de 4 semanas (RES-03). |
 | **Interfaz móvil offline-sync para Piloto** | Responde a la necesidad operativa de que los pilotos puedan registrar bitácora y confirmar entregas en zonas con baja o nula conectividad (RNF-02 Usabilidad). |
+| **RabbitMQ como message broker** | Desacopla los cambios de estado de negocio de sus efectos secundarios (notificaciones, procesos downstream). Los 4 eventos críticos del flujo (orden entregada, factura certificada/rechazada, pago aprobado) se publican de forma no bloqueante. Degradación elegante: si el broker no está disponible, el servidor continúa operando. |
 
 ---
 
@@ -230,6 +233,8 @@ La plataforma se despliega en una topología de dos nodos sobre infraestructura 
 │  │  - Servicios Backend │    │  - Servicios en      │   │
 │  │  - Base de Datos     │    │    espera activa      │   │
 │  │  - Frontend (CDN)    │    │                      │   │
+│  │  - RabbitMQ          │    │                      │   │
+│  │    (message broker)  │    │                      │   │
 │  └──────────────────────┘    └──────────────────────┘   │
 │                                                         │
 └───────────────────────┬─────────────────────────────────┘
@@ -246,5 +251,5 @@ La plataforma se despliega en una topología de dos nodos sobre infraestructura 
 
 ---
 
-**Fecha de última actualización:** 2 de marzo de 2026
+**Fecha de última actualización:** 6 de abril de 2026
 **Equipo:** Grupo 2 — Análisis y Diseño de Sistemas 2

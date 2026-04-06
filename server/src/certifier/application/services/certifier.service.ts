@@ -5,6 +5,7 @@ import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
+import { RabbitmqService } from '../../../infrastructure/messaging/rabbitmq.service';
 import { UserRole } from '../../../domain/enums/user-role.enum';
 import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
 import { Payment } from '../../../infrastructure/database/typeorm/entities/payment.entity';
@@ -24,6 +25,7 @@ export class CertifierService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly emailService: EmailService,
+    private readonly rabbitmq: RabbitmqService,
   ) {}
 
   async getDashboardSummary(filters: DashboardSummaryFilters = {}) {
@@ -140,6 +142,16 @@ export class CertifierService {
       invoice,
     );
 
+    this.rabbitmq.emit('factura.certificada', {
+      invoiceId:   invoice.invoiceId,
+      invoiceNumber: invoice.invoiceNumber,
+      clientId:    invoice.clientId,
+      totalAmount: Number(invoice.totalAmount),
+      currency:    invoice.currencyCode,
+      felUuid:     invoice.felUuid,
+      certifiedAt: invoice.certifiedAt?.toISOString(),
+    });
+
     return {
       invoiceId: invoice.invoiceId,
       status: invoice.status,
@@ -180,6 +192,13 @@ export class CertifierService {
         `La factura ${invoice.invoiceNumber} fue rechazada en FEL. Motivo: ${normalizedReason}`,
         invoice,
       );
+
+      this.rabbitmq.emit('factura.rechazada', {
+        invoiceId:     invoice.invoiceId,
+        invoiceNumber: invoice.invoiceNumber,
+        reason:        normalizedReason,
+        rejectedAt:    new Date().toISOString(),
+      });
 
       return {
         invoiceId: invoice.invoiceId,

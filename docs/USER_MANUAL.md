@@ -289,7 +289,7 @@ El listado de órdenes se refresca automáticamente mediante un mecanismo de pol
 - **Factura emitida:** cuando el Agente Financiero envía la factura certificada.
 
 **¿Qué pasa si falla el envío de correo?**
-El cambio de estado de la orden es válido; la notificación de correo se registra como error técnico en los logs pero no revierte la operación.
+El cambio de estado de la orden es válido y no se revierte. El sistema usa un message broker (RabbitMQ) para desacoplar los cambios de estado de sus notificaciones: el evento queda registrado en la cola aunque el correo falle, garantizando que la operación logística nunca se bloquee por un problema del servidor de correo.
 
 **¿Puedo crear una orden sin contrato vigente?**
 No. El sistema bloquea la creación de órdenes si el cliente no tiene un contrato en estado `VIGENTE`.

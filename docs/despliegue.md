@@ -18,6 +18,7 @@ Componentes:
 - `db` (PostgreSQL 15) en puerto host `5433`.
 - `server` (NestJS) en puerto host `3006`.
 - `client` (Next.js) en puerto host `3000`.
+- `rabbitmq` (RabbitMQ 3) en puertos host `5672` (AMQP) y `15672` (Management UI).
 
 Uso recomendado:
 
@@ -34,6 +35,7 @@ Componentes:
 - `api-1` y `api-2` (NestJS en paralelo).
 - `client` (Next.js).
 - `nginx` (TLS, reverse proxy y load balancing).
+- `rabbitmq` (RabbitMQ 3) sin puertos expuestos — solo accesible dentro de la red interna `backend`.
 
 Uso recomendado:
 
@@ -72,6 +74,7 @@ Variables criticas:
 - CORS: `CORS_ORIGINS`.
 - Correo: `MOCK_SMTP`, `RESEND_API_KEY`, `SES_FROM_EMAIL`, `SES_FROM_NAME`, `PORTAL_URL`.
 - Storage externo (si aplica): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` y buckets.
+- RabbitMQ: `RABBITMQ_URL`.
 
 Recomendaciones:
 
@@ -122,6 +125,7 @@ docker-compose logs --no-color client | tail -n 200
 - API: `http://localhost:3006`
 - Health API: `http://localhost:3006/health`
 - PostgreSQL: `localhost:5433`
+- RabbitMQ Management UI: `http://localhost:15672` (usuario: `guest`, contraseña: `guest`)
 
 ### 5.4 Reinicio limpio de base de datos
 
@@ -185,6 +189,11 @@ docker-compose ps
 docker compose -f docker-compose.prod.yml ps
 ```
 
+```bash
+# RabbitMQ
+curl -s http://localhost:15672/api/healthchecks/node -u guest:guest
+```
+
 ### 7.2 Logs de diagnostico
 
 ```bash
@@ -209,6 +218,11 @@ curl -k https://localhost/health
 curl -k https://localhost/api/v1/health
 ```
 
+```bash
+# Verificar cola RabbitMQ
+curl -s http://localhost:15672/api/queues/%2F/logitrans_queue -u guest:guest | python -m json.tool
+```
+
 ### 7.4 Verificacion de replica (modo prod)
 
 ```bash
@@ -227,7 +241,7 @@ Resultado esperado:
 
 ```bash
 # Base
-docker-compose restart server client
+docker-compose restart rabbitmq server client
 
 # Prod
 docker compose -f docker-compose.prod.yml restart api-1 api-2 nginx client
@@ -331,6 +345,20 @@ Acciones:
 1. Revisar logs de `client`.
 2. Confirmar `NEXT_PUBLIC_API_URL` en compose/env.
 3. Verificar que Nginx tenga rutas `location /` y `location /api/` correctas.
+
+### 10.5 RabbitMQ no conecta al arrancar el servidor
+
+Sintoma:
+
+- Log del server: `RabbitMQ not available, events will be dropped`
+- El servidor arranca igualmente (degradacion elegante)
+
+Acciones:
+
+1. Verificar que el contenedor `logitrans_rabbitmq` esta healthy: `docker compose ps`
+2. Confirmar que `RABBITMQ_URL` esta seteado correctamente en `server/.env`
+3. Recrear el contenedor del server para recargar el env: `docker compose up -d --force-recreate server`
+4. Acceder a la Management UI: http://localhost:15672 (guest/guest)
 
 ## 11. Checklist de seguridad minima
 

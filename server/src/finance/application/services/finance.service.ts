@@ -11,6 +11,7 @@ import { PaymentStatus } from '../../../domain/enums/payment-status.enum';
 import { RouteEventType } from '../../../domain/enums/route-event-type.enum';
 import { UserRole } from '../../../domain/enums/user-role.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
+import { RabbitmqService } from '../../../infrastructure/messaging/rabbitmq.service';
 
 interface DashboardSummaryFilters {
   period?: 'MONTHLY';
@@ -34,6 +35,7 @@ export class FinanceService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly emailService: EmailService,
+    private readonly rabbitmq: RabbitmqService,
   ) {}
 
   async getDashboardSummary(filters: DashboardSummaryFilters = {}) {
@@ -383,12 +385,23 @@ export class FinanceService {
         await invoiceRepo.save(invoice);
       }
 
+      const approvedAt = new Date();
+
+      this.rabbitmq.emit('pago.aprobado', {
+        paymentId:   payment.paymentId,
+        invoiceId:   payment.invoiceId,
+        amount:      Number(payment.amount),
+        currency:    payment.currencyCode,
+        invoiceStatus: invoice.status,
+        approvedAt:  approvedAt.toISOString(),
+      });
+
       return {
         paymentId: payment.paymentId,
         invoiceId: payment.invoiceId,
         status: payment.status,
         reviewedByUserId: payment.reviewedByUserId,
-        approvedAt: new Date(),
+        approvedAt,
         invoiceStatus: invoice.status,
       };
     });
