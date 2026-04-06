@@ -341,8 +341,6 @@ export class FinanceService {
       clientName: payment.invoice?.clientName ?? null,
       method: payment.method,
       status: payment.status,
-      bankName: payment.bankName,
-      bankReference: payment.bankReference,
       currencyCode: payment.currencyCode,
       amount: toNumber(payment.amount),
       paymentDate: payment.paymentDate,

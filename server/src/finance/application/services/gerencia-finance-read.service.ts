@@ -130,8 +130,6 @@ export class GerenciaFinanceReadService {
       clientName: payment.invoice?.clientName ?? null,
       method: payment.method,
       status: payment.status,
-      bankName: payment.bankName,
-      bankReference: payment.bankReference,
       amount: toUsd(
         toNumber(payment.amount),
         resolveExchangeRateFromUsd(payment.invoice?.exchangeRateFromUsd),

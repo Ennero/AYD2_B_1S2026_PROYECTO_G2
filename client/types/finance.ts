@@ -44,8 +44,6 @@ export interface FinancePayment {
   currencyCode?: string
   amount: number
   method: FinancePaymentMethod
-  bankName?: string
-  bankReference?: string
   paymentDate: string
   status: FinancePaymentStatus
 }

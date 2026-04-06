@@ -23,22 +23,7 @@ export class Payment {
     default: PaymentStatus.PENDIENTE })
   status: PaymentStatus;
 
-  @Column({ name: 'bank_name', type: 'varchar', length: 120, nullable: true })
-  bankName: string | null;
 
-  @Column({
-    name: 'bank_account_number',
-    type: 'varchar',
-    length: 50,
-    nullable: true })
-  bankAccountNumber: string | null;
-
-  @Column({
-    name: 'bank_reference',
-    type: 'varchar',
-    length: 80,
-    nullable: true })
-  bankReference: string | null;
 
   @Column({ name: 'support_document_path', type: 'text', nullable: true })
   supportDocumentPath: string | null;

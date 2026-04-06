@@ -57,8 +57,6 @@ interface FinancePaymentApi {
   currencyCode?: string | null
   amount: number | string
   method: FinancePayment["method"]
-  bankName?: string | null
-  bankReference?: string | null
   paymentDate: string
   status: FinancePayment["status"]
 }
@@ -118,8 +116,6 @@ function toFinancePayment(payment: FinancePaymentApi): FinancePayment {
     currencyCode: payment.currencyCode ?? undefined,
     amount: toNumber(payment.amount),
     method: payment.method,
-    bankName: payment.bankName ?? undefined,
-    bankReference: payment.bankReference ?? undefined,
     paymentDate: payment.paymentDate,
     status: payment.status,
   }

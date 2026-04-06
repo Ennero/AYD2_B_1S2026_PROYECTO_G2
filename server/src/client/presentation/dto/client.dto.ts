@@ -130,21 +130,6 @@ export class RegisterPaymentDto {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(120)
-  bankName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(50)
-  bankAccountNumber: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(80)
-  bankReference: string;
-
-  @IsNotEmpty()
-  @IsString()
   @MaxLength(500)
   supportDocumentPath: string;
 }
