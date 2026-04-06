@@ -915,7 +915,7 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'distribuidora-sv',
     legalName: 'DISTRIBUIDORA CENTRAL, S.A. DE C.V.',
-    nit: '0614-210193-101-7',
+    nit: '0614210193101',
     taxAddress: 'Bulevar del Hipódromo No. 225, Col. San Benito, San Salvador',
     primaryContactName: 'Ana Flores',
     primaryContactEmail: 'ana.flores@distcentral.com.sv',
@@ -954,7 +954,7 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'agro-sv',
     legalName: 'AGROEXPORT SANTA ANA, S.A. DE C.V.',
-    nit: '0611-180488-003-4',
+    nit: '0611180488003',
     taxAddress: 'Km 48.5 Carretera Panamericana, Santa Ana, El Salvador',
     primaryContactName: 'Luis Bonilla',
     primaryContactEmail: 'luis.bonilla@agrosantaana.com.sv',
@@ -988,7 +988,7 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'industrias-hn',
     legalName: 'INDUSTRIAS NACIONALES, S.A.',
-    nit: '08011990012345',
+    nit: '0801199012345',
     taxAddress: 'Blvd. Morazan, Colonia Florencia Norte, Tegucigalpa',
     primaryContactName: 'Jorge Zuniga',
     primaryContactEmail: 'jorge.zuniga@indnac.com.hn',
@@ -1027,7 +1027,7 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
   {
     key: 'alimentos-hn',
     legalName: 'ALIMENTOS SAN PEDRO, S.A.',
-    nit: '05041985098765',
+    nit: '0504198509876',
     taxAddress: 'Col. Trejo, Blvd. Centro America, San Pedro Sula, Cortés',
     primaryContactName: 'Patricia Yanes',
     primaryContactEmail: 'patricia.yanes@alimspsula.com.hn',
