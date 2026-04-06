@@ -2053,7 +2053,7 @@ El Sprint 6 cerró el proyecto de forma exitosa. El equipo presentó un sistema 
 
 **Tablero del Sprint (referencia):**
 
-![Tablero Sprint 6 - Fase 3](imgs/kanban/kanban6.jpeg)
+![Tablero Sprint 6 - Fase 3](imgs/kanban/kanban6.png)
 
 ---
 
