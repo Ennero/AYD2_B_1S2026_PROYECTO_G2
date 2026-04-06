@@ -46,27 +46,41 @@
 
 ### 1.1 Objetivo del documento
 
-Este manual proporciona una guia completa para operar LogiTrans de forma correcta, segura y consistente. Su objetivo es estandarizar el trabajo diario de todos los roles que participan en el ciclo logistico, desde la creacion de clientes y contratos hasta la entrega final y facturacion.
+Este manual proporciona una guía completa para operar LogiTrans de forma correcta, segura y consistente. Su objetivo es estandarizar el trabajo diario de todos los roles que participan en el ciclo logístico, desde la creación de clientes y contratos hasta la entrega final y facturación. También sirve como referencia de consulta ante dudas operativas, errores del sistema y preguntas frecuentes.
 
 ### 1.2 Alcance del sistema
 
-LogiTrans cubre el flujo integral de transporte de carga:
+LogiTrans cubre el flujo **integral** de transporte de carga terrestre, abarcando los ámbitos comercial, operativo, logístico y financiero en una sola plataforma conectada.
 
-- Registro comercial de clientes y contratos.
-- Creacion y gestion de ordenes de servicio.
-- Operacion de patio y despacho.
-- Monitoreo de viaje por piloto con bitacora.
-- Confirmacion de entrega con evidencia.
-- Facturacion, certificacion FEL y conciliacion de pagos.
-- Envio final de factura al cliente.
+#### Ámbito funcional cubierto
 
-### 1.3 Publico objetivo
+| Ámbito | Funcionalidades incluidas |
+|---|---|
+| **Comercial** | Registro de clientes con datos fiscales y perfil de riesgo; formalización de contratos con límites de crédito, rutas y tipos de carga autorizados; administración de catálogos |
+| **Portal del cliente** | Aceptación de contratos; creación de órdenes de servicio; tracking en tiempo semi-real; consulta de facturas y estado de cuenta; gestión de contactos |
+| **Logística** | Asignación de binomio piloto‑unidad; validación de compatibilidad de peso, refrigeración y tarifa; programación de salida |
+| **Patio** | Verificación de identidad del piloto; registro de peso real; validación de estiba; formalización de despacho |
+| **Operación del piloto** | Inicio de viaje; bitácora cronológica de eventos; confirmación de entrega con firma digital y evidencia fotográfica |
+| **Finanzas** | Revisión de borradores autogenerados; envío a certificación FEL; conciliación de pagos; envío final de factura |
+| **Certificación FEL** | Validación de NIT; certificación con UUID; rechazo con motivo documentado |
+| **BI / Gerencia** | KPIs operativos y financieros; distribución por sede; rentabilidad por contrato; alertas y proyecciones |
+| **Multi-país** | Soporte para Guatemala (GTQ / 12%), El Salvador (USD / 13%) y Honduras (HNL / 15%) |
 
-Este manual esta dirigido a:
+#### Límites del sistema (fuera de alcance)
+
+- No gestiona inventario de mercancías propiamente dicho (solo tipos y pesos declarados).
+- No incluye gestión de flotas (mantenimiento preventivo, km recorridos, combustible).
+- No emite facturas físicas; el documento tributario electrónico (DTE) lo genera el certificador FEL.
+- No incluye cálculo de nómina ni gestión de RRHH.
+- No gestiona aduanas (solo registra riesgo de aduana como campo de perfil del cliente).
+
+### 1.3 Público objetivo
+
+Este manual está dirigido a:
 
 - Clientes de transporte de carga.
 - Agentes Operativos.
-- Agentes Logisticos.
+- Agentes Logísticos.
 - Encargados de Patio.
 - Pilotos.
 - Agentes Financieros.
@@ -257,20 +271,47 @@ Privacidad de informacion:
 
 ## 7. Preguntas frecuentes (FAQ)
 
-**Se puede enviar una factura si no esta pagada?**  
-No. Primero debe pasar a estado `PAGADA`.
+**¿Se puede enviar una factura si no está pagada?**
+No. Primero el Agente Financiero debe aprobar el pago, lo que mueve la factura a estado `PAGADA`. Solo entonces se habilita el botón de envío al cliente.
 
-**Que pasa si una factura es rechazada por FEL?**  
-Regresa a revision para correccion de datos y reenvio.
+**¿Qué pasa si una factura es rechazada por FEL?**
+Regresa a estado `RECHAZADA` y el Agente Financiero debe corregir los datos tributarios (especialmente el NIT) y reenviarla a certificación.
 
-**Como se actualiza el estado de orden en el portal cliente?**  
-El listado de ordenes se refresca automaticamente y tambien se sincroniza al cerrar seguimiento.
+**¿Cómo se actualiza el estado de orden en el portal cliente?**
+El listado de órdenes se refresca automáticamente mediante un mecanismo de polling y también se sincroniza al cerrar el panel de seguimiento.
 
-**Que notificaciones por correo recibe el cliente durante operacion?**  
-Recibe aviso cuando la orden sale de patio (`EN_TRANSITO`) y cuando se confirma la entrega (`ENTREGADA`).
+**¿Qué notificaciones por correo recibe el cliente?**
+- **Bienvenida:** al ser registrado por el Agente Operativo (incluye credenciales de acceso).
+- **Propuesta de contrato:** cuando el Agente Operativo genera un nuevo contrato para su empresa.
+- **Recuperación de contraseña:** token de 30 minutos cuando solicita restablecer su clave.
+- **Orden en tránsito:** cuando el piloto inicia el viaje (`EN_TRANSITO`).
+- **Orden entregada:** cuando el piloto confirma la entrega (`ENTREGADA`).
+- **Factura emitida:** cuando el Agente Financiero envía la factura certificada.
 
-**Que pasa si falla el envio de correo en una transicion operativa?**  
-El cambio de estado de la orden sigue siendo valido; la notificacion se registra como error tecnico.
+**¿Qué pasa si falla el envío de correo?**
+El cambio de estado de la orden es válido; la notificación de correo se registra como error técnico en los logs pero no revierte la operación.
+
+**¿Puedo crear una orden sin contrato vigente?**
+No. El sistema bloquea la creación de órdenes si el cliente no tiene un contrato en estado `VIGENTE`.
+
+**¿Cómo sabe el sistema qué tipo de unidad necesito?**
+El Agente Logístico selecciona la unidad; el sistema valida automáticamente que la capacidad sea suficiente para el peso declarado y que la unidad tenga habilitación para el tipo de carga (por ejemplo, refrigeración si la mercancía lo requiere).
+
+**¿Qué ocurre si el peso real en patio difiere del declarado?**
+El sistema acepta una tolerancia mínima. Si la diferencia supera el umbral, el Encargado de Patio no puede formalizar la carga hasta corregir el dato o actualizar el peso real.
+
+**¿El piloto puede registrar múltiples eventos en la bitácora?**
+Sí. Durante todo el trayecto el piloto puede agregar tantos puntos de control, pausas o incidentes como necesite. Todos quedan visibles en el tracking del cliente.
+
+**¿En qué moneda se muestra la información en gerencia?**
+Todos los montos financieros en el módulo de gerencia se normalizan a USD para permitir comparaciones entre países. El resto del sistema muestra la moneda del contrato del cliente.
+
+**¿Cómo se recupera el acceso si olvidé mi contraseña?**
+1. En el formulario de login, presiona “¿Olvidaste tu contraseña?”.
+2. Ingresa tu correo electrónico registrado.
+3. Revisa tu bandeja de entrada; recibirás un token de recuperación.
+4. Ingresa el token en la pantalla de restablecimiento junto con tu nueva contraseña.
+5. El token es de un solo uso y expira en 30 minutos.
 
 ---
 
@@ -294,14 +335,22 @@ Documentos de apoyo:
 
 ## 9. Glosario
 
-- **Orden de servicio:** solicitud logistica creada por cliente.
-- **Binomio:** combinacion de piloto y unidad.
-- **Formalizar carga:** validacion en patio para habilitar salida.
-- **Bitacora:** registro cronologico de eventos de viaje.
-- **FEL:** Factura Electronica en Linea.
-- **DTE:** Documento Tributario Electronico.
-- **Conciliacion:** validacion y aprobacion de pago.
-- **Tracking:** seguimiento de estado de una orden.
+| Término | Definición |
+|---|---|
+| **Orden de servicio** | Solicitud logística creada por el cliente para transportar mercancía de un punto A a un punto B |
+| **Binomio** | Combinación de un piloto asignado y una unidad de transporte específica |
+| **Formalizar carga** | Proceso de validateción en patio que verifica peso real, estiba y condiciones antes de autorizar la salida |
+| **Bitácora** | Registro cronológico de eventos ocurridos durante un viaje (salidas, puntos de control, incidentes, entrega) |
+| **FEL** | Factura Electrónica en Línea — régimen tributario electrónico de Guatemala |
+| **DTE** | Documento Tributario Electrónico — representación digital de la factura certificada |
+| **UUID FEL** | Código único asignado por el certificador al documento tributario electrónico |
+| **Conciliación** | Proceso de validar y aprobar un pago registrado por el cliente para liberar la factura a estado `PAGADA` |
+| **Tracking** | Seguimiento del estado actual y la bitácora de eventos de una orden en tiempo semi-real |
+| **Borrador** | Estado inicial de una factura generada automáticamente al entregar una orden; aún no tiene descripción de servicio ni fecha de vencimiento |
+| **Contrato vigente** | Contrato en estado `VIGENTE` (aceptado por el cliente) que habilita la creación de órdenes |
+| **Perfil de riesgo** | Clasificación del cliente en cuatro dimensiones: riesgo de pago, aduanal, de mercancía y lavado de dinero |
+| **Tipo de cambio** | Tasa de conversión de la moneda del contrato a USD, registrada en el momento de la operación |
+| **KPI** | Indicador Clave de Desempeño (Key Performance Indicator) usado en el módulo de gerencia |
 
 ---
 
@@ -986,18 +1035,198 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 
 ## 11. Restricciones y reglas de negocio
 
-- Limite operativo de transporte: 40 toneladas.
-- No saltar estados intermedios de orden.
-- Flujo de factura y flujo de pago son distintos.
-- No enviar factura antes de `PAGADA`.
-- Validaciones tributarias deben pasar por certificador.
+### Reglas de órdenes
+
+- El límite máximo de peso declarado desde el portal del cliente es de **40 toneladas**.
+- No se pueden saltar estados intermedios en el flujo de una orden (`REGISTRADA → ASIGNADA → LISTA_PARA_DESPACHO → EN_TRANSITO → ENTREGADA`).
+- Una orden debe tener un contrato vigente asociado para ser creada.
+- El tipo de carga de una orden debe estar autorizado en el contrato del cliente.
+- El piloto solo puede ver y operar las órdenes asignadas a su unidad.
+
+### Reglas de contrato
+
+- Un cliente solo puede tener **un contrato vigente activo** a la vez.
+- El contrato pasa a `VIGENTE` únicamente cuando el cliente lo acepta explícitamente.
+- Las rutas y tipos de carga autorizados son los únicos que el cliente puede utilizar al crear órdenes.
+
+### Reglas de facturación
+
+- El flujo de **factura** y el flujo de **pago** son independientes; no deben confundirse.
+- No se puede enviar una factura al cliente antes de que esté en estado `PAGADA`.
+- Un pago debe coincidir exactamente con el monto total de la factura.
+- Las validaciones tributarias (NIT) deben pasar por el Certificador FEL antes de emitir el UUID.
+- Una factura rechazada por FEL regresa a revisión de Finanzas para corrección.
+
+### Reglas de patio
+
+- La diferencia entre peso declarado y peso real debe estar dentro de la tolerancia operativa configurada.
+- Si el peso real excede la capacidad de la unidad asignada, el sistema bloquea la formalización.
+- El piloto en patio debe coincidir con el piloto asignado a la orden.
+
+### Reglas de seguridad
+
+- Las contraseñas temporales deben cambiarse en el primer acceso.
+- El token de recuperación de contraseña expira en **30 minutos** y es de un solo uso.
+- No se pueden reutilizar contraseñas previamente usadas.
 
 ---
 
-## 12. Anexos y referencias
+## 12. Guía de navegación por rol
 
-- Happy Path: `docs/happypath.md`
-- Manual Tecnico: `docs/TECHNICAL_MANUAL.md`
+### Cliente
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Ver mis órdenes | Portal Cliente → Órdenes |
+| Crear nueva orden | Portal Cliente → Órdenes → Solicitar Servicio |
+| Hacer seguimiento de orden | Portal Cliente → Órdenes → Ver Tracking |
+| Ver mis contratos | Portal Cliente → Contratos |
+| Aceptar contrato pendiente | Portal Cliente → Contratos → Aceptar |
+| Ver mis facturas | Portal Cliente → Facturas |
+| Registrar pago | Portal Cliente → Facturas → Registrar Pago |
+| Ver estado de cuenta | Portal Cliente → Estado de Cuenta |
+| Gestionar contactos | Portal Cliente → Contactos |
+| Cambiar contraseña | Portal Cliente → Mis Datos → Seguridad |
+
+### Agente Operativo
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Registrar cliente | Operativo → Clientes → Nuevo Cliente |
+| Buscar cliente | Operativo → Clientes → Buscar |
+| Generar contrato | Operativo → Contratos → Formalizar Contrato |
+| Administrar rutas | Operativo → Catálogos → Rutas |
+| Administrar tipos de carga | Operativo → Catálogos → Tipos de Carga |
+| Administrar usuarios | Operativo → Usuarios |
+
+### Agente Logístico
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Ver órdenes pendientes | Logística → Órdenes |
+| Asignar binomio | Logística → Órdenes → Asignar Binomio |
+| Ver catálogo de rutas | Logística → Rutas |
+
+### Encargado de Patio
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Ver cargas por despachar | Patio → Cargas |
+| Formalizar despacho | Patio → Cargas → Formalizar |
+
+### Piloto
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Ver mis viajes | Piloto → Mis Viajes |
+| Iniciar viaje | Piloto → Mis Viajes → Iniciar |
+| Registrar evento en bitácora | Piloto → Mis Viajes → Registrar Evento |
+| Confirmar entrega | Piloto → Mis Viajes → Confirmar Entrega |
+
+### Agente Financiero
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Ver facturas borrador | Finanzas → Bandeja de Facturación → Borradores |
+| Enviar a certificación FEL | Finanzas → Bandeja → Enviar a FEL |
+| Conciliar pago | Finanzas → Conciliar Pagos → Aprobar |
+| Enviar factura al cliente | Finanzas → Bandeja → Certificadas → Enviar |
+| Ver tarifario base | Finanzas → Tarifas |
+
+### Certificador FEL
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Ver facturas pendientes | FEL → Bandeja de Aprobación |
+| Validar NIT | FEL → Bandeja → Certificar → Verificar NIT |
+| Certificar factura | FEL → Bandeja → Confirmar y Certificar |
+| Rechazar factura | FEL → Bandeja → Rechazar |
+
+### Gerencia
+
+| Acción | Ruta en el sistema |
+|---|---|
+| Ver KPIs operativos | Gerencia → Operaciones y KPIs |
+| Ver rentabilidad | Gerencia → Rentabilidad |
+| Ver alertas y proyecciones | Gerencia → Alertas y Proyecciones |
+
+---
+
+## 13. Flujo de estados y cómo afectan al usuario
+
+### Estado de órdenes
+
+| Estado | Quién lo puede ver | Acción requerida | Siguiente actor |
+|---|---|---|---|
+| `REGISTRADA` | Cliente, Agente Logístico | Asignar binomio | Agente Logístico |
+| `ASIGNADA` | Cliente, Patio | Formalizar carga | Encargado de Patio |
+| `LISTA_PARA_DESPACHO` | Cliente, Piloto | Iniciar viaje | Piloto |
+| `EN_TRANSITO` | Cliente, Piloto | Registrar eventos / Confirmar entrega | Piloto |
+| `ENTREGADA` | Cliente, Finanzas | Revisar factura borrador | Agente Financiero |
+
+### Estado de facturas
+
+| Estado | Visible para | Acción disponible |
+|---|---|---|
+| `BORRADOR` | Finanzas, Cliente (solo lectura) | Completar y enviar a FEL |
+| `CERTIFICADA` | Finanzas, Cliente | Aprobar pago / Enviar al cliente |
+| `PAGADA` | Finanzas, Cliente | Enviar factura final |
+| `ENVIADA` | Finanzas, Cliente | Solo consulta |
+| `RECHAZADA` | Finanzas | Corregir y reenviar a FEL |
+
+### Estado de pagos
+
+| Estado | Descripción |
+|---|---|
+| `PENDIENTE` | El cliente registró el pago; Finanzas debe conciliarlo |
+| `APROBADO` | Finanzas aprobó el pago; la factura pasa a `PAGADA` |
+| `RECHAZADO` | Finanzas rechazó el pago; el cliente debe registrar uno nuevo |
+
+---
+
+## 14. Consideraciones de seguridad para el usuario final
+
+### Buenas prácticas obligatorias
+
+- **No compartir credenciales** con otras personas, incluso dentro de la misma empresa.
+- **Cambiar la contraseña temporal** en el primer acceso al sistema.
+- **Cerrar sesión** al terminar de operar, especialmente en equipos compartidos.
+- **No adjuntar evidencia** no relacionada con la orden al confirmar entrega.
+- **Verificar el NIT** antes de enviar una factura a certificación para evitar rechazos.
+
+### Privacidad de información
+
+- Los datos del cliente se utilizan exclusivamente para operación logística y facturación.
+- El sistema conserva trazabilidad completa de eventos relevantes (cambios de estado, eventos de bitácora, acciones de usuario).
+- Los cambios críticos (certificación, aprobación de pago, envío de factura) quedan auditados con el usuario que los ejecutó.
+
+---
+
+## 15. Soporte y ayuda
+
+### Orden recomendado de atención
+
+1. Revisar este manual y la sección de preguntas frecuentes.
+2. Consultar la guía de navegación por rol (Sección 12).
+3. Confirmar el estado de la orden/factura en el módulo correspondiente.
+4. Contactar al equipo de soporte funcional de LogiTrans.
+5. Escalar a soporte técnico si hay error de plataforma.
+
+### Documentos de apoyo
+
+| Documento | Descripción |
+|---|---|
+| `docs/TECHNICAL_MANUAL.md` | Manual técnico para desarrolladores y DevOps |
+| `docs/mvp_accessos_usuarios.md` | Credenciales y accesos por rol para entorno de pruebas |
+| `docs/endpoint_tables.md` | Catálogo detallado de endpoints REST |
+| `docs/despliegue.md` | Instrucciones de instalación y despliegue |
+
+---
+
+## 16. Anexos y referencias
+
+- Happy Path completo: `docs/happypath.md`
+- Manual Técnico: `docs/TECHNICAL_MANUAL.md`
 - Arquitectura: `docs/architecture.md`
 - DDA: `docs/dda.md`
 - ADR: `docs/adr.md`
@@ -1005,4 +1234,4 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 
 ---
 
-**© 2026 LogiTrans Guatemala - Grupo 2 - AyD2**
+**© 2026 LogiTrans Guatemala — Grupo 2 — Análisis y Diseño de Sistemas 2**
