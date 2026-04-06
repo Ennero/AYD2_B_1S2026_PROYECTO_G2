@@ -122,6 +122,22 @@ Estados de pago (flujo separado):
 
 Nota: el envio de factura solo se habilita cuando la factura esta en estado `PAGADA`.
 
+### 2.4 Diagrama de casos de uso
+
+El siguiente diagrama representa de forma resumida todos los actores y las funcionalidades que el sistema pone a disposición de cada rol:
+
+**Vista general del sistema (alto nivel):**
+
+![Diagrama de casos de uso — Alto nivel](imgs/dda/high-level.png)
+
+> Este diagrama muestra qué puede hacer cada actor dentro de LogiTrans. Los actores son los 8 roles del sistema; las elipses representan las funcionalidades disponibles para cada uno.
+
+**Primera descomposición de casos de uso:**
+
+![Diagrama de casos de uso — Primera descomposición](imgs/dda/first-descomposition.png)
+
+> La primera descomposición detalla los casos de uso principales por dominio: comercial, operativo, logístico, financiero y de gerencia. Cada caso de uso se expande en flujos específicos cubiertos en las secciones 5 y 10 de este manual.
+
 ---
 
 ## 3. Requisitos del sistema

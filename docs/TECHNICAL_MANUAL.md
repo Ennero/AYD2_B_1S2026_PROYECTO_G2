@@ -128,6 +128,18 @@ Adicionalmente se conectan:
 - **Almacenamiento de archivos** para firmas y evidencias de entrega.
 - **Message Broker** (RabbitMQ/similar) para eventos asíncronos entre servicios.
 
+**Diagrama de bloques del sistema:**
+
+![Diagrama de bloques de arquitectura LogiTrans](imgs/architecture/blocks-diagram.png)
+
+> El diagrama ilustra cómo el frontend, backend y base de datos se relacionan como capas independientes, con flujos de comunicación REST y eventos asíncronos hacia los servicios externos (correo, FEL, storage).
+
+**Diagrama de contexto del sistema:**
+
+![Diagrama de contexto C4 — LogiTrans](imgs/architecture/context_diagram.png)
+
+> Vista de contexto C4: muestra LogiTrans como una caja negra y sus actores externos directos: los 8 roles de usuario, el servicio FEL regulatorio y el servicio de correo transaccional Resend.
+
 ### 2.2 Vista de despliegue local
 
 Composición del entorno base (`docker-compose.yml`):
@@ -154,6 +166,12 @@ services:
     depends_on: [server]
 ```
 
+**Diagrama de componentes internos:**
+
+![Diagrama de componentes — LogiTrans](imgs/architecture/components-diagram.jpg)
+
+> El diagrama de componentes detalla los módulos NestJS del backend y sus dependencias internas: cómo el módulo de finanzas se apoya en el de notificaciones, cómo el módulo de órdenes integra el módulo logístico, etc.
+
 ### 2.3 Vista de despliegue productivo simulado
 
 Composición del entorno productivo simulado (`docker-compose.prod.yml`):
@@ -171,6 +189,12 @@ Internet → Nginx (443/80) → [api-1 | api-2] → db-primary
                                              ↑
                             db-replica (lecturas)
 ```
+
+**Diagrama de despliegue:**
+
+![Diagrama de despliegue productivo — LogiTrans](imgs/architecture/deployment-diagram.png)
+
+> El diagrama de despliegue muestra la topología productiva simulada sobre Docker: nginx como load balancer que distribuye entre dos réplicas del backend, ambas conectadas a la base de datos primaria y a la réplica de solo lectura para reportes de gerencia.
 
 ### 2.4 Principios arquitectónicos aplicados
 
@@ -350,6 +374,18 @@ El sistema integra un message broker (RabbitMQ) para la gestión de eventos así
 - Propagación de eventos de entrega al módulo financiero.
 
 Esto garantiza que los cambios de estado no queden bloqueados por fallos en el sistema de correo.
+
+**Diagrama de flujo del proceso end-to-end:**
+
+![Flujo del proceso logístico completo](imgs/flow/flow-chart.png)
+
+> El diagrama de flujo representa el recorrido completo de una orden desde su creación por el cliente hasta la conciliación del pago: creación → asignación binomio → despacho → entrega → facturación FEL → pago.
+
+**Diagrama de secuencia — Notificaciones asíncronas:**
+
+![Diagrama de secuencia — Eventos y notificaciones](imgs/flow/sequence-diagram.png)
+
+> El diagrama de secuencia detalla las interacciones entre los módulos cuando ocurre una entrega: la orden actualiza su estado, dispara el trigger de creación de factura borrador, y el servicio de notificaciones envía correo al cliente y al agente financiero de forma asíncrona sin bloquear la respuesta al piloto.
 
 ---
 
@@ -616,6 +652,18 @@ Para el portal del cliente:
 | `db/logitrans_postgresql.sql` | DDL canónico completo con tablas, índices, triggers y vistas |
 | `db/logitrans_dbdiagram.dbml` | Modelo visual de entidades para documentación |
 
+**Diagrama entidad-relación (vista de contexto):**
+
+![Diagrama ER — Vista de contexto de entidades LogiTrans](imgs/dda/context_diagram.png)
+
+> Vista de alto nivel del modelo relacional. Muestra las entidades principales (clientes, contratos, órdenes, facturas, pagos) y sus relaciones clave sin detalle de atributos, útil para onboarding técnico rápido.
+
+**Diagrama ER completo (alto nivel):**
+
+![Diagrama ER — Alto nivel completo](imgs/dda/high-level.png)
+
+> Diagrama de alto nivel que agrupa las entidades por dominio funcional: autenticación, operación, logística, finanzas y catálogos.
+
 ### 8.2 Entidades troncales
 
 | Tabla | Descripción |
@@ -639,6 +687,24 @@ Para el portal del cliente:
 | `payments` | Pagos registrados por el cliente con estado de conciliación |
 | `exchange_rates` | Tipos de cambio históricos por moneda |
 | `branches` | Sedes operativas de la empresa |
+
+**Diagrama detallado de casos de uso del sistema:**
+
+![CDU 001 — Gestión de clientes y contratos](imgs/dda/cdu001.png)
+
+> Diagrama de casos de uso para el dominio de gestión comercial: registro de clientes, formalización de contratos, administración de contactos y perfiles de riesgo.
+
+![CDU 002 — Flujo operativo de órdenes](imgs/dda/cdu002.png)
+
+> Diagrama de casos de uso para el ciclo de vida de órdenes: creación por el cliente, asignación logística, formalización en patio, viaje del piloto, entrega y evidencia.
+
+![CDU 003 — Ciclo de facturación y pagos](imgs/dda/cdu003.png)
+
+> Diagrama de casos de uso para el ciclo financiero: revisión de facturas borrador, certificación FEL, conciliación de pagos y envío al cliente.
+
+![CDU 004 — BI y Gerencia](imgs/dda/cdu004.png)
+
+> Diagrama de casos de uso para el módulo de gerencia: visualización de KPIs, alertas operativas, rentabilidad por contrato y proyecciones.
 
 ### 8.3 Flujos de estado canónicos
 
