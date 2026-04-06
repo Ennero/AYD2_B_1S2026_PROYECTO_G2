@@ -8,7 +8,7 @@
 
 ---
 
-**[📹 Ver todas las grabaciones](https://drive.google.com/drive/u/2/folders/1OKNtUC4rdsPC6kN7s6AwAsapg5IZPnrc)**
+**[📹 Ver todas grabaciones Fase 1](https://drive.google.com/drive/u/2/folders/1OKNtUC4rdsPC6kN7s6AwAsapg5IZPnrc)**
 
 ---
 
@@ -757,6 +757,8 @@ El Sprint 2 evidenció una mejora frente al anterior: se cumplieron los entregab
 
 ## Fase 2 — Desarrollo Principal
 
+**[📹 Ver grabaciones de la Fase 2](https://drive.google.com/drive/u/2/folders/1w4DP6CERAgafuUTdYCGU5eyUonN0_qtr)**
+
 ---
 
 ### Sprint 3
@@ -1403,69 +1405,655 @@ El Sprint 4 reforzó la importancia de estandarizar la forma de trabajo y de man
 
 ## Fase 3 — Integración y QA
 
+**[📹 Ver grabaciones de la Fase 3](https://drive.google.com/drive/folders/1sRGlXKT4BA00Ei7E5Ii2Z64aGMgMWKst)**
+
 ---
 
 ### Sprint 5
 
-**Período:** _(pendiente)_
-**Objetivo:** _(pendiente de definir en Sprint Planning)_
+**Período:** 8 – 15 de abril de 2026
+**Objetivo:** Ejecutar el plan de pruebas completo (unitarias, de integración, de carga, de estrés y E2E), integrar el message broker, configurar la infraestructura cloud y adaptar el módulo piloto para el despliegue final
 
 | Ceremonia | Fecha |
 |-----------|-------|
-| **Sprint Planning** | _(pendiente)_ |
-| **Daily Scrum 1** | _(pendiente)_ |
-| **Daily Scrum 2** | _(pendiente)_ |
-| **Sprint Retrospective** | _(pendiente)_ |
+| **Sprint Planning** | 8 de abril de 2026 — 22:00 |
+| **Daily Scrum 1** | 10 de abril de 2026 — 22:00 |
+| **Daily Scrum 2** | 13 de abril de 2026 — 22:00 |
+| **Sprint Retrospective** | 15 de abril de 2026 — 22:00 |
 
 ---
 
-#### Daily Scrum 1
+#### Daily Scrum 1 — 10 de abril de 2026
 
-> _Pendiente de documentar._
+**Hora:** 22:00
 
----
-
-#### Daily Scrum 2
-
-> _Pendiente de documentar._
+**Participantes:**
 
 ---
 
-#### Sprint Retrospective
+**202302220 - Enner Esaí Mendizabal Castro**
 
-> _Pendiente de documentar._
+*¿Qué hice ayer?*
+- Arranqué la adaptación del módulo piloto para el entorno de despliegue y senté las bases del cambio de monedas en el backend
+
+*¿Qué voy a hacer hoy?*
+- Continuaré cerrando la lógica del cambio de monedas e iniciaré la actualización de la base de datos para reflejar los ajustes de la fase
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Comencé la integración del message broker dentro de la arquitectura del sistema
+
+*¿Qué voy a hacer hoy?*
+- Terminaré la integración del message broker y ejecutaré pruebas de integración para validar que la comunicación entre servicios funciona correctamente
+
+*¿Tengo algún impedimento?*
+- Hay algunos detalles de configuración del broker que requieren revisión, pero nada que bloquee el avance
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Revisé el plan de pruebas y preparé el entorno necesario para ejecutar las pruebas de carga
+
+*¿Qué voy a hacer hoy?*
+- Ejecutaré las pruebas de carga sobre los endpoints principales y documentaré los resultados obtenidos
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Preparé los escenarios de prueba para los flujos end‑to‑end más críticos del sistema
+
+*¿Qué voy a hacer hoy?*
+- Ejecutaré las pruebas E2E y comenzaré a actualizar los diagramas del sistema conforme a la arquitectura final
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Preparé el guion y el entorno para grabar el video demostrativo del pipeline de CI/CD
+
+*¿Qué voy a hacer hoy?*
+- Grabaré el video de CI/CD y me aseguraré de que refleje correctamente el flujo automatizado de construcción y despliegue
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Inicié la configuración del servidor cloud y trabajé en la definición del pipeline de despliegue
+
+*¿Qué voy a hacer hoy?*
+- Terminaré la configuración del servidor, cerraré el pipeline y comenzaré las pruebas de estrés y unitarias asignadas
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El equipo arrancó la fase de QA e integración con frentes bien distribuidos: Enner avanzó en la adaptación del módulo piloto y el cambio de monedas; Marcos se enfocó en conectar el message broker; David preparó y ejecutó pruebas de carga; Anyelo trabajó en escenarios E2E y actualización de diagramas; Pablo organizó la grabación del video de CI/CD; y Henry configuró la infraestructura cloud y el pipeline.
+
+**Notas Importantes:**
+- El sprint concentró el mayor esfuerzo de QA del proyecto, con pruebas en múltiples dimensiones
+- La infraestructura cloud empezó a configurarse en paralelo con las pruebas para no generar bloqueos
+- Se priorizó tener el entorno de despliegue listo a tiempo para validar los resultados de las pruebas
+
+---
+
+#### Daily Scrum 2 — 13 de abril de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué hice ayer?*
+- Cerré la lógica del cambio de monedas, actualicé la base de datos con los ajustes necesarios y avancé en la documentación general del sprint
+
+*¿Qué voy a hacer hoy?*
+- Finalizaré la gestión SCRUM del sprint, revisaré que la documentación esté al día y apoyaré en lo que falte para el cierre
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Completé la integración del message broker y validé la comunicación entre servicios mediante pruebas de integración
+
+*¿Qué voy a hacer hoy?*
+- Revisaré posibles fallos emergentes en la integración y apoyaré con lo que sea necesario para cerrar el sprint
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Ejecuté las pruebas de carga y recopilé métricas de rendimiento bajo distintos niveles de tráfico
+
+*¿Qué voy a hacer hoy?*
+- Documentaré los resultados de las pruebas y los entregaré para revisión; mi parte del sprint está cerrada
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Terminé las pruebas E2E y actualicé los diagramas del sistema para reflejar el estado actual de la arquitectura
+
+*¿Qué voy a hacer hoy?*
+- Haré una revisión final de los diagramas junto con el equipo para asegurar consistencia antes del cierre
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Grabé el video de CI/CD y lo dejé listo para revisión del equipo
+
+*¿Qué voy a hacer hoy?*
+- Quedo disponible para apoyar en ajustes del video o en cualquier pendiente que surja antes del cierre del sprint
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Completé la configuración del servidor cloud, cerré el pipeline y ejecuté las pruebas de estrés y pruebas unitarias asignadas
+
+*¿Qué voy a hacer hoy?*
+- Verificaré los resultados de las pruebas y colaboraré en la revisión de diagramas para el cierre del sprint
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El equipo llegó al segundo daily con la mayoría de tareas terminadas o en revisión. La integración del message broker quedó validada, las pruebas de carga y estrés arrojaron resultados documentados, el pipeline cloud quedó operativo y la documentación se actualizó de forma consistente. El sprint cerró de manera ordenada con apoyo cruzado entre integrantes.
+
+**Notas Importantes:**
+- Todas las categorías de prueba (unitarias, integración, carga, estrés y E2E) quedaron completadas antes del retrospective
+- La actualización de diagramas se realizó de forma colaborativa entre Anyelo, Enner, Henry y Marcos
+- El pipeline CI/CD y la infraestructura cloud quedaron listos para el despliegue final
+
+---
+
+#### Sprint Retrospective — 15 de abril de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué salió bien en este sprint?*
+- El equipo logró ejecutar un plan de pruebas ambicioso en poco tiempo y la coordinación entre frentes de trabajo fue más fluida que en sprints anteriores
+
+*¿Qué no salió tan bien?*
+- Algunos ajustes de última hora en la base de datos generaron retrabajo menor, lo que hubiera sido evitable con una revisión previa más detallada
+
+*¿Qué hemos aprendido?*
+- Que tener pruebas bien definidas desde el inicio del sprint acelera significativamente el cierre y reduce la incertidumbre
+
+*¿Qué haremos diferente la próxima vez?*
+- Revisar el estado de la base de datos con más anticipación para no generar cambios de último momento que afecten el trabajo de los demás
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué salió bien en este sprint?*
+- La integración del message broker fue más limpia de lo esperado gracias a la base técnica establecida en fases anteriores
+
+*¿Qué no salió tan bien?*
+- Al principio hubo cierta confusión sobre la configuración correcta del broker, lo que consumió tiempo de investigación
+
+*¿Qué hemos aprendido?*
+- Que documentar las decisiones de configuración en el momento en que se toman evita tener que redescubrirlas después
+
+*¿Qué haremos diferente la próxima vez?*
+- Dejar registro inmediato de configuraciones técnicas para que el equipo pueda consultarlas sin depender de una sola persona
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué salió bien en este sprint?*
+- Las pruebas de carga se ejecutaron sin mayores contratiempos y los resultados permitieron identificar puntos de mejora concretos en el sistema
+
+*¿Qué no salió tan bien?*
+- Preparar el entorno de pruebas tomó más tiempo del planificado, lo que redujo el margen para iterar sobre los resultados
+
+*¿Qué hemos aprendido?*
+- Que la preparación del entorno de pruebas debe considerarse como una tarea propia dentro del sprint y no como algo menor
+
+*¿Qué haremos diferente la próxima vez?*
+- Incluir explícitamente el setup del entorno en la planificación para no subestimar el tiempo que requiere
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué salió bien en este sprint?*
+- Las pruebas E2E cubrieron los flujos más importantes y la actualización de diagramas quedó alineada con el estado real del sistema
+
+*¿Qué no salió tan bien?*
+- Algunos escenarios de prueba tuvieron que ajustarse sobre la marcha porque los flujos habían cambiado respecto a la documentación previa
+
+*¿Qué hemos aprendido?*
+- Que mantener los diagramas actualizados a medida que avanza el desarrollo reduce significativamente el esfuerzo de prueba al final
+
+*¿Qué haremos diferente la próxima vez?*
+- Actualizar diagramas de forma incremental durante el desarrollo, no solo al final como una tarea de cierre
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué salió bien en este sprint?*
+- El video de CI/CD quedó bien estructurado y muestra claramente el flujo automatizado que se implementó durante el proyecto
+
+*¿Qué no salió tan bien?*
+- Coordinar horarios para grabar el video fue más complejo de lo esperado, lo que obligó a ajustar la agenda
+
+*¿Qué hemos aprendido?*
+- Que los entregables de tipo audiovisual requieren su propia planificación y no deben tratarse como tareas secundarias
+
+*¿Qué haremos diferente la próxima vez?*
+- Reservar tiempo específico para grabaciones y presentaciones desde el inicio del sprint para no improvisarlas al final
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué salió bien en este sprint?*
+- La configuración del servidor cloud y el pipeline quedaron funcionando correctamente, lo que da confianza para el despliegue final
+
+*¿Qué no salió tan bien?*
+- Concentrar tantas responsabilidades (infraestructura, pipeline y múltiples tipos de prueba) en un mismo integrante generó algo de presión
+
+*¿Qué hemos aprendido?*
+- Que las tareas de DevOps e infraestructura tienen una carga mayor de la que aparentan y conviene distribuirlas con más equidad
+
+*¿Qué haremos diferente la próxima vez?*
+- Distribuir mejor las responsabilidades de infraestructura desde la planificación para evitar concentrar demasiada carga en una sola persona
+
+---
+
+**Resumen del Sprint:**
+El Sprint 5 marcó el punto de mayor madurez del equipo en términos de ejecución técnica. Se completó el plan de pruebas completo, se integró el message broker, se configuró la infraestructura cloud y se adaptó el módulo piloto. Las áreas de mejora giraron en torno a la planificación del entorno de pruebas, la distribución de carga en DevOps y la actualización incremental de diagramas.
+
+**Notas Importantes:**
+- El sprint cerró con todas las tareas en estado DONE según el tablero Kanban
+- La infraestructura cloud y el pipeline CI/CD quedaron operativos para el despliegue final
+- El equipo consolidó la práctica de pruebas multidimensionales como parte del proceso estándar
+
+**Tablero del Sprint (referencia):**
+
+![Tablero Sprint 5 - Fase 3](imgs/kanban/kanban5.jpeg)
 
 ---
 
 ### Sprint 6
 
-**Período:** _(pendiente)_
-**Objetivo:** _(pendiente de definir en Sprint Planning)_
+**Período:** 15 – 22 de abril de 2026
+**Objetivo:** Consolidar la documentación final del proyecto, preparar la demo y la presentación, y asegurar que el sistema quede en estado de producción listo para su entrega
 
 | Ceremonia | Fecha |
 |-----------|-------|
-| **Sprint Planning** | _(pendiente)_ |
-| **Daily Scrum 1** | _(pendiente)_ |
-| **Daily Scrum 2** | _(pendiente)_ |
-| **Sprint Retrospective** | _(pendiente)_ |
+| **Sprint Planning** | 15 de abril de 2026 — 22:00 |
+| **Daily Scrum 1** | 17 de abril de 2026 — 22:00 |
+| **Daily Scrum 2** | 20 de abril de 2026 — 22:00 |
+| **Sprint Retrospective** | 22 de abril de 2026 — 22:00 |
 
 ---
 
-#### Daily Scrum 1
+#### Daily Scrum 1 — 17 de abril de 2026
 
-> _Pendiente de documentar._
+**Hora:** 22:00
 
----
-
-#### Daily Scrum 2
-
-> _Pendiente de documentar._
+**Participantes:**
 
 ---
 
-#### Sprint Retrospective
+**202302220 - Enner Esaí Mendizabal Castro**
 
-> _Pendiente de documentar._
+*¿Qué hice ayer?*
+- Comencé la consolidación de la documentación final, revisando que todos los artefactos del proyecto estén completos y actualizados
+
+*¿Qué voy a hacer hoy?*
+- Continuaré cerrando la documentación técnica y coordinaré con el equipo los últimos pendientes antes de la entrega
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Revisé el sistema en su conjunto para identificar posibles inconsistencias antes de la demo final
+
+*¿Qué voy a hacer hoy?*
+- Apoyaré en la preparación del guion de la demo y me aseguraré de que los flujos del sistema funcionen correctamente de extremo a extremo
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Revisé los resultados de las pruebas de carga del sprint anterior e incorporé observaciones a la documentación
+
+*¿Qué voy a hacer hoy?*
+- Trabajaré en la parte de documentación que me corresponde y apoyaré con la preparación de la presentación final
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Realicé una revisión final de los diagramas actualizados y verifiqué su coherencia con el sistema implementado
+
+*¿Qué voy a hacer hoy?*
+- Me enfocaré en preparar la sección de la presentación que me corresponde y apoyaré en la demo si es necesario
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Organicé los materiales generados durante el proyecto para estructurar la presentación final
+
+*¿Qué voy a hacer hoy?*
+- Avanzaré en la preparación de las diapositivas de la presentación y coordinaré con el equipo el orden de exposición
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Verifiqué que el servidor cloud y el pipeline sigan operativos después de los ajustes del sprint anterior
+
+*¿Qué voy a hacer hoy?*
+- Haré un ensayo del despliegue completo para confirmar que el sistema funciona en el entorno de producción antes de la demo
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El último sprint arrancó con el equipo enfocado en cierre y presentación. Cada integrante asumió responsabilidades claras: Enner coordinó la documentación final, Marcos y David revisaron el sistema y los entregables, Anyelo consolidó diagramas, Pablo organizó la presentación y Henry validó el entorno de producción con un ensayo de despliegue.
+
+**Notas Importantes:**
+- El sprint se orientó principalmente a entrega y comunicación del trabajo realizado
+- Se distribuyó la carga de preparación de la presentación entre todos los integrantes
+- Henry validó el entorno cloud como garantía de calidad antes de la demo
+
+---
+
+#### Daily Scrum 2 — 20 de abril de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué hice ayer?*
+- Cerré la documentación técnica del proyecto y revisé que el scrum management esté completo y coherente con todo lo realizado
+
+*¿Qué voy a hacer hoy?*
+- Haré una revisión final de todos los entregables del proyecto junto con el equipo para validar que no quede nada pendiente
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué hice ayer?*
+- Participé en el ensayo de la demo y realicé ajustes menores en el flujo de facturación para que quede presentable
+
+*¿Qué voy a hacer hoy?*
+- La demo y mi parte de la presentación están listas; quedo disponible para apoyar en lo que se necesite
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué hice ayer?*
+- Terminé mi sección de la documentación y colaboré en el ensayo de la presentación
+
+*¿Qué voy a hacer hoy?*
+- Tengo mis entregas cerradas; apoyaré en lo que sea necesario para que el equipo llegue bien preparado a la presentación final
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué hice ayer?*
+- Finalicé mi parte de la presentación y apoyé en el ensayo general del equipo
+
+*¿Qué voy a hacer hoy?*
+- Todo está de mi parte cerrado; me quedo disponible por si surge algún ajuste de último momento
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué hice ayer?*
+- Cerré las diapositivas de la presentación y coordiné el orden de exposición con el equipo
+
+*¿Qué voy a hacer hoy?*
+- Haré un repaso final de la presentación para asegurar que el mensaje sea claro y que los tiempos de exposición estén bien distribuidos
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué hice ayer?*
+- Realicé el ensayo completo del despliegue en producción y confirmé que el sistema funciona correctamente de punta a punta
+
+*¿Qué voy a hacer hoy?*
+- Todo está listo desde el lado técnico; apoyaré en los últimos ensayos de la demo para que el equipo llegue con confianza a la presentación
+
+*¿Tengo algún impedimento?*
+- No
+
+---
+
+**Resumen del Daily:**
+El equipo llegó al segundo daily del sprint con prácticamente todos los entregables cerrados. La documentación, la presentación, el entorno de producción y la demo quedaron listos para la entrega final. El espíritu general fue de cierre ordenado y colaboración para asegurar que nada quedara pendiente.
+
+**Notas Importantes:**
+- El proyecto quedó en estado de producción listo para entrega
+- La preparación de la demo fue una actividad colectiva que fortaleció la cohesión del equipo
+- Enner coordinó la revisión final de todos los artefactos del proyecto como cierre del rol de Scrum Master
+
+---
+
+#### Sprint Retrospective — 22 de abril de 2026
+
+**Hora:** 22:00
+
+**Participantes:**
+
+---
+
+**202302220 - Enner Esaí Mendizabal Castro**
+
+*¿Qué salió bien en este sprint?*
+- El proyecto cerró de forma ordenada y con todos los entregables completos; el equipo llegó a la presentación bien preparado y con confianza en lo que construyó
+
+*¿Qué no salió tan bien?*
+- La carga de coordinación y documentación se concentró demasiado en el Scrum Master a lo largo de todas las fases
+
+*¿Qué hemos aprendido?*
+- Que un proyecto de esta escala requiere una distribución más explícita de responsabilidades de gestión, no solo de desarrollo
+
+*¿Qué haremos diferente la próxima vez?*
+- Involucrar a más integrantes en tareas de gestión y documentación desde el inicio para que no recaiga todo en una sola persona
+
+---
+
+**202202410 - Marcos Daniel Bonifasi de León**
+
+*¿Qué salió bien en este sprint?*
+- El cierre fue tranquilo en comparación con sprints anteriores; tener todo hecho desde el sprint previo permitió enfocarse en calidad de presentación
+
+*¿Qué no salió tan bien?*
+- En algunos momentos del proyecto se perdió tiempo por falta de estándares claros que deberían haberse definido desde el inicio
+
+*¿Qué hemos aprendido?*
+- Que invertir en estándares y acuerdos de trabajo al inicio de un proyecto ahorra mucho tiempo y fricción a lo largo de todo el ciclo
+
+*¿Qué haremos diferente la próxima vez?*
+- Dedicar un tiempo real al inicio del proyecto a definir reglas de juego claras para evitar malentendidos recurrentes
+
+---
+
+**202300670 - David Estuardo Barrios Ramírez**
+
+*¿Qué salió bien en este sprint?*
+- El equipo demostró capacidad de adaptación a lo largo de todo el proyecto y el producto final refleja un esfuerzo real y consistente
+
+*¿Qué no salió tan bien?*
+- A lo largo del proyecto hubo momentos en que la curva de aprendizaje de tecnologías nuevas afectó el ritmo del equipo
+
+*¿Qué hemos aprendido?*
+- Que aprender y entregar al mismo tiempo es posible, pero requiere planificar explícitamente el tiempo de exploración tecnológica
+
+*¿Qué haremos diferente la próxima vez?*
+- Incluir desde la planificación inicial un período corto de investigación técnica para reducir sorpresas durante el desarrollo
+
+---
+
+**201807398 - Anyelo Gustavo Hernández Ayala**
+
+*¿Qué salió bien en este sprint?*
+- Llegar a la presentación con un sistema funcional y bien documentado es el mejor resultado que el equipo pudo lograr
+
+*¿Qué no salió tan bien?*
+- La presión de las últimas fases se acumuló porque algunas decisiones técnicas se tomaron demasiado tarde
+
+*¿Qué hemos aprendido?*
+- Que las decisiones arquitectónicas y de diseño deben tomarse lo antes posible para no frenar el avance del equipo en etapas críticas
+
+*¿Qué haremos diferente la próxima vez?*
+- Tomar decisiones de diseño más temprano y validarlas con el equipo antes de implementar, no después
+
+---
+
+**202200214 - Pablo Alejandro Marroquin Cutz**
+
+*¿Qué salió bien en este sprint?*
+- La organización de la presentación final fue un buen ejercicio de síntesis; el equipo logró comunicar bien el trabajo realizado
+
+*¿Qué no salió tan bien?*
+- Algunos cambios de alcance a mitad del proyecto generaron retrabajo que hubiera podido evitarse con una definición más sólida desde el inicio
+
+*¿Qué hemos aprendido?*
+- Que una buena definición del alcance al inicio del proyecto es tan valiosa como cualquier línea de código
+
+*¿Qué haremos diferente la próxima vez?*
+- Invertir más tiempo en la definición de alcance y criterios de aceptación antes de comenzar a desarrollar
+
+---
+
+**202004071 - Henry David Quel Santos**
+
+*¿Qué salió bien en este sprint?*
+- El sistema quedó desplegado y funcionando en producción, lo que representa el objetivo técnico más importante de todo el proyecto
+
+*¿Qué no salió tan bien?*
+- La carga de trabajo en DevOps e infraestructura fue mayor de lo previsto y no siempre estuvo bien distribuida
+
+*¿Qué hemos aprendido?*
+- Que la infraestructura y el despliegue son áreas que el equipo completo debe entender mínimamente, no solo quien las implementa
+
+*¿Qué haremos diferente la próxima vez?*
+- Compartir conocimiento de infraestructura desde etapas tempranas para que más integrantes puedan apoyar cuando se necesite
+
+---
+
+**Resumen del Sprint:**
+El Sprint 6 cerró el proyecto de forma exitosa. El equipo presentó un sistema funcional, documentado y desplegado en producción. Las reflexiones finales convergieron en tres lecciones transversales: definir estándares y acuerdos desde el inicio, tomar decisiones de diseño temprano y distribuir más equitativamente las responsabilidades de gestión e infraestructura. El proyecto representó un aprendizaje profundo tanto técnico como colaborativo.
+
+**Notas Importantes:**
+- El proyecto cerró con todos sus entregables completados en las tres fases
+- La gestión SCRUM fue un factor clave para mantener la trazabilidad del avance a lo largo del proyecto
+- El equipo consolidó competencias en arquitectura limpia, DevOps, pruebas y desarrollo full-stack
+
+**Tablero del Sprint (referencia):**
+
+![Tablero Sprint 6 - Fase 3](imgs/kanban/kanban6.jpeg)
 
 ---
 
@@ -1476,8 +2064,10 @@ El Sprint 4 reforzó la importancia de estandarizar la forma de trabajo y de man
 - **Google Meet** — Ceremonias Scrum y comunicación del equipo
 - **Google Drive** — Almacenamiento de grabaciones y documentos
 - **Trello** — Gestión de tareas y tablero Kanban
+- **Figma** — Diseño de mockups e interfaces
+- **NestJS / TypeORM** — Stack de desarrollo backend
 
 ---
 
-**Fecha de última actualización:** 24 de marzo de 2026
+**Fecha de última actualización:** 5 de abril de 2026
 **Equipo:** Grupo 2 — Análisis y Diseño de Sistemas 2
