@@ -11,7 +11,7 @@
  *
  * Run:
  *   k6 run tests/k6/load/api.load.js
- *   k6 run --env BASE_URL=http://myserver:3006 tests/k6/load/api.load.js
+ *   k6 run --env BASE_URL=http://myserver:3000 tests/k6/load/api.load.js
  */
 
 import http from 'k6/http';
@@ -19,36 +19,36 @@ import { check, sleep } from 'k6';
 import { Trend, Rate } from 'k6/metrics';
 
 // ── Custom metrics ────────────────────────────────────────────────────────────
-const loginDuration   = new Trend('login_duration',   true);
-const healthDuration  = new Trend('health_duration',  true);
-const ordersDuration  = new Trend('orders_duration',  true);
-const errorRate       = new Rate('error_rate');
+const loginDuration = new Trend('login_duration', true);
+const healthDuration = new Trend('health_duration', true);
+const ordersDuration = new Trend('orders_duration', true);
+const errorRate = new Rate('error_rate');
 
 // ── Scenario: gradual ramp to 50 VUs, hold 3 minutes, ramp down ──────────────
 export const options = {
   stages: [
-    { duration: '1m', target: 10 },  // warm-up: ramp to 10 VUs
-    { duration: '2m', target: 30 },  // ramp to expected load: 30 VUs
-    { duration: '3m', target: 50 },  // peak: hold 50 VUs
-    { duration: '1m', target: 0  },  // cool-down
+    { duration: '1m', target: 10 },   // warm-up: ramp to 10 VUs
+    { duration: '1m', target: 30 },   // ramp to expected load: 30 VUs
+    { duration: '1m', target: 50 },   // peak: hold 50 VUs
+    { duration: '1m', target: 0 },   // cool-down
   ],
   thresholds: {
-    http_req_duration:    ['p(95)<800'],   // 95% of requests under 800 ms
-    http_req_failed:      ['rate<0.01'],   // less than 1% failures
-    login_duration:       ['p(95)<1000'],
-    health_duration:      ['p(95)<200'],
-    orders_duration:      ['p(95)<1000'],
-    error_rate:           ['rate<0.01'],
+    http_req_duration: ['p(95)<500'],  // 95% de requests bajo 500ms (umbral del enunciado)
+    http_req_failed: ['rate<0.01'],  // menos del 1% de fallos
+    login_duration: ['p(95)<1000'],
+    health_duration: ['p(95)<200'],
+    orders_duration: ['p(95)<500'],
+    error_rate: ['rate<0.01'],
   },
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:3006';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
-// Seeded credentials (from initial-seed.ts)
+// Credenciales del seed — un usuario por rol para simular tráfico mixto real
 const USERS = [
-  { email: 'agente.operativo@logitrans.com', password: 'password123' },
-  { email: 'agente.logistico@logitrans.com', password: 'password123' },
-  { email: 'cliente@logitrans.com',          password: 'password123' },
+  { email: 'piloto.01@logitrans.gt', password: 'seed$piloto.01@logitrans.gt', role: 'PILOTO' },
+  { email: 'agente.logistico@logitrans.gt', password: 'seed$agente.logistico@logitrans.gt', role: 'AGENTE_LOGISTICO' },
+  { email: 'cliente.01@comercializadoramaya.com', password: 'seed$cliente.01@comercializadoramaya.com', role: 'CLIENTE' },
 ];
 
 // ── Test 1: Health check ──────────────────────────────────────────────────────
@@ -62,22 +62,28 @@ function testHealth() {
 // ── Test 2: Login ─────────────────────────────────────────────────────────────
 function testLogin(user) {
   const res = http.post(
-    `${BASE_URL}/auth/login`,
+    `${BASE_URL}/api/auth/login`,
     JSON.stringify({ email: user.email, password: user.password }),
     { headers: { 'Content-Type': 'application/json' } },
   );
+
   loginDuration.add(res.timings.duration);
+  console.log(`Login status: ${res.status}, body: ${res.body}`);
   const ok = check(res, {
-    'login → 200 or 201': (r) => r.status === 200 || r.status === 201,
-    'login → has token':  (r) => !!r.json('access_token'),
+    'login → 200': (r) => r.status === 200,
+    'login → has token': (r) => {
+      try { return !!r.json('data.token'); } catch { return false; }
+    },
   });
   errorRate.add(!ok);
-  return res.json('access_token');
+
+  try { return res.json('data.token'); } catch { return null; }
 }
 
-// ── Test 3: Authenticated orders list ────────────────────────────────────────
-function testOrdersList(token) {
-  const res = http.get(`${BASE_URL}/orders`, {
+// ── Test 3: Listar órdenes del piloto ─────────────────────────────────────────
+// GET /api/pilot/orders — autentica como PILOTO
+function testPilotOrders(token) {
+  const res = http.get(`${BASE_URL}/api/pilot/orders`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -85,14 +91,15 @@ function testOrdersList(token) {
   });
   ordersDuration.add(res.timings.duration);
   const ok = check(res, {
-    'orders → 200 or 403': (r) => r.status === 200 || r.status === 403,
+    'pilot-orders → 200 or 403': (r) => r.status === 200 || r.status === 403,
   });
   errorRate.add(!ok);
 }
 
-// ── Test 4: Client portal orders ─────────────────────────────────────────────
+// ── Test 4: Listar órdenes del cliente ────────────────────────────────────────
+// GET /api/client/orders — autentica como CLIENTE
 function testClientOrders(token) {
-  const res = http.get(`${BASE_URL}/client-portal/orders`, {
+  const res = http.get(`${BASE_URL}/api/client/orders`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const ok = check(res, {
@@ -101,13 +108,15 @@ function testClientOrders(token) {
   errorRate.add(!ok);
 }
 
-// ── Test 5: BI/Gerencia summary (read-replica path) ──────────────────────────
-function testBiSummary(token) {
-  const res = http.get(`${BASE_URL}/bi/summary`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+// ── Test 5: KPIs de BI/Gerencia ───────────────────────────────────────────────
+// GET /api/bi/kpis — autentica como GERENCIA
+function testBiKpis(token) {
+  const res = http.get(
+    `${BASE_URL}/api/bi/kpis?period=MONTHLY&year=2026&month=4`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
   const ok = check(res, {
-    'bi-summary → 200 or 403': (r) => r.status === 200 || r.status === 403,
+    'bi-kpis → 200 or 403': (r) => r.status === 200 || r.status === 403,
   });
   errorRate.add(!ok);
 }
@@ -116,18 +125,25 @@ function testBiSummary(token) {
 export default function () {
   const user = USERS[Math.floor(Math.random() * USERS.length)];
 
+  // Test 1: Health check (sin autenticación)
   testHealth();
   sleep(0.5);
 
+  // Test 2: Login
   const token = testLogin(user);
   sleep(0.5);
 
   if (token) {
-    testOrdersList(token);
+    // Test 3: Órdenes del piloto
+    testPilotOrders(token);
     sleep(0.3);
+
+    // Test 4: Órdenes del cliente
     testClientOrders(token);
     sleep(0.3);
-    testBiSummary(token);
+
+    // Test 5: KPIs BI
+    testBiKpis(token);
   }
 
   sleep(1);

@@ -6,16 +6,20 @@
  *   Docker: docker run --rm -i grafana/k6 run - <script.js
  */
 
-export const BASE_URL = __ENV.BASE_URL || 'http://localhost:3006';
+import http from 'k6/http';
+import { check } from 'k6';
+
+export const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
 /** Login and return the JWT access token */
 export function getToken(email, password) {
   const res = http.post(
-    `${BASE_URL}/auth/login`,
+    `${BASE_URL}/api/auth/login`,
     JSON.stringify({ email, password }),
     { headers: { 'Content-Type': 'application/json' } },
   );
-  return res.json('access_token');
+  // El backend devuelve { message, data: { token } }
+  return res.json('data.token');
 }
 
 /** Common JSON headers (unauthenticated) */
@@ -33,6 +37,5 @@ export function authHeaders(token) {
 
 /** Assert a response and record a custom pass/fail metric */
 export function check200(res, label) {
-  // eslint-disable-next-line no-undef
   return check(res, { [`${label} → status 200`]: (r) => r.status === 200 });
 }
