@@ -124,7 +124,7 @@ describe('LoginUseCase', () => {
 
     await useCase.execute({ email: user.email, password: 'any' });
 
-    const [sessionData] = sessionRepo.create.mock.calls[0] as [{ expirationAt: Date }][];
+    const [sessionData] = sessionRepo.create.mock.calls[0] as [{ expirationAt: Date }];
     const thirtyDaysMs  = 30 * 24 * 60 * 60 * 1000;
     const deltaMs       = sessionData.expirationAt.getTime() - Date.now();
 
@@ -142,7 +142,7 @@ describe('LoginUseCase', () => {
 
     await useCase.execute({ email: user.email, password: 'any' });
 
-    const [payload] = jwtService.sign.mock.calls[0] as [Record<string, unknown>][];
+    const [payload] = jwtService.sign.mock.calls[0] as [Record<string, unknown>];
     expect(payload.sub).toBe(user.userId);
     expect(payload.email).toBe(user.email);
     expect(payload.role).toBe(user.role);
