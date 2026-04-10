@@ -14,6 +14,7 @@ import { DataSource } from 'typeorm';
 import { faker } from '@faker-js/faker';
 import { CertifierService } from './certifier.service';
 import { EmailService } from '../../../notifications/email/application/email.service';
+import { RabbitmqService } from '../../../infrastructure/messaging/rabbitmq.service';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -43,6 +44,7 @@ describe('CertifierService', () => {
   let mockInvoiceRepo: { findOne: jest.Mock; find: jest.Mock; count: jest.Mock };
   let mockDataSource:  { getRepository: jest.Mock; transaction: jest.Mock; createQueryBuilder: jest.Mock };
   let mockEmailService: { sendFinanceInvoiceStatus: jest.Mock };
+  let mockRabbitmqService: { publishInvoiceCertified: jest.Mock; publishInvoiceRejected: jest.Mock };
 
   beforeEach(async () => {
     mockInvoiceRepo = {
@@ -65,11 +67,17 @@ describe('CertifierService', () => {
       sendFinanceInvoiceStatus: jest.fn().mockResolvedValue(undefined),
     };
 
+    mockRabbitmqService = {
+      publishInvoiceCertified: jest.fn().mockResolvedValue(undefined),
+      publishInvoiceRejected:  jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CertifierService,
-        { provide: DataSource,   useValue: mockDataSource },
-        { provide: EmailService, useValue: mockEmailService },
+        { provide: DataSource,        useValue: mockDataSource },
+        { provide: EmailService,      useValue: mockEmailService },
+        { provide: RabbitmqService,   useValue: mockRabbitmqService },
       ],
     }).compile();
 
