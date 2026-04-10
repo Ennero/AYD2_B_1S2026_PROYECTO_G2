@@ -22,7 +22,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      image: ${{ steps.push.outputs.image }}
+      # Se construye directamente desde el contexto del job — no depende del echo en run:
+      image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_SERVER }}:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +41,6 @@ jobs:
 
       # Contexto raíz (.) porque server/Dockerfile copia db/ del root
       - name: Build and push server image
-        id: push
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.ECR_REPOSITORY_SERVER }}
@@ -53,7 +53,6 @@ jobs:
             .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker push $REGISTRY/$REPOSITORY:latest
-          echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   # ─── Build & Push Client image ──────────────────────────────────────────────
   build-image-client:
@@ -61,7 +60,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      image: ${{ steps.push.outputs.image }}
+      # Se construye directamente desde el contexto del job — no depende del echo en run:
+      image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_CLIENT }}:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
@@ -79,7 +79,6 @@ jobs:
 
       # Contexto ./client — NEXT_PUBLIC_API_URL se bake en el bundle de Next.js
       - name: Build and push client image
-        id: push
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.ECR_REPOSITORY_CLIENT }}
@@ -93,7 +92,6 @@ jobs:
             ./client
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker push $REGISTRY/$REPOSITORY:latest
-          echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   # ─── Deploy Server → ECS ────────────────────────────────────────────────────
   deploy-server:
