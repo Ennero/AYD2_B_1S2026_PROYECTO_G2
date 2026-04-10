@@ -134,6 +134,7 @@ jobs:
       DB_AUTO_SEED: 'true'
       DB_RESET_ON_BOOT: 'false'
       NODE_ENV: test
+      MOCK_SMTP: 'true'
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
