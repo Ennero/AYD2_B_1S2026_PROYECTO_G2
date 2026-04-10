@@ -1,24 +1,111 @@
 # Despliegue
 
 ## Cloud Services
-- Supabase: como servicio cloud serverless para manejo de la base de datos (PostgreSQL) y objetos (storage)
-- AWS: utilizaremos servicios como ECS Fargate (Spot), ECR, Route 53(DNS), Certificate Manager(SSL)
-- GitHub Actions: para el CI/CD
-- Resend: para el envio de emails a demanda
+
+| Servicio | Rol |
+|---|---|
+| **AWS ECR** | Registro privado de imágenes Docker (server + client) |
+| **AWS ECS Fargate** | Orquestador serverless de containers — corre las tasks sin gestionar EC2 |
+| **AWS ALB** | Application Load Balancer gestionado — distribuye tráfico entre tasks, termina SSL |
+| **AWS ACM** | Certificado SSL/TLS gratuito asociado al ALB |
+| **AWS Route 53** | DNS: dominio → ALB |
+| **AWS SSM Parameter Store** | Secrets (JWT, API keys, DB) inyectados como env vars en los containers |
+| **AWS CloudWatch Logs** | Logs de los containers ECS |
+| **Supabase** | PostgreSQL + Storage de archivos |
+| **GitLab CI/CD** | Pipelines CI/CD (reemplaza GitHub Actions) |
+| **EC2 t3.medium** | GitLab Runner self-hosted con Docker executor e IAM Role |
+| **Resend** | Envío de emails a demanda |
 
 
-## Uso de CI/CD
-Para lograr un despliegue eficiente y escalable del proyecto, se implementará un proceso de Integración Continua/Despliegue Continuo (CI/CD). Este proceso asegura que cada cambio en el código sea integrado, probado, y desplegado de manera automatizada, reduciendo errores humanos y acelerando la entrega de nuevas versiones del software. A continuación, se describen los tres pipelines clave que se utilizarán en este proceso:
+## Arquitectura de Despliegue
 
-- Build: En esta etapa, el código fuente se compila y se generan los artefactos necesarios para el despliegue, asegurando que el código sea válido y esté listo para ser probado.
-- Test: Durante esta fase, se ejecutan pruebas automatizadas para validar la funcionalidad del código. Esto incluye pruebas unitarias y de integración, para garantizar la calidad del software.
-*No se debe hacer deploy si las pruebas no pasan*
-- Deploy: En esta etapa final, el código que ha pasado las pruebas es desplegado en los entornos de producción o de pruebas. Este paso puede incluir el despliegue a servidores, contenedores, o servicios en la nube, garantizando que la aplicación esté disponible para los usuarios finales.
+```
+Internet
+  ↓
+Route 53 → ALB (HTTPS/443, ACM cert)
+              ├── /api/* → Target Group: logitrans-server-tg
+              │              └── ECS Service: logitrans-server
+              │                    ├── Fargate Task 1 (NestJS :3000)
+              │                    └── Fargate Task 2 (NestJS :3000)
+              │                    Auto Scaling: min 2, max 6 (CPU > 70%)
+              │
+              └── /*     → Target Group: logitrans-client-tg
+                             └── ECS Service: logitrans-client
+                                   └── Fargate Task (Next.js :3000)
+
+Cluster: logitrans-cluster (ECS Fargate)
+Secrets: AWS SSM Parameter Store → inyectados en containers vía ecsTaskExecutionRole
+DB/Storage: Supabase (externo)
+MQ: RabbitMQ (ECS service o CloudAMQP)
+```
 
 
-## Docker 
+## Uso de CI/CD con GitLab
 
-Permite crear, desplegar y gestionar aplicaciones en contenedores, los cuales son entornos de ejecución aislados que incluyen todo lo necesario para que una aplicación funcione: el código, las bibliotecas, las dependencias, y el sistema operativo base. A diferencia de las máquinas virtuales, los contenedores son más livianos y se inician mucho más rápido, ya que comparten el núcleo del sistema operativo subyacente.
-Docker es fundamental en una arquitectura de software, ya que permite crear contenedores que garantizan la consistencia de las aplicaciones en diferentes entornos, eliminando problemas de compatibilidad y simplificando tanto el desarrollo como el despliegue. Al encapsular todas las dependencias necesarias, Docker asegura que las aplicaciones funcionen de manera idéntica en desarrollo, pruebas y producción, y proporciona portabilidad al permitir que los contenedores se ejecuten en cualquier sistema con Docker. Además, facilita la escalabilidad y la gestión eficiente de recursos al permitir la ejecución de múltiples contenedores en un solo servidor, optimizando así el uso de recursos y mejorando la capacidad de respuesta ante la demanda.
+Pipeline definido en `.gitlab-ci.yml` en la raíz del repositorio.
+Runner: EC2 t3.medium self-hosted, executor Docker, con IAM Role (sin credenciales hardcoded).
 
-Para esta fase se le solicita al estudiante que utilice Docker tanto en el Backend como en el Frontend. Debe incluirse en el proceso de CI/CD.
+### Stages del pipeline
+
+| Stage | Jobs | Se ejecuta en |
+|---|---|---|
+| `lint` | lint:server, lint:client | Todo push / MR |
+| `test` | test:unit, test:integration | Todo push / MR |
+| `build` | build:server, build:client → ECR | Solo rama `main` |
+| `deploy` | deploy:server, deploy:client → ECS rolling | Solo rama `main` |
+| `post-deploy` | e2e (Playwright), k6-load, k6-stress | Manual, post-deploy |
+
+**Regla crítica:** No se hace deploy si lint o tests fallan (`*No se debe hacer deploy si las pruebas no pasan*`).
+
+### Flujo completo
+
+```
+git push → main
+  ↓ lint (ESLint server + client)
+  ↓ test:unit (Jest sin DB)
+  ↓ test:integration (Jest + SuperTest + PostgreSQL service container)
+  ↓ build:server (docker build → ECR, tag: $CI_COMMIT_SHA + latest)
+  ↓ build:client (docker build --build-arg NEXT_PUBLIC_API_URL → ECR)
+  ↓ deploy:server (registrar nueva task def + update ECS service + wait stable)
+  ↓ deploy:client (registrar nueva task def + update ECS service + wait stable)
+  ↓ [manual] post-deploy:e2e → k6-load → k6-stress
+```
+
+
+## Docker
+
+Docker se usa tanto en Backend como en Frontend, incluido en el proceso de CI/CD.
+
+Permite crear, desplegar y gestionar aplicaciones en contenedores — entornos aislados que incluyen todo lo necesario para que la aplicación funcione. A diferencia de las máquinas virtuales, los contenedores son más livianos y arrancan más rápido al compartir el núcleo del SO subyacente. Garantizan que la aplicación funcione de manera idéntica en desarrollo, pruebas y producción.
+
+Dockerfiles del proyecto:
+- `server/Dockerfile` — multi-stage Node 22 Alpine; contexto de build es la raíz (`.`) porque copia `db/`
+- `client/Dockerfile` — multi-stage Node 20 Alpine; contexto `./client`, acepta `NEXT_PUBLIC_API_URL` como build arg
+
+Task definitions ECS: `aws/task-definitions/server.json`, `aws/task-definitions/client.json`
+
+
+## Variables de GitLab CI/CD
+
+Configurar en **GitLab → Settings → CI/CD → Variables** (Protected + Masked):
+
+| Variable | Descripción |
+|---|---|
+| `AWS_ACCOUNT_ID` | ID numérico de la cuenta AWS |
+| `AWS_REGION` | Región (ej. `us-east-1`) |
+| `ECR_REPOSITORY_SERVER` | Nombre del repo ECR (ej. `logitrans/server`) |
+| `ECR_REPOSITORY_CLIENT` | Nombre del repo ECR (ej. `logitrans/client`) |
+| `ECS_CLUSTER` | Nombre del cluster (ej. `logitrans-cluster`) |
+| `ECS_SERVICE_SERVER` | Nombre del servicio ECS server |
+| `ECS_SERVICE_CLIENT` | Nombre del servicio ECS client |
+| `ECS_TASK_DEF_SERVER` | Family name de la task def server |
+| `ECS_TASK_DEF_CLIENT` | Family name de la task def client |
+| `JWT_SECRET` | Secret JWT (también en SSM) |
+| `RESEND_API_KEY` | API key de Resend (también en SSM) |
+| `SUPABASE_URL` | URL del proyecto Supabase (también en SSM) |
+| `SUPABASE_SERVICE_KEY` | Service key de Supabase (también en SSM) |
+| `NEXT_PUBLIC_API_URL` | URL pública del API (baked en Next.js build) |
+| `APP_DOMAIN` | Dominio sin `https://` (ej. `guatechnology.com`) |
+
+> Los secrets también se registran en AWS SSM Parameter Store bajo `/logitrans/prod/*`
+> para ser inyectados en los containers de ECS en runtime sin exponerlos en GitLab.

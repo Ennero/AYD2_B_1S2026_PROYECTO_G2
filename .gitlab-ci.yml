@@ -1,0 +1,353 @@
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+  - post-deploy
+
+variables:
+  NODE_VERSION_SERVER: "22"
+  NODE_VERSION_CLIENT: "20"
+  # Docker-in-Docker (TLS)
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_CERT_PATH: "/certs/client"
+  DOCKER_TLS_VERIFY: "1"
+  # ECR registry URL construido desde variables de GitLab
+  ECR_REGISTRY: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+default:
+  tags:
+    - docker
+    - logitrans
+
+# ══════════════════════════════════════════════════════════════════════
+# STAGE: lint
+# ══════════════════════════════════════════════════════════════════════
+lint:server:
+  stage: lint
+  image: node:22-alpine
+  cache:
+    key: "server-deps-$CI_COMMIT_REF_SLUG"
+    paths:
+      - server/node_modules/
+  script:
+    - cd server
+    - npm ci
+    - npm run lint
+
+lint:client:
+  stage: lint
+  image: node:20-alpine
+  cache:
+    key: "client-deps-$CI_COMMIT_REF_SLUG"
+    paths:
+      - client/node_modules/
+  script:
+    - cd client
+    - npm ci
+    - npm run lint
+
+# ══════════════════════════════════════════════════════════════════════
+# STAGE: test
+# ══════════════════════════════════════════════════════════════════════
+test:unit:
+  stage: test
+  image: node:22-alpine
+  needs:
+    - lint:server
+  cache:
+    key: "server-deps-$CI_COMMIT_REF_SLUG"
+    paths:
+      - server/node_modules/
+    policy: pull
+  script:
+    - cd server
+    - npm ci
+    - npm run test
+  artifacts:
+    when: always
+    reports:
+      junit: server/junit.xml
+    expire_in: 7 days
+
+test:integration:
+  stage: test
+  image: node:22-alpine
+  needs:
+    - test:unit
+  services:
+    - name: postgres:15-alpine
+      alias: postgres
+  variables:
+    # PostgreSQL service config
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres_test
+    POSTGRES_DB: logitrans_test
+    # App DB connection (apunta al service container)
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_USERNAME: postgres
+    DB_PASSWORD: postgres_test
+    DB_DATABASE: logitrans_test
+    DB_LOGGING: "false"
+    DB_AUTO_SEED: "true"
+    DB_RESET_ON_BOOT: "false"
+    NODE_ENV: test
+    # Secrets — definidos como variables protegidas en GitLab CI/CD Settings
+    # JWT_SECRET, RESEND_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_KEY
+  cache:
+    key: "server-deps-$CI_COMMIT_REF_SLUG"
+    paths:
+      - server/node_modules/
+    policy: pull
+  script:
+    - cd server
+    - npm ci
+    - npm run test:integration
+
+# ══════════════════════════════════════════════════════════════════════
+# STAGE: build — solo en rama main
+# ══════════════════════════════════════════════════════════════════════
+build:server:
+  stage: build
+  image: docker:26
+  services:
+    - name: docker:26-dind
+      alias: docker
+  needs:
+    - test:integration
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    # Instalar AWS CLI (no viene en docker:26-alpine)
+    - apk add --no-cache aws-cli
+  script:
+    # Autenticarse en ECR usando el IAM Role del EC2 runner
+    - aws ecr get-login-password --region $AWS_REGION |
+        docker login --username AWS --password-stdin $ECR_REGISTRY
+    # Build: contexto raíz (.) porque server/Dockerfile copia db/ que está en la raíz
+    - |
+      docker build \
+        -f server/Dockerfile \
+        -t $ECR_REGISTRY/$ECR_REPOSITORY_SERVER:$CI_COMMIT_SHA \
+        -t $ECR_REGISTRY/$ECR_REPOSITORY_SERVER:latest \
+        .
+    - docker push $ECR_REGISTRY/$ECR_REPOSITORY_SERVER:$CI_COMMIT_SHA
+    - docker push $ECR_REGISTRY/$ECR_REPOSITORY_SERVER:latest
+    - echo "SERVER_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY_SERVER:$CI_COMMIT_SHA" >> server.env
+  artifacts:
+    reports:
+      dotenv: server.env
+    expire_in: 1 hour
+
+build:client:
+  stage: build
+  image: docker:26
+  services:
+    - name: docker:26-dind
+      alias: docker
+  needs:
+    - test:integration
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    - apk add --no-cache aws-cli
+  script:
+    - aws ecr get-login-password --region $AWS_REGION |
+        docker login --username AWS --password-stdin $ECR_REGISTRY
+    # Build: contexto ./client (Dockerfile es self-contained)
+    - |
+      docker build \
+        -f client/Dockerfile \
+        --build-arg NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+        -t $ECR_REGISTRY/$ECR_REPOSITORY_CLIENT:$CI_COMMIT_SHA \
+        -t $ECR_REGISTRY/$ECR_REPOSITORY_CLIENT:latest \
+        ./client
+    - docker push $ECR_REGISTRY/$ECR_REPOSITORY_CLIENT:$CI_COMMIT_SHA
+    - docker push $ECR_REGISTRY/$ECR_REPOSITORY_CLIENT:latest
+    - echo "CLIENT_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY_CLIENT:$CI_COMMIT_SHA" >> client.env
+  artifacts:
+    reports:
+      dotenv: client.env
+    expire_in: 1 hour
+
+# ══════════════════════════════════════════════════════════════════════
+# STAGE: deploy — rolling update en ECS, solo main
+# ══════════════════════════════════════════════════════════════════════
+deploy:server:
+  stage: deploy
+  image: amazon/aws-cli:latest
+  needs:
+    - job: build:server
+      artifacts: true
+    - job: build:client
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  environment:
+    name: production
+    url: https://$APP_DOMAIN
+  script:
+    # Obtener task definition actual y actualizarla con la nueva imagen
+    - |
+      TASK_DEF=$(aws ecs describe-task-definition \
+        --task-definition $ECS_TASK_DEF_SERVER \
+        --region $AWS_REGION \
+        --query taskDefinition \
+        --output json)
+
+      NEW_TASK_DEF=$(echo "$TASK_DEF" | python3 -c "
+      import json, sys
+      td = json.load(sys.stdin)
+      for c in td['containerDefinitions']:
+          if c['name'] == 'logitrans-server':
+              c['image'] = '$SERVER_IMAGE'
+      # Eliminar campos de solo-lectura antes de registrar
+      for k in ['taskDefinitionArn','revision','status','requiresAttributes',
+                'compatibilities','registeredAt','registeredBy']:
+          td.pop(k, None)
+      print(json.dumps(td))
+      ")
+
+      NEW_REVISION=$(aws ecs register-task-definition \
+        --region $AWS_REGION \
+        --cli-input-json "$NEW_TASK_DEF" \
+        --query taskDefinition.taskDefinitionArn \
+        --output text)
+
+      echo "Nueva task definition: $NEW_REVISION"
+
+      aws ecs update-service \
+        --cluster $ECS_CLUSTER \
+        --service $ECS_SERVICE_SERVER \
+        --task-definition $NEW_REVISION \
+        --region $AWS_REGION \
+        --force-new-deployment
+
+      # Esperar a que el servicio esté estable
+      aws ecs wait services-stable \
+        --cluster $ECS_CLUSTER \
+        --services $ECS_SERVICE_SERVER \
+        --region $AWS_REGION
+
+      echo "Deploy de server completado exitosamente"
+
+deploy:client:
+  stage: deploy
+  image: amazon/aws-cli:latest
+  needs:
+    - job: build:server
+      artifacts: true
+    - job: build:client
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+  environment:
+    name: production
+    url: https://$APP_DOMAIN
+  script:
+    - |
+      TASK_DEF=$(aws ecs describe-task-definition \
+        --task-definition $ECS_TASK_DEF_CLIENT \
+        --region $AWS_REGION \
+        --query taskDefinition \
+        --output json)
+
+      NEW_TASK_DEF=$(echo "$TASK_DEF" | python3 -c "
+      import json, sys
+      td = json.load(sys.stdin)
+      for c in td['containerDefinitions']:
+          if c['name'] == 'logitrans-client':
+              c['image'] = '$CLIENT_IMAGE'
+      for k in ['taskDefinitionArn','revision','status','requiresAttributes',
+                'compatibilities','registeredAt','registeredBy']:
+          td.pop(k, None)
+      print(json.dumps(td))
+      ")
+
+      NEW_REVISION=$(aws ecs register-task-definition \
+        --region $AWS_REGION \
+        --cli-input-json "$NEW_TASK_DEF" \
+        --query taskDefinition.taskDefinitionArn \
+        --output text)
+
+      echo "Nueva task definition: $NEW_REVISION"
+
+      aws ecs update-service \
+        --cluster $ECS_CLUSTER \
+        --service $ECS_SERVICE_CLIENT \
+        --task-definition $NEW_REVISION \
+        --region $AWS_REGION \
+        --force-new-deployment
+
+      aws ecs wait services-stable \
+        --cluster $ECS_CLUSTER \
+        --services $ECS_SERVICE_CLIENT \
+        --region $AWS_REGION
+
+      echo "Deploy de client completado exitosamente"
+
+# ══════════════════════════════════════════════════════════════════════
+# STAGE: post-deploy — tests contra producción (trigger manual)
+# ══════════════════════════════════════════════════════════════════════
+post-deploy:e2e:
+  stage: post-deploy
+  image: mcr.microsoft.com/playwright:v1.52.0-jammy
+  needs:
+    - deploy:server
+    - deploy:client
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+      allow_failure: true
+  variables:
+    BASE_URL: "https://$APP_DOMAIN"
+  script:
+    - cd e2e
+    - npm ci
+    - npx playwright install --with-deps chromium
+    - npx playwright test
+  artifacts:
+    when: always
+    paths:
+      - e2e/playwright-report/
+    expire_in: 7 days
+
+post-deploy:k6-load:
+  stage: post-deploy
+  image: grafana/k6:latest
+  needs:
+    - post-deploy:e2e
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+      allow_failure: true
+  variables:
+    BASE_URL: "https://$APP_DOMAIN"
+  script:
+    - k6 run --env BASE_URL=$BASE_URL tests/k6/load/api.load.js
+  artifacts:
+    when: always
+    paths:
+      - k6-load-results.json
+    expire_in: 7 days
+
+post-deploy:k6-stress:
+  stage: post-deploy
+  image: grafana/k6:latest
+  needs:
+    - post-deploy:k6-load
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+      allow_failure: true
+  variables:
+    BASE_URL: "https://$APP_DOMAIN"
+  script:
+    - k6 run --env BASE_URL=$BASE_URL tests/k6/stress/api.stress.js
+  artifacts:
+    when: always
+    paths:
+      - k6-stress-results.json
+    expire_in: 7 days
