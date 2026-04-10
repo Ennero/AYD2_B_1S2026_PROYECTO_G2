@@ -271,7 +271,7 @@ async function relaxIdentityColumnsToByDefault(dataSource: DataSource): Promise<
       WHERE table_schema = 'public'
         AND is_identity = 'YES'
         AND identity_generation = 'ALWAYS'
-        AND column_name LIKE '%\_id' ESCAPE '\\'`,
+        AND column_name LIKE '%\_id' ESCAPE '\\'`, // eslint-disable-line no-useless-escape
   );
 
   if (!Array.isArray(rawRows)) {
@@ -298,7 +298,7 @@ export async function alignIdentitySequences(dataSource: DataSource): Promise<vo
       FROM information_schema.columns
       WHERE table_schema = 'public'
         AND is_identity = 'YES'
-        AND column_name LIKE '%\_id' ESCAPE '\\'`,
+        AND column_name LIKE '%\_id' ESCAPE '\\'`, // eslint-disable-line no-useless-escape
   );
 
   if (!Array.isArray(rawRows)) {
