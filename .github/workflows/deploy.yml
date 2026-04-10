@@ -1,9 +1,9 @@
 name: Deploy
 
-# ─── Trigger: únicamente cuando se hace merge de develop → main ───────────────
+# ─── Trigger: únicamente cuando se hace merge de main → production ────────────
 on:
   push:
-    branches: [main]
+    branches: [production]
 
 env:
   NODE_VERSION_SERVER: '22'

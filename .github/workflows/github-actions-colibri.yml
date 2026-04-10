@@ -1,9 +1,9 @@
 name: Build & Test
 
-# ─── Trigger: únicamente en PRs hacia develop ─────────────────────────────────
+# ─── Trigger: únicamente en PRs de develop → main ────────────────────────────
 on:
   pull_request:
-    branches: [develop]
+    branches: [main]
 
 env:
   NODE_VERSION_SERVER: '22'
