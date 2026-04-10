@@ -8,5 +8,7 @@
       "tsconfig": "./tsconfig.json"
     }]
   },
+  "globalSetup": "<rootDir>/setup/global-setup.ts",
+  "setupFiles": ["<rootDir>/setup/integration-env.js"],
   "testTimeout": 30000
 }
