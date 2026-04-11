@@ -21,9 +21,6 @@ jobs:
     name: "Deploy · Build Server Image"
     runs-on: ubuntu-latest
 
-    outputs:
-      image: ${{ steps.build-image.outputs.image }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -53,16 +50,11 @@ jobs:
             -t "$IMAGE" \
             .
           docker push "$IMAGE"
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-          echo "Output set: image=$IMAGE"
 
   # ─── Build & Push Client image ──────────────────────────────────────────────
   build-image-client:
     name: "Deploy · Build Client Image"
     runs-on: ubuntu-latest
-
-    outputs:
-      image: ${{ steps.build-image.outputs.image }}
 
     steps:
       - uses: actions/checkout@v4
@@ -94,8 +86,6 @@ jobs:
             -t "$IMAGE" \
             ./client
           docker push "$IMAGE"
-          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
-          echo "Output set: image=$IMAGE"
 
   # ─── Deploy Server → ECS ────────────────────────────────────────────────────
   deploy-server:
@@ -113,14 +103,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Validate server image output
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build server image URI
+        id: image
         run: |
-          IMAGE="${{ needs.build-image-server.outputs.image }}"
-          echo "Server image: $IMAGE"
-          if [ -z "$IMAGE" ]; then
-            echo "::error::Server image output is empty. The build-image-server job may have failed."
-            exit 1
-          fi
+          echo "uri=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_SERVER }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       - name: Download current server task definition
         run: |
@@ -135,7 +125,7 @@ jobs:
         with:
           task-definition: /tmp/server-task-def.json
           container-name: logitrans-server
-          image: ${{ needs.build-image-server.outputs.image }}
+          image: ${{ steps.image.outputs.uri }}
 
       - name: Deploy server to ECS (rolling update)
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
@@ -161,14 +151,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Validate client image output
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build client image URI
+        id: image
         run: |
-          IMAGE="${{ needs.build-image-client.outputs.image }}"
-          echo "Client image: $IMAGE"
-          if [ -z "$IMAGE" ]; then
-            echo "::error::Client image output is empty. The build-image-client job may have failed."
-            exit 1
-          fi
+          echo "uri=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_CLIENT }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       - name: Download current client task definition
         run: |
@@ -183,7 +173,7 @@ jobs:
         with:
           task-definition: /tmp/client-task-def.json
           container-name: logitrans-client
-          image: ${{ needs.build-image-client.outputs.image }}
+          image: ${{ steps.image.outputs.uri }}
 
       - name: Deploy client to ECS (rolling update)
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
