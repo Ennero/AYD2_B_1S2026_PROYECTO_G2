@@ -47,12 +47,14 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          echo "Building server image: $IMAGE"
           docker build \
             -f server/Dockerfile \
-            -t $IMAGE \
+            -t "$IMAGE" \
             .
-          docker push $IMAGE
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "Output set: image=$IMAGE"
 
   # ─── Build & Push Client image ──────────────────────────────────────────────
   build-image-client:
@@ -85,13 +87,15 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          echo "Building client image: $IMAGE"
           docker build \
             -f client/Dockerfile \
-            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
-            -t $IMAGE \
+            --build-arg NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
+            -t "$IMAGE" \
             ./client
-          docker push $IMAGE
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "Output set: image=$IMAGE"
 
   # ─── Deploy Server → ECS ────────────────────────────────────────────────────
   deploy-server:
@@ -108,6 +112,15 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Validate server image output
+        run: |
+          IMAGE="${{ needs.build-image-server.outputs.image }}"
+          echo "Server image: $IMAGE"
+          if [ -z "$IMAGE" ]; then
+            echo "::error::Server image output is empty. The build-image-server job may have failed."
+            exit 1
+          fi
 
       - name: Download current server task definition
         run: |
@@ -147,6 +160,15 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Validate client image output
+        run: |
+          IMAGE="${{ needs.build-image-client.outputs.image }}"
+          echo "Client image: $IMAGE"
+          if [ -z "$IMAGE" ]; then
+            echo "::error::Client image output is empty. The build-image-client job may have failed."
+            exit 1
+          fi
 
       - name: Download current client task definition
         run: |
