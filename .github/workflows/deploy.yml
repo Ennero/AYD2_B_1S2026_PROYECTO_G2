@@ -22,8 +22,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      # Se construye directamente desde el contexto del job — no depende del echo en run:
-      image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_SERVER }}:${{ github.sha }}
+      image: ${{ steps.build-image.outputs.image }}
 
     steps:
       - uses: actions/checkout@v4
@@ -41,18 +40,19 @@ jobs:
 
       # Contexto raíz (.) porque server/Dockerfile copia db/ del root
       - name: Build and push server image
+        id: build-image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.ECR_REPOSITORY_SERVER }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker build \
             -f server/Dockerfile \
-            -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-            -t $REGISTRY/$REPOSITORY:latest \
+            -t $IMAGE \
             .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REPOSITORY:latest
+          docker push $IMAGE
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
   # ─── Build & Push Client image ──────────────────────────────────────────────
   build-image-client:
@@ -60,8 +60,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      # Se construye directamente desde el contexto del job — no depende del echo en run:
-      image: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_CLIENT }}:${{ github.sha }}
+      image: ${{ steps.build-image.outputs.image }}
 
     steps:
       - uses: actions/checkout@v4
@@ -79,19 +78,20 @@ jobs:
 
       # Contexto ./client — NEXT_PUBLIC_API_URL se bake en el bundle de Next.js
       - name: Build and push client image
+        id: build-image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.ECR_REPOSITORY_CLIENT }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker build \
             -f client/Dockerfile \
             --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
-            -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-            -t $REGISTRY/$REPOSITORY:latest \
+            -t $IMAGE \
             ./client
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          docker push $REGISTRY/$REPOSITORY:latest
+          docker push $IMAGE
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
   # ─── Deploy Server → ECS ────────────────────────────────────────────────────
   deploy-server:
