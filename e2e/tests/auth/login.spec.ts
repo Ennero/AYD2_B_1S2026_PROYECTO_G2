@@ -1,5 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { SEEDED_USERS } from '../../fixtures';
+
+/** Helper: adjunta un screenshot al reporte HTML con nombre descriptivo */
+async function screenshot(page: Page, name: string) {
+  await test.info().attach(name, {
+    body: await page.screenshot({ fullPage: false }),
+    contentType: 'image/png',
+  });
+}
 
 test.describe('Login page', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,6 +20,8 @@ test.describe('Login page', () => {
     await expect(page.getByLabel(/contraseña/i)).toBeVisible();
     // El botón dice "Iniciar Sesión"
     await expect(page.getByRole('button', { name: /iniciar sesión/i })).toBeVisible();
+
+    await screenshot(page, 'login-form-rendered');
   });
 
   test('shows error on invalid credentials', async ({ page }) => {
@@ -20,6 +30,8 @@ test.describe('Login page', () => {
     await page.getByRole('button', { name: /iniciar sesión/i }).click();
 
     await expect(page.getByText('Credenciales inválidas.').first()).toBeVisible();
+
+    await screenshot(page, 'error-credenciales-invalidas');
   });
 
   test('redirects Agente Operativo to its dashboard', async ({ page }) => {
@@ -29,6 +41,8 @@ test.describe('Login page', () => {
     await page.getByRole('button', { name: /iniciar sesión/i }).click();
 
     await expect(page).toHaveURL(/agente-operativo/);
+
+    await screenshot(page, 'dashboard-agente-operativo');
   });
 
   test('redirects Piloto to its dashboard', async ({ page }) => {
@@ -38,6 +52,8 @@ test.describe('Login page', () => {
     await page.getByRole('button', { name: /iniciar sesión/i }).click();
 
     await expect(page).toHaveURL(/piloto/);
+
+    await screenshot(page, 'dashboard-piloto');
   });
 
   test('redirects Cliente to its portal', async ({ page }) => {
@@ -47,5 +63,7 @@ test.describe('Login page', () => {
     await page.getByRole('button', { name: /iniciar sesión/i }).click();
 
     await expect(page).toHaveURL(/cliente/);
+
+    await screenshot(page, 'portal-cliente');
   });
 });
