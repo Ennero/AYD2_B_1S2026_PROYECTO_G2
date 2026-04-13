@@ -91,7 +91,7 @@ cd server && npm run start:dev
 docker compose up -d
 
 # Verificar que responde
-curl http://localhost:3000/health
+curl http://localhost:3000/api/health
 # Esperado: {"status":"ok","database":"connected"}
 ```
 
@@ -156,7 +156,7 @@ const USER = {
 
 | Campo              | Detalle                                                              |
 | ------------------ | -------------------------------------------------------------------- |
-| **Endpoint**       | `GET /health`                                                        |
+| **Endpoint**       | `GET /api/health`                                                        |
 | **Autenticación**  | No requerida                                                         |
 | **Métrica custom** | `health_duration`                                                    |
 | **Umbral**         | `p(95) < 200ms`                                                      |
@@ -166,7 +166,7 @@ Esta es la prueba base. Si falla, el sistema entero está caído y las demás pr
 
 ```javascript
 function testHealth() {
-  const res = http.get(`${BASE_URL}/health`);
+  const res = http.get(`${BASE_URL}/api/health`);
   healthDuration.add(res.timings.duration);
   check(res, { "health → 200": (r) => r.status === 200 });
 }
@@ -454,7 +454,7 @@ ERRO dial tcp 127.0.0.1:3000: connect: connection refused
 **Solución:**
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3000/api/health
 cd server && npm run start:dev
 ```
 

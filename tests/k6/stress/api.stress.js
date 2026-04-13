@@ -52,7 +52,7 @@ const USERS = [
 
 // ── Test 1: Health check survivability under stress ───────────────────────────
 function stressHealth() {
-  const res = http.get(`${BASE_URL}/health`, { timeout: '5s' });
+  const res = http.get(`${BASE_URL}/api/health`, { timeout: '5s' });
   responseDuration.add(res.timings.duration);
   if (res.error_code === 1050) timeouts.add(1);
   const ok = check(res, { 'health survives stress': (r) => r.status === 200 });

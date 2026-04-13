@@ -46,7 +46,7 @@ Las pruebas se pueden ejecutar contra dos entornos. La única diferencia entre e
 
 ```
 1. docker compose up -d --build          ← levanta API, DB, frontend
-2. curl http://localhost:3006/health     ← verificar que responde
+2. curl http://localhost:3006/api/health     ← verificar que responde
 3. Smoke test (1 VU)                     ← confirmar credenciales y rutas
 4. k6 run load   (BASE_URL=localhost)    ← prueba de carga (~7 min)
 5. k6 run stress (BASE_URL=localhost)    ← prueba de estrés (~13 min)
@@ -59,7 +59,7 @@ Las pruebas se pueden ejecutar contra dos entornos. La única diferencia entre e
 ### Entorno Producción (AWS) — flujo completo
 
 ```
-1. Verificar que la app está desplegada    ← curl https://guatechnology.com/health
+1. Verificar que la app está desplegada    ← curl https://guatechnology.com/api/health
 2. Verificar credenciales en producción   ← curl POST /api/auth/login
 3. Smoke test (1 VU)                      ← confirmar que los endpoints responden
 4. k6 run load   (BASE_URL=producción)    ← prueba de carga (~7 min)
@@ -131,7 +131,7 @@ Antes de correr cualquier prueba contra producción, ejecutar estos tres comando
 
 ```bash
 # 1. Health check — confirmar que el servidor y la DB están up
-curl https://guatechnology.com/health
+curl https://guatechnology.com/api/health
 # Esperado: {"status":"ok","database":"connected"}
 
 # 2. Login — confirmar que el seed existe y las credenciales son válidas
@@ -202,7 +202,7 @@ Todos los endpoints del backend usan el prefijo `/api/` (definido en cada `@Cont
 
 | Endpoint | Ruta completa |
 |----------|---------------|
-| Health check | `GET http://localhost:3006/health` |
+| Health check | `GET http://localhost:3006/api/health` |
 | Login | `POST http://localhost:3006/api/auth/login` |
 | Listar órdenes logísticas | `GET http://localhost:3006/api/logistics/orders` |
 | Detalle de una orden | `GET http://localhost:3006/api/logistics/orders/:id` |
@@ -345,7 +345,7 @@ Antes de lanzar cualquier prueba, confirma que el servidor está activo y el see
 
 ```bash
 # 1. Health check — debe devolver 200 con status "ok"
-curl http://localhost:3006/health
+curl http://localhost:3006/api/health
 # Esperado: {"status":"ok","database":"connected"}
 
 # 2. Login con el usuario de pruebas — debe devolver token
@@ -571,7 +571,7 @@ Estas métricas permiten identificar **qué endpoint específico** está siendo 
 
 ### Pruebas de carga — 5 tests
 
-#### Test 1: Health Check (`GET /health`)
+#### Test 1: Health Check (`GET /api/health`)
 - **Qué verifica:** que el servidor NestJS está vivo y la conexión a PostgreSQL está activa.
 - **Por qué importa:** si este falla bajo carga, el servidor está saturado al punto de no poder responder ni al endpoint más simple.
 - **Umbral:** p(95) < 200ms — debe ser casi instantáneo ya que no hace queries complejas.
@@ -664,7 +664,7 @@ El backend no está corriendo. Verificar:
 ```bash
 docker compose ps          # ¿está el servicio "api" en estado Up?
 docker compose logs api    # ¿hay errores de startup?
-curl http://localhost:3006/health
+curl http://localhost:3006/api/health
 ```
 
 ---
