@@ -12,8 +12,7 @@
 | **AWS SSM Parameter Store** | Secrets (JWT, API keys, DB) inyectados como env vars en los containers |
 | **AWS CloudWatch Logs** | Logs de los containers ECS |
 | **Supabase** | PostgreSQL + Storage de archivos |
-| **GitLab CI/CD** | Pipelines CI/CD (reemplaza GitHub Actions) |
-| **EC2 t3.medium** | GitLab Runner self-hosted con Docker executor e IAM Role |
+| **Github CI/CD** | Github actions |
 | **Resend** | Envío de emails a demanda |
 
 
@@ -40,9 +39,9 @@ MQ: RabbitMQ (ECS service o CloudAMQP)
 ```
 
 
-## Uso de CI/CD con GitLab
+## Uso de CI/CD con Github
 
-Pipeline definido en `.gitlab-ci.yml` en la raíz del repositorio.
+Pipeline definido en `.Github-ci.yml` en la raíz del repositorio.
 Runner: EC2 t3.medium self-hosted, executor Docker, con IAM Role (sin credenciales hardcoded).
 
 ### Stages del pipeline
@@ -85,9 +84,9 @@ Dockerfiles del proyecto:
 Task definitions ECS: `aws/task-definitions/server.json`, `aws/task-definitions/client.json`
 
 
-## Variables de GitLab CI/CD
+## Variables de Github CI/CD
 
-Configurar en **GitLab → Settings → CI/CD → Variables** (Protected + Masked):
+Configurar en **Github → Settings → CI/CD → Variables** (Protected + Masked):
 
 | Variable | Descripción |
 |---|---|
@@ -108,4 +107,4 @@ Configurar en **GitLab → Settings → CI/CD → Variables** (Protected + Maske
 | `APP_DOMAIN` | Dominio sin `https://` (ej. `guatechnology.com`) |
 
 > Los secrets también se registran en AWS SSM Parameter Store bajo `/logitrans/prod/*`
-> para ser inyectados en los containers de ECS en runtime sin exponerlos en GitLab.
+> para ser inyectados en los containers de ECS en runtime sin exponerlos en Github.
