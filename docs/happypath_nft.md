@@ -1,6 +1,6 @@
 # Happypath Live: Load and Stress tests
 
-Guía paso a paso para ejecutar y demostrar las pruebas de carga y estrés de LogiTrans en una sesión de calificación. Cubre el contexto teórico, la herramienta utilizada, la preparación del entorno, la corrección de inconsistencias encontradas en los scripts, y la ejecución completa.
+Guía paso a paso para ejecutar y demostrar las pruebas de carga y estrés de LogiTrans en una sesión de calificación. Cubre el contexto teórico, la herramienta utilizada, la preparación del entorno, la corrección de inconsistencias encontradas en los scripts, y la ejecución completa — tanto en entorno local como contra producción.
 
 ---
 
@@ -11,16 +11,147 @@ Guía paso a paso para ejecutar y demostrar las pruebas de carga y estrés de Lo
 3. [Arquitectura del proyecto relevante para las pruebas](#3-arquitectura-del-proyecto-relevante-para-las-pruebas)
 4. [Credenciales del seed](#4-credenciales-del-seed)
 5. [Inconsistencias detectadas en api.stress.js](#5-inconsistencias-detectadas-en-apistressjs)
-6. [Paso 1 — Instalar k6](#paso-1--instalar-k6)
-7. [Paso 2 — Levantar el proyecto con Docker](#paso-2--levantar-el-proyecto-con-docker)
-8. [Paso 3 — Verificar que el backend responde](#paso-3--verificar-que-el-backend-responde)
-9. [Paso 4 — Smoke test (verificación rápida antes de correr)](#paso-4--smoke-test-verificación-rápida-antes-de-correr)
-10. [Paso 5 — Ejecutar pruebas de CARGA](#paso-5--ejecutar-pruebas-de-carga)
-11. [Paso 6 — Ejecutar pruebas de ESTRÉS](#paso-6--ejecutar-pruebas-de-estrés)
-12. [Cómo leer el output de k6](#cómo-leer-el-output-de-k6)
-13. [Qué se está probando en cada test](#qué-se-está-probando-en-cada-test)
-14. [Guardar resultados para entrega](#guardar-resultados-para-entrega)
-15. [Solución de problemas comunes](#solución-de-problemas-comunes)
+6. [Flujo de trabajo: Local vs Producción](#6-flujo-de-trabajo-local-vs-producción)
+7. [Paso 1 — Instalar k6](#paso-1--instalar-k6)
+8. [Paso 2 — Levantar el proyecto con Docker](#paso-2--levantar-el-proyecto-con-docker)
+9. [Paso 3 — Verificar que el backend responde](#paso-3--verificar-que-el-backend-responde)
+10. [Paso 4 — Smoke test (verificación rápida antes de correr)](#paso-4--smoke-test-verificación-rápida-antes-de-correr)
+11. [Paso 5 — Ejecutar pruebas de CARGA](#paso-5--ejecutar-pruebas-de-carga)
+12. [Paso 6 — Ejecutar pruebas de ESTRÉS](#paso-6--ejecutar-pruebas-de-estrés)
+13. [Cómo leer el output de k6](#cómo-leer-el-output-de-k6)
+14. [Qué se está probando en cada test](#qué-se-está-probando-en-cada-test)
+15. [Guardar resultados para entrega](#guardar-resultados-para-entrega)
+16. [Solución de problemas comunes](#solución-de-problemas-comunes)
+
+---
+
+## 6. Flujo de trabajo: Local vs Producción
+
+Las pruebas se pueden ejecutar contra dos entornos. La única diferencia entre ellos es el valor de `BASE_URL` — los scripts y comandos son idénticos.
+
+### Comparativa de entornos
+
+| Dimensión | Local (Docker) | Producción (AWS) |
+|-----------|---------------|-----------------|
+| **BASE_URL** | `http://localhost:3006` | `https://guatechnology.com` |
+| **Infraestructura** | 1 contenedor NestJS + PostgreSQL local | 2 Fargate Tasks + ALB + Supabase |
+| **HTTPS** | No (HTTP plano) | Sí (ACM cert en el ALB) |
+| **Auto-scaling** | No | Sí (min 2, max 6 tasks si CPU > 70%) |
+| **Seed** | Corre automáticamente al levantar | Ya aplicado en el primer deploy |
+| **Propósito en calificación** | Demostrar que los scripts funcionan | Demostrar rendimiento en infraestructura real |
+
+---
+
+### Entorno Local — flujo completo
+
+```
+1. docker compose up -d --build          ← levanta API, DB, frontend
+2. curl http://localhost:3006/health     ← verificar que responde
+3. Smoke test (1 VU)                     ← confirmar credenciales y rutas
+4. k6 run load   (BASE_URL=localhost)    ← prueba de carga (~7 min)
+5. k6 run stress (BASE_URL=localhost)    ← prueba de estrés (~13 min)
+```
+
+**Cuándo usarlo:** desarrollo, validación de scripts nuevos, cuando no hay acceso a producción o no se quiere arriesgar afectar usuarios reales.
+
+---
+
+### Entorno Producción (AWS) — flujo completo
+
+```
+1. Verificar que la app está desplegada    ← curl https://guatechnology.com/health
+2. Verificar credenciales en producción   ← curl POST /api/auth/login
+3. Smoke test (1 VU)                      ← confirmar que los endpoints responden
+4. k6 run load   (BASE_URL=producción)    ← prueba de carga (~7 min)
+5. [coordinado] k6 run stress             ← prueba de estrés (~13 min)
+```
+
+**Cuándo usarlo:** para la calificación final, para demostrar que el sistema real aguanta la carga especificada (200 TPS, p95 < 500ms, error rate < 1%).
+
+> **Importante:** la prueba de estrés a 400 VUs contra producción activa el **auto-scaling de ECS** (CPU > 70% → escala hasta 6 tasks). Esto es comportamiento esperado y es un punto a favor en la calificación — demuestra que la infraestructura se adapta automáticamente.
+
+---
+
+### Comportamiento diferencial en producción
+
+Hay tres diferencias técnicas clave respecto a local que conviene mencionar en el video:
+
+**1. El ALB distribuye las requests entre 2 instancias**
+
+En local, todas las requests van a un solo proceso NestJS. En producción, el ALB usa round-robin entre las 2 Fargate Tasks. Bajo carga, esto significa que la latencia p95 en producción puede ser **mejor** que en local, porque la carga se reparte.
+
+**2. Auto-scaling puede dispararse durante el stress test**
+
+Cuando ECS detecta CPU > 70% en las tasks, escala automáticamente hasta 6 instancias. Durante el stress test se puede observar cómo la tasa de error baja y la latencia mejora a medida que AWS levanta tasks adicionales — esto es evidencia de que la infraestructura está bien configurada.
+
+**3. El seed de producción puede no tener órdenes**
+
+Si el seed de producción no generó órdenes (o fueron procesadas), el Test 4 (detalle de orden) se omitirá automáticamente. No es un error — el script lo maneja con el `setup()` que busca la primera orden disponible.
+
+---
+
+### Comandos lado a lado
+
+```bash
+# ── LOCAL ──────────────────────────────────────────────────────────────────────
+
+# Smoke test local
+k6 run --env BASE_URL=http://localhost:3006 --vus 1 --iterations 1 \
+       tests/k6/load/api.load.js
+
+# Carga local
+k6 run --env BASE_URL=http://localhost:3006 \
+       tests/k6/load/api.load.js
+
+# Estrés local
+k6 run --env BASE_URL=http://localhost:3006 \
+       tests/k6/stress/api.stress.js
+
+
+# ── PRODUCCIÓN ─────────────────────────────────────────────────────────────────
+
+# Smoke test producción
+k6 run --env BASE_URL=https://guatechnology.com --vus 1 --iterations 1 \
+       tests/k6/load/api.load.js
+
+# Carga producción
+k6 run --env BASE_URL=https://guatechnology.com \
+       tests/k6/load/api.load.js
+
+# Estrés producción (coordinar con el equipo antes de ejecutar)
+k6 run --env BASE_URL=https://guatechnology.com \
+       tests/k6/stress/api.stress.js
+```
+
+---
+
+### Pre-flight checks de producción
+
+Antes de correr cualquier prueba contra producción, ejecutar estos tres comandos:
+
+```bash
+# 1. Health check — confirmar que el servidor y la DB están up
+curl https://guatechnology.com/health
+# Esperado: {"status":"ok","database":"connected"}
+
+# 2. Login — confirmar que el seed existe y las credenciales son válidas
+curl -s -X POST https://guatechnology.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"2895884051401+l@ingenieria.usac.edu.gt","password":"LogiLogistica"}' \
+  | python3 -m json.tool
+# Esperado: { "data": { "token": "eyJ..." } }
+
+# 3. Verificar endpoint de órdenes logísticas
+TOKEN=$(curl -s -X POST https://guatechnology.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"2895884051401+l@ingenieria.usac.edu.gt","password":"LogiLogistica"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['token'])")
+
+curl -s https://guatechnology.com/api/logistics/orders \
+  -H "Authorization: Bearer $TOKEN" | python3 -m json.tool | head -20
+```
+
+Si los tres responden correctamente, el entorno de producción está listo para las pruebas.
 
 ---
 
