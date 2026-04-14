@@ -63,9 +63,7 @@ const USER = {
   password: 'LogiLogistica',
 };
 
-// ID de orden real del seed para el detalle — se sobreescribe en setup()
-// Si no hay seed disponible, el detalle devolverá 404 pero no afecta los otros 4 tests
-let SAMPLE_ORDER_ID = '';
+// El ORDER_ID se obtiene dinámicamente en setup() y se pasa como data a cada VU
 
 // ── setup(): corre una vez antes de todos los VUs ─────────────────────────────
 // Obtiene un ORDER_ID real para usarlo en el test de detalle
@@ -95,7 +93,7 @@ export function setup() {
 
 // ── Test 1: Health check ──────────────────────────────────────────────────────
 function testHealth() {
-  const res = http.get(`${BASE_URL}/health`);
+  const res = http.get(`${BASE_URL}/api/health`);
   healthDuration.add(res.timings.duration);
 
   const ok = check(res, {

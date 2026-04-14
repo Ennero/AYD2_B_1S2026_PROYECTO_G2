@@ -26,14 +26,14 @@ describe('Health (integration)', () => {
     await app.close();
   });
 
-  it('GET /health returns 200 with db status', async () => {
-    const res = await request(app.getHttpServer()).get('/health').expect(200);
+  it('GET /api/health returns 200 with db status', async () => {
+    const res = await request(app.getHttpServer()).get('/api/health').expect(200);
     expect(res.body).toHaveProperty('status');
   });
 
-  it('GET /health responds within 2 seconds', async () => {
+  it('GET /api/health responds within 2 seconds', async () => {
     const start = Date.now();
-    await request(app.getHttpServer()).get('/health').expect(200);
+    await request(app.getHttpServer()).get('/api/health').expect(200);
     expect(Date.now() - start).toBeLessThan(2000);
   });
 });

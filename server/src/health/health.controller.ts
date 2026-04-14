@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
-@Controller('health')
+@Controller('api/health')
 export class HealthController {
   constructor(private dataSource: DataSource) {}
 

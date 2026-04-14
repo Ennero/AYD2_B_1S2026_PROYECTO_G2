@@ -1,15 +1,15 @@
 import { faker } from '@faker-js/faker';
 
-/** Known seeded credentials (from initial-seed.ts) — update if seed changes */
+/** Known seeded credentials (from database-seeder.ts) — update if seed changes */
 export const SEEDED_USERS = {
-  agenteOperativo: { email: 'agente.operativo@logitrans.com', password: 'password123' },
-  piloto:          { email: 'piloto@logitrans.com',           password: 'password123' },
-  agenteLogistico: { email: 'agente.logistico@logitrans.com', password: 'password123' },
-  encargadoPatio:  { email: 'encargado.patio@logitrans.com',  password: 'password123' },
-  certificadorFEL: { email: 'certificador@logitrans.com',     password: 'password123' },
-  finance:         { email: 'finance@logitrans.com',           password: 'password123' },
-  cliente:         { email: 'cliente@logitrans.com',           password: 'password123' },
-  gerencia:        { email: 'gerencia@logitrans.com',          password: 'password123' },
+  agenteOperativo: { email: '2895884051401+v@ingenieria.usac.edu.gt', password: 'LogiVentas'   },
+  piloto:          { email: '2895884051401+t@ingenieria.usac.edu.gt', password: 'LogiPiloto'    },
+  agenteLogistico: { email: '2895884051401+l@ingenieria.usac.edu.gt', password: 'LogiLogistica' },
+  encargadoPatio:  { email: '2895884051401+p@ingenieria.usac.edu.gt', password: 'LogiPatio'     },
+  certificadorFEL: { email: '2895884051401+s@ingenieria.usac.edu.gt', password: 'LogiSAT'       },
+  finance:         { email: '2895884051401+f@ingenieria.usac.edu.gt', password: 'LogiFinanzas'  },
+  cliente:         { email: '2895884051401+c@ingenieria.usac.edu.gt', password: 'Logi2026'      },
+  gerencia:        { email: '2895884051401@ingenieria.usac.edu.gt',   password: 'LogiGerencia'  },
 };
 
 export const API_URL = process.env.API_URL ?? 'http://localhost:3006';
