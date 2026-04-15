@@ -43,6 +43,7 @@ import { UpdateCargoTypeUseCase } from '../../application/use-cases/update-cargo
 import { DeleteCargoTypeUseCase } from '../../application/use-cases/delete-cargo-type.use-case';
 import { UpdateRouteUseCase } from '../../application/use-cases/update-route.use-case';
 import { DeleteRouteUseCase } from '../../application/use-cases/delete-route.use-case';
+import { GetVehicleTypesUseCase } from '../../application/use-cases/get-vehicle-types.use-case';
 
 /**
  * OperationsController — Endpoints del Agente Operativo y Encargado de Patio.
@@ -70,6 +71,7 @@ export class OperationsController {
     private readonly createCargoTypeUseCase: CreateCargoTypeUseCase,
     private readonly updateCargoTypeUseCase: UpdateCargoTypeUseCase,
     private readonly deleteCargoTypeUseCase: DeleteCargoTypeUseCase,
+    private readonly getVehicleTypesUseCase: GetVehicleTypesUseCase,
   ) {}
 
   // ─── Endpoints del Agente Operativo ────────────────────────────────────
@@ -96,6 +98,19 @@ export class OperationsController {
   async listRoutes() {
     const data = await this.getRoutesUseCase.execute();
     return { message: 'Rutas obtenidas', data };
+  }
+
+  /**
+   * GET /api/operations/vehicle-types
+   * Tipos de vehículo con tarifa global de referencia (en USD) para parametrizar
+   * las tarifas por contrato.
+   */
+  @Get('vehicle-types')
+  @Roles(USER_ROLE.AGENTE_OPERATIVO)
+  @HttpCode(HttpStatus.OK)
+  async listVehicleTypes() {
+    const data = await this.getVehicleTypesUseCase.execute();
+    return { message: 'Tipos de vehículo obtenidos', data };
   }
 
   /**
@@ -284,6 +299,7 @@ export class OperationsController {
         discountPercentage: dto.discountPercentage ?? 0,
         routeIds: dto.routeIds,
         cargoTypeIds: dto.cargoTypeIds,
+        rates: dto.rates,
       },
       user.fullName,
     );

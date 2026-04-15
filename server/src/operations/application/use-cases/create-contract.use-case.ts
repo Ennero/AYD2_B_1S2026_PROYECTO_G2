@@ -7,13 +7,22 @@ import { Route } from '../../../infrastructure/database/typeorm/entities/route.e
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
 import { EmailService } from '../../../notifications/email/application/email.service';
 
+export interface ContractRateInput {
+  vehicleTypeId: number;
+  baseRatePerKm: number;
+  discountPercentage?: number;
+}
+
 export interface CreateContractInput {
   clientId: number;
   creditLimit: number;
+  /** Plazo de pago en días — valor libre definido por el agente */
   paymentTermDays: number;
   discountPercentage: number;
   routeIds: number[];
   cargoTypeIds: number[];
+  /** Tarifas por tipo de vehículo en la moneda del contrato (opcional) */
+  rates?: ContractRateInput[];
 }
 
 export interface CreateContractOutput {
@@ -173,6 +182,19 @@ export class CreateContractUseCase {
             VALUES ($1, $2, $3)`,
             [createdContractId, Number(route.routeId), Number(route.estimatedHours)],
           );
+        }
+
+        // CONTRACT_RATES — tarifa por tipo de vehículo en la moneda del contrato
+        if (input.rates && input.rates.length > 0) {
+          for (const rate of input.rates) {
+            const discountPct = rate.discountPercentage ?? 0;
+            const finalRate = Number((rate.baseRatePerKm * (1 - discountPct / 100)).toFixed(2));
+            await em.query(
+              `INSERT INTO contract_rates (contract_id, vehicle_type_id, base_rate_per_km, discount_percentage, final_rate_per_km)
+               VALUES ($1, $2, $3, $4, $5)`,
+              [createdContractId, rate.vehicleTypeId, rate.baseRatePerKm, discountPct, finalRate],
+            );
+          }
         }
 
         // CONTRACT_CARGO_TYPES — tabla de unión directa por insert

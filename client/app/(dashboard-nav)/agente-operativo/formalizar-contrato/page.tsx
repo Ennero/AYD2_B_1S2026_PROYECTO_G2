@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Input from "@/components/ui/Input"
 import {
   Search, MapPin, Truck, DollarSign, Percent,
-  ShieldCheck, Loader2, Check, X, ArrowLeft,
+  ShieldCheck, Loader2, Check, X, ArrowLeft, Calendar,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api/client"
@@ -13,8 +13,6 @@ import { toast } from "sonner"
 import { motion } from "framer-motion"
 
 const EASE = [0.16, 1, 0.3, 1] as const
-
-type PlazoPago = 15 | 30 | 45
 
 export interface Client {
   clientId: number
@@ -46,6 +44,16 @@ type CargoTypeItem = {
   requiresRefrigeration: boolean
 }
 
+type VehicleTypeItem = {
+  vehicleTypeId: number
+  typeCode: string
+  typeName: string
+  minCapacityTon: number
+  maxCapacityTon: number | null
+  /** Tarifa global de referencia en USD (del tarifario base) */
+  ratePerKm: number
+}
+
 const sectionLabelStyle: React.CSSProperties = {
   fontSize: "0.52rem",
   letterSpacing: "0.3em",
@@ -65,7 +73,8 @@ export default function FormalizarContratoPage() {
   const [routeQuery, setRouteQuery] = useState("")
   const [routesCatalog, setRoutesCatalog] = useState<RouteItem[]>([])
   const [selectedRouteIds, setSelectedRouteIds] = useState<number[]>([])
-  const [plazoPago, setPlazoPago] = useState<PlazoPago>(30)
+  /** Plazo de pago en días — campo libre, sin opciones fijas */
+  const [plazoPago, setPlazoPago] = useState("30")
   const [cargoTypes, setCargoTypes] = useState<CargoTypeItem[]>([])
   const [cargasPermitidas, setCargasPermitidas] = useState<number[]>([])
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState("")
@@ -73,6 +82,15 @@ export default function FormalizarContratoPage() {
   const [successOpen, setSuccessOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [catalogLoading, setCatalogLoading] = useState(true)
+
+  /** Tipos de vehículo disponibles (cargados al inicio) */
+  const [vehicleTypes, setVehicleTypes] = useState<VehicleTypeItem[]>([])
+  /**
+   * Tarifas por tipo de vehículo en la moneda del contrato.
+   * Clave: vehicleTypeId | Valor: string del input del agente
+   */
+  const [vehicleRates, setVehicleRates] = useState<Record<number, string>>({})
+
   const selectedCurrency = selectedClient?.currencyCode ?? "GTQ"
   const selectedCurrencySymbol = CURRENCY_SYMBOL[selectedCurrency]
 
@@ -82,15 +100,25 @@ export default function FormalizarContratoPage() {
     async function loadCatalogs() {
       setCatalogLoading(true)
       try {
-        const [routesResponse, cargoTypesResponse] = await Promise.all([
+        const [routesResponse, cargoTypesResponse, vehicleTypesResponse] = await Promise.all([
           api.get<{ data: RouteItem[] }>(ENDPOINTS.OPERATIONS.ROUTES),
           api.get<{ data: CargoTypeItem[] }>(ENDPOINTS.OPERATIONS.CARGO_TYPES),
+          api.get<{ data: VehicleTypeItem[] }>(ENDPOINTS.OPERATIONS.VEHICLE_TYPES),
         ])
         if (!mounted) return
         const routesData = routesResponse.data.data ?? []
         const cargoTypesData = cargoTypesResponse.data.data ?? []
+        const vehicleTypesData = vehicleTypesResponse.data.data ?? []
         setRoutesCatalog(routesData)
         setCargoTypes(cargoTypesData)
+        setVehicleTypes(vehicleTypesData)
+        // Inicializar inputs de tarifas vacíos (el agente ingresa la tarifa en su moneda)
+        setVehicleRates(
+          vehicleTypesData.reduce<Record<number, string>>((acc, vt) => {
+            acc[vt.vehicleTypeId] = ""
+            return acc
+          }, {})
+        )
         if (cargoTypesData.length > 0) {
           setCargasPermitidas([cargoTypesData[0].cargoTypeId])
         }
@@ -145,18 +173,37 @@ export default function FormalizarContratoPage() {
     if (!Number.isFinite(parsedCreditLimit) || parsedCreditLimit <= 0) {
       return toast.error("El límite de crédito debe ser un número mayor a 0")
     }
+
+    const parsedPlazoPago = Number.parseInt(plazoPago, 10)
+    if (!Number.isInteger(parsedPlazoPago) || parsedPlazoPago <= 0) {
+      return toast.error("El plazo de pago debe ser un número entero mayor a 0")
+    }
+
     if (selectedRouteIds.length === 0) return toast.error("Debe seleccionar al menos una ruta autorizada")
     if (cargasPermitidas.length === 0) return toast.error("Debe seleccionar al menos un tipo de carga permitido")
+
+    // Construir tarifas — solo incluir vehículos con tarifa ingresada
+    const rates = vehicleTypes
+      .filter(vt => {
+        const val = vehicleRates[vt.vehicleTypeId]?.trim()
+        return val && Number.parseFloat(val) > 0
+      })
+      .map(vt => ({
+        vehicleTypeId: vt.vehicleTypeId,
+        baseRatePerKm: Number.parseFloat(vehicleRates[vt.vehicleTypeId]),
+        discountPercentage: 0,
+      }))
 
     setLoading(true)
     try {
       await api.post(ENDPOINTS.CONTRATOS.CREATE, {
         clientId: selectedClient.clientId,
         creditLimit: parsedCreditLimit,
-        paymentTermDays: plazoPago,
+        paymentTermDays: parsedPlazoPago,
         discountPercentage: Number.parseFloat(descuentoPorcentaje) || 0,
         routeIds: selectedRouteIds,
         cargoTypeIds: cargasPermitidas,
+        rates,
       })
       setSuccessOpen(true)
     } catch {
@@ -339,6 +386,7 @@ export default function FormalizarContratoPage() {
               </div>
 
               <div style={{ padding: "1.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+                {/* Límite de crédito en la moneda del cliente */}
                 <div>
                   <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>
                     Límite de Crédito ({selectedCurrency})
@@ -350,26 +398,111 @@ export default function FormalizarContratoPage() {
                       className="pl-8" />
                   </div>
                 </div>
+
+                {/* Plazo de pago — campo libre, cualquier número de días */}
                 <div>
-                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>Plazo de Pago</span>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    {([15, 30, 45] as const).map((dias) => (
-                      <button key={dias} type="button" onClick={() => setPlazoPago(dias)}
-                        style={{
-                          flex: 1, padding: "0.5rem 0", borderRadius: "4px",
-                          fontSize: "0.7rem", fontWeight: 700, cursor: "pointer", transition: "all 0.15s",
-                          background: plazoPago === dias ? "#0C0C0A" : "transparent",
-                          color: plazoPago === dias ? "#F5F2EC" : "#9A9489",
-                          border: `1px solid ${plazoPago === dias ? "transparent" : "rgba(12,12,10,0.12)"}`,
-                        }}
-                        onMouseOver={e => { if (plazoPago !== dias) e.currentTarget.style.borderColor = "rgba(12,12,10,0.3)" }}
-                        onMouseOut={e => { if (plazoPago !== dias) e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)" }}
-                      >
-                        {dias}d
-                      </button>
-                    ))}
+                  <span style={{ ...sectionLabelStyle, display: "block", marginBottom: "8px" }}>
+                    Plazo de Pago (días)
+                  </span>
+                  <div style={{ position: "relative" }}>
+                    <Calendar size={13} style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#9A9489", pointerEvents: "none" }} />
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="ej. 30"
+                      value={plazoPago}
+                      onChange={e => setPlazoPago(e.target.value)}
+                      style={{
+                        width: "100%", paddingLeft: "2.2rem", paddingRight: "0.75rem",
+                        paddingTop: "0.6rem", paddingBottom: "0.6rem",
+                        background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.12)",
+                        borderRadius: "4px", color: "#0C0C0A",
+                        fontSize: "0.85rem", fontWeight: 700, outline: "none",
+                        transition: "border-color 0.15s",
+                      }}
+                      onFocus={e => (e.currentTarget.style.borderColor = "#C9924B")}
+                      onBlur={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
+                    />
                   </div>
+                  <p style={{ fontSize: "0.55rem", color: "#9A9489", marginTop: "5px" }}>
+                    Ingrese cualquier valor en días (ej. 15, 30, 45, 60, 90…)
+                  </p>
                 </div>
+              </div>
+            </motion.div>
+
+            {/* 3. Tarifas por tipo de vehículo — en la moneda del contrato */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.46, duration: 0.6, ease: EASE }}
+              style={{ background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px", overflow: "hidden" }}>
+
+              <div style={{ borderBottom: "1px solid rgba(12,12,10,0.06)", padding: "1.1rem 1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+                <Truck size={12} style={{ color: "#C9924B", flexShrink: 0 }} />
+                <span style={sectionLabelStyle}>03 · Tarifas por Tipo de Vehículo ({selectedCurrency})</span>
+              </div>
+
+              <div style={{ padding: "1.5rem" }}>
+                {catalogLoading ? (
+                  <p style={{ fontSize: "0.65rem", color: "#9A9489" }}>Cargando tipos de vehículo…</p>
+                ) : vehicleTypes.length === 0 ? (
+                  <p style={{ fontSize: "0.65rem", color: "#9A9489" }}>No hay tipos de vehículo registrados.</p>
+                ) : (
+                  <>
+                    <p style={{ fontSize: "0.62rem", color: "#9A9489", marginBottom: "1rem", lineHeight: 1.6 }}>
+                      Defina la tarifa por km para cada tipo de vehículo en{" "}
+                      <strong style={{ color: "#0C0C0A" }}>{selectedCurrency}</strong>.
+                      Los campos vacíos no se incluyen en el contrato.
+                      La columna <em>Ref. USD</em> muestra la tarifa base global como referencia.
+                    </p>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                      {vehicleTypes.map(vt => (
+                        <div key={vt.vehicleTypeId} style={{
+                          background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.07)",
+                          borderRadius: "4px", padding: "0.9rem 1rem",
+                        }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+                            <div>
+                              <p style={{ fontSize: "0.5rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>{vt.typeCode}</p>
+                              <p style={{ fontSize: "0.82rem", fontWeight: 900, color: "#0C0C0A", lineHeight: 1.2 }}>{vt.typeName}</p>
+                              <p style={{ fontSize: "0.58rem", color: "#9A9489", marginTop: "2px" }}>
+                                {vt.maxCapacityTon ? `${vt.minCapacityTon}–${vt.maxCapacityTon} ton` : `${vt.minCapacityTon}+ ton`}
+                              </p>
+                            </div>
+                            <div style={{ textAlign: "right", flexShrink: 0 }}>
+                              <p style={{ fontSize: "0.48rem", color: "#9A9489", letterSpacing: "0.15em", textTransform: "uppercase" }}>Ref. USD</p>
+                              <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#9A9489" }}>${Number(vt.ratePerKm).toFixed(2)}/km</p>
+                            </div>
+                          </div>
+                          <div style={{ position: "relative" }}>
+                            <span style={{ position: "absolute", left: "0.6rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.75rem", fontWeight: 700, color: "#9A9489", pointerEvents: "none" }}>
+                              {selectedCurrencySymbol}
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00 /km"
+                              value={vehicleRates[vt.vehicleTypeId] ?? ""}
+                              onChange={e => setVehicleRates(prev => ({ ...prev, [vt.vehicleTypeId]: e.target.value }))}
+                              style={{
+                                width: "100%", paddingLeft: "1.6rem", paddingRight: "0.6rem",
+                                paddingTop: "0.45rem", paddingBottom: "0.45rem",
+                                background: "#ffffff", border: "1px solid rgba(12,12,10,0.12)",
+                                borderRadius: "4px", color: "#0C0C0A",
+                                fontSize: "0.82rem", fontWeight: 700, outline: "none",
+                                transition: "border-color 0.15s",
+                              }}
+                              onFocus={e => (e.currentTarget.style.borderColor = "#C9924B")}
+                              onBlur={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
 
@@ -380,7 +513,7 @@ export default function FormalizarContratoPage() {
 
               <div style={{ borderBottom: "1px solid rgba(12,12,10,0.06)", padding: "1.1rem 1.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
                 <MapPin size={12} style={{ color: "#C9924B", flexShrink: 0 }} />
-                <span style={sectionLabelStyle}>03 · Alcance Operativo</span>
+                <span style={sectionLabelStyle}>04 · Alcance Operativo</span>
               </div>
 
               <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -536,9 +669,11 @@ export default function FormalizarContratoPage() {
               <div style={{ padding: "1.5rem" }}>
                 {[
                   { label: "Cliente", value: selectedClient?.legalName ?? "—" },
-                  { label: "Límite", value: limiteCredito ? `${selectedCurrency} ${limiteCredito}` : "—" },
-                  { label: "Plazo", value: `${plazoPago} días` },
+                  { label: "Moneda", value: selectedCurrency },
+                  { label: "Límite", value: limiteCredito ? `${selectedCurrencySymbol} ${limiteCredito}` : "—" },
+                  { label: "Plazo", value: plazoPago ? `${plazoPago} días` : "—" },
                   { label: "Rutas", value: selectedRouteIds.length ? `${selectedRouteIds.length} ruta${selectedRouteIds.length > 1 ? "s" : ""}` : "—" },
+                  { label: "Tarifas", value: Object.values(vehicleRates).filter(v => v && Number(v) > 0).length ? `${Object.values(vehicleRates).filter(v => v && Number(v) > 0).length} tipo${Object.values(vehicleRates).filter(v => v && Number(v) > 0).length > 1 ? "s" : ""}` : "—" },
                   { label: "Descuento", value: descuentoPorcentaje ? `${descuentoPorcentaje}%` : "—" },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.85rem" }}>
