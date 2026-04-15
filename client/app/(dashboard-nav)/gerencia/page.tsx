@@ -196,17 +196,19 @@ function StatusDonut({ data, loading }: { data: StatusRow[]; loading: boolean })
 
   const total = data.reduce((s, d) => s + d.total, 0)
   const cx = 90; const cy = 90; const R = 72; const r = 44
-  let angle = 0
+
+  const slices = data.reduce<{ status: string; sweep: number; startAngle: number }[]>((acc, d) => {
+    const startAngle = acc.length > 0 ? acc[acc.length - 1].startAngle + acc[acc.length - 1].sweep : 0
+    return [...acc, { status: d.status, sweep: (d.total / total) * 360, startAngle }]
+  }, [])
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
       <svg viewBox="0 0 180 180" style={{ width: "180px", flexShrink: 0 }} aria-label="Órdenes por estado">
-        {data.map((d) => {
-          const sweep = (d.total / total) * 360
-          const cfg = STATUS_CFG[d.status] ?? { label: d.status, color: "#9A9489" }
-          const path = donutArc(cx, cy, R, r, angle, angle + sweep - 1)
-          angle += sweep
-          return <path key={d.status} d={path} fill={cfg.color} opacity={0.9} />
+        {slices.map(({ status, sweep, startAngle }) => {
+          const cfg = STATUS_CFG[status] ?? { label: status, color: "#9A9489" }
+          const path = donutArc(cx, cy, R, r, startAngle, startAngle + sweep - 1)
+          return <path key={status} d={path} fill={cfg.color} opacity={0.9} />
         })}
         <text x={cx} y={cy - 6} textAnchor="middle" fontSize={22} fontWeight="900" fill="#0C0C0A">{total}</text>
         <text x={cx} y={cy + 12} textAnchor="middle" fontSize={8.5} fill="#9A9489">TOTAL</text>

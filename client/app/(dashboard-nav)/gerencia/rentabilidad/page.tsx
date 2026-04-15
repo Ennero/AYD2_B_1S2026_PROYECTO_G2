@@ -152,17 +152,18 @@ function CostDonut({ data, loading }: { data: CostosDesglose | null; loading: bo
   if (total === 0) return <p style={{ textAlign: "center", fontSize: "0.78rem", color: "#9A9489", padding: "2.5rem 0" }}>Sin costos registrados</p>
 
   const cx = 90; const cy = 90; const R = 72; const r = 44
-  let angle = 0
+
+  const slices = COST_ITEMS.reduce<{ key: string; color: string; sweep: number; startAngle: number }[]>((acc, item) => {
+    const startAngle = acc.length > 0 ? acc[acc.length - 1].startAngle + acc[acc.length - 1].sweep : 0
+    return [...acc, { key: item.key, color: item.color, sweep: (data[item.key] / total) * 360, startAngle }]
+  }, [])
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
       <svg viewBox="0 0 180 180" style={{ width: "180px", flexShrink: 0 }} aria-label="Desglose de costos">
-        {COST_ITEMS.map((item) => {
-          const val = data[item.key]
-          const sweep = (val / total) * 360
-          const path = donutArc(cx, cy, R, r, angle, angle + sweep - 0.5)
-          angle += sweep
-          return <path key={item.key} d={path} fill={item.color} opacity={0.88} />
+        {slices.map(({ key, color, sweep, startAngle }) => {
+          const path = donutArc(cx, cy, R, r, startAngle, startAngle + sweep - 0.5)
+          return <path key={key} d={path} fill={color} opacity={0.88} />
         })}
         <text x={cx} y={cy - 6}  textAnchor="middle" fontSize={9} fill="#9A9489">TOTAL</text>
         <text x={cx} y={cy + 10} textAnchor="middle" fontSize={11} fontWeight="900" fill="#0C0C0A">{formatUsdShort(total)}</text>
