@@ -208,6 +208,146 @@ export class BiService {
     };
   }
 
+  async getGastosIngresos(year: number) {
+    const rows = await this.dataSource.query<
+      { mes: string; ingresos: string; gastos: string }[]
+    >(`
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', i.issue_date), 'YYYY-MM') AS mes,
+        ROUND(
+          SUM(i.total_amount / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric,
+          2
+        ) AS ingresos,
+        ROUND(
+          SUM(
+            (COALESCE(o.fuel_cost, 0) + COALESCE(o.viatics_cost, 0) + COALESCE(o.maintenance_cost, 0))
+            / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1)
+          )::numeric,
+          2
+        ) AS gastos
+      FROM invoices i
+      JOIN orders o ON o.order_id = i.order_id
+      WHERE EXTRACT(YEAR FROM i.issue_date) = ${year}
+      GROUP BY mes
+      ORDER BY mes
+    `);
+
+    return rows.map((r) => ({
+      mes: r.mes,
+      ingresos: parseFloat(r.ingresos),
+      gastos: parseFloat(r.gastos),
+    }));
+  }
+
+  async getOrdersByStatus(period: string, year: number, month?: number) {
+    const isMonthly = period === 'MONTHLY' && month != null;
+    const dateFilter = isMonthly
+      ? `EXTRACT(YEAR FROM requested_at) = ${year} AND EXTRACT(MONTH FROM requested_at) = ${month}`
+      : `EXTRACT(YEAR FROM requested_at) = ${year}`;
+
+    const rows = await this.dataSource.query<{ status: string; total: string }[]>(`
+      SELECT status, COUNT(*) AS total
+      FROM orders
+      WHERE ${dateFilter}
+      GROUP BY status
+      ORDER BY total DESC
+    `);
+
+    return rows.map((r) => ({
+      status: r.status,
+      total: parseInt(r.total, 10),
+    }));
+  }
+
+  async getDesgloseCostos(period: string, year: number, month?: number) {
+    const isMonthly = period === 'MONTHLY' && month != null;
+    const dateFilter = isMonthly
+      ? `EXTRACT(YEAR FROM i.issue_date) = ${year} AND EXTRACT(MONTH FROM i.issue_date) = ${month}`
+      : `EXTRACT(YEAR FROM i.issue_date) = ${year}`;
+
+    const [row] = await this.dataSource.query<
+      { combustible: string; viaticos: string; mantenimiento: string }[]
+    >(`
+      SELECT
+        ROUND(SUM(COALESCE(o.fuel_cost, 0) / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric, 2) AS combustible,
+        ROUND(SUM(COALESCE(o.viatics_cost, 0) / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric, 2) AS viaticos,
+        ROUND(SUM(COALESCE(o.maintenance_cost, 0) / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric, 2) AS mantenimiento
+      FROM invoices i
+      JOIN orders o ON o.order_id = i.order_id
+      WHERE ${dateFilter}
+    `);
+
+    return {
+      combustible: parseFloat(row?.combustible ?? '0'),
+      viaticos: parseFloat(row?.viaticos ?? '0'),
+      mantenimiento: parseFloat(row?.mantenimiento ?? '0'),
+    };
+  }
+
+  async getBranchProfitability(period: string, year: number, month?: number) {
+    const isMonthly = period === 'MONTHLY' && month != null;
+    const dateFilter = isMonthly
+      ? `EXTRACT(YEAR FROM i.issue_date) = ${year} AND EXTRACT(MONTH FROM i.issue_date) = ${month}`
+      : `EXTRACT(YEAR FROM i.issue_date) = ${year}`;
+
+    const rows = await this.dataSource.query<
+      { branch_name: string; ingresos: string; gastos: string }[]
+    >(`
+      SELECT
+        b.branch_name,
+        ROUND(
+          SUM(i.total_amount / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1))::numeric,
+          2
+        ) AS ingresos,
+        ROUND(
+          SUM(
+            (COALESCE(o.fuel_cost, 0) + COALESCE(o.viatics_cost, 0) + COALESCE(o.maintenance_cost, 0))
+            / COALESCE(NULLIF(i.exchange_rate_from_usd, 0), 1)
+          )::numeric,
+          2
+        ) AS gastos
+      FROM branches b
+      JOIN transport_units tu ON tu.branch_id = b.branch_id
+      JOIN orders o ON o.unit_id = tu.unit_id
+      JOIN invoices i ON i.order_id = o.order_id
+      WHERE ${dateFilter}
+      GROUP BY b.branch_name
+      ORDER BY ingresos DESC
+    `);
+
+    return rows.map((r) => ({
+      branchName: r.branch_name,
+      ingresos: parseFloat(r.ingresos),
+      gastos: parseFloat(r.gastos),
+      margen: parseFloat(r.ingresos) - parseFloat(r.gastos),
+    }));
+  }
+
+  async getTopRoutes(period: string, year: number, month?: number) {
+    const isMonthly = period === 'MONTHLY' && month != null;
+    const dateFilter = isMonthly
+      ? `AND EXTRACT(YEAR FROM o.requested_at) = ${year} AND EXTRACT(MONTH FROM o.requested_at) = ${month}`
+      : `AND EXTRACT(YEAR FROM o.requested_at) = ${year}`;
+
+    const rows = await this.dataSource.query<{ ruta: string; total: string }[]>(`
+      SELECT
+        r.origin || ' → ' || r.destination AS ruta,
+        COUNT(o.order_id) AS total
+      FROM orders o
+      JOIN contract_routes cr ON cr.contract_route_id = o.contract_route_id
+      JOIN routes r ON r.route_id = cr.route_id
+      WHERE 1=1 ${dateFilter}
+      GROUP BY ruta
+      ORDER BY total DESC
+      LIMIT 8
+    `);
+
+    return rows.map((r) => ({
+      ruta: r.ruta,
+      total: parseInt(r.total, 10),
+    }));
+  }
+
   async getAlerts() {
     // Active incidents
     const incidents = await this.dataSource.query<
