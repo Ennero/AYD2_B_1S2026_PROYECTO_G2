@@ -8,7 +8,7 @@ async function screenshot(page: Page, name: string) {
   });
 }
 
-test.describe('Inciso 3 — Formalizar Contrato (Agente Operativo)', () => {
+test.describe('Inciso 3: Formalizar Contrato (Agente Operativo)', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');

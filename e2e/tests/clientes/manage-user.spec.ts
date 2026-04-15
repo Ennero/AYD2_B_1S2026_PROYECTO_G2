@@ -9,7 +9,7 @@ async function screenshot(page: Page, name: string) {
   });
 }
 
-test.describe('Inciso 2 — Gestionar usuario (Agente Operativo)', () => {
+test.describe('Inciso 2: Gestionar usuario (Agente Operativo)', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
