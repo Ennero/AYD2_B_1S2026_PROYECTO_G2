@@ -37,6 +37,7 @@ export const ENDPOINTS = {
     ROUTE: (id: string | number) => `/api/operations/routes/${id}`,
     CARGO_TYPES: `/api/operations/cargo-types`,
     CARGO_TYPE: (id: string | number) => `/api/operations/cargo-types/${id}`,
+    VEHICLE_TYPES: `/api/operations/vehicle-types`,
     USERS: `/api/operations/users`,
     USER: (id: string | number) => `/api/operations/users/${id}`,
   },

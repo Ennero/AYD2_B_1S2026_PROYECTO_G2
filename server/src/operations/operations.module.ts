@@ -14,6 +14,7 @@ import { DeleteRouteUseCase } from './application/use-cases/delete-route.use-cas
 import { CreateCargoTypeUseCase } from './application/use-cases/create-cargo-type.use-case';
 import { UpdateCargoTypeUseCase } from './application/use-cases/update-cargo-type.use-case';
 import { DeleteCargoTypeUseCase } from './application/use-cases/delete-cargo-type.use-case';
+import { GetVehicleTypesUseCase } from './application/use-cases/get-vehicle-types.use-case';
 import { ClientsController } from './presentation/controllers/clients.controller';
 import { ListCargasUseCase } from './application/use-cases/list-cargas.use-case';
 import { FormalizeCargaUseCase } from './application/use-cases/formalize-carga.use-case';
@@ -40,6 +41,7 @@ import { OperationsController } from './presentation/controllers/operations.cont
     CreateCargoTypeUseCase,
     UpdateCargoTypeUseCase,
     DeleteCargoTypeUseCase,
+    GetVehicleTypesUseCase,
     ClientFactory,
   ],
   controllers: [OperationsController, ClientsController],

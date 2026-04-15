@@ -81,4 +81,50 @@ export class BiController {
     const data = await this.biService.getAlerts();
     return { message: 'Alertas obtenidas correctamente', data };
   }
+
+  @Get('gastos-ingresos')
+  async getGastosIngresos(@Query() query: KpisQueryDto) {
+    const data = await this.biService.getGastosIngresos(query.year ?? new Date().getFullYear());
+    return { message: 'Comparativa gastos/ingresos obtenida correctamente', data };
+  }
+
+  @Get('orders/by-status')
+  async getOrdersByStatus(@Query() query: KpisQueryDto) {
+    const data = await this.biService.getOrdersByStatus(
+      query.period ?? 'MONTHLY',
+      query.year ?? new Date().getFullYear(),
+      query.month,
+    );
+    return { message: 'Órdenes por estado obtenidas correctamente', data };
+  }
+
+  @Get('costos/desglose')
+  async getDesgloseCostos(@Query() query: KpisQueryDto) {
+    const data = await this.biService.getDesgloseCostos(
+      query.period ?? 'MONTHLY',
+      query.year ?? new Date().getFullYear(),
+      query.month,
+    );
+    return { message: 'Desglose de costos obtenido correctamente', data };
+  }
+
+  @Get('branches/profitability')
+  async getBranchProfitability(@Query() query: KpisQueryDto) {
+    const data = await this.biService.getBranchProfitability(
+      query.period ?? 'MONTHLY',
+      query.year ?? new Date().getFullYear(),
+      query.month,
+    );
+    return { message: 'Rentabilidad por sede obtenida correctamente', data };
+  }
+
+  @Get('routes/top')
+  async getTopRoutes(@Query() query: KpisQueryDto) {
+    const data = await this.biService.getTopRoutes(
+      query.period ?? 'MONTHLY',
+      query.year ?? new Date().getFullYear(),
+      query.month,
+    );
+    return { message: 'Rutas más frecuentes obtenidas correctamente', data };
+  }
 }
