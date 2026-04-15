@@ -3,13 +3,14 @@ import { DataSource } from 'typeorm';
 import { Route } from '../../../infrastructure/database/typeorm/entities/route.entity';
 
 export interface RouteItem {
-  routeId: string;
+  routeId: number;
   routeCode: string;
   origin: string;
   destination: string;
   distanceKm: number;
   estimatedHours: number;
   isInternational: boolean;
+  isActive: boolean;
 }
 
 @Injectable()
@@ -36,6 +37,7 @@ export class GetRoutesUseCase {
       distanceKm: Number(r.distanceKm),
       estimatedHours: Number(r.estimatedHours),
       isInternational: r.isInternational,
+      isActive: r.isActive,
     }));
   }
 }

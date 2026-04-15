@@ -1,21 +1,13 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('user_sessions')
 export class UserSession {
-  @PrimaryGeneratedColumn('uuid', { name: 'session_id' })
-  sessionId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'session_id' })
+  sessionId: number;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  @Column({ name: 'user_id', type: 'integer' })
+  userId: number;
 
   @Column({ name: 'user_remote', type: 'inet', nullable: true })
   userRemote: string | null;

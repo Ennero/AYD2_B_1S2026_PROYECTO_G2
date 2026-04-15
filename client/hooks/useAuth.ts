@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useCallback } from "react"
 import { api, setToken, removeToken } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
-import type { UserProfile, LoginResponse } from "@/lib/api/types"
+import type { UserProfile, UserRole } from "@/lib/api/types"
+import { normalizeUtf8Text } from "@/lib/utils/text"
 
 /**
  * Hook de autenticación.
@@ -21,8 +22,19 @@ export function useAuth() {
   /** Obtener perfil del usuario actual */
   const fetchUser = useCallback(async () => {
     try {
-      const response = await api.get<UserProfile>(ENDPOINTS.AUTH.ME, { silentError: true })
-      setUser(response.data)
+      // Extraer datos del JWT para no requerir endpoint extra, asumiendo JWT base64
+      const token = localStorage.getItem("access_token") || document.cookie.match(/(?:^|; )access_token=([^;]*)/)?.[1]
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        setUser({
+          userId: payload.sub,
+          fullName: normalizeUtf8Text(payload.fullName),
+          email: payload.email,
+          role: payload.role as UserRole,
+        })
+      } else {
+        setUser(null)
+      }
     } catch {
       setUser(null)
     } finally {
@@ -36,26 +48,49 @@ export function useAuth() {
 
   /** Login con email y contraseña */
   const login = async (email: string, password: string) => {
-    const response = await api.post<LoginResponse>(ENDPOINTS.AUTH.LOGIN, { email, password }, { skipAuth: true })
-    setToken(response.data.access_token)
-    setUser(response.data.user)
+    // La respuesta real del backend es { message: string, data: { token, role, fullName, userId, sessionUuid } }
+    const response = await api.post<{ data: { token: string, role: UserRole, fullName: string, userId: string } }>(
+      ENDPOINTS.AUTH.LOGIN, 
+      { email, password }, 
+      { skipAuth: true }
+    )
+    
+    const backendData = response.data.data
+    setToken(backendData.token)
+    
+    const userProfile = {
+      userId: backendData.userId,
+      fullName: normalizeUtf8Text(backendData.fullName),
+      email,
+      role: backendData.role,
+    }
+    setUser(userProfile)
 
     // Redirigir según el rol
     const roleRoutes: Record<string, string> = {
-      agente_operativo: "/agente-operativo",
-      piloto: "/piloto",
-      agente_logistico: "/agente-logistico",
-      encargado_patio: "/encargado-patio",
-      certificador_fel: "/certificador-fel",
+      CERTIFICADOR_FEL: "/certificador-fel",
+      GERENCIA: "/gerencia",
+      AGENTE_OPERATIVO: "/agente-operativo",
+      PILOTO: "/piloto",
+      AGENTE_LOGISTICO: "/agente-logistico",
+      ENCARGADO_PATIO: "/encargado-patio",
+      AGENTE_FINANCIERO: "/finances",
+      CLIENTE: "/cliente",
     }
-    router.push(roleRoutes[response.data.user.rol] || "/")
+    router.push(roleRoutes[userProfile.role] || "/")
   }
 
   /** Cerrar sesión */
-  const logout = () => {
-    removeToken()
-    setUser(null)
-    router.push("/login")
+  const logout = async () => {
+    try {
+      await api.post(ENDPOINTS.AUTH.LOGOUT, {}, { silentError: true })
+    } catch {
+      // No bloqueamos el cierre local si la revocación remota falla.
+    } finally {
+      removeToken()
+      setUser(null)
+      router.push("/login")
+    }
   }
 
   return { user, loading, login, logout, refetch: fetchUser }

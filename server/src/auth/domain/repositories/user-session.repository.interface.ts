@@ -1,7 +1,7 @@
 import { UserSession } from '../../../infrastructure/database/typeorm/entities/user-session.entity';
 
 export interface CreateSessionData {
-  userId: string;
+  userId: number;
   userRemote: string | null;
   userAgent: string | null;
   sessionUuid: string;
@@ -13,8 +13,9 @@ export interface CreateSessionData {
 export interface IUserSessionRepository {
   create(data: CreateSessionData): Promise<UserSession>;
   findActiveByToken(sessionToken: string): Promise<UserSession | null>;
-  softDelete(sessionId: string): Promise<void>;
-  incrementUsage(sessionId: string): Promise<void>;
+  findActiveBySessionUuid(sessionUuid: string): Promise<UserSession | null>;
+  softDelete(sessionId: number): Promise<void>;
+  incrementUsage(sessionId: number): Promise<void>;
 }
 
 export const USER_SESSION_REPOSITORY_TOKEN = Symbol('IUserSessionRepository');

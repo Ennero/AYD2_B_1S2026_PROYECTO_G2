@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
 /* ---------- Tipos ---------- */
 
 interface ApiRequestOptions extends Omit<RequestInit, "body"> {
-  body?: Record<string, unknown> | FormData
+  body?: unknown | FormData
   /** Si true, no agrega Authorization header */
   skipAuth?: boolean
   /** Si true, no muestra toast de error */
@@ -34,15 +34,21 @@ interface ApiError {
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null
+  // Usamos api de document.cookie también para poder leer
+  const match = document.cookie.match(/(?:^|; )access_token=([^;]*)/)
+  if (match) return match[1]
   return localStorage.getItem("access_token")
 }
 
 export function setToken(token: string): void {
   localStorage.setItem("access_token", token)
+  // Añadimos a cookies para que lo lea el middleware (30 días)
+  document.cookie = `access_token=${token}; path=/; max-age=${30 * 24 * 60 * 60}`
 }
 
 export function removeToken(): void {
   localStorage.removeItem("access_token")
+  document.cookie = "access_token=; path=/; max-age=0"
 }
 
 /* ---------- Core fetch wrapper ---------- */
@@ -76,12 +82,13 @@ async function request<T>(
   try {
     const response = await fetch(url, {
       ...fetchOptions,
+      credentials: "include",
       headers,
       body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     })
 
-    // Handle 401 — Token expirado
-    if (response.status === 401) {
+    // Handle 401 — Token expirado (solo redirige si era una petición autenticada)
+    if (response.status === 401 && !skipAuth) {
       removeToken()
       if (typeof window !== "undefined") {
         window.location.href = "/login"
@@ -130,13 +137,13 @@ export const api = {
   get: <T>(endpoint: string, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "GET" }),
 
-  post: <T>(endpoint: string, body?: Record<string, unknown>, options?: ApiRequestOptions) =>
+  post: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "POST", body }),
 
-  put: <T>(endpoint: string, body?: Record<string, unknown>, options?: ApiRequestOptions) =>
+  put: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "PUT", body }),
 
-  patch: <T>(endpoint: string, body?: Record<string, unknown>, options?: ApiRequestOptions) =>
+  patch: <T>(endpoint: string, body?: unknown, options?: ApiRequestOptions) =>
     request<T>(endpoint, { ...options, method: "PATCH", body }),
 
   delete: <T>(endpoint: string, options?: ApiRequestOptions) =>

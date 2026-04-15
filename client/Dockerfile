@@ -1,5 +1,5 @@
 # Start from the official Node.js image
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # 1. Install dependencies only when needed
 FROM base AS deps
@@ -13,6 +13,10 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Set NEXT_PUBLIC_API_URL at build time so the client side code can contact the backend
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN npm run build
 

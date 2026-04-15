@@ -4,7 +4,6 @@ export interface WelcomeTemplateData {
   clientName: string;
   email: string;
   temporaryPassword: string;
-  portalUrl: string;
 }
 
 /**
@@ -16,25 +15,28 @@ export function welcomeTemplate(data: WelcomeTemplateData): { subject: string; h
 
   const html = baseTemplate(
     `
+    <p class="eyebrow">Alta de Cuenta</p>
     <h2>Bienvenido a LogiTrans, ${data.clientName}</h2>
-    <p>Su cuenta ha sido registrada exitosamente en nuestra plataforma de gestión logística. A continuación encontrará sus credenciales de acceso:</p>
+    <p>Su cuenta fue registrada exitosamente en nuestra plataforma de gestión logística. A continuación encontrará su información de acceso:</p>
 
     <div class="info-box">
       <p><strong>Correo electrónico:</strong> ${data.email}</p>
-      <p><strong>Contraseña temporal:</strong> ${data.temporaryPassword}</p>
+      <p><strong>Contraseña:</strong> ${data.temporaryPassword}</p>
     </div>
 
-    <p>Por seguridad, le recomendamos cambiar su contraseña en su primer inicio de sesión.</p>
-
-    <p style="text-align:center;">
-      <a class="btn" href="${data.portalUrl}">Acceder al portal</a>
-    </p>
+    <div class="info-box">
+      <p><strong>Instrucciones de acceso</strong></p>
+      <ol class="steps">
+        <li>Ingrese al Portal de Clientes LogiTrans.</li>
+        <li>Inicie sesión con el correo y la contraseña indicados arriba.</li>
+        <li>Al entrar, cambie su contraseña para mayor seguridad.</li>
+      </ol>
+    </div>
 
     <hr class="divider" />
 
     <p style="font-size:13px; color:#888888;">
-      Si usted no solicitó esta cuenta, ignore este correo o contáctenos a
-      <a href="mailto:soporte@logitrans.com">soporte@logitrans.com</a>.
+      Si usted no solicitó esta cuenta, ignore este correo o contáctenos en: soporte@logitrans.com.
     </p>
     `,
     subject,
@@ -45,9 +47,12 @@ Bienvenido a LogiTrans, ${data.clientName}.
 
 Sus credenciales de acceso:
   Correo electrónico: ${data.email}
-  Contraseña temporal: ${data.temporaryPassword}
+  Contraseña: ${data.temporaryPassword}
 
-Acceda al portal en: ${data.portalUrl}
+Instrucciones:
+  1) Ingrese al Portal de Clientes LogiTrans
+  2) Inicie sesión con las credenciales enviadas en este correo
+  3) Cambie su contraseña en el primer ingreso
 
 Por seguridad, cambie su contraseña en su primer inicio de sesión.
   `.trim();

@@ -1,14 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
 import { ContractStatus } from '../../../../domain/enums/contract-status.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Client } from './client.entity';
 import { ContractRoute } from './contract-route.entity';
 import { ContractRate } from './contract-rate.entity';
@@ -17,26 +9,24 @@ import { Order } from './order.entity';
 
 @Entity('contracts')
 export class Contract {
-  @PrimaryGeneratedColumn('uuid', { name: 'contract_id' })
-  contractId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'contract_id' })
+  contractId: number;
 
   @Column({
     name: 'contract_number',
     type: 'varchar',
     length: 40,
-    unique: true,
-  })
+    unique: true })
   contractNumber: string;
 
-  @Column({ name: 'client_id', type: 'uuid' })
-  clientId: string;
+  @Column({ name: 'client_id', type: 'integer' })
+  clientId: number;
 
   @Column({
     name: 'status',
     type: 'enum',
     enum: ContractStatus,
-    default: ContractStatus.BORRADOR,
-  })
+    default: ContractStatus.BORRADOR })
   status: ContractStatus;
 
   @Column({ name: 'start_date', type: 'date', default: () => 'CURRENT_DATE' })
@@ -48,8 +38,40 @@ export class Contract {
   @Column({ name: 'accepted_at', type: 'timestamptz', nullable: true })
   acceptedAt: Date | null;
 
-  @Column({ name: 'credit_limit', type: 'numeric', precision: 14, scale: 2 })
-  creditLimit: number;
+  @Column({
+    name: 'credit_limit',
+    type: 'numeric',
+    precision: 14,
+    scale: 2,
+    nullable: true,
+  })
+  creditLimit: number | null;
+
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
+
+  @Column({
+    name: 'exchange_rate_from_usd',
+    type: 'numeric',
+    precision: 14,
+    scale: 6,
+    default: 1,
+  })
+  exchangeRateFromUsd: number;
+
+  @Column({
+    name: 'tax_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.12,
+  })
+  taxRate: number;
 
   @Column({ name: 'payment_term_days', type: 'smallint' })
   paymentTermDays: number;
@@ -59,8 +81,7 @@ export class Contract {
     type: 'numeric',
     precision: 5,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   discountPercentage: number;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
@@ -85,8 +106,6 @@ export class Contract {
     joinColumn: { name: 'contract_id', referencedColumnName: 'contractId' },
     inverseJoinColumn: {
       name: 'cargo_type_id',
-      referencedColumnName: 'cargoTypeId',
-    },
-  })
+      referencedColumnName: 'cargoTypeId' } })
   cargoTypes: CargoType[];
 }

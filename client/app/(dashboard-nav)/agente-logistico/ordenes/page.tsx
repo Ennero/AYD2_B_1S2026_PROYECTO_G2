@@ -1,30 +1,25 @@
 "use client"
-// ============================================================
-// app/(dashboard-nav)/agente-logistico/ordenes/page.tsx
-// Lista de Órdenes de Servicio — Agente Logístico
-// ============================================================
-// Fetch: GET /api/logistics/orders
-// Click en tarjeta → /agente-logistico/ordenes/[id]
-// ============================================================
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import type { OrdenResumen, FiltrosOrden } from "@/types/logistics"
 import type { OrderStatus } from "@/types/pilot"
-import { ClipboardList, MapPin, Package, Weight, CalendarDays, User, Search, X } from "lucide-react"
-import { cn } from "@/lib/utils/cn"
+import { ClipboardList, MapPin, Package, Weight, CalendarDays, User, Search, X, SlidersHorizontal, ArrowRight } from "lucide-react"
 
-// ── Status config ────────────────────────────────────────────
-const statusConfig: Record<OrderStatus, { label: string; badgeCls: string }> = {
-  REGISTRADA:          { label: "Registrada",           badgeCls: "bg-gray-200 text-text-muted border border-gray-300" },
-  ASIGNADA:            { label: "Asignada",              badgeCls: "bg-blue-100 text-blue-800 border border-blue-300" },
-  LISTA_PARA_DESPACHO: { label: "Lista para Despacho",   badgeCls: "bg-yellow-100 text-yellow-800 border border-yellow-400" },
-  EN_TRANSITO:         { label: "En Tránsito",           badgeCls: "bg-green-100 text-green-800 border border-green-300" },
-  ENTREGADA:           { label: "Entregada",             badgeCls: "bg-emerald-100 text-emerald-800 border border-emerald-300" },
-  BLOQUEADA:           { label: "Bloqueada",             badgeCls: "bg-red-100 text-red-800 border border-red-300" },
-  CANCELADA:           { label: "Cancelada",             badgeCls: "bg-gray-200 text-text-muted border border-gray-400" },
+const EASE = [0.16, 1, 0.3, 1] as const
+
+// ── Status config ─────────────────────────────────────────────
+const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string }> = {
+  REGISTRADA:          { label: "Registrada",         color: "#9A9489", bg: "rgba(154,148,137,0.1)" },
+  ASIGNADA:            { label: "Asignada",           color: "#C9924B", bg: "rgba(201,146,75,0.1)" },
+  LISTA_PARA_DESPACHO: { label: "Lista p/ Despacho",  color: "#C9924B", bg: "rgba(201,146,75,0.12)" },
+  EN_TRANSITO:         { label: "En Tránsito",        color: "#3A8E2A", bg: "rgba(58,142,42,0.1)" },
+  ENTREGADA:           { label: "Entregada",          color: "#3A8E2A", bg: "rgba(58,142,42,0.08)" },
+  BLOQUEADA:           { label: "Bloqueada",          color: "#E53E3E", bg: "rgba(229,62,62,0.1)" },
+  CANCELADA:           { label: "Cancelada",          color: "#6B6260", bg: "rgba(107,98,96,0.08)" },
 }
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
@@ -38,163 +33,297 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "CANCELADA",           label: "Cancelada" },
 ]
 
-const inputCls = "w-full p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white"
-
-// ── Sidebar de Filtros ───────────────────────────────────────
-function FiltrosSidebar({
+// ── Inline filter bar ─────────────────────────────────────────
+function FilterBar({
   filtros,
   onChange,
 }: {
   filtros: FiltrosOrden
   onChange: (f: FiltrosOrden) => void
 }) {
+  const [open, setOpen] = useState(false)
   const [local, setLocal] = useState<FiltrosOrden>(filtros)
 
   function set(key: keyof FiltrosOrden, value: string) {
     setLocal((prev) => ({ ...prev, [key]: value || undefined }))
   }
 
-  const tieneFiltros = Object.values(local).some(Boolean)
+  function apply() {
+    onChange(local)
+    setOpen(false)
+  }
+
+  function clear() {
+    const v: FiltrosOrden = {}
+    setLocal(v)
+    onChange(v)
+    setOpen(false)
+  }
+
+  const hasFilters = Object.values(filtros).some(Boolean)
 
   return (
-    <div className="bg-secondary/70 p-6 rounded-xl shadow-md space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-subheading text-2xl font-bold text-primary">Buscar</h3>
-        {tieneFiltros && (
-          <button
-            onClick={() => { const v: FiltrosOrden = {}; setLocal(v); onChange(v) }}
-            className="text-text-muted hover:text-error flex items-center gap-1 text-xs font-bold transition-colors"
-          >
-            <X size={14} /> Limpiar
+    <div style={{ marginBottom: "1.5rem" }}>
+      {/* Trigger row */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <button
+          onClick={() => setOpen(!open)}
+          style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            padding: "0.55rem 1rem",
+            background: open ? "#1E1E1B" : "#ffffff",
+            border: `1px solid ${open ? "#1E1E1B" : "rgba(12,12,10,0.1)"}`,
+            borderRadius: "4px",
+            fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+            textTransform: "uppercase", color: open ? "#C9924B" : "#0C0C0A",
+            cursor: "pointer", transition: "all 0.2s",
+          }}
+        >
+          <SlidersHorizontal size={13} />
+          Filtros
+        </button>
+
+        {hasFilters && (
+          <button onClick={clear} style={{
+            display: "flex", alignItems: "center", gap: "5px",
+            fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.08em",
+            textTransform: "uppercase", color: "#E53E3E", background: "none", border: "none", cursor: "pointer",
+          }}>
+            <X size={11} /> Limpiar
           </button>
         )}
       </div>
 
-      {/* Estado */}
-      <div>
-        <label className="block text-xs font-bold text-primary mb-1">Estado</label>
-        <select
-          value={local.status ?? ""}
-          onChange={(e) => set("status", e.target.value)}
-          className={cn(inputCls, "text-gray-600")}
-        >
-          {STATUS_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </div>
+      {/* Expandable panel */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            style={{ overflow: "hidden" }}
+          >
+            <div style={{
+              marginTop: "8px",
+              background: "#1E1E1B", borderRadius: "6px",
+              padding: "1.25rem 1.5rem",
+              display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr auto", gap: "12px", alignItems: "end",
+            }}>
+              {/* Estado */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
+                  Estado
+                </label>
+                <select
+                  value={local.status ?? ""}
+                  onChange={(e) => set("status", e.target.value)}
+                  style={{
+                    width: "100%", padding: "0.55rem 0.75rem",
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "4px", color: "#F5F2EC", fontSize: "0.8rem",
+                    outline: "none", cursor: "pointer",
+                  }}
+                >
+                  {STATUS_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value} style={{ background: "#1E1E1B" }}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
 
-      {/* Rango de fechas */}
-      <div className="flex gap-2">
-        <div className="w-1/2">
-          <label className="block text-xs font-bold text-primary mb-1">Fecha Inicio</label>
-          <input
-            type="date"
-            value={local.startDate ?? ""}
-            onChange={(e) => set("startDate", e.target.value)}
-            className={inputCls}
-          />
-        </div>
-        <div className="w-1/2">
-          <label className="block text-xs font-bold text-primary mb-1">Fecha Fin</label>
-          <input
-            type="date"
-            value={local.endDate ?? ""}
-            onChange={(e) => set("endDate", e.target.value)}
-            className={inputCls}
-          />
-        </div>
-      </div>
+              {/* Fecha inicio */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
+                  Fecha inicio
+                </label>
+                <input
+                  type="date"
+                  value={local.startDate ?? ""}
+                  onChange={(e) => set("startDate", e.target.value)}
+                  style={{
+                    width: "100%", padding: "0.55rem 0.75rem",
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "4px", color: "#F5F2EC", fontSize: "0.8rem",
+                    outline: "none", colorScheme: "dark",
+                  }}
+                />
+              </div>
 
-      <button
-        onClick={() => onChange(local)}
-        className="w-full bg-surface hover:bg-[#d4bca9] text-primary font-black py-3 rounded shadow-md mt-2 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
-      >
-        <Search size={16} />
-        FILTRAR
-      </button>
+              {/* Fecha fin */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
+                  Fecha fin
+                </label>
+                <input
+                  type="date"
+                  value={local.endDate ?? ""}
+                  onChange={(e) => set("endDate", e.target.value)}
+                  style={{
+                    width: "100%", padding: "0.55rem 0.75rem",
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "4px", color: "#F5F2EC", fontSize: "0.8rem",
+                    outline: "none", colorScheme: "dark",
+                  }}
+                />
+              </div>
+
+              {/* Nombre cliente */}
+              <div>
+                <label style={{ display: "block", fontSize: "0.5rem", letterSpacing: "0.25em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>
+                  Nombre cliente
+                </label>
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre..."
+                  value={local.clientName ?? ""}
+                  onChange={(e) => set("clientName", e.target.value)}
+                  style={{
+                    width: "100%", padding: "0.55rem 0.75rem",
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "4px", color: "#F5F2EC", fontSize: "0.8rem",
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              {/* Aplicar */}
+              <button
+                onClick={apply}
+                style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  padding: "0.55rem 1.25rem",
+                  background: "#C9924B", border: "none", borderRadius: "4px",
+                  fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em",
+                  textTransform: "uppercase", color: "#ffffff", cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <Search size={12} /> Aplicar
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
 
-// ── Tarjeta de Orden ─────────────────────────────────────────
-function OrdenCard({ orden, onAbrir }: { orden: OrdenResumen; onAbrir: () => void }) {
+// ── Orden row card ─────────────────────────────────────────────
+function OrdenRow({ orden, onAbrir }: { orden: OrdenResumen; onAbrir: () => void }) {
   const cfg = statusConfig[orden.status] ?? statusConfig["REGISTRADA"]
 
-  const fechaFormateada = orden.requestedAt
+  const fecha = orden.requestedAt
     ? new Date(orden.requestedAt).toLocaleDateString("es-GT", {
-        day: "2-digit", month: "2-digit", year: "numeric",
+        day: "2-digit", month: "2-digit", year: "2-digit",
       })
     : "—"
 
   return (
-    <div className="relative bg-primary rounded-2xl shadow-lg mt-4">
-      {/* Badge */}
-      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
-        <span className={cn("font-bold px-6 py-1 rounded-full text-sm shadow whitespace-nowrap", cfg.badgeCls)}>
-          {cfg.label}
-        </span>
+    <div
+      onClick={onAbrir}
+      style={{
+        background: "#ffffff",
+        border: "1px solid rgba(12,12,10,0.07)",
+        borderLeft: `3px solid ${cfg.color}`,
+        borderRadius: "4px",
+        padding: "1rem 1.25rem",
+        display: "flex", alignItems: "center", gap: "1.25rem",
+        cursor: "pointer", transition: "border-color 0.2s, transform 0.15s, box-shadow 0.15s",
+      }}
+      onMouseOver={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.borderColor = `rgba(12,12,10,0.15)`
+        el.style.borderLeftColor = cfg.color
+        el.style.transform = "translateY(-1px)"
+        el.style.boxShadow = "0 4px 16px rgba(12,12,10,0.06)"
+      }}
+      onMouseOut={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.borderColor = "rgba(12,12,10,0.07)"
+        el.style.borderLeftColor = cfg.color
+        el.style.transform = "translateY(0)"
+        el.style.boxShadow = "none"
+      }}
+    >
+      {/* Status dot + order number */}
+      <div style={{ flexShrink: 0, minWidth: "6rem" }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: "5px",
+          background: cfg.bg, borderRadius: "3px",
+          padding: "2px 7px", marginBottom: "4px",
+        }}>
+          <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: cfg.color, flexShrink: 0 }} />
+          <span style={{ fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: cfg.color }}>
+            {cfg.label}
+          </span>
+        </div>
+        <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "#0C0C0A", letterSpacing: "-0.01em" }}>
+          {orden.orderNumber}
+        </p>
       </div>
 
-      <div className="flex flex-col md:flex-row items-center p-6 pt-8 gap-4">
-        {/* Columna izquierda */}
-        <div className="w-full md:w-1/4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-primary-hover pb-4 md:pb-0 md:pr-4 gap-2">
-          <div className="bg-blue-400 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-md border-2 border-white">
-            <User size={28} />
-          </div>
-          <span className="text-white font-bold text-sm tracking-wide">{orden.orderNumber}</span>
-          <div className="w-full bg-surface text-primary font-black py-2 px-3 rounded text-center text-sm shadow-inner">
-            {orden.clientName}
-          </div>
-        </div>
+      {/* Divider */}
+      <div style={{ width: "1px", alignSelf: "stretch", background: "rgba(12,12,10,0.07)", flexShrink: 0 }} />
 
-        {/* Columna derecha */}
-        <div className="w-full md:w-3/4 flex flex-wrap md:flex-nowrap justify-between items-center text-white px-2 md:px-4 gap-4 text-center">
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <CalendarDays size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Fecha</p>
-            <p className="font-semibold text-sm">{fechaFormateada}</p>
-          </div>
-
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <MapPin size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Origen</p>
-            <p className="font-semibold text-sm leading-tight">{orden.origin}</p>
-          </div>
-
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <MapPin size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Destino</p>
-            <p className="font-semibold text-sm leading-tight">{orden.destination}</p>
-          </div>
-
-          <div className="flex flex-col items-center gap-1 min-w-[60px]">
-            <Package size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Tipo</p>
-            <p className="font-semibold text-sm leading-tight">{orden.cargoType || "—"}</p>
-          </div>
-
-          <div className="flex flex-col items-center gap-1 min-w-[50px]">
-            <Weight size={14} className="text-teal-200" />
-            <p className="text-[10px] text-teal-200 tracking-widest font-bold uppercase">Peso</p>
-            <p className="font-semibold text-lg">{orden.declaredWeightTon}T</p>
-          </div>
-
-          <div className="flex items-center">
-            <button
-              onClick={onAbrir}
-              className="font-bold py-2 px-4 rounded text-sm shadow-md transition-all hover:-translate-y-0.5 bg-secondary hover:bg-primary-hover text-white whitespace-nowrap"
-            >
-              Ver Detalle
-            </button>
-          </div>
+      {/* Client */}
+      <div style={{ flexShrink: 0, minWidth: "7rem" }}>
+        <p style={{ fontSize: "0.5rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+          Cliente
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <User size={10} style={{ color: "#9A9489", flexShrink: 0 }} />
+          <p style={{ fontSize: "0.78rem", color: "#0C0C0A", fontWeight: 600 }}>{orden.clientName}</p>
         </div>
       </div>
+
+      {/* Divider */}
+      <div style={{ width: "1px", alignSelf: "stretch", background: "rgba(12,12,10,0.07)", flexShrink: 0 }} />
+
+      {/* Route */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: "0.5rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "2px" }}>
+          Ruta
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <MapPin size={10} style={{ color: "#9A9489", flexShrink: 0 }} />
+          <span style={{ fontSize: "0.78rem", color: "#0C0C0A", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {orden.origin}
+          </span>
+          <span style={{ fontSize: "0.65rem", color: "#9A9489", flexShrink: 0 }}>→</span>
+          <span style={{ fontSize: "0.78rem", color: "#0C0C0A", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {orden.destination}
+          </span>
+        </div>
+      </div>
+
+      {/* Cargo + Weight */}
+      <div style={{ flexShrink: 0, minWidth: "5rem", textAlign: "right" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end", marginBottom: "2px" }}>
+          <Package size={10} style={{ color: "#9A9489" }} />
+          <span style={{ fontSize: "0.7rem", color: "#6B6260" }}>{orden.cargoType || "—"}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end" }}>
+          <Weight size={10} style={{ color: "#9A9489" }} />
+          <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#0C0C0A" }}>{orden.declaredWeightTon}T</span>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ width: "1px", alignSelf: "stretch", background: "rgba(12,12,10,0.07)", flexShrink: 0 }} />
+
+      {/* Date */}
+      <div style={{ flexShrink: 0, textAlign: "center", minWidth: "4.5rem" }}>
+        <CalendarDays size={12} style={{ color: "#9A9489", margin: "0 auto 2px" }} />
+        <p style={{ fontSize: "0.7rem", color: "#6B6260" }}>{fecha}</p>
+      </div>
+
+      {/* CTA */}
+      <ArrowRight size={14} style={{ color: "#C9924B", flexShrink: 0, transition: "transform 0.2s" }} />
     </div>
   )
 }
 
-// ── Page ─────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────
 export default function OrdenesPage() {
   const router = useRouter()
   const [ordenes, setOrdenes] = useState<OrdenResumen[]>([])
@@ -209,10 +338,11 @@ export default function OrdenesPage() {
     setLoading(true)
     try {
       const query: Record<string, string> = {}
-      if (params.status)    query.status    = params.status
-      if (params.startDate) query.startDate = params.startDate
-      if (params.endDate)   query.endDate   = params.endDate
-      if (params.clientId)  query.clientId  = params.clientId
+      if (params.status)     query.status     = params.status
+      if (params.startDate)  query.startDate  = params.startDate
+      if (params.endDate)    query.endDate    = params.endDate
+      if (params.clientId)   query.clientId   = params.clientId
+      if (params.clientName) query.clientName = params.clientName
 
       const qs = new URLSearchParams(query).toString()
       const url = qs ? `${ENDPOINTS.LOGISTICS.ORDERS_LIST}?${qs}` : ENDPOINTS.LOGISTICS.ORDERS_LIST
@@ -232,53 +362,89 @@ export default function OrdenesPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="w-full max-w-7xl mx-auto px-6 py-8">
-        <h1 className="font-heading text-4xl font-extrabold text-center text-text-primary mb-8">
-          Órdenes de Servicio
-        </h1>
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
-          <aside className="w-full lg:w-1/4">
-            <FiltrosSidebar filtros={filtros} onChange={(f) => setFiltros(f)} />
-          </aside>
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
 
-          {/* Lista */}
-          <section className="w-full lg:w-3/4 flex flex-col gap-2">
-            <h2 className="font-subheading text-3xl text-center text-text-primary mb-6">
-              Todas las órdenes
-            </h2>
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "2.5rem" }}>
 
-            {loading && (
-              <div className="flex flex-col items-center justify-center py-20 gap-4 text-text-muted">
-                <ClipboardList size={48} className="animate-bounce text-primary" />
-                <p className="font-body text-lg">Cargando órdenes...</p>
-              </div>
-            )}
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Agente Logístico
+          </p>
 
-            {!loading && ordenadas.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center">
-                  <ClipboardList size={40} className="text-text-muted" />
-                </div>
-                <p className="font-subheading text-xl text-text-primary">No hay órdenes</p>
-                <p className="font-body text-text-muted text-center max-w-sm">
-                  No se encontraron órdenes con los filtros seleccionados.
-                </p>
-              </div>
-            )}
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              Órdenes de Servicio
+            </motion.h1>
+          </div>
 
-            {!loading && ordenadas.map((orden) => (
-              <OrdenCard
-                key={orden.orderId}
-                orden={orden}
-                onAbrir={() => router.push(`/agente-logistico/ordenes/${orden.orderId}`)}
-              />
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.35, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.5rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* Filter bar */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.6 }}>
+          <FilterBar filtros={filtros} onChange={setFiltros} />
+        </motion.div>
+
+        {/* Count */}
+        {!loading && ordenadas.length > 0 && (
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+            style={{ fontSize: "0.65rem", letterSpacing: "0.15em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "1rem" }}>
+            {ordenadas.length} orden{ordenadas.length !== 1 ? "es" : ""}
+          </motion.p>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div style={{ textAlign: "center", padding: "4rem 0" }}>
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+              Cargando órdenes...
+            </p>
+          </div>
+        )}
+
+        {/* Empty */}
+        {!loading && ordenadas.length === 0 && (
+          <div style={{ textAlign: "center", padding: "4rem 0" }}>
+            <ClipboardList size={32} style={{ color: "#9A9489", margin: "0 auto 1rem" }} />
+            <p style={{ fontSize: "0.55rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.4rem" }}>
+              Sin órdenes
+            </p>
+            <p style={{ fontSize: "0.8rem", color: "#6B6260" }}>
+              No se encontraron órdenes con los filtros seleccionados.
+            </p>
+          </div>
+        )}
+
+        {/* List */}
+        {!loading && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {ordenadas.map((orden, i) => (
+              <motion.div key={orden.orderId}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.4, ease: EASE }}>
+                <OrdenRow
+                  orden={orden}
+                  onAbrir={() => router.push(`/agente-logistico/ordenes/${orden.orderId}`)}
+                />
+              </motion.div>
             ))}
-          </section>
-        </div>
-      </main>
+          </div>
+        )}
+
+      </div>
     </div>
   )
 }

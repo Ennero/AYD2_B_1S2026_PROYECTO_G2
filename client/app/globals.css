@@ -1,23 +1,41 @@
 @import "tailwindcss";
 
 /* ===========================
-   Tailwind v4 Theme — Static Values
-   @theme inline requires static values,
-   NOT var() references to runtime variables.
+   Tailwind v4 Theme — LOGITRANS Design System
+   Palette from landing page:
+     #0C0C0A  Graphite Black   (dark bg)
+     #F5F2EC  Warm Ivory       (light bg, primary text on dark)
+     #C9924B  Amber            (accent, CTAs, highlights)
+     #1E1E1B  Deep Ink         (card bg on dark)
+     #9A9489  Warm Mist        (muted text on dark)
+     #6B6260  Ash              (body text on light)
    =========================== */
 @theme inline {
-  /* Colors */
-  --color-primary: #074F57;
-  --color-primary-hover: #077187;
-  --color-primary-active: #077187;
-  --color-secondary: #74A57F;
-  --color-accent: #9ECE9A;
-  --color-surface: #E4C5AF;
-  --color-background: #F7F5F3;
-  --color-text-primary: #1A1A1A;
-  --color-text-muted: #6B6B6B;
-  --color-error: #D94F4F;
-  --color-warning: #E6A817;
+  /* Core palette */
+  --color-primary:        #C9924B;
+  --color-primary-hover:  #B8813C;
+  --color-primary-active: #A06E30;
+
+  /* Backgrounds */
+  --color-background:     #F5F2EC;
+  --color-surface:        #ffffff;
+  --color-dark:           #0C0C0A;
+  --color-dark-card:      #1E1E1B;
+
+  /* Text */
+  --color-text-primary:   #0C0C0A;
+  --color-text-muted:     #6B6260;
+  --color-text-ivory:     #F5F2EC;
+  --color-text-warm-mist: #9A9489;
+
+  /* Semantic */
+  --color-error:   #E53E3E;
+  --color-warning: #D69E2E;
+  --color-success: #3A8E2A;
+
+  /* Borders */
+  --color-border:      rgba(12,12,10,0.12);
+  --color-border-dark: rgba(245,242,236,0.08);
 }
 
 /* ===========================
@@ -26,45 +44,42 @@
 body {
   background-color: var(--color-background);
   color: var(--color-text-primary);
-  font-family: var(--font-hind-madurai), sans-serif;
-  font-size: 1rem;
-  /* 16px */
+  font-family: var(--font-inter), sans-serif;
+  font-size: 1.0625rem;
   line-height: 1.6;
 }
 
 /* ===========================
-   Typography — Base Heading Styles
+   Typography
    =========================== */
 h1 {
-  font-family: var(--font-montserrat-alternates);
+  font-family: var(--font-inter), sans-serif;
   font-size: 3rem;
-  /* 48px */
-  font-weight: 700;
-  line-height: 1.2;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   color: var(--color-text-primary);
 }
 
 h2 {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-inter), sans-serif;
   font-size: 2rem;
-  /* 32px */
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   color: var(--color-text-primary);
 }
 
 h3 {
-  font-family: var(--font-lora), serif;
+  font-family: var(--font-inter), sans-serif;
   font-size: 1.5rem;
-  /* 24px */
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
   color: var(--color-text-primary);
 }
 
-/* Small text utility */
 .text-small {
   font-size: 0.875rem;
-  /* 14px */
   line-height: 1.5;
 }

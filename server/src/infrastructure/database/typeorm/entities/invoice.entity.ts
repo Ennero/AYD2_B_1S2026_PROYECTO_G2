@@ -1,36 +1,29 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { InvoiceStatus } from '../../../../domain/enums/invoice-status.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Order } from './order.entity';
 import { Client } from './client.entity';
 import { Payment } from './payment.entity';
 
 @Entity('invoices')
 export class Invoice {
-  @PrimaryGeneratedColumn('uuid', { name: 'invoice_id' })
-  invoiceId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'invoice_id' })
+  invoiceId: number;
 
   @Column({ name: 'invoice_number', type: 'varchar', length: 40, unique: true })
   invoiceNumber: string;
 
-  @Column({ name: 'order_id', type: 'uuid', unique: true })
-  orderId: string;
+  @Column({ name: 'order_id', type: 'integer', unique: true })
+  orderId: number;
 
-  @Column({ name: 'client_id', type: 'uuid' })
-  clientId: string;
+  @Column({ name: 'client_id', type: 'integer' })
+  clientId: number;
 
   @Column({
     name: 'status',
     type: 'enum',
     enum: InvoiceStatus,
-    default: InvoiceStatus.BORRADOR,
-  })
+    default: InvoiceStatus.BORRADOR })
   status: InvoiceStatus;
 
   @Column({ name: 'issue_date', type: 'timestamptz', default: () => 'NOW()' })
@@ -57,6 +50,32 @@ export class Invoice {
   @Column({ name: 'service_description', type: 'text' })
   serviceDescription: string;
 
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
+
+  @Column({
+    name: 'exchange_rate_from_usd',
+    type: 'numeric',
+    precision: 14,
+    scale: 6,
+    default: 1,
+  })
+  exchangeRateFromUsd: number;
+
+  @Column({
+    name: 'tax_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.12,
+  })
+  taxRate: number;
+
   @Column({ name: 'subtotal_amount', type: 'numeric', precision: 14, scale: 2 })
   subtotalAmount: number;
 
@@ -71,8 +90,7 @@ export class Invoice {
     type: 'varchar',
     length: 50,
     unique: true,
-    nullable: true,
-  })
+    nullable: true })
   felUuid: string | null;
 
   @Column({ name: 'pdf_path', type: 'text', nullable: true })

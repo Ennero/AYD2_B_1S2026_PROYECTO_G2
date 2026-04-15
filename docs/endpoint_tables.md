@@ -81,21 +81,19 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   }
 }</pre></td>
       <td><pre>{
-  "message": "Correo con token unico enviado correctamente",
+  "message": "Correo con token unico enviado correctamente (via Resend)",
   "data": {
     "expiresInMinutes": 30
   }
 }</pre></td>
-      <td>Busca el usuario por <strong>USERS.EMAIL</strong>.<br>Inserta un registro en <strong>PASSWORD_RECOVERY_TOKENS</strong> con <strong>TOKEN_HASH</strong>, <strong>EXPIRES_AT</strong> y <strong>USER_ID</strong>.<br>El token real se envia por correo; no se guarda en texto plano.</td>
+      <td>Busca el usuario por <strong>USERS.EMAIL</strong>.<br>Inserta un registro en <strong>PASSWORD_RECOVERY_TOKENS</strong> con <strong>TOKEN_HASH</strong>, <strong>EXPIRES_AT</strong> y <strong>USER_ID</strong>.<br>El token real se envia por correo mediante <strong>Resend</strong>; no se guarda en texto plano.</td>
     </tr>
     <tr>
       <td>POST</td>
       <td>/api/auth/password</td>
       <td><pre>{
-  "headers": {
-    "Authorization": "Bearer recovery-token-o-jwt"
-  },
   "body": {
+    "token": "<token_hex_64>",
     "password": "NuevaClave2026!",
     "confirmation": "NuevaClave2026!"
   }
@@ -104,7 +102,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   "message": "Contrasena modificada correctamente",
   "data": {}
 }</pre></td>
-      <td>Actualiza <strong>USERS.PASSWORD_HASH</strong>.<br>Marca <strong>PASSWORD_RECOVERY_TOKENS.USED_AT</strong> para inutilizar el token.<br>Debe impedir reutilizar la misma contrasena actual.</td>
+  <td>Actualiza <strong>USERS.PASSWORD_HASH</strong>.<br>Marca <strong>PASSWORD_RECOVERY_TOKENS.USED_AT</strong> para inutilizar el token.<br>El token de recuperacion se envia en el cuerpo de la solicitud (no en Authorization).<br>Debe impedir reutilizar la misma contrasena actual.</td>
     </tr>
   </tbody>
 </table>
@@ -144,7 +142,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
       <td>Se apoya principalmente en la vista <strong>V_CLIENT_BALANCES</strong>.<br>Cuenta ordenes activas desde <strong>ORDERS</strong> por cliente autenticado.<br>No modifica datos.</td>
     </tr>
     <tr>
-      <td>POST</td>
+      <td>GET</td>
       <td>/api/client/cargo-types</td>
       <td><pre>{
   "headers": {
@@ -166,7 +164,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>CARGO_TYPES</strong> activos para poblar el combobox del formulario de ordenes del cliente.</td>
+      <td>Devuelve solo tipos de mercancia autorizados por el contrato vigente mas reciente del cliente autenticado.</td>
     </tr>
     <tr>
       <td>POST</td>
@@ -176,24 +174,22 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_cliente&gt;"
   },
   "body": {
-    "CONTRACT_ID": "a73b5271-6cb9-4c91-bd67-3794c5eb5a7b",
-    "CARGO_TYPE_ID": 2,
-    "DECLARED_WEIGHT_TON": 10.5,
-    "CARGO_DESCRIPTION": "Producto refrigerado",
-    "PICKUP_ADDRESS": "Zona 12, Ciudad de Guatemala",
-    "DELIVERY_ADDRESS": "San Salvador, El Salvador",
-    "NOTES": "Entregar antes de las 16:00"
+    "cargoTypeId": 2,
+    "declaredWeightTon": 10.5,
+    "cargoDescription": "Producto refrigerado",
+    "pickupAddress": "Zona 12, Ciudad de Guatemala",
+    "deliveryAddress": "San Salvador, El Salvador"
   }
 }</pre></td>
       <td><pre>{
-  "message": "Orden registrada correctamente",
+  "message": "Orden creada correctamente",
   "data": {
-    "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
-    "orderNumber": "ORD-000085",
+    "orderId": 85,
+    "orderNumber": "ORD-2026-0085",
     "status": "REGISTRADA"
   }
 }</pre></td>
-      <td>Inserta en <strong>ORDERS</strong> con <strong>REQUESTED_BY_USER_ID</strong>, <strong>CONTRACT_ID</strong>, <strong>PICKUP_ADDRESS</strong> y <strong>DELIVERY_ADDRESS</strong>.<br>El trigger <strong>VALIDATE_ORDER_COMMERCIAL_RULES</strong> impide crear la orden si el contrato no esta vigente, si el cliente esta bloqueado, si tiene mora o si excedio su credito.<br>La <strong>CONTRACT_ROUTE_ID</strong> todavia no viene en esta etapa; la asigna Logistica despues.</td>
+      <td>Inserta en <strong>ORDERS</strong> con <strong>REQUESTED_BY_USER_ID</strong> y usa automaticamente el contrato vigente mas reciente del cliente autenticado.<br>No recibe <strong>contractId</strong> en el payload.<br>El tipo de mercancia se valida contra los autorizados por contrato vigente; si no pertenece, retorna error 400.<br>La <strong>CONTRACT_ROUTE_ID</strong> todavia no viene en esta etapa; la asigna Logistica despues.</td>
     </tr>
     <tr>
       <td>GET</td>
@@ -652,27 +648,28 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
   },
   "body": {
-    "LEGAL_NAME": "Comercializadora Maya, S.A.",
-    "COMMERCIAL_NAME": "Maya Foods",
-    "NIT": "1234567-8",
-    "TAX_ADDRESS": "Zona 12, Ciudad de Guatemala",
-    "PRIMARY_CONTACT_NAME": "Ana Morales",
-    "PRIMARY_CONTACT_EMAIL": "ana.morales@empresa.com",
-    "PRIMARY_CONTACT_PHONE": "5566-7788",
-    "PAYMENT_RISK": "MEDIO",
-    "CUSTOMS_RISK": "MEDIO",
-    "CARGO_RISK": "BAJO",
-    "AML_RISK": "MEDIO"
+    "legalName": "Comercializadora Maya, S.A.",
+    "nit": "1234567890123",
+    "taxAddress": "Zona 12, Ciudad de Guatemala",
+    "primaryContactName": "Ana Morales",
+    "primaryContactEmail": "ana.morales@empresa.com",
+    "portalPassword": "#ClaveTemporal2026",
+    "primaryContactPhone": "5566-7788",
+    "paymentRisk": "MEDIO",
+    "customsRisk": "MEDIO",
+    "cargoRisk": "BAJO",
+    "amlRisk": "MEDIO"
   }
 }</pre></td>
       <td><pre>{
-  "message": "Cliente registrado correctamente",
+  "message": "Cliente creado correctamente",
   "data": {
-    "CLIENT_ID": "fe3fc5a5-7f42-48cf-963b-ea854aa0e2ff",
-    "CLIENT_CODE": "CLI-00012"
+    "clientId": 12,
+    "clientCode": "CLI-00012",
+    "portalUserEmail": "ana.morales@empresa.com"
   }
 }</pre></td>
-      <td>Inserta en <strong>CLIENTS</strong> usando <strong>PRIMARY_CONTACT_NAME</strong>, <strong>PRIMARY_CONTACT_EMAIL</strong> y <strong>PRIMARY_CONTACT_PHONE</strong>.<br>No crea usuarios de plataforma automaticamente.</td>
+      <td>Inserta en <strong>CLIENTS</strong> y crea un usuario en <strong>USERS</strong> con rol <strong>CLIENTE</strong> usando <strong>primaryContactEmail</strong> y <strong>portalPassword</strong>.<br>Dispara el envío de credenciales de bienvenida al correo del contacto principal.</td>
     </tr>
     <tr>
       <td>GET</td>
@@ -775,11 +772,12 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_agente_operativo&gt;"
   },
   "body": {
-    "ORIGIN": "CIUDAD DE GUATEMALA",
-    "DESTINATION": "PUERTO BARRIOS",
-    "DISTANCE_KM": 295,
-    "ESTIMATED_HOURS": 6.5,
-    "IS_ACTIVE": true
+    "routeCode": "GUA-ZAC",
+    "origin": "CIUDAD DE GUATEMALA",
+    "destination": "ZACAPA",
+    "distanceKm": 145.5,
+    "estimatedHours": 3.5,
+    "isInternational": false
   }
 }</pre></td>
       <td><pre>{
@@ -992,7 +990,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   <tbody>
     <tr>
       <td>GET</td>
-      <td>/api/patio/orders</td>
+      <td>/api/operations/cargas</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_encargado_patio&gt;"
@@ -1004,16 +1002,17 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
   }
 }</pre></td>
       <td><pre>{
-  "message": "Ordenes obtenidas correctamente",
+  "message": "Cargas obtenidas",
   "data": [
     {
-      "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
-      "orderNumber": "ORD-000085",
+      "id": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+      "codigo": "ORD-000085",
+      "unitId": "fbf1d967-9cde-4a10-b728-0e9493190a14",
+      "vehicleModel": "Hino 500 2021",
       "plateNumber": "HT44343",
-      "fullName": "Pablo Perez",
-      "origin": "Planta 3",
-      "destination": "Bodega Central",
-      "status": "ASIGNADA"
+      "origen": "Planta 3",
+      "destino": "Bodega Central",
+      "estado": "PENDIENTE"
     }
   ]
 }</pre></td>
@@ -1021,21 +1020,22 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     </tr>
     <tr>
       <td>PATCH</td>
-      <td>/api/patio/orders/{ORDER_ID}/formalize</td>
+      <td>/api/operations/cargas/{ORDER_ID}/formalizar</td>
       <td><pre>{
   "headers": {
     "Authorization": "Bearer &lt;jwt_encargado_patio&gt;"
   },
   "body": {
+    "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
     "loadedWeightTon": 10.2,
-    "stowageConfirmed": true,
-    "status": "LISTA_PARA_DESPACHO"
+    "stowageConfirmed": true
   }
 }</pre></td>
       <td><pre>{
-  "message": "Despacho autorizado",
+  "message": "Carga formalizada correctamente",
   "data": {
     "orderId": "87086e66-cb0c-45b1-b70f-d5b74c915d45",
+    "orderNumber": "ORD-000085",
     "status": "LISTA_PARA_DESPACHO"
   }
 }</pre></td>
@@ -1217,7 +1217,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>INVOICES</strong> filtrando por <strong>STATUS = BORRADOR</strong>.<br>Esta es la bandeja principal de Finanzas despues de que la entrega genero automaticamente el borrador.</td>
+      <td>Consulta <strong>INVOICES</strong> filtrando por <strong>STATUS = BORRADOR</strong> y <strong>SERVICE_DESCRIPTION = ''</strong>.<br>Esta es la bandeja principal de Finanzas donde se revisan los borradores recién generados que aún no tienen detalle de cobro.</td>
     </tr>
       <tr>
         <td>GET</td>
@@ -1263,7 +1263,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "nextStep": "PATCH /api/certifier/invoices/{INVOICE_ID}/certify"
   }
 }</pre></td>
-      <td>No crea una nueva factura.<br>Confirma la revision financiera del borrador autogenerado y lo deja listo para que FEL lo procese sobre la misma tabla <strong>INVOICES</strong>.</td>
+      <td>No crea una nueva factura.<br>Confirma la revision financiera del borrador autogenerado, actualiza la descripción y fecha de vencimiento, y lo deja listo para que FEL lo procese (se vuelve visible para el certificador).</td>
     </tr>
     <tr>
       <td>PATCH</td>
@@ -1461,7 +1461,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     }
   ]
 }</pre></td>
-      <td>Consulta <strong>INVOICES</strong> en estado <strong>BORRADOR</strong>.<br>Esta es la bandeja operativa del certificador.</td>
+      <td>Consulta <strong>INVOICES</strong> en estado <strong>BORRADOR</strong> que ya tienen <strong>SERVICE_DESCRIPTION</strong> (procesadas por Finanzas).<br>Esta es la bandeja operativa del certificador.</td>
     </tr>
     <tr>
       <td>POST</td>
@@ -1492,7 +1492,8 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "Authorization": "Bearer &lt;jwt_certificador&gt;"
   },
   "body": {
-    "felUuid": "3C7D8A4E-3D23-4ED8-B410-ABC123456789"
+    "felUuid": "3C7D8A4E-3D23-4ED8-B410-ABC123456789",
+    "clientNit": "1234567890123"
   }
 }</pre></td>
       <td><pre>{
@@ -1504,7 +1505,7 @@ Los ejemplos usan UUIDs, tokens y valores ilustrativos.
     "certifiedAt": "2026-04-02T08:40:00Z"
   }
 }</pre></td>
-      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Debe ejecutarse solo despues de validar el NIT del receptor.<br>Es la base para el KPI del panel FEL.</td>
+      <td>Actualiza <strong>INVOICES.STATUS</strong> a <strong>CERTIFICADA</strong>, guarda <strong>FEL_UUID</strong> y <strong>CERTIFIED_AT</strong>.<br>Requiere <strong>clientNit</strong> valido y coincidente con la factura para poder certificar.<br>Es la base para el KPI del panel FEL.</td>
     </tr>
     <tr>
       <td>PATCH</td>

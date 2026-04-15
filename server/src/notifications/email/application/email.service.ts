@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   EMAIL_SERVICE_TOKEN,
   type EmailSendResult,
@@ -9,13 +8,28 @@ import { welcomeTemplate, WelcomeTemplateData } from './templates/welcome.templa
 import { passwordRecoveryTemplate, PasswordRecoveryTemplateData } from './templates/password-recovery.template';
 import { contractProposalTemplate, ContractProposalTemplateData } from './templates/contract-proposal.template';
 import { invoiceTemplate, InvoiceTemplateData } from './templates/invoice.template';
+import { orderDispatchedTemplate, OrderDispatchedTemplateData } from './templates/order-dispatched.template';
+import { orderDeliveredTemplate, OrderDeliveredTemplateData } from './templates/order-delivered.template';
+
+interface FinanceInvoiceStatusMail {
+  to: string;
+  subject: string;
+  summary: string;
+  invoiceNumber: string;
+  clientName: string;
+  issueDate: string;
+  dueDate: string;
+  total: string;
+  currency: string;
+  felAuthorizationCode?: string;
+}
 
 /**
  * Capa de aplicación — Servicio de Email.
  *
  * Orquesta los templates con el adaptador de envío (IEmailService).
  * Los módulos de dominio (Contratos, Órdenes, Facturación) inyectan
- * este servicio para disparar notificaciones sin conocer SES ni HTML.
+ * este servicio para disparar notificaciones sin conocer el proveedor externo ni HTML.
  *
  * @example
  *   constructor(private readonly emailService: EmailService) {}
@@ -24,14 +38,10 @@ import { invoiceTemplate, InvoiceTemplateData } from './templates/invoice.templa
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly portalUrl: string;
 
   constructor(
     @Inject(EMAIL_SERVICE_TOKEN) private readonly transport: IEmailService,
-    private readonly config: ConfigService,
-  ) {
-    this.portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3001');
-  }
+  ) {}
 
   // ─── HU-02: Bienvenida con credenciales ──────────────────────────────────
 
@@ -42,7 +52,6 @@ export class EmailService {
       clientName: data.clientName,
       email: data.email,
       temporaryPassword: data.temporaryPassword,
-      portalUrl: data.portalUrl ?? this.portalUrl,
     });
 
     return this.transport.send({
@@ -60,9 +69,8 @@ export class EmailService {
   ): Promise<EmailSendResult> {
     const tpl = passwordRecoveryTemplate({
       clientName: data.clientName,
-      recoveryUrl: data.recoveryUrl,
+      recoveryToken: data.recoveryToken,
       expiresInMinutes: data.expiresInMinutes ?? 30,
-      ipAddress: data.ipAddress,
     });
 
     return this.transport.send({
@@ -85,7 +93,6 @@ export class EmailService {
       validUntil: data.validUntil,
       totalAmount: data.totalAmount,
       currency: data.currency ?? 'GTQ',
-      portalUrl: data.portalUrl ?? this.portalUrl,
       agentName: data.agentName,
     });
 
@@ -113,7 +120,6 @@ export class EmailService {
       total: data.total,
       currency: data.currency ?? 'GTQ',
       pdfUrl: data.pdfUrl,
-      portalUrl: data.portalUrl ?? this.portalUrl,
       felAuthorizationCode: data.felAuthorizationCode,
     });
 
@@ -122,6 +128,91 @@ export class EmailService {
       subject: tpl.subject,
       html: tpl.html,
       text: tpl.text,
+    });
+  }
+
+  // ─── Notificaciones operativas de órdenes ──────────────────────────────
+
+  async sendOrderDispatched(
+    data: OrderDispatchedTemplateData & { to: string },
+  ): Promise<EmailSendResult> {
+    const tpl = orderDispatchedTemplate({
+      clientName: data.clientName,
+      orderNumber: data.orderNumber,
+      origin: data.origin,
+      destination: data.destination,
+      dispatchedAt: data.dispatchedAt,
+      cargoType: data.cargoType,
+      unitPlate: data.unitPlate,
+    });
+
+    return this.transport.send({
+      to: data.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      text: tpl.text,
+    });
+  }
+
+  async sendOrderDelivered(
+    data: OrderDeliveredTemplateData & { to: string },
+  ): Promise<EmailSendResult> {
+    const tpl = orderDeliveredTemplate({
+      clientName: data.clientName,
+      orderNumber: data.orderNumber,
+      destination: data.destination,
+      deliveredAt: data.deliveredAt,
+      receiverName: data.receiverName,
+      cargoType: data.cargoType,
+      totalAmount: data.totalAmount,
+      currency: data.currency,
+    });
+
+    return this.transport.send({
+      to: data.to,
+      subject: tpl.subject,
+      html: tpl.html,
+      text: tpl.text,
+    });
+  }
+
+  // ─── Notificación interna para Finanzas ────────────────────────────────
+
+  async sendFinanceInvoiceStatus(
+    data: FinanceInvoiceStatusMail,
+  ): Promise<EmailSendResult> {
+    const text = [
+      data.summary,
+      `Factura: ${data.invoiceNumber}`,
+      `Cliente: ${data.clientName}`,
+      `Emision: ${data.issueDate}`,
+      `Vencimiento: ${data.dueDate}`,
+      `Total: ${data.currency} ${data.total}`,
+      data.felAuthorizationCode ? `FEL UUID: ${data.felAuthorizationCode}` : undefined,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;color:#111;line-height:1.5">
+        <h2 style="margin:0 0 8px 0">${data.subject}</h2>
+        <p style="margin:0 0 12px 0">${data.summary}</p>
+        <ul style="padding-left:18px;margin:0">
+          <li><strong>Factura:</strong> ${data.invoiceNumber}</li>
+          <li><strong>Cliente:</strong> ${data.clientName}</li>
+          <li><strong>Emisión:</strong> ${data.issueDate}</li>
+          <li><strong>Vencimiento:</strong> ${data.dueDate}</li>
+          <li><strong>Total:</strong> ${data.currency} ${data.total}</li>
+          ${data.felAuthorizationCode ? `<li><strong>FEL UUID:</strong> ${data.felAuthorizationCode}</li>` : ''}
+        </ul>
+      </div>
+    `;
+
+    return this.transport.send({
+      to: data.to,
+      subject: data.subject,
+      html,
+      text,
     });
   }
 }

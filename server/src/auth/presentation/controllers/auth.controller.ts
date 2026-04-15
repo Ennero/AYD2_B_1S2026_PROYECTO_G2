@@ -19,6 +19,8 @@ import { LoginDto } from '../dtos/login.dto';
 import { RecoveryRequestDto } from '../dtos/recovery-request.dto';
 import { ResetPasswordDto } from '../dtos/reset-password.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import type { JwtPayload } from '../../domain/interfaces/jwt-payload.interface';
 
 const SESSION_COOKIE = 'sessionToken';
 const COOKIE_OPTIONS = {
@@ -74,7 +76,7 @@ export class AuthController {
       throw new UnauthorizedException('No se encontró token de sesión.');
     }
     const data = await this.refreshSessionUseCase.execute(sessionToken);
-    return { message: 'Sesion renovada correctamente', data };
+    return { message: 'Sesión renovada correctamente', data };
   }
 
   /** POST /api/auth/logout — requiere JWT válido + cookie de sesión */
@@ -83,14 +85,16 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async logout(
     @Req() req: Request,
+    @CurrentUser() user: JwtPayload,
     @Res({ passthrough: true }) res: Response,
   ) {
     const sessionToken = (req.cookies as Record<string, string>)?.[SESSION_COOKIE];
-    if (sessionToken) {
-      await this.logoutUseCase.execute(sessionToken);
-    }
+    await this.logoutUseCase.execute({
+      sessionToken,
+      sessionUuid: user?.sessionUuid,
+    });
     res.clearCookie(SESSION_COOKIE);
-    return { message: 'Sesion cerrada correctamente', data: {} };
+    return { message: 'Sesión cerrada correctamente', data: {} };
   }
 
   /** POST /api/auth/recovery — envía email con token de un solo uso */
@@ -101,25 +105,21 @@ export class AuthController {
       email: dto.email,
       ipAddress: req.ip,
     });
-    return { message: 'Correo con token unico enviado', data };
+    return { message: 'Correo con token único enviado', data };
   }
 
   /**
    * POST /api/auth/password
-   * El token de recuperación llega como Bearer en Authorization.
-   * No es un JWT: es el rawToken generado en /recovery.
+   * El token de recuperación llega en el body como `token`.
    */
   @Post('password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() dto: ResetPasswordDto, @Req() req: Request) {
-    const authHeader = (req.headers['authorization'] as string) ?? '';
-    const rawToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
-
+  async resetPassword(@Body() dto: ResetPasswordDto) {
     await this.resetPasswordUseCase.execute({
-      rawToken,
+      rawToken: dto.token,
       password: dto.password,
       confirmation: dto.confirmation,
     });
-    return { message: 'Contrasena modificada correctamente', data: {} };
+    return { message: 'Contraseña modificada correctamente', data: {} };
   }
 }

@@ -23,19 +23,19 @@ NC='\033[0m' # No Color
 # ============================================================================
 
 log_info() {
-    echo -e "${BLUE}ℹ️  $1${NC}"
+    echo -e "${BLUE}[INFO] $1${NC}"
 }
 
 log_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}[OK]   $1${NC}"
 }
 
 log_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}[WARN] $1${NC}"
 }
 
 log_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}[ERR]  $1${NC}"
 }
 
 # ============================================================================
@@ -152,7 +152,7 @@ wait_for_services() {
     local attempt=1
 
     # Wait for individual services
-    declare -a services=("nginx" "api-1" "api-2" "client" "db")
+    declare -a services=("nginx" "api-1" "api-2" "client" "db-primary" "db-replica")
 
     for service in "${services[@]}"; do
         log_info "Checking $service..."
@@ -175,7 +175,7 @@ wait_for_services() {
     log_info "Waiting for database to be ready..."
     attempt=1
     while [ $attempt -le $max_attempts ]; do
-        if $COMPOSE_CMD -f docker-compose.prod.yml exec -T db pg_isready -U postgres &> /dev/null; then
+        if $COMPOSE_CMD -f docker-compose.prod.yml exec -T db-primary pg_isready -U postgres &> /dev/null; then
             log_success "Database is ready"
             break
         fi
@@ -209,30 +209,30 @@ verify_deployment() {
 # ============================================================================
 
 display_info() {
-    log_success "🎉 LogiTrans Deployment Complete!"
+    log_success "LogiTrans Deployment Complete!"
     echo ""
     echo "╔════════════════════════════════════════════════════════════════╗"
     echo "║               LogiTrans Infrastructure Deployed               ║"
     echo "╠════════════════════════════════════════════════════════════════╣"
     echo "║                                                                ║"
-    echo "║  📍 Access Points:                                              ║"
+    echo "║  Access Points:                                                ║"
     echo "║     HTTP:  http://localhost:80                                 ║"
     echo "║     HTTPS: https://localhost:443                               ║"
     echo "║                                                                ║"
-    echo "║  🔑 API Instances (Internal):                                  ║"
+    echo "║  API Instances (Internal):                                     ║"
     echo "║     API 1: http://localhost:3001                               ║"
     echo "║     API 2: http://localhost:3002                               ║"
     echo "║                                                                ║"
-    echo "║  🗄️  Database:                                                 ║"
-    echo "║     Host: localhost:5432                                      ║"
+    echo "║  Database:                                                     ║"
+    echo "║     Host: localhost:5432                                       ║"
     echo "║     User: $(printf '%-43s' "${DB_USERNAME:-postgres}") ║"
     echo "║                                                                ║"
-    echo "║  ⚖️  Load Balancer:                                             ║"
+    echo "║  Load Balancer:                                                ║"
     echo "║     Strategy: Least Connections                               ║"
     echo "║     Health Check: /health                                     ║"
     echo "║                                                                ║"
     echo "╠════════════════════════════════════════════════════════════════╣"
-    echo "║  Useful Commands:                                               ║"
+    echo "║  Useful Commands:                                              ║"
     echo "║                                                                ║"
     echo "║  View logs:                                                    ║"
     echo "║    $COMPOSE_CMD -f docker-compose.prod.yml logs -f            ║"
@@ -248,11 +248,11 @@ display_info() {
     echo "║                                                                ║"
     echo "╚════════════════════════════════════════════════════════════════╝"
     echo ""
-    echo "⚠️  SSL Certificate Warning:"
+    echo "[WARN] SSL Certificate Warning:"
     echo "   This deployment uses a self-signed certificate."
     echo "   Your browser will show a security warning - this is expected."
     echo ""
-    echo "📖 For more information, see docs/DEPLOYMENT.md"
+    echo "For more information, see docs/DEPLOYMENT.md"
     echo ""
 }
 

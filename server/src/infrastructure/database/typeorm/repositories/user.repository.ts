@@ -20,7 +20,7 @@ export class TypeOrmUserRepository implements IUserRepository {
     return this.repository.findOne({ where: { email } });
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: number): Promise<User | null> {
     return this.repository.findOne({ where: { userId: id } });
   }
 }

@@ -1,0 +1,184 @@
+name: Deploy
+
+# ─── Trigger: únicamente cuando se hace merge de main → production ────────────
+on:
+  push:
+    branches: [production]
+
+env:
+  NODE_VERSION_SERVER: '22'
+  NODE_VERSION_CLIENT: '20'
+
+jobs:
+# ══════════════════════════════════════════════════════════════════════════════
+# STAGE DEPLOY — Docker build → ECR → ECS rolling update
+# Server y client se construyen en paralelo.
+# El deploy de ECS espera a que ambas imágenes estén disponibles en ECR.
+# ══════════════════════════════════════════════════════════════════════════════
+
+  # ─── Build & Push Server image ──────────────────────────────────────────────
+  build-image-server:
+    name: "Deploy · Build Server Image"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Contexto raíz (.) porque server/Dockerfile copia db/ del root
+      - name: Build and push server image
+        id: build-image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ secrets.ECR_REPOSITORY_SERVER }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          echo "Building server image: $IMAGE"
+          docker build \
+            -f server/Dockerfile \
+            -t "$IMAGE" \
+            .
+          docker push "$IMAGE"
+
+  # ─── Build & Push Client image ──────────────────────────────────────────────
+  build-image-client:
+    name: "Deploy · Build Client Image"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Contexto ./client — NEXT_PUBLIC_API_URL se bake en el bundle de Next.js
+      - name: Build and push client image
+        id: build-image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ secrets.ECR_REPOSITORY_CLIENT }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          echo "Building client image: $IMAGE"
+          docker build \
+            -f client/Dockerfile \
+            --build-arg NEXT_PUBLIC_API_URL="${{ secrets.NEXT_PUBLIC_API_URL }}" \
+            -t "$IMAGE" \
+            ./client
+          docker push "$IMAGE"
+
+  # ─── Deploy Server → ECS ────────────────────────────────────────────────────
+  deploy-server:
+    name: "Deploy · Server → ECS"
+    runs-on: ubuntu-latest
+    needs: [build-image-server, build-image-client]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build server image URI
+        id: image
+        run: |
+          echo "uri=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_SERVER }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Download current server task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ secrets.ECS_TASK_DEF_SERVER }} \
+            --query taskDefinition \
+            > /tmp/server-task-def.json
+
+      - name: Render new server task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: /tmp/server-task-def.json
+          container-name: logitrans-server
+          image: ${{ steps.image.outputs.uri }}
+
+      - name: Deploy server to ECS (rolling update)
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ secrets.ECS_SERVICE_SERVER }}
+          cluster: ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+  # ─── Deploy Client → ECS ────────────────────────────────────────────────────
+  deploy-client:
+    name: "Deploy · Client → ECS"
+    runs-on: ubuntu-latest
+    needs: [build-image-server, build-image-client]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build client image URI
+        id: image
+        run: |
+          echo "uri=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY_CLIENT }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Download current client task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ secrets.ECS_TASK_DEF_CLIENT }} \
+            --query taskDefinition \
+            > /tmp/client-task-def.json
+
+      - name: Render new client task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: /tmp/client-task-def.json
+          container-name: logitrans-client
+          image: ${{ steps.image.outputs.uri }}
+
+      - name: Deploy client to ECS (rolling update)
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ secrets.ECS_SERVICE_CLIENT }}
+          cluster: ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true

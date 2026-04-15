@@ -11,18 +11,24 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: "bg-primary hover:bg-primary-hover active:bg-primary-active text-white",
-  secondary: "bg-secondary hover:opacity-90 text-white",
-  outline: "border-2 border-primary text-primary hover:bg-primary hover:text-white",
-  surface: "bg-surface hover:opacity-90 text-text-primary",
-  danger: "bg-error hover:opacity-90 text-white",
-  ghost: "text-text-primary hover:bg-black/5",
+  // Amber fill — main CTA
+  primary:   "bg-primary hover:bg-primary-hover active:bg-primary-active text-white font-semibold tracking-wide",
+  // Dark fill — secondary action
+  secondary: "bg-dark-card text-text-ivory border border-border-dark hover:bg-[#2a2a27]",
+  // Amber border — ghost CTA
+  outline:   "border border-primary text-primary hover:bg-primary hover:text-white",
+  // White fill on ivory bg
+  surface:   "bg-surface hover:bg-[#F0EDE6] text-text-primary border border-border",
+  // Destructive
+  danger:    "bg-error hover:opacity-90 text-white",
+  // Transparent
+  ghost:     "text-text-muted hover:text-text-primary hover:bg-black/5",
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "px-4 py-1.5 text-sm rounded-md",
+  sm: "px-4 py-1.5 text-sm rounded",
   md: "px-6 py-2.5 rounded-lg",
-  lg: "px-8 py-3.5 text-lg rounded-xl",
+  lg: "px-8 py-3.5 text-base rounded-lg",
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -32,8 +38,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "font-medium transition-colors cursor-pointer inline-flex items-center justify-center gap-2",
-          "disabled:opacity-50 disabled:cursor-not-allowed",
+          "font-medium transition-all cursor-pointer inline-flex items-center justify-center gap-2",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
           variantStyles[variant],
           sizeStyles[size],
           className

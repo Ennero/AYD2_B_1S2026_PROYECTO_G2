@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, Check } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { UserRole } from '../../../../domain/enums/user-role.enum';
 import { Client } from './client.entity';
 import { PasswordRecoveryToken } from './password-recovery-token.entity';
@@ -8,13 +8,12 @@ import { TransportUnit } from './transport-unit.entity';
 import { UserSession } from './user-session.entity';
 
 @Entity('users')
-@Check("(role = 'CLIENTE' AND client_id IS NOT NULL) OR (role <> 'CLIENTE' AND client_id IS NULL)")
 export class User {
-  @PrimaryGeneratedColumn('uuid', { name: 'user_id' })
-  userId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'user_id' })
+  userId: number;
 
-  @Column({ name: 'client_id', type: 'uuid', nullable: true })
-  clientId: string | null;
+  @Column({ name: 'client_id', type: 'integer', nullable: true })
+  clientId: number | null;
 
   @Column({ name: 'role', type: 'enum', enum: UserRole })
   role: UserRole;

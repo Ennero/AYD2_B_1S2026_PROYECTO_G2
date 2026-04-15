@@ -1,13 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('password_recovery_tokens')
 export class PasswordRecoveryToken {
-  @PrimaryGeneratedColumn('uuid', { name: 'token_id' })
-  tokenId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'token_id' })
+  tokenId: number;
 
-  @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  @Column({ name: 'user_id', type: 'integer' })
+  userId: number;
 
   @Column({ name: 'token_hash', type: 'text', unique: true })
   tokenHash: string;

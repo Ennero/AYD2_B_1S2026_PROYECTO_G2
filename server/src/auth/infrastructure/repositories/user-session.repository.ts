@@ -17,7 +17,7 @@ export class UserSessionRepository implements IUserSessionRepository {
   async create(data: CreateSessionData): Promise<UserSession> {
     const session = this.repo.create({
       userId: data.userId,
-      userUuid: data.userId, // replica del userId como VARCHAR(36)
+      userUuid: String(data.userId),
       userRemote: data.userRemote,
       userAgent: data.userAgent,
       sessionUuid: data.sessionUuid,
@@ -39,11 +39,21 @@ export class UserSessionRepository implements IUserSessionRepository {
     });
   }
 
-  async softDelete(sessionId: string): Promise<void> {
+  findActiveBySessionUuid(sessionUuid: string): Promise<UserSession | null> {
+    return this.repo.findOne({
+      where: {
+        sessionUuid,
+        deletedAt: IsNull(),
+        expirationAt: MoreThan(new Date()),
+      },
+    });
+  }
+
+  async softDelete(sessionId: number): Promise<void> {
     await this.repo.update({ sessionId }, { deletedAt: new Date() });
   }
 
-  async incrementUsage(sessionId: string): Promise<void> {
+  async incrementUsage(sessionId: number): Promise<void> {
     await this.repo.increment({ sessionId }, 'usageCount', 1);
     await this.repo.update({ sessionId }, { lastUsedAt: new Date() });
   }

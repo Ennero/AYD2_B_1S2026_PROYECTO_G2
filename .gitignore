@@ -137,3 +137,13 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+CLAUDE.md
+
+# Playwright E2E
+e2e/playwright-report/
+e2e/test-results/
+e2e/node_modules/
+
+# k6 output
+tests/k6/results/

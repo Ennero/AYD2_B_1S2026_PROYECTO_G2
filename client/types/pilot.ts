@@ -1,0 +1,126 @@
+// ------- Enums de estado ---------
+
+export type OrderStatus =
+    | "REGISTRADA"
+    | "ASIGNADA"
+    | "LISTA_PARA_DESPACHO"
+    | "EN_TRANSITO"
+    | "ENTREGADA"
+    | "BLOQUEADA" // orden bliqueada por mora / crédito excedido
+    | "CANCELADA"
+
+
+export type EventType = 
+    | "SALIDA"
+    | "PUNTO_CONTROL"
+    | "ADUANA"
+    | "INCIDENTE"
+    | "LLEGADA"
+    | "OTRO"
+
+// -------- Respuesta base de la API ---------
+
+export interface ApiResponse<T> {
+    message: string
+    data: T
+}
+
+// ------ GET /api/pilot/orders ------
+// Un viaje resumido tal como llega en el listado
+
+export interface ViajeResumen {
+    orderId: string
+    orderNumber: string
+    origin: string
+    destination: string
+    status: OrderStatus
+    clientName?: string        // Nombre del cliente (enriquecido en el JOIN)
+    cargoType?: string         // Tipo de mercancía (ej. "Construcción", "General")
+    declaredWeightTon?: number // Peso declarado en toneladas
+    scheduledPickupAt?: string     // Fecha programada de salida (ISO string)
+}
+
+// ------ GET /api/pilot/orders/{ORDER_ID} ------
+// Detalle completo de un viaje para la vista de monitoreo
+
+export interface LogEvento {
+    logId: string
+    eventType: EventType
+    eventTime: string
+    description: string
+    imagePath?: string | null
+}
+
+export interface ViajeDetalle {
+    orderId: string
+    orderNumber: string
+    origin: string
+    destination: string
+    status: OrderStatus
+    clientName: string
+    pilotName: string
+    estimatedHours: number
+    declaredWeightTon: number
+    cargoType: string
+    scheduledPickupAt?: string
+    dispatchedAt?: string // LLama al cambiar a EN_TRANSITO
+    deliveredAt?: string  // LLama al cambiar a ENTREGADA
+    receiverSignaturePath?: string | null
+    deliveryEvidencePaths?: string[]
+    logs: LogEvento[]
+}
+
+// ------ PATCH /api/pilot/orders/{ORDER_ID}/status ------
+
+export interface CambiarStatusPayload {
+    status: "EN_TRANSITO"
+}
+
+export interface CambiarStatusResponse {
+    orderId: string
+    status: OrderStatus
+    dispatchedAt: string
+}
+
+// ------ POST /api/pilot/orders/{ORDER_ID}/logs ------
+
+export interface RegistrarLogPayload {
+    eventType: EventType
+    description: string
+    imageBase64?: string
+}
+
+export interface RegistrarLogResponse {
+    logId: string
+    eventTime: string
+}
+
+// ------ PATCH /api/pilot/orders/{ORDER_ID}/deliver ------
+
+export interface EntregaPayload {
+    receiverName: string
+    receiverSignatureBase64: string          // canvas → base64 PNG
+    deliveryEvidenceBase64: string[]         // arreglo obligatorio de fotos base64
+    deliveredAt?: string                     // ISO string; si no se envía, backend usa NOW()
+    notes?: string                           // Observaciones opcionales
+}
+
+export interface EntregaResponse {
+    orderId: string
+    status: "ENTREGADA"
+    deliveredAt: string
+    receiverSignaturePath: string
+}
+
+// ------ Filtros del dashboard ------
+
+export interface FiltrosViaje {
+    startDate?: string
+    endDate?: string
+    clientName?: string
+    origin?: string
+    destination?: string
+    cargoType?: string
+    sortByWeight?: "ASC" | "DESC"
+    status?: OrderStatus
+}

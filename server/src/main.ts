@@ -1,22 +1,33 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { ensureDatabaseExists } from './infrastructure/database/bootstrap/ensure-database';
-import { ensureCanonicalSchema } from './infrastructure/database/bootstrap/initialize-schema';
+import {
+  alignIdentitySequences,
+  ensureCanonicalSchema,
+} from './infrastructure/database/bootstrap/initialize-schema';
 import { getDatabaseRuntimeConfig } from './infrastructure/database/config/database-env';
 import { runInitialSeed } from './infrastructure/database/seeds/database-seeder';
 
 async function bootstrap() {
   await ensureDatabaseExists();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.use(cookieParser());
+  app.useBodyParser('json', { limit: '10mb' });
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
   const dataSource = app.get(DataSource);
   const databaseConfig = getDatabaseRuntimeConfig();
 
   // Enable CORS
-  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost').split(',');
+  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:3001,http://localhost').split(',');
   app.enableCors({
     origin: corsOrigins.map(o => o.trim()),
     credentials: true,
@@ -28,8 +39,10 @@ async function bootstrap() {
     await runInitialSeed(dataSource);
   }
 
+  await alignIdentitySequences(dataSource);
+
   const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  console.log(`Server running on port ${port}`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`Server running on port ${port} (0.0.0.0)`);
 }
 bootstrap();

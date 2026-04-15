@@ -13,26 +13,55 @@ export interface PaginatedResponse<T> {
 
 /** Respuesta de login */
 export interface LoginResponse {
-  access_token: string
-  token_type: string
-  user: UserProfile
+  message: string
+  data: {
+    userId: string
+    sessionUuid: string
+    role: UserRole
+    fullName: string
+    token: string
+  }
 }
 
 /** Perfil de usuario */
 export interface UserProfile {
-  id: string
-  nombre: string
-  email: string
-  rol: UserRole
+  userId: string
+  role: UserRole
+  fullName: string
+  email?: string
 }
 
-/** Roles del sistema */
+/** Roles del sistema (Mayúsculas para coincidir con DB) */
 export type UserRole =
-  | "agente_operativo"
-  | "piloto"
-  | "agente_logistico"
-  | "encargado_patio"
-  | "certificador_fel"
+  | "CERTIFICADOR_FEL"
+  | "AGENTE_OPERATIVO"
+  | "PILOTO"
+  | "AGENTE_LOGISTICO"
+  | "ENCARGADO_PATIO"
+  | "AGENTE_FINANCIERO"
+  | "CLIENTE"
+  | "GERENCIA"
+
+/** Datos de Factura para Certificador */
+export interface Invoice {
+  invoiceId: string
+  invoiceNumber: string
+  issueDate: string
+  totalAmount: number
+  currency?: string
+  currencyCode?: string
+  status: "BORRADOR" | "CERTIFICADA" | "RECHAZADA"
+  clientName: string
+  clientNit: string
+  felUuid?: string
+  rejectionReason?: string
+}
+
+/** Resumen del Dashboard del Certificador */
+export interface CertifierSummary {
+  pendingInvoices: number
+  certifiedCount: number
+}
 
 /** Respuesta de error del API */
 export interface ErrorResponse {

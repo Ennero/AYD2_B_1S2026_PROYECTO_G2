@@ -6,11 +6,14 @@ import { useEffect, useState } from "react"
 import { api } from "@/lib/api/client"
 import { ENDPOINTS } from "@/lib/api/endpoints"
 import type { DashboardSummary } from "@/types/logistics"
-import { ClipboardList, Truck, MapPin, ArrowRight } from "lucide-react"
+import { motion } from "framer-motion"
+import { ClipboardList, MapPin, ArrowRight, Truck } from "lucide-react"
+
+const EASE = [0.16, 1, 0.3, 1] as const
 
 export default function AgenteLogisticoPage() {
   const { user, loading: authLoading } = useAuth()
-  const userName = authLoading ? "..." : (user?.nombre ?? "Agente")
+  const firstName = authLoading ? "" : (user?.fullName?.split(" ")[0] ?? "Agente")
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(true)
@@ -24,99 +27,159 @@ export default function AgenteLogisticoPage() {
   }, [])
 
   return (
-    <div className="min-h-screen relative animate-in fade-in duration-700 font-body">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70 pointer-events-none"
-        style={{ backgroundImage: "url('/images/agente-minimal-hd.png')" }}
-      />
+    <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
+      {/* Grid overlay */}
+      <div aria-hidden className="fixed inset-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(rgba(12,12,10,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(12,12,10,0.03) 1px,transparent 1px)`,
+        backgroundSize: "72px 72px",
+      }} />
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent" />
+      {/* Ghost letters */}
+      <div aria-hidden style={{
+        position: "fixed", top: "50%", right: "-2rem", transform: "translateY(-50%)",
+        fontSize: "clamp(18rem, 30vw, 28rem)", fontWeight: 900, letterSpacing: "-0.06em",
+        color: "rgba(12,12,10,0.03)", lineHeight: 1, userSelect: "none", pointerEvents: "none",
+      }}>AL</div>
 
-      {/* Content */}
-      <div className="relative z-10 w-full min-h-screen px-6 py-12 md:p-20 flex flex-col items-center text-center max-w-7xl mx-auto">
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-14">
 
-        {/* Welcome */}
-        <div className="max-w-4xl mb-16 mt-8">
-          <h1 className="text-5xl md:text-7xl font-heading font-extrabold text-[#0A3B7C] tracking-tight leading-tight">
-            ¡Bienvenido, <br />
-            <span className="text-[#53B73E]">{userName}!</span>
-          </h1>
-          <p className="text-[#64748B] text-xl md:text-2xl mt-6 font-light max-w-3xl mx-auto">
-            Panel de Control Logístico — gestión de órdenes de servicio y asignación de rutas para operaciones LogiTrans.
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: EASE }} style={{ marginBottom: "3rem" }}>
+
+          <p style={{ fontSize: "0.55rem", letterSpacing: "0.38em", color: "#C9924B", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ width: "18px", height: "1px", background: "#C9924B", display: "inline-block" }} />
+            Área Logística
           </p>
-        </div>
 
-        {/* KPI + Action Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 w-full max-w-6xl">
+          <div style={{ overflow: "hidden" }}>
+            <motion.h1 initial={{ y: "105%" }} animate={{ y: 0 }}
+              transition={{ delay: 0.1, duration: 0.9, ease: EASE }}
+              style={{ fontSize: "clamp(1.9rem, 4vw, 2.8rem)", fontWeight: 900, letterSpacing: "-0.035em", color: "#0C0C0A", lineHeight: 1 }}>
+              {firstName ? `Hola, ${firstName}.` : "Hola."}
+            </motion.h1>
+          </div>
 
-          {/* Action — Órdenes */}
-          <Link href="/agente-logistico/ordenes" className="lg:col-span-1 block outline-none group">
-            <div className="bg-white/90 backdrop-blur-md border border-black/5 hover:border-[#53B73E]/40 rounded-3xl p-10 h-full transition-all duration-300 transform group-hover:-translate-y-2 shadow-sm group-hover:shadow-[0_20px_50px_rgba(10,59,124,0.1)] flex flex-col items-center gap-6">
-              <div className="w-20 h-20 bg-[#0A3B7C]/10 rounded-2xl flex items-center justify-center group-hover:bg-[#0A3B7C]/20 transition-colors">
-                <ClipboardList size={40} className="text-[#0A3B7C]" />
-              </div>
-              <div>
-                <h3 className="text-3xl font-heading font-bold text-[#0A3B7C] mb-4">Órdenes de Servicio</h3>
-                <p className="text-[#64748B] text-lg leading-relaxed">
-                  Revisa y gestiona las órdenes entrantes. Asigna piloto, vehículo y ruta a cada servicio pendiente.
-                </p>
-              </div>
-              <div className="mt-4 text-[#53B73E] font-semibold flex items-center gap-2 group-hover:translate-x-2 transition-transform">
-                Ver órdenes <ArrowRight size={18} />
-              </div>
-            </div>
-          </Link>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.7 }}
+            style={{ fontSize: "0.85rem", color: "#6B6260", marginTop: "0.75rem", maxWidth: "44ch" }}>
+            Panel de gestión de órdenes de servicio y asignación de rutas operativas.
+          </motion.p>
+
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
+            transition={{ delay: 0.45, duration: 0.9, ease: EASE }}
+            style={{ height: "1px", background: "rgba(12,12,10,0.1)", marginTop: "1.5rem", transformOrigin: "left" }} />
+        </motion.div>
+
+        {/* KPI row */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.7, ease: EASE }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
 
           {/* KPI — Órdenes Pendientes */}
-          <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
-            <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Órdenes Pendientes</div>
-            <div className="flex flex-col items-center">
-              <div className="text-7xl font-heading font-extrabold text-[#0A3B7C]">
-                {loadingSummary ? "—" : (summary?.pendingOrders ?? "—")}
-              </div>
-              <div className="w-12 h-1.5 bg-[#53B73E]/20 rounded-full mt-4" />
-            </div>
-            <p className="text-[#64748B] text-base mt-2">Esperan asignación</p>
+          <div style={{
+            background: "#1E1E1B", borderRadius: "6px", padding: "1.75rem 2rem",
+            display: "flex", flexDirection: "column", gap: "0.35rem",
+          }}>
+            <p style={{ fontSize: "0.52rem", letterSpacing: "0.3em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+              Órdenes Pendientes
+            </p>
+            <p style={{ fontSize: "clamp(2.8rem, 5vw, 4rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#C9924B", lineHeight: 1 }}>
+              {loadingSummary ? "—" : (summary?.pendingOrders ?? "—")}
+            </p>
+            <p style={{ fontSize: "0.72rem", color: "#6B6260" }}>Esperan asignación</p>
           </div>
 
           {/* KPI — Unidades Disponibles */}
-          <div className="bg-white/80 backdrop-blur-md border border-black/5 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 text-center">
-            <div className="text-[#64748B] text-sm font-semibold uppercase tracking-[0.2em]">Unidades Disponibles</div>
-            <div className="flex flex-col items-center">
-              <div className="text-7xl font-heading font-extrabold text-[#53B73E]">
-                {loadingSummary ? "—" : (summary?.availableUnits ?? "—")}
-              </div>
-              <div className="w-12 h-1.5 bg-[#0A3B7C]/10 rounded-full mt-4" />
-            </div>
-            <div className="flex items-center gap-2 text-[#53B73E] font-medium text-base">
-              <Truck size={24} />
-              Binomios listos
+          <div style={{
+            background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)", borderRadius: "6px",
+            padding: "1.75rem 2rem", display: "flex", flexDirection: "column", gap: "0.35rem",
+          }}>
+            <p style={{ fontSize: "0.52rem", letterSpacing: "0.3em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+              Binomios Disponibles
+            </p>
+            <p style={{ fontSize: "clamp(2.8rem, 5vw, 4rem)", fontWeight: 900, letterSpacing: "-0.04em", color: "#3A8E2A", lineHeight: 1 }}>
+              {loadingSummary ? "—" : (summary?.availableUnits ?? "—")}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.72rem", color: "#6B6260" }}>
+              <Truck size={12} />
+              Listos para despacho
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Secondary action */}
-        <div className="mt-12">
-          <Link
-            href="/agente-logistico/asignacion-rutas"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-white/80 backdrop-blur-md border border-black/5 rounded-full text-[#0A3B7C] font-semibold text-sm shadow-sm hover:border-[#0A3B7C]/30 hover:shadow-md transition-all"
-          >
-            <MapPin size={18} />
-            Catálogo de Rutas
-          </Link>
-        </div>
+        {/* Action cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          {[
+            {
+              href: "/agente-logistico/ordenes",
+              icon: <ClipboardList size={16} />,
+              step: "01",
+              title: "Órdenes de Servicio",
+              description: "Revisa y gestiona las órdenes entrantes. Asigna binomio y ruta a cada servicio pendiente.",
+              cta: "Ver órdenes",
+            },
+            {
+              href: "/agente-logistico/asignacion-rutas",
+              icon: <MapPin size={16} />,
+              step: "02",
+              title: "Catálogo de Rutas",
+              description: "Consulta las rutas activas disponibles para asignación de órdenes de servicio.",
+              cta: "Ver rutas",
+            },
+          ].map((card, i) => (
+            <motion.div key={card.href}
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 + i * 0.1, duration: 0.7, ease: EASE }}>
+              <Link href={card.href} style={{ display: "block", textDecoration: "none" }}>
+                <div
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid rgba(12,12,10,0.07)",
+                    borderRadius: "6px",
+                    overflow: "hidden",
+                    transition: "border-color 0.2s, transform 0.2s",
+                  }}
+                  onMouseOver={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.borderColor = "rgba(201,146,75,0.3)"
+                    el.style.transform = "translateY(-2px)"
+                  }}
+                  onMouseOut={e => {
+                    const el = e.currentTarget as HTMLDivElement
+                    el.style.borderColor = "rgba(12,12,10,0.07)"
+                    el.style.transform = "translateY(0)"
+                  }}
+                >
+                  {/* Amber accent strip */}
+                  <div style={{ height: "2px", background: "#C9924B" }} />
 
-        {/* Footer status */}
-        <div className="mt-16 flex flex-wrap justify-center gap-8">
-          <div className="flex items-center gap-4 px-8 py-4 bg-white/60 rounded-full border border-black/5 shadow-sm">
-            <span className="relative flex h-3.5 w-3.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#53B73E] opacity-75" />
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-[#53B73E]" />
-            </span>
-            <span className="text-[#0A3B7C] text-sm font-bold tracking-widest uppercase">Sistema Operativo</span>
-          </div>
+                  <div style={{ padding: "2rem 2rem 1.75rem" }}>
+                    {/* Step number + icon */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+                      <span style={{ fontSize: "0.52rem", letterSpacing: "0.3em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>
+                        {card.step}
+                      </span>
+                      <span style={{ color: "#C9924B", display: "flex" }}>{card.icon}</span>
+                    </div>
+
+                    <h3 style={{ fontSize: "1.2rem", fontWeight: 900, letterSpacing: "-0.02em", color: "#0C0C0A", marginBottom: "0.6rem", lineHeight: 1.1 }}>
+                      {card.title}
+                    </h3>
+
+                    <p style={{ fontSize: "0.8rem", color: "#6B6260", lineHeight: 1.6, marginBottom: "2rem" }}>
+                      {card.description}
+                    </p>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#C9924B" }}>
+                      {card.cta}
+                      <ArrowRight size={11} />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
         </div>
 
       </div>

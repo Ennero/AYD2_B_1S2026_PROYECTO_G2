@@ -89,7 +89,7 @@ El contexto deja en claro que el sistema **no** gestiona directamente la infraes
 
 ## 4. Diagrama de Bloques
 
-![Diagrama de Bloques](imgs/architecture/blocks-diagram.jpeg)
+![Diagrama de Bloques](imgs/architecture/blocks-diagram.png)
 
 > **Descripción del diagrama:** El diagrama muestra los cuatro bloques funcionales del sistema — CDU001 (Gestión Comercial y Contratos), CDU002 (Gestión de Órdenes y Transporte), CDU003 (Gestión Financiera y Facturación) y CDU004 (Inteligencia de Negocio y Reportes) — conectados secuencialmente de izquierda a derecha siguiendo el ciclo de vida de un servicio de transporte. CDU001 alimenta a CDU002, que a su vez desencadena CDU003 para el cierre financiero, mientras CDU004 consume datos transversales de todos los módulos. Todos los bloques comparten una misma base de datos relacional centralizada, garantizando la consistencia e integridad referencial.
 

@@ -122,6 +122,22 @@ Estados de pago (flujo separado):
 
 Nota: el envio de factura solo se habilita cuando la factura esta en estado `PAGADA`.
 
+### 2.4 Diagrama de casos de uso
+
+El siguiente diagrama representa de forma resumida todos los actores y las funcionalidades que el sistema pone a disposición de cada rol:
+
+**Vista general del sistema (alto nivel):**
+
+![Diagrama de casos de uso — Alto nivel](imgs/dda/high-level.png)
+
+> Este diagrama muestra qué puede hacer cada actor dentro de LogiTrans. Los actores son los 8 roles del sistema; las elipses representan las funcionalidades disponibles para cada uno.
+
+**Primera descomposición de casos de uso:**
+
+![Diagrama de casos de uso — Primera descomposición](imgs/dda/first-descomposition.png)
+
+> La primera descomposición detalla los casos de uso principales por dominio: comercial, operativo, logístico, financiero y de gerencia. Cada caso de uso se expande en flujos específicos cubiertos en las secciones 5 y 10 de este manual.
+
 ---
 
 ## 3. Requisitos del sistema
@@ -375,34 +391,6 @@ A continuación se integra el flujo completo documentado en `docs/happypath.md`,
 | 9 | Agente Financiero | Revisar borrador y enviar a certificador |
 | 10 | Certificador FEL | Validar NIT y certificar factura |
 | 11 | Agente Financiero | Conciliar pago y enviar factura al cliente |
-
----
-
-### 0. Guía de Recaptura Multivisa (para actualizar evidencias)
-
-Este documento ya incluye el flujo funcional, pero debes recapturar evidencias con datos multivisa reales.
-
-#### 0.1 Escenarios mínimos a ejecutar
-
-| Escenario | País | Moneda esperada | Impuesto esperado |
-|---|---|---|---|
-| A | Guatemala (GT) | GTQ | 0.12 |
-| B | El Salvador (SV) | USD | 0.13 |
-| C | Honduras (HN) | HNL | 0.15 |
-
-#### 0.2 Convención para nuevas capturas
-
-Usa nombres desde `90_` en adelante para distinguir recapturas multivisa. Ejemplo:
-- `90_registro_cliente_datos_generales_hn_hnl.jpeg`
-- `94_formalizar_contrato_hnl_pbar_sps.jpeg`
-- `99_cliente_nueva_orden_datos_operativos.jpeg`
-
-#### 0.3 Regla de reemplazo
-
-Este documento ya incluye evidencias multivisa consolidadas (sin placeholders pendientes por completar).
-Si en una recaptura futura necesitas actualizar evidencias, puedes:
-1. Reemplazar la imagen histórica existente.
-2. O agregar la nueva captura multivisa con nombre `90+` y mantener la histórica.
 
 ---
 

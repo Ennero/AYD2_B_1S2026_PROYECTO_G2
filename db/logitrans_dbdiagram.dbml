@@ -10,7 +10,7 @@ Enum USER_ROLE {
   PILOTO
   AGENTE_FINANCIERO
   GERENCIA
-  ADMIN
+  CERTIFICADOR_FEL
 }
 
 Enum RISK_LEVEL {
@@ -18,6 +18,18 @@ Enum RISK_LEVEL {
   MEDIO
   ALTO
   CRITICO
+}
+
+Enum COUNTRY_CODE {
+  GT
+  SV
+  HN
+}
+
+Enum CURRENCY_CODE {
+  USD
+  GTQ
+  HNL
 }
 
 Enum CONTRACT_STATUS {
@@ -57,7 +69,6 @@ Enum INVOICE_STATUS {
 }
 
 Enum PAYMENT_METHOD {
-  TARJETA
   TRANSFERENCIA
   CHEQUE
 }
@@ -69,16 +80,17 @@ Enum PAYMENT_STATUS {
 }
 
 Table CLIENTS {
-  CLIENT_ID uuid [pk]
+  CLIENT_ID int [pk, increment]
   CLIENT_CODE varchar(30) [not null, unique]
   LEGAL_NAME varchar(180) [not null]
-  COMMERCIAL_NAME varchar(180)
   NIT varchar(20) [not null, unique]
   TAX_ADDRESS text [not null]
   PRIMARY_CONTACT_NAME varchar(160) [not null]
   PRIMARY_CONTACT_EMAIL varchar(320) [not null]
   PRIMARY_CONTACT_PHONE varchar(30)
-  CREDIT_LIMIT numeric(14,2) [not null, default: 0]
+  COUNTRY_CODE COUNTRY_CODE [not null, default: 'GT']
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   PAYMENT_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CUSTOMS_RISK RISK_LEVEL [not null, default: 'MEDIO']
   CARGO_RISK RISK_LEVEL [not null, default: 'MEDIO']
@@ -87,9 +99,16 @@ Table CLIENTS {
   BLOCK_REASON text
 }
 
+Table EXCHANGE_RATES {
+  CURRENCY_CODE CURRENCY_CODE [pk]
+  RATE_FROM_USD numeric(14,6) [not null]
+  SOURCE varchar(50) [not null, default: 'MANUAL']
+  UPDATED_AT timestamptz [not null]
+}
+
 Table USERS {
-  USER_ID uuid [pk]
-  CLIENT_ID uuid
+  USER_ID int [pk, increment]
+  CLIENT_ID int
   ROLE USER_ROLE [not null]
   FULL_NAME varchar(160) [not null]
   EMAIL varchar(320) [not null, unique]
@@ -99,8 +118,8 @@ Table USERS {
 }
 
 Table USER_SESSIONS {
-  SESSION_ID uuid [pk]
-  USER_ID uuid [not null]
+  SESSION_ID int [pk, increment]
+  USER_ID int [not null]
   USER_REMOTE inet
   USER_AGENT varchar(255)
   USER_UUID varchar(36) [not null]
@@ -116,16 +135,16 @@ Table USER_SESSIONS {
 }
 
 Table PASSWORD_RECOVERY_TOKENS {
-  TOKEN_ID uuid [pk]
-  USER_ID uuid [not null]
+  TOKEN_ID int [pk, increment]
+  USER_ID int [not null]
   TOKEN_HASH text [not null, unique]
   EXPIRES_AT timestamptz [not null]
   USED_AT timestamptz
 }
 
 Table CLIENT_CONTACTS {
-  CONTACT_ID uuid [pk]
-  CLIENT_ID uuid [not null]
+  CONTACT_ID int [pk, increment]
+  CLIENT_ID int [not null]
   CONTACT_NAME varchar(160) [not null]
   CONTACT_EMAIL varchar(320) [not null]
   CONTACT_PHONE varchar(30)
@@ -137,24 +156,10 @@ Table CLIENT_CONTACTS {
   }
 }
 
-Table CLIENT_CARDS {
-  CARD_ID uuid [pk]
-  CLIENT_ID uuid [not null]
-  CARD_ALIAS varchar(80) [not null]
-  CARDHOLDER_NAME varchar(160) [not null]
-  CARD_BRAND varchar(30) [not null]
-  LAST_FOUR char(4) [not null]
-  EXPIRATION_MONTH smallint [not null]
-  EXPIRATION_YEAR smallint [not null]
-  IS_ACTIVE boolean [not null, default: true]
 
-  Indexes {
-    (CLIENT_ID, CARD_ALIAS) [unique]
-  }
-}
 
 Table BRANCHES {
-  BRANCH_ID smallint [pk]
+  BRANCH_ID int [pk, increment]
   BRANCH_CODE varchar(20) [not null, unique]
   BRANCH_NAME varchar(100) [not null, unique]
   CITY varchar(100) [not null]
@@ -163,7 +168,7 @@ Table BRANCHES {
 }
 
 Table ROUTES {
-  ROUTE_ID bigint [pk]
+  ROUTE_ID int [pk, increment]
   ROUTE_CODE varchar(30) [not null, unique]
   ORIGIN varchar(120) [not null]
   DESTINATION varchar(120) [not null]
@@ -174,7 +179,7 @@ Table ROUTES {
 }
 
 Table VEHICLE_TYPES {
-  VEHICLE_TYPE_ID smallint [pk]
+  VEHICLE_TYPE_ID int [pk, increment]
   TYPE_CODE varchar(20) [not null, unique]
   TYPE_NAME varchar(100) [not null, unique]
   MIN_CAPACITY_TON numeric(6,2) [not null]
@@ -183,29 +188,32 @@ Table VEHICLE_TYPES {
 }
 
 Table CARGO_TYPES {
-  CARGO_TYPE_ID smallint [pk]
+  CARGO_TYPE_ID int [pk, increment]
   CARGO_NAME varchar(100) [not null, unique]
   REQUIRES_REFRIGERATION boolean [not null, default: false]
 }
 
 Table CONTRACTS {
-  CONTRACT_ID uuid [pk]
+  CONTRACT_ID int [pk, increment]
   CONTRACT_NUMBER varchar(40) [not null, unique]
-  CLIENT_ID uuid [not null]
+  CLIENT_ID int [not null]
   STATUS CONTRACT_STATUS [not null, default: 'BORRADOR']
   START_DATE date [not null, default: `CURRENT_DATE`]
   END_DATE date [not null]
   ACCEPTED_AT timestamptz
   CREDIT_LIMIT numeric(14,2) [not null]
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  EXCHANGE_RATE_FROM_USD numeric(14,6) [not null, default: 1.000000]
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   PAYMENT_TERM_DAYS smallint [not null]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
   NOTES text
 }
 
 Table CONTRACT_ROUTES {
-  CONTRACT_ROUTE_ID uuid [pk]
-  CONTRACT_ID uuid [not null]
-  ROUTE_ID bigint [not null]
+  CONTRACT_ROUTE_ID int [pk, increment]
+  CONTRACT_ID int [not null]
+  ROUTE_ID int [not null]
   PROMISED_DELIVERY_HOURS numeric(10,2) [not null]
 
   Indexes {
@@ -215,8 +223,8 @@ Table CONTRACT_ROUTES {
 }
 
 Table CONTRACT_CARGO_TYPES {
-  CONTRACT_ID uuid [not null]
-  CARGO_TYPE_ID smallint [not null]
+  CONTRACT_ID int [not null]
+  CARGO_TYPE_ID int [not null]
 
   Indexes {
     (CONTRACT_ID, CARGO_TYPE_ID) [pk]
@@ -224,9 +232,9 @@ Table CONTRACT_CARGO_TYPES {
 }
 
 Table CONTRACT_RATES {
-  CONTRACT_RATE_ID uuid [pk]
-  CONTRACT_ID uuid [not null]
-  VEHICLE_TYPE_ID smallint [not null]
+  CONTRACT_RATE_ID int [pk, increment]
+  CONTRACT_ID int [not null]
+  VEHICLE_TYPE_ID int [not null]
   BASE_RATE_PER_KM numeric(12,2) [not null]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
   FINAL_RATE_PER_KM numeric(12,2) [not null]
@@ -238,10 +246,10 @@ Table CONTRACT_RATES {
 }
 
 Table TRANSPORT_UNITS {
-  UNIT_ID uuid [pk]
-  BRANCH_ID smallint [not null]
-  VEHICLE_TYPE_ID smallint [not null]
-  PILOT_USER_ID uuid [unique]
+  UNIT_ID int [pk, increment]
+  BRANCH_ID int [not null]
+  VEHICLE_TYPE_ID int [not null]
+  PILOT_USER_ID int [unique]
   PLATE_NUMBER varchar(20) [not null, unique]
   VEHICLE_MODEL varchar(80)
   CAPACITY_TON numeric(6,2) [not null]
@@ -253,15 +261,15 @@ Table TRANSPORT_UNITS {
 }
 
 Table ORDERS {
-  ORDER_ID uuid [pk]
+  ORDER_ID int [pk, increment]
   ORDER_NUMBER varchar(40) [not null, unique]
-  CONTRACT_ID uuid [not null]
-  REQUESTED_BY_USER_ID uuid [not null]
-  BRANCH_ID smallint
-  CONTRACT_ROUTE_ID uuid
-  CONTRACT_RATE_ID uuid
-  CARGO_TYPE_ID smallint [not null]
-  UNIT_ID uuid
+  CONTRACT_ID int [not null]
+  REQUESTED_BY_USER_ID int [not null]
+  BRANCH_ID int
+  CONTRACT_ROUTE_ID int
+  CONTRACT_RATE_ID int
+  CARGO_TYPE_ID int [not null]
+  UNIT_ID int
   STATUS ORDER_STATUS [not null, default: 'REGISTRADA']
   CARGO_DESCRIPTION text [not null, default: 'PENDIENTE_DETALLE']
   DECLARED_WEIGHT_TON numeric(8,2) [not null]
@@ -284,6 +292,9 @@ Table ORDERS {
   BASE_RATE_PER_KM numeric(12,2) [not null, default: 0]
   DISCOUNT_PERCENTAGE numeric(5,2) [not null, default: 0]
   FINAL_RATE_PER_KM numeric(12,2) [not null, default: 0]
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  EXCHANGE_RATE_FROM_USD numeric(14,6) [not null, default: 1.000000]
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   SUBTOTAL_AMOUNT numeric(14,2) [not null, default: 0]
   TAX_AMOUNT numeric(14,2) [not null, default: 0]
   TOTAL_AMOUNT numeric(14,2) [not null, default: 0]
@@ -294,18 +305,18 @@ Table ORDERS {
 }
 
 Table ORDER_ROUTE_LOGS {
-  LOG_ID uuid [pk]
-  ORDER_ID uuid [not null]
+  LOG_ID int [pk, increment]
+  ORDER_ID int [not null]
   EVENT_TYPE ROUTE_EVENT_TYPE [not null]
   EVENT_TIME timestamptz [not null]
   DESCRIPTION text [not null]
 }
 
 Table INVOICES {
-  INVOICE_ID uuid [pk]
+  INVOICE_ID int [pk, increment]
   INVOICE_NUMBER varchar(40) [not null, unique]
-  ORDER_ID uuid [not null, unique, note: 'Se genera automaticamente como borrador cuando la orden cambia a ENTREGADA']
-  CLIENT_ID uuid [not null]
+  ORDER_ID int [not null, unique, note: 'Se genera automaticamente como borrador cuando la orden cambia a ENTREGADA']
+  CLIENT_ID int [not null]
   STATUS INVOICE_STATUS [not null, default: 'BORRADOR']
   ISSUE_DATE timestamptz [not null]
   CERTIFIED_AT timestamptz
@@ -315,6 +326,9 @@ Table INVOICES {
   CLIENT_NIT varchar(20) [not null]
   CLIENT_ADDRESS text [not null]
   SERVICE_DESCRIPTION text [not null]
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
+  EXCHANGE_RATE_FROM_USD numeric(14,6) [not null, default: 1.000000]
+  TAX_RATE numeric(5,4) [not null, default: 0.1200]
   SUBTOTAL_AMOUNT numeric(14,2) [not null]
   TAX_AMOUNT numeric(14,2) [not null]
   TOTAL_AMOUNT numeric(14,2) [not null]
@@ -323,25 +337,21 @@ Table INVOICES {
 }
 
 Table PAYMENTS {
-  PAYMENT_ID uuid [pk]
-  INVOICE_ID uuid [not null]
+  PAYMENT_ID int [pk, increment]
+  INVOICE_ID int [not null]
   METHOD PAYMENT_METHOD [not null]
   STATUS PAYMENT_STATUS [not null, default: 'PENDIENTE']
-  CARD_ID uuid
-  BANK_NAME varchar(120)
-  BANK_ACCOUNT_NUMBER varchar(50)
-  BANK_REFERENCE varchar(80)
   SUPPORT_DOCUMENT_PATH text
+  CURRENCY_CODE CURRENCY_CODE [not null, default: 'GTQ']
   AMOUNT numeric(14,2) [not null]
   PAYMENT_DATE timestamptz [not null]
-  REVIEWED_BY_USER_ID uuid
+  REVIEWED_BY_USER_ID int
 }
 
 Ref: USERS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: USER_SESSIONS.USER_ID > USERS.USER_ID
 Ref: PASSWORD_RECOVERY_TOKENS.USER_ID > USERS.USER_ID
 Ref: CLIENT_CONTACTS.CLIENT_ID > CLIENTS.CLIENT_ID
-Ref: CLIENT_CARDS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CONTRACTS.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: CONTRACT_ROUTES.CONTRACT_ID > CONTRACTS.CONTRACT_ID
 Ref: CONTRACT_ROUTES.ROUTE_ID > ROUTES.ROUTE_ID
@@ -363,5 +373,4 @@ Ref: ORDER_ROUTE_LOGS.ORDER_ID > ORDERS.ORDER_ID
 Ref: INVOICES.ORDER_ID > ORDERS.ORDER_ID
 Ref: INVOICES.CLIENT_ID > CLIENTS.CLIENT_ID
 Ref: PAYMENTS.INVOICE_ID > INVOICES.INVOICE_ID
-Ref: PAYMENTS.CARD_ID > CLIENT_CARDS.CARD_ID
 Ref: PAYMENTS.REVIEWED_BY_USER_ID > USERS.USER_ID

@@ -6,7 +6,6 @@ import { ClientContact } from '../typeorm/entities/client-contact.entity';
 import { User } from '../typeorm/entities/user.entity';
 import { UserSession } from '../typeorm/entities/user-session.entity';
 import { PasswordRecoveryToken } from '../typeorm/entities/password-recovery-token.entity';
-import { ClientCard } from '../typeorm/entities/client-card.entity';
 import { Branch } from '../typeorm/entities/branch.entity';
 import { Route } from '../typeorm/entities/route.entity';
 import { VehicleType } from '../typeorm/entities/vehicle-type.entity';
@@ -29,7 +28,6 @@ export const databaseEntities = [
   User,
   UserSession,
   PasswordRecoveryToken,
-  ClientCard,
   Branch,
   Route,
   VehicleType,

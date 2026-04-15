@@ -4,74 +4,85 @@
 > **Versión:** 3.0
 > **Fecha:** 06 de abril de 2026
 > **Desarrollado por:** Grupo 2 — Análisis y Diseño de Sistemas 2
-> **Estado:** Producción
 
 ---
 
 ## Tabla de Contenidos
 
-- [1. Introducción](#1-introducción)
-  - [1.1 Objetivo del documento](#11-objetivo-del-documento)
-  - [1.2 Alcance técnico](#12-alcance-técnico)
-  - [1.3 Audiencia técnica](#13-audiencia-técnica)
-- [2. Arquitectura del sistema](#2-arquitectura-del-sistema)
-  - [2.1 Vista lógica por capas](#21-vista-lógica-por-capas)
-  - [2.2 Vista de despliegue local](#22-vista-de-despliegue-local)
-  - [2.3 Vista de despliegue productivo simulado](#23-vista-de-despliegue-productivo-simulado)
-  - [2.4 Principios arquitectónicos aplicados](#24-principios-arquitectónicos-aplicados)
-  - [2.5 Patrones de diseño implementados](#25-patrones-de-diseño-implementados)
-- [3. Stack tecnológico](#3-stack-tecnológico)
-  - [3.1 Frontend](#31-frontend)
-  - [3.2 Backend](#32-backend)
-  - [3.3 Base de datos](#33-base-de-datos)
-  - [3.4 Infraestructura y herramientas](#34-infraestructura-y-herramientas)
-  - [3.5 Testing](#35-testing)
-- [4. Estructura del repositorio](#4-estructura-del-repositorio)
-- [5. Backend — NestJS](#5-backend--nestjs)
-  - [5.1 Módulos de dominio](#51-módulos-de-dominio)
-  - [5.2 Capas y patrones por módulo](#52-capas-y-patrones-por-módulo)
-  - [5.3 Convenciones de API y seguridad](#53-convenciones-de-api-y-seguridad)
-  - [5.4 Message Broker](#54-message-broker)
-- [6. Catálogo completo de endpoints](#6-catálogo-completo-de-endpoints)
-  - [6.1 Autenticación](#61-autenticación)
-  - [6.2 Portal Cliente](#62-portal-cliente)
-  - [6.3 Agente Operativo](#63-agente-operativo)
-  - [6.4 Agente Logístico](#64-agente-logístico)
-  - [6.5 Encargado de Patio](#65-encargado-de-patio)
-  - [6.6 Portal Piloto](#66-portal-piloto)
-  - [6.7 Agente Financiero](#67-agente-financiero)
-  - [6.8 Certificador FEL](#68-certificador-fel)
-  - [6.9 BI / Gerencia](#69-bi--gerencia)
-  - [6.10 Health Check](#610-health-check)
-- [7. Frontend — Next.js](#7-frontend--nextjs)
-  - [7.1 Organización de rutas por rol](#71-organización-de-rutas-por-rol)
-  - [7.2 Capa de consumo API](#72-capa-de-consumo-api)
-  - [7.3 Estado y refresco en cliente](#73-estado-y-refresco-en-cliente)
-- [8. Persistencia y base de datos](#8-persistencia-y-base-de-datos)
-  - [8.1 Fuente canónica de esquema](#81-fuente-canónica-de-esquema)
-  - [8.2 Entidades troncales](#82-entidades-troncales)
-  - [8.3 Flujos de estado canónicos](#83-flujos-de-estado-canónicos)
-  - [8.4 Triggers y reglas de consistencia](#84-triggers-y-reglas-de-consistencia)
-  - [8.5 Vistas materializadas](#85-vistas-materializadas)
-  - [8.6 Multi-moneda y multi-país](#86-multi-moneda-y-multi-país)
-- [9. Integraciones externas](#9-integraciones-externas)
-- [10. Seguridad técnica](#10-seguridad-técnica)
-- [11. Despliegue y operación](#11-despliegue-y-operación)
-  - [11.1 Variables de entorno requeridas](#111-variables-de-entorno-requeridas)
-  - [11.2 Entorno local con Docker Compose](#112-entorno-local-con-docker-compose)
-  - [11.3 Entorno productivo simulado](#113-entorno-productivo-simulado)
-  - [11.4 Contexto cloud para operación a internet](#114-contexto-cloud-para-operación-a-internet)
-- [12. Observabilidad y monitoreo](#12-observabilidad-y-monitoreo)
-- [13. Pruebas y calidad](#13-pruebas-y-calidad)
-  - [13.1 Pruebas unitarias](#131-pruebas-unitarias)
-  - [13.2 Pruebas de integración](#132-pruebas-de-integración)
-  - [13.3 Pruebas E2E](#133-pruebas-e2e)
-  - [13.4 Pruebas de carga](#134-pruebas-de-carga)
-  - [13.5 Pruebas de estrés](#135-pruebas-de-estrés)
-- [14. Mantenimiento correctivo y evolutivo](#14-mantenimiento-correctivo-y-evolutivo)
-- [15. Troubleshooting técnico](#15-troubleshooting-técnico)
-- [16. Riesgos y mejoras recomendadas](#16-riesgos-y-mejoras-recomendadas)
-- [17. Referencias técnicas](#17-referencias-técnicas)
+- [LogiTrans Guatemala](#logitrans-guatemala)
+  - [Manual Técnico — Plataforma de Gestión Logística](#manual-técnico--plataforma-de-gestión-logística)
+  - [Tabla de Contenidos](#tabla-de-contenidos)
+  - [1. Introducción](#1-introducción)
+    - [1.1 Objetivo del documento](#11-objetivo-del-documento)
+    - [1.2 Alcance técnico](#12-alcance-técnico)
+    - [1.3 Audiencia técnica](#13-audiencia-técnica)
+  - [2. Arquitectura del sistema](#2-arquitectura-del-sistema)
+    - [2.1 Vista lógica por capas](#21-vista-lógica-por-capas)
+    - [2.2 Vista de despliegue local](#22-vista-de-despliegue-local)
+    - [2.3 Vista de despliegue productivo s](#23-vista-de-despliegue-productivo-s)
+    - [2.4 Principios arquitectónicos aplicados](#24-principios-arquitectónicos-aplicados)
+    - [2.5 Patrones de diseño implementados](#25-patrones-de-diseño-implementados)
+  - [3. Stack tecnológico](#3-stack-tecnológico)
+    - [3.1 Frontend](#31-frontend)
+    - [3.2 Backend](#32-backend)
+    - [3.3 Base de datos](#33-base-de-datos)
+    - [3.4 Infraestructura y herramientas](#34-infraestructura-y-herramientas)
+    - [3.5 Testing](#35-testing)
+  - [4. Estructura del repositorio](#4-estructura-del-repositorio)
+  - [5. Backend — NestJS](#5-backend--nestjs)
+    - [5.1 Módulos de dominio](#51-módulos-de-dominio)
+    - [5.2 Capas y patrones por módulo](#52-capas-y-patrones-por-módulo)
+    - [5.3 Convenciones de API y seguridad](#53-convenciones-de-api-y-seguridad)
+    - [5.4 Message Broker](#54-message-broker)
+  - [6. Catálogo completo de endpoints](#6-catálogo-completo-de-endpoints)
+    - [6.1 Autenticación](#61-autenticación)
+    - [6.2 Portal Cliente](#62-portal-cliente)
+    - [6.3 Agente Operativo](#63-agente-operativo)
+    - [6.4 Agente Logístico](#64-agente-logístico)
+    - [6.5 Encargado de Patio](#65-encargado-de-patio)
+    - [6.6 Portal Piloto](#66-portal-piloto)
+    - [6.7 Agente Financiero](#67-agente-financiero)
+    - [6.8 Certificador FEL](#68-certificador-fel)
+    - [6.9 BI / Gerencia](#69-bi--gerencia)
+    - [6.10 Health Check](#610-health-check)
+  - [7. Frontend — Next.js](#7-frontend--nextjs)
+    - [7.1 Organización de rutas por rol](#71-organización-de-rutas-por-rol)
+    - [7.2 Capa de consumo API](#72-capa-de-consumo-api)
+    - [7.3 Estado y refresco en cliente](#73-estado-y-refresco-en-cliente)
+  - [8. Persistencia y base de datos](#8-persistencia-y-base-de-datos)
+    - [8.1 Fuente canónica de esquema](#81-fuente-canónica-de-esquema)
+    - [8.2 Entidades troncales](#82-entidades-troncales)
+    - [8.3 Flujos de estado canónicos](#83-flujos-de-estado-canónicos)
+    - [8.4 Triggers y reglas de consistencia](#84-triggers-y-reglas-de-consistencia)
+    - [8.5 Vistas materializadas](#85-vistas-materializadas)
+    - [8.6 Multi-moneda y multi-país](#86-multi-moneda-y-multi-país)
+  - [9. Integraciones externas](#9-integraciones-externas)
+  - [10. Seguridad técnica](#10-seguridad-técnica)
+    - [Controles implementados](#controles-implementados)
+    - [Buenas prácticas recomendadas](#buenas-prácticas-recomendadas)
+  - [11. Despliegue y operación](#11-despliegue-y-operación)
+    - [11.1 Variables de entorno requeridas](#111-variables-de-entorno-requeridas)
+    - [11.2 Entorno local con Docker Compose](#112-entorno-local-con-docker-compose)
+    - [11.3 Entorno productivo simulado](#113-entorno-productivo-simulado)
+    - [11.4 Contexto cloud para operación a internet](#114-contexto-cloud-para-operación-a-internet)
+  - [12. Observabilidad y monitoreo](#12-observabilidad-y-monitoreo)
+    - [Indicadores mínimos a monitorear](#indicadores-mínimos-a-monitorear)
+    - [Fuentes de diagnóstico](#fuentes-de-diagnóstico)
+  - [13. Pruebas y calidad](#13-pruebas-y-calidad)
+    - [Flujo de validación mínimo por cambio](#flujo-de-validación-mínimo-por-cambio)
+    - [13.1 Pruebas unitarias](#131-pruebas-unitarias)
+    - [13.2 Pruebas de integración](#132-pruebas-de-integración)
+    - [13.3 Pruebas E2E](#133-pruebas-e2e)
+    - [13.4 Pruebas de carga](#134-pruebas-de-carga)
+    - [13.5 Pruebas de estrés](#135-pruebas-de-estrés)
+  - [14. Mantenimiento correctivo y evolutivo](#14-mantenimiento-correctivo-y-evolutivo)
+    - [Correctivo](#correctivo)
+    - [Evolutivo](#evolutivo)
+  - [15. Troubleshooting técnico](#15-troubleshooting-técnico)
+  - [16. Riesgos y mejoras recomendadas](#16-riesgos-y-mejoras-recomendadas)
+    - [Riesgos vigentes](#riesgos-vigentes)
+    - [Mejoras recomendadas](#mejoras-recomendadas)
+  - [17. Referencias técnicas](#17-referencias-técnicas)
 
 ---
 
@@ -128,6 +139,18 @@ Adicionalmente se conectan:
 - **Almacenamiento de archivos** para firmas y evidencias de entrega.
 - **Message Broker** (RabbitMQ/similar) para eventos asíncronos entre servicios.
 
+**Diagrama de bloques del sistema:**
+
+![Diagrama de bloques de arquitectura LogiTrans](imgs/architecture/blocks-diagram.png)
+
+> El diagrama ilustra cómo el frontend, backend y base de datos se relacionan como capas independientes, con flujos de comunicación REST y eventos asíncronos hacia los servicios externos (correo, FEL, storage).
+
+**Diagrama de contexto del sistema:**
+
+![Diagrama de contexto C4 — LogiTrans](imgs/architecture/context_diagram.png)
+
+> Vista de contexto C4: muestra LogiTrans como una caja negra y sus actores externos directos: los 8 roles de usuario, el servicio FEL regulatorio y el servicio de correo transaccional Resend.
+
 ### 2.2 Vista de despliegue local
 
 Composición del entorno base (`docker-compose.yml`):
@@ -160,7 +183,13 @@ services:
     depends_on: [server]
 ```
 
-### 2.3 Vista de despliegue productivo simulado
+**Diagrama de componentes internos:**
+
+![Diagrama de componentes — LogiTrans](imgs/architecture/components-diagram.jpg)
+
+> El diagrama de componentes detalla los módulos NestJS del backend y sus dependencias internas: cómo el módulo de finanzas se apoya en el de notificaciones, cómo el módulo de órdenes integra el módulo logístico, etc.
+
+### 2.3 Vista de despliegue productivo
 
 Composición del entorno productivo simulado (`docker-compose.prod.yml`):
 
@@ -178,6 +207,12 @@ Internet → Nginx (443/80) → [api-1 | api-2] → db-primary
                                     ↓        ↑
                                 rabbitmq   db-replica (lecturas)
 ```
+
+**Diagrama de despliegue:**
+
+![Diagrama de despliegue productivo — LogiTrans](imgs/architecture/deployment-diagram.png)
+
+> El diagrama de despliegue muestra la topología productiva simulada sobre Docker: nginx como load balancer que distribuye entre dos réplicas del backend, ambas conectadas a la base de datos primaria y a la réplica de solo lectura para reportes de gerencia.
 
 ### 2.4 Principios arquitectónicos aplicados
 
@@ -397,6 +432,18 @@ constructor(private readonly rabbitmq: RabbitmqService) {}
 // Emitir un evento tras completar la transacción DB
 await this.rabbitmq.emit('orden.entregada', { orderId, pilotId, deliveredAt });
 ```
+
+**Diagrama de flujo del proceso end-to-end:**
+
+![Flujo del proceso logístico completo](imgs/flow/flow-chart.png)
+
+> El diagrama de flujo representa el recorrido completo de una orden desde su creación por el cliente hasta la conciliación del pago: creación → asignación binomio → despacho → entrega → facturación FEL → pago.
+
+**Diagrama de secuencia — Notificaciones asíncronas:**
+
+![Diagrama de secuencia — Eventos y notificaciones](imgs/flow/sequence-diagram.png)
+
+> El diagrama de secuencia detalla las interacciones entre los módulos cuando ocurre una entrega: la orden actualiza su estado, dispara el trigger de creación de factura borrador, y el servicio de notificaciones envía correo al cliente y al agente financiero de forma asíncrona sin bloquear la respuesta al piloto.
 
 ---
 
@@ -663,6 +710,18 @@ Para el portal del cliente:
 | `db/logitrans_postgresql.sql` | DDL canónico completo con tablas, índices, triggers y vistas |
 | `db/logitrans_dbdiagram.dbml` | Modelo visual de entidades para documentación |
 
+**Diagrama entidad-relación (vista de contexto):**
+
+![Diagrama ER — Vista de contexto de entidades LogiTrans](imgs/dda/context_diagram.png)
+
+> Vista de alto nivel del modelo relacional. Muestra las entidades principales (clientes, contratos, órdenes, facturas, pagos) y sus relaciones clave sin detalle de atributos, útil para onboarding técnico rápido.
+
+**Diagrama ER completo (alto nivel):**
+
+![Diagrama ER — Alto nivel completo](imgs/dda/high-level.png)
+
+> Diagrama de alto nivel que agrupa las entidades por dominio funcional: autenticación, operación, logística, finanzas y catálogos.
+
 ### 8.2 Entidades troncales
 
 | Tabla | Descripción |
@@ -686,6 +745,24 @@ Para el portal del cliente:
 | `payments` | Pagos registrados por el cliente con estado de conciliación |
 | `exchange_rates` | Tipos de cambio históricos por moneda |
 | `branches` | Sedes operativas de la empresa |
+
+**Diagrama detallado de casos de uso del sistema:**
+
+![CDU 001 — Gestión de clientes y contratos](imgs/dda/cdu001.png)
+
+> Diagrama de casos de uso para el dominio de gestión comercial: registro de clientes, formalización de contratos, administración de contactos y perfiles de riesgo.
+
+![CDU 002 — Flujo operativo de órdenes](imgs/dda/cdu002.png)
+
+> Diagrama de casos de uso para el ciclo de vida de órdenes: creación por el cliente, asignación logística, formalización en patio, viaje del piloto, entrega y evidencia.
+
+![CDU 003 — Ciclo de facturación y pagos](imgs/dda/cdu003.png)
+
+> Diagrama de casos de uso para el ciclo financiero: revisión de facturas borrador, certificación FEL, conciliación de pagos y envío al cliente.
+
+![CDU 004 — BI y Gerencia](imgs/dda/cdu004.png)
+
+> Diagrama de casos de uso para el módulo de gerencia: visualización de KPIs, alertas operativas, rentabilidad por contrato y proyecciones.
 
 ### 8.3 Flujos de estado canónicos
 

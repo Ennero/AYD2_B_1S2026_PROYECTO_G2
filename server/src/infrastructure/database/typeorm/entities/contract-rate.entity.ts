@@ -1,12 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  Index,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Contract } from './contract.entity';
 import { VehicleType } from './vehicle-type.entity';
 import { Order } from './order.entity';
@@ -15,11 +7,11 @@ import { Order } from './order.entity';
 @Index(['contractId', 'vehicleTypeId'], { unique: true })
 @Index(['contractRateId', 'contractId'], { unique: true })
 export class ContractRate {
-  @PrimaryGeneratedColumn('uuid', { name: 'contract_rate_id' })
-  contractRateId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'contract_rate_id' })
+  contractRateId: number;
 
-  @Column({ name: 'contract_id', type: 'uuid' })
-  contractId: string;
+  @Column({ name: 'contract_id', type: 'integer' })
+  contractId: number;
 
   @Column({ name: 'vehicle_type_id', type: 'smallint' })
   vehicleTypeId: number;
@@ -28,8 +20,7 @@ export class ContractRate {
     name: 'base_rate_per_km',
     type: 'numeric',
     precision: 12,
-    scale: 2,
-  })
+    scale: 2 })
   baseRatePerKm: number;
 
   @Column({
@@ -37,16 +28,14 @@ export class ContractRate {
     type: 'numeric',
     precision: 5,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   discountPercentage: number;
 
   @Column({
     name: 'final_rate_per_km',
     type: 'numeric',
     precision: 12,
-    scale: 2,
-  })
+    scale: 2 })
   finalRatePerKm: number;
 
   @ManyToOne(() => Contract, (contract) => contract.contractRates)

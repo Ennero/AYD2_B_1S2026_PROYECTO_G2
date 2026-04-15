@@ -2,15 +2,31 @@ import { Toaster } from "sonner"
 
 /**
  * Layout para páginas de autenticación.
- * Centrado verticalmente, sin navbar/sidebar.
+ * Fondo oscuro con grid overlay — sin navbar/sidebar.
+ * Sin max-width: cada página gestiona su propio contenedor.
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div
+      className="min-h-screen relative overflow-hidden"
+      style={{ background: "#0C0C0A" }}
+    >
       <Toaster position="top-right" richColors />
-      <div className="w-full max-w-md">
-        {children}
-      </div>
+
+      {/* Swiss grid overlay */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(245,242,236,0.028) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(245,242,236,0.028) 1px, transparent 1px)
+          `,
+          backgroundSize: "72px 72px",
+        }}
+      />
+
+      {children}
     </div>
   )
 }

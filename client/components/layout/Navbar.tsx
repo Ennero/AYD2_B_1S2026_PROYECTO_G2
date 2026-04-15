@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { LogOut, Menu, X } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils/cn"
+import { useAuth } from "@/hooks/useAuth"
 import type { NavItem } from "@/types"
 
 /** Configuración de navegación por rol */
@@ -15,6 +17,7 @@ const NAV_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
       { label: "Inicio", href: "/agente-operativo" },
       { label: "Registrar Cliente", href: "/agente-operativo/registrar-cliente" },
       { label: "Formalizar Contrato", href: "/agente-operativo/formalizar-contrato" },
+      { label: "Gestionar Usuarios", href: "/agente-operativo/usuarios" },
     ],
   },
   piloto: {
@@ -31,11 +34,20 @@ const NAV_CONFIG: Record<string, { title: string; items: NavItem[] }> = {
       { label: "Órdenes de Servicio", href: "/agente-logistico/ordenes" },
     ],
   },
+  gerencia: {
+    title: "Gerencia Operativa",
+    items: [
+      { label: "Operaciones y KPIs", href: "/gerencia" },
+      { label: "Rentabilidad", href: "/gerencia/rentabilidad" },
+      { label: "Alertas y Proyecciones", href: "/gerencia/alertas" },
+    ],
+  },
 }
 
 export default function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { logout } = useAuth()
 
   // Detectar rol activo por la URL
   const activeRole = Object.keys(NAV_CONFIG).find((role) => pathname.startsWith(`/${role}`))
@@ -47,7 +59,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href={config?.items[0]?.href || "/"} className="flex items-center gap-2">
-            <span className="font-heading text-xl font-bold tracking-tight">LOGITRANS</span>
+            <Image src="/logo.svg" alt="LogiTrans" width={200} height={60} className="h-12 w-auto" priority />
           </Link>
 
           {/* Desktop nav items */}
@@ -77,6 +89,7 @@ export default function Navbar() {
             )}
             {/** Aquí implementar UserMenu con nombre del usuario logueado */}
             <button
+              onClick={() => void logout()}
               className="text-white/80 hover:text-white transition-colors cursor-pointer"
               title="Cerrar sesión"
             >
@@ -112,7 +125,10 @@ export default function Navbar() {
               {item.label}
             </Link>
           ))}
-          <button className="w-full text-left px-4 py-2 text-white/80 hover:text-white text-sm cursor-pointer">
+          <button
+            onClick={() => void logout()}
+            className="w-full text-left px-4 py-2 text-white/80 hover:text-white text-sm cursor-pointer"
+          >
             Cerrar sesión
           </button>
         </div>

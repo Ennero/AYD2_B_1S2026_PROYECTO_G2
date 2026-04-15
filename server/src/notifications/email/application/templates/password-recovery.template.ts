@@ -2,15 +2,14 @@ import { baseTemplate } from './base.template';
 
 export interface PasswordRecoveryTemplateData {
   clientName: string;
-  recoveryUrl: string;
-  /** Minutos de vigencia del enlace (por RNF: 30 minutos) */
+  recoveryToken: string;
+  /** Minutos de vigencia del token (por RNF: 30 minutos) */
   expiresInMinutes: number;
-  ipAddress?: string;
 }
 
 /**
  * HU-03 — Correo de recuperación de contraseña.
- * El enlace es de un solo uso y expira en 30 minutos (RNF seguridad CDU001).
+ * El token es de un solo uso y expira en 30 minutos (RNF seguridad CDU001).
  */
 export function passwordRecoveryTemplate(
   data: PasswordRecoveryTemplateData,
@@ -19,24 +18,38 @@ export function passwordRecoveryTemplate(
 
   const html = baseTemplate(
     `
-    <h2>Solicitud de recuperación de contraseña</h2>
-    <p>Hola <strong>${data.clientName}</strong>,</p>
-    <p>Recibimos una solicitud para restablecer la contraseña asociada a su cuenta de LogiTrans.</p>
+    <p class="eyebrow">Recuperación Segura</p>
+    <h2 style="margin-top:0;">Recuperación de contraseña</h2>
 
-    <p style="text-align:center;">
-      <a class="btn" href="${data.recoveryUrl}">Restablecer contraseña</a>
+    <p>Hola <strong>${data.clientName}</strong>,</p>
+    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en el
+       <strong>Portal de Clientes LogiTrans</strong>.
     </p>
 
     <div class="info-box">
-      <p><strong>Este enlace es válido por ${data.expiresInMinutes} minutos</strong> y expirará tras su primer uso.</p>
-      ${data.ipAddress ? `<p style="font-size:12px; color:#888;">Solicitud originada desde: ${data.ipAddress}</p>` : ''}
+      <p><strong>Token de recuperación (válido por ${data.expiresInMinutes} minutos):</strong></p>
+      <div class="token-box">${data.recoveryToken}</div>
+      <p style="margin-top:10px;">Ingresa este token manualmente dentro de la plataforma.</p>
+      <ol class="steps">
+        <li>Ingresa al Portal de Clientes LogiTrans.</li>
+        <li>Ve a la pantalla de recuperación de contraseña.</li>
+        <li>Pega el token y registra tu nueva contraseña.</li>
+      </ol>
+      <p style="margin-top:8px;">Este correo no contiene enlaces directos por política de seguridad.</p>
+    </div>
+
+    <div class="info-box">
+      <p style="margin:0 0 6px;">
+        <strong>Uso único:</strong> El token expira al primer uso o al cumplir su vigencia.
+      </p>
     </div>
 
     <hr class="divider" />
 
     <p style="font-size:13px; color:#888888;">
-      Si usted no solicitó este restablecimiento, ignore este correo. Su contraseña actual permanece sin cambios.
-      Si sospecha de actividad no autorizada, contáctenos en <a href="mailto:soporte@logitrans.com">soporte@logitrans.com</a>.
+      Si <strong>no solicitaste</strong> este restablecimiento, ignora este mensaje.
+      Tu contraseña actual permanece sin cambios.<br/><br/>
+      ¿Sospechas de actividad no autorizada? Escríbenos a soporte@logitrans.gt.
     </p>
     `,
     subject,
@@ -45,12 +58,17 @@ export function passwordRecoveryTemplate(
   const text = `
 Hola ${data.clientName},
 
-Recibimos una solicitud para restablecer su contraseña de LogiTrans.
+Recibimos una solicitud para restablecer tu contraseña en el Portal de Clientes LogiTrans.
 
-Haga clic en el siguiente enlace para continuar (válido por ${data.expiresInMinutes} minutos):
-${data.recoveryUrl}
+Token de recuperación (válido por ${data.expiresInMinutes} minutos):
+${data.recoveryToken}
 
-Si usted no solicitó este restablecimiento, ignore este correo.
+Instrucciones:
+  1) Ingresa al Portal de Clientes LogiTrans
+  2) Abre la sección de recuperación
+  3) Ingresa el token y define tu nueva contraseña
+
+Si no solicitaste este restablecimiento, ignora este mensaje.
   `.trim();
 
   return { subject, html, text };

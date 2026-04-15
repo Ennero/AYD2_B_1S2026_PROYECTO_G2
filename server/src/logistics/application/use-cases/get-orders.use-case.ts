@@ -7,6 +7,7 @@ export interface GetOrdersInput {
   status?: OrderStatus;
   startDate?: string;
   clientId?: string;
+  clientName?: string;
 }
 
 export interface OrderSummary {
@@ -57,6 +58,12 @@ export class GetOrdersUseCase {
 
     if (input.clientId) {
       qb.andWhere('c.clientId = :clientId', { clientId: input.clientId });
+    }
+
+    if (input.clientName) {
+      qb.andWhere('c.legal_name ILIKE :clientName', {
+        clientName: `%${input.clientName}%`,
+      });
     }
 
     return qb.getRawMany<OrderSummary>();

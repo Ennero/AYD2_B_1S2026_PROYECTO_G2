@@ -28,18 +28,32 @@ export class ResendAdapter implements IEmailService, OnModuleInit {
   constructor(private readonly config: ConfigService) {}
 
   onModuleInit() {
-    const apiKey = this.config.getOrThrow<string>('RESEND_API_KEY');
-    const fromEmail = this.config.getOrThrow<string>('SES_FROM_EMAIL');
+    const isMock = this.config.get<string>('MOCK_SMTP') === 'true';
+    const apiKey = this.config.get<string>('RESEND_API_KEY', isMock ? 'mock-key' : '');
+    const fromEmail = this.config.get<string>('SES_FROM_EMAIL', isMock ? 'mock@logitrans.com' : '');
     const fromName = this.config.get<string>('SES_FROM_NAME', 'LogiTrans');
+
+    if (!isMock && (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '')) {
+      throw new Error('RESEND_API_KEY is required unless MOCK_SMTP is true');
+    }
+    if (!isMock && (!fromEmail || typeof fromEmail !== 'string' || fromEmail.trim() === '')) {
+      throw new Error('SES_FROM_EMAIL is required unless MOCK_SMTP is true');
+    }
 
     this.client = new Resend(apiKey);
     this.fromAddress = `${fromName} <${fromEmail}>`;
 
-    this.logger.log(`Resend adapter initialised — from: ${this.fromAddress}`);
+    this.logger.log(`Resend adapter initialised — from: ${this.fromAddress} (Mock: ${isMock})`);
   }
 
   async send(options: SendEmailOptions): Promise<EmailSendResult> {
     const toAddresses = Array.isArray(options.to) ? options.to : [options.to];
+    const isMock = this.config.get<string>('MOCK_SMTP') === 'true';
+
+    if (isMock) {
+      this.logger.log(`[MOCK_SMTP] Email enviado simulado — to: ${toAddresses.join(', ')}, subject: "${options.subject}"`);
+      return { success: true, messageId: 'mock-id-' + Date.now() };
+    }
 
     const { data, error } = await this.client.emails.send({
       from: this.fromAddress,
@@ -51,11 +65,15 @@ export class ResendAdapter implements IEmailService, OnModuleInit {
     });
 
     if (error) {
+      // Resend devuelve un objeto con `name` y `message` (ver https://resend.com/docs/api-reference/errors)
+      const name = (error as { name?: string }).name ?? 'ResendError';
       const message = error.message ?? 'Unknown Resend error';
       this.logger.error(
-        `Error al enviar email — to: ${toAddresses.join(', ')}, subject: "${options.subject}" — ${message}`,
+        `[Resend] ${name}: ${message} — from: ${this.fromAddress}, to: ${toAddresses.join(', ')}, subject: "${options.subject}"\n` +
+          `  💡 Asegúrate de que SES_FROM_EMAIL pertenece a un dominio verificado en resend.com/domains\n` +
+          `     o usa onboarding@resend.dev para pruebas (solo envía al email de tu cuenta Resend).`,
       );
-      return { success: false, error: message };
+      return { success: false, error: `${name}: ${message}` };
     }
 
     const messageId = data?.id ?? 'unknown';

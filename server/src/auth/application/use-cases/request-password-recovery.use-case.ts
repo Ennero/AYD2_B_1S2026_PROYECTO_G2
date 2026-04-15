@@ -1,5 +1,4 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'crypto';
 import {
   AUTH_USER_REPOSITORY_TOKEN,
@@ -32,7 +31,6 @@ export class RequestPasswordRecoveryUseCase {
     @Inject(PASSWORD_RECOVERY_REPOSITORY_TOKEN)
     private readonly recoveryRepo: IPasswordRecoveryRepository,
     private readonly emailService: EmailService,
-    private readonly config: ConfigService,
   ) {}
 
   async execute(input: RequestPasswordRecoveryInput): Promise<RequestPasswordRecoveryOutput> {
@@ -47,17 +45,13 @@ export class RequestPasswordRecoveryUseCase {
 
       await this.recoveryRepo.create({ userId: user.userId, tokenHash, expiresAt });
 
-      const portalUrl = this.config.get<string>('PORTAL_URL', 'http://localhost:3001');
-      const recoveryUrl = `${portalUrl}/auth/reset-password?token=${rawToken}`;
-
       // Fire-and-forget: no bloqueamos la respuesta por fallos de email
       this.emailService
         .sendPasswordRecovery({
           to: user.email,
           clientName: user.fullName,
-          recoveryUrl,
+          recoveryToken: rawToken,
           expiresInMinutes: EXPIRES_IN_MINUTES,
-          ipAddress: input.ipAddress,
         })
         .catch((err: Error) =>
           this.logger.error(`Error al enviar email de recuperación a ${user.email}: ${err.message}`),

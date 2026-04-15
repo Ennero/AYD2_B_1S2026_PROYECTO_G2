@@ -1,12 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { OrderStatus } from '../../../../domain/enums/order-status.enum';
+import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Contract } from './contract.entity';
 import { User } from './user.entity';
 import { Branch } from './branch.entity';
@@ -19,54 +13,51 @@ import { Invoice } from './invoice.entity';
 
 @Entity('orders')
 export class Order {
-  @PrimaryGeneratedColumn('uuid', { name: 'order_id' })
-  orderId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'order_id' })
+  orderId: number;
 
   @Column({ name: 'order_number', type: 'varchar', length: 40, unique: true })
   orderNumber: string;
 
-  @Column({ name: 'contract_id', type: 'uuid' })
-  contractId: string;
+  @Column({ name: 'contract_id', type: 'integer' })
+  contractId: number;
 
-  @Column({ name: 'requested_by_user_id', type: 'uuid' })
-  requestedByUserId: string;
+  @Column({ name: 'requested_by_user_id', type: 'integer' })
+  requestedByUserId: number;
 
   @Column({ name: 'branch_id', type: 'smallint', nullable: true })
   branchId: number | null;
 
-  @Column({ name: 'contract_route_id', type: 'uuid', nullable: true })
-  contractRouteId: string | null;
+  @Column({ name: 'contract_route_id', type: 'integer', nullable: true })
+  contractRouteId: number | null;
 
-  @Column({ name: 'contract_rate_id', type: 'uuid', nullable: true })
-  contractRateId: string | null;
+  @Column({ name: 'contract_rate_id', type: 'integer', nullable: true })
+  contractRateId: number | null;
 
   @Column({ name: 'cargo_type_id', type: 'smallint' })
   cargoTypeId: number;
 
-  @Column({ name: 'unit_id', type: 'uuid', nullable: true })
-  unitId: string | null;
+  @Column({ name: 'unit_id', type: 'integer', nullable: true })
+  unitId: number | null;
 
   @Column({
     name: 'status',
     type: 'enum',
     enum: OrderStatus,
-    default: OrderStatus.REGISTRADA,
-  })
+    default: OrderStatus.REGISTRADA })
   status: OrderStatus;
 
   @Column({
     name: 'cargo_description',
     type: 'text',
-    default: 'PENDIENTE_DETALLE',
-  })
+    default: 'PENDIENTE_DETALLE' })
   cargoDescription: string;
 
   @Column({
     name: 'declared_weight_ton',
     type: 'numeric',
     precision: 8,
-    scale: 2,
-  })
+    scale: 2 })
   declaredWeightTon: number;
 
   @Column({
@@ -74,8 +65,7 @@ export class Order {
     type: 'numeric',
     precision: 8,
     scale: 2,
-    nullable: true,
-  })
+    nullable: true })
   loadedWeightTon: number | null;
 
   @Column({ name: 'origin', type: 'text', nullable: true })
@@ -115,8 +105,7 @@ export class Order {
     name: 'receiver_name',
     type: 'varchar',
     length: 160,
-    nullable: true,
-  })
+    nullable: true })
   receiverName: string | null;
 
   @Column({ name: 'receiver_signature_path', type: 'text', nullable: true })
@@ -130,8 +119,7 @@ export class Order {
     type: 'numeric',
     precision: 10,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   distanceKm: number;
 
   @Column({
@@ -139,8 +127,7 @@ export class Order {
     type: 'numeric',
     precision: 12,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   baseRatePerKm: number;
 
   @Column({
@@ -148,8 +135,7 @@ export class Order {
     type: 'numeric',
     precision: 5,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   discountPercentage: number;
 
   @Column({
@@ -157,17 +143,41 @@ export class Order {
     type: 'numeric',
     precision: 12,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   finalRatePerKm: number;
+
+  @Column({
+    name: 'currency_code',
+    type: 'enum',
+    enum: CurrencyCode,
+    default: CurrencyCode.GTQ,
+  })
+  currencyCode: CurrencyCode;
+
+  @Column({
+    name: 'exchange_rate_from_usd',
+    type: 'numeric',
+    precision: 14,
+    scale: 6,
+    default: 1,
+  })
+  exchangeRateFromUsd: number;
+
+  @Column({
+    name: 'tax_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.12,
+  })
+  taxRate: number;
 
   @Column({
     name: 'subtotal_amount',
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   subtotalAmount: number;
 
   @Column({
@@ -175,8 +185,7 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   taxAmount: number;
 
   @Column({
@@ -184,8 +193,7 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   totalAmount: number;
 
   @Column({
@@ -193,8 +201,7 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   fuelCost: number;
 
   @Column({
@@ -202,8 +209,7 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   viaticsCost: number;
 
   @Column({
@@ -211,8 +217,7 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0,
-  })
+    default: 0 })
   maintenanceCost: number;
 
   @Column({ name: 'notes', type: 'text', nullable: true })

@@ -1,21 +1,14 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-  Index,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index, PrimaryGeneratedColumn } from 'typeorm';
 import { Client } from './client.entity';
 
 @Entity('client_contacts')
 @Index(['clientId', 'contactEmail'], { unique: true })
 export class ClientContact {
-  @PrimaryGeneratedColumn('uuid', { name: 'contact_id' })
-  contactId: string;
+  @PrimaryGeneratedColumn({ type: 'integer', name: 'contact_id' })
+  contactId: number;
 
-  @Column({ name: 'client_id', type: 'uuid' })
-  clientId: string;
+  @Column({ name: 'client_id', type: 'integer' })
+  clientId: number;
 
   @Column({ name: 'contact_name', type: 'varchar', length: 160 })
   contactName: string;
