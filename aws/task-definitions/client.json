@@ -38,6 +38,7 @@
         "retries": 3,
         "startPeriod": 60
       }
+
     }
   ]
 }
