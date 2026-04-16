@@ -39,7 +39,7 @@ test.describe('Inciso 11: Conciliar Pago y Enviar Factura al Cliente (Agente Fin
 
     await aprobarBtn.click();
 
-    await expect(page.getByText('Confirmar aprobación de pago')).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('heading', { name: /confirmar aprobaci/i })).toBeVisible({ timeout: 5_000 });
 
     await screenshot(page, '03 - modal de aprobacion abierto');
 
@@ -64,7 +64,7 @@ test.describe('Inciso 11: Conciliar Pago y Enviar Factura al Cliente (Agente Fin
       page.getByText(/pago.*aprobado/i).first(),
     ).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByText('Confirmar aprobación de pago')).toBeHidden({ timeout: 5_000 });
+    await expect(page.getByRole('heading', { name: /confirmar aprobaci/i })).toBeHidden({ timeout: 5_000 });
 
     await screenshot(page, '04 - pago aprobado y modal cerrado');
   });
@@ -90,7 +90,7 @@ test.describe('Inciso 11: Conciliar Pago y Enviar Factura al Cliente (Agente Fin
 
     await enviarBtn.click();
 
-    await expect(page.getByText('Enviar factura pagada')).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('heading', { name: /enviar factura/i })).toBeVisible({ timeout: 5_000 });
 
     await screenshot(page, '03 - modal de envio al cliente abierto');
 
@@ -115,7 +115,7 @@ test.describe('Inciso 11: Conciliar Pago y Enviar Factura al Cliente (Agente Fin
       page.getByText(/enviada al cliente/i).first(),
     ).toBeVisible({ timeout: 10_000 });
 
-    await expect(page.getByText('Enviar factura pagada')).toBeHidden({ timeout: 5_000 });
+    await expect(page.getByRole('heading', { name: /enviar factura/i })).toBeHidden({ timeout: 5_000 });
 
     await screenshot(page, '04 - factura enviada al cliente correctamente');
   });
