@@ -194,24 +194,115 @@ npm run test:integration
 - Navegacion, formularios, transiciones de estado y validaciones visibles.
 - Integracion frontend-backend en escenarios de negocio de punta a punta.
 
-### 7.2 Como se ejecutan
+### 7.2 Estrategia: Happy Path por rol
+
+Todas las pruebas E2E siguen la estrategia de **happy path**: validan el flujo exitoso y esperado de cada inciso, asumiendo datos validos y el sistema en estado correcto. No cubren casos de error ni flujos alternativos; ese rol lo tienen las pruebas unitarias y de integracion.
+
+Cada prueba:
+
+1. Hace login con el usuario correspondiente al rol (credenciales del seed de prueba).
+2. Navega a la seccion relevante.
+3. Ejecuta las acciones del flujo principal (llenar formularios, confirmar, aprobar, etc.).
+4. Valida que la UI refleje el resultado esperado (mensajes de exito, cambios de estado, redirecciones).
+5. Adjunta capturas de pantalla en cada paso clave como evidencia en el reporte HTML.
+
+### 7.3 Pruebas incluidas
+
+| Archivo | Rol | Inciso / Escenario | Tests |
+|---|---|---|---|
+| `tests/auth/login.spec.ts` | Todos | Login y redireccion por rol | 5 |
+| `tests/clientes/register-client.spec.ts` | Agente Operativo | Inciso 2: Registrar nuevo cliente (flujo 3 pasos) | 1 |
+| `tests/clientes/manage-user.spec.ts` | Agente Operativo | Inciso 2: Editar usuario existente | 1 |
+| `tests/clientes/formalizar-contrato.spec.ts` | Agente Operativo | Inciso 3: Generar propuesta de contrato | 1 |
+| `tests/portal-cliente/contactos.spec.ts` | Portal Cliente | Inciso 4: Agregar y editar contacto clave | 1 |
+| `tests/portal-cliente/nueva-orden.spec.ts` | Portal Cliente | Inciso 4: Crear orden de servicio (flujo 2 pasos) | 1 |
+| `tests/encargado-patio/despacho.spec.ts` | Encargado de Patio | Inciso 6: Registrar despacho con peso y estiba | 1 |
+| `tests/piloto/transito-bitacora.spec.ts` | Piloto | Inciso 7: Iniciar transito y registrar bitacora | 1 |
+| `tests/piloto/confirmar-entrega.spec.ts` | Piloto | Inciso 8: Confirmar entrega con firma y evidencia | 1 |
+| `tests/agente-financiero/revisar-borrador.spec.ts` | Agente Financiero | Inciso 9: Revisar borrador y enviar a Certificador FEL | 1 |
+| `tests/certificador-fel/certificar-factura.spec.ts` | Certificador FEL | Inciso 10: Validar NIT y certificar factura | 1 |
+| `tests/agente-financiero/conciliar-y-enviar.spec.ts` | Agente Financiero | Inciso 11: Conciliar pago y enviar factura al cliente | 2 |
+| `tests/gerencia/dashboard-ejecutivo.spec.ts` | Gerencia | Inciso 12: Validar KPIs, rentabilidad y alertas ejecutivas | 3 |
+
+**Total: 20 tests en 13 archivos spec, organizados en 7 roles.**
+
+### 7.4 Prerequisitos
+
+El entorno debe estar levantado antes de ejecutar las pruebas:
+
+```bash
+docker-compose up -d
+```
+
+Los tests apuntan a:
+
+- Frontend: `http://localhost:3000`
+- API: `http://localhost:3006`
+
+La variable de entorno `BASE_URL` puede sobreescribir la URL del frontend:
+
+```bash
+BASE_URL=http://mi-servidor npm test
+```
+
+### 7.5 Como se ejecutan
+
+**Ejecutar todas las pruebas (headless, Chromium):**
 
 ```bash
 cd e2e
 npm test
 ```
 
-Opcionales:
+**Ejecutar con navegador visible (para observar el flujo):**
 
 ```bash
 cd e2e
 npm run test:headed
+```
+
+**Abrir la interfaz interactiva de Playwright (seleccionar y depurar pruebas):**
+
+```bash
+cd e2e
 npm run test:ui
+```
+
+**Depurar una prueba paso a paso:**
+
+```bash
+cd e2e
 npm run test:debug
+```
+
+**Ver el reporte HTML de la ultima corrida:**
+
+```bash
+cd e2e
 npm run test:report
 ```
 
+**Instalar el navegador Chromium (primera vez o en entorno nuevo):**
 
+```bash
+cd e2e
+npm run install:browsers
+```
+
+### 7.6 Reporte de resultados
+
+Playwright genera automaticamente un **reporte HTML** al finalizar cada corrida.
+
+- **Ubicacion:** `e2e/playwright-report/index.html`
+- **Contenido:** resumen de tests pasados/fallidos, duracion de cada test, capturas de pantalla adjuntas en los pasos clave y trazas de error si las hay.
+- **Como abrirlo:** ejecutar `npm run test:report` desde el directorio `e2e/`, o abrir el archivo `e2e/playwright-report/index.html` directamente en el navegador.
+
+> Las capturas de pantalla de pasos intermedios se adjuntan al reporte solo cuando el test falla o cuando el propio test las adjunta explicitamente.
+
+Ejemplo de reporte HTML generado:
+![Ejemplo de reporte HTML de Playwright](imgs/e2e/reportview.png)
+
+![Ejemplo de login.spec.ts con captura adjunta en reporte](imgs/e2e/logintest.png)
 
 ## 8. Pruebas de carga (k6)
 
