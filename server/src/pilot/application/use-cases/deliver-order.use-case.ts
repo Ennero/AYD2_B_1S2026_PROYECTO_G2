@@ -9,6 +9,8 @@ import {
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
+import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
+import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
 import { TransportUnit } from '../../../infrastructure/database/typeorm/entities/transport-unit.entity';
 import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities/order-route-log.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
@@ -147,6 +149,10 @@ export class DeliverOrderUseCase {
                 deliveredAt: deliveredAt.toISOString(),
             });
 
+            // 6b. Notificar creación de borrador de factura (generado por trigger DB)
+            // Se ejecuta de forma asíncrona para no bloquear la respuesta al piloto.
+            setImmediate(() => void this.emitFacturaBorrador(order.orderId, order.orderNumber));
+
             // 7. Registrar evento de LLEGADA en bitácora
             const logRepo = em.getRepository(OrderRouteLog);
             const log = logRepo.create({
@@ -195,6 +201,40 @@ export class DeliverOrderUseCase {
                 receiverSignaturePath: signaturePath,
             };
         });
+    }
+
+    // ── Emite evento factura.borrador una vez que el trigger DB la haya creado ──
+    private async emitFacturaBorrador(orderId: number, orderNumber: string): Promise<void> {
+        try {
+            // Wait briefly for the DB trigger to commit the invoice row
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
+            const invoice = await this.dataSource.getRepository(Invoice).findOne({
+                where: { orderId, status: InvoiceStatus.BORRADOR },
+                select: ['invoiceId', 'invoiceNumber', 'clientId', 'clientName', 'totalAmount', 'currencyCode'],
+            });
+
+            if (!invoice) {
+                this.logger.warn(`[factura.borrador] No se encontró borrador para orden ${orderNumber}.`);
+                return;
+            }
+
+            this.rabbitmq.emit('factura.borrador', {
+                invoiceId:     invoice.invoiceId,
+                invoiceNumber: invoice.invoiceNumber,
+                orderId,
+                orderNumber,
+                clientId:      invoice.clientId,
+                clientName:    invoice.clientName,
+                totalAmount:   Number(invoice.totalAmount),
+                currency:      invoice.currencyCode,
+                createdAt:     new Date().toISOString(),
+            });
+
+            this.logger.log(`[factura.borrador] Evento emitido para ${invoice.invoiceNumber}.`);
+        } catch (err) {
+            this.logger.error(`[factura.borrador] Error emitiendo evento para orden ${orderNumber}: ${(err as Error).message}`);
+        }
     }
 
     // ── Utilidad privada: decodifica base64 y sube a Supabase Storage ─────

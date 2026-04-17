@@ -4,11 +4,13 @@ import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { RabbitmqService } from './rabbitmq.service';
 import { RabbitmqConsumerController } from './rabbitmq.consumer';
 import { RABBITMQ_CLIENT } from './rabbitmq.constants';
+import { WebsocketModule } from '../websocket/websocket.module';
 
 export { RABBITMQ_CLIENT };
 
 @Global()
 @Module({
+  imports: [WebsocketModule],
   controllers: [RabbitmqConsumerController],
   providers: [
     {

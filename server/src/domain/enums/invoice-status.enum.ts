@@ -1,5 +1,6 @@
 export enum InvoiceStatus {
   BORRADOR = 'BORRADOR',
+  EN_ESPERA = 'EN_ESPERA',
   CERTIFICADA = 'CERTIFICADA',
   ENVIADA = 'ENVIADA',
   PAGADA = 'PAGADA',

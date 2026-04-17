@@ -17,6 +17,7 @@ import { PilotModule } from './pilot/pilot.module';
 import { FinanceModule } from './finance/finance.module';
 import { ClientPortalModule } from './client/client.module';
 import { BiModule } from './bi/bi.module';
+import { WebsocketModule } from './infrastructure/websocket/websocket.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { BiModule } from './bi/bi.module';
     FinanceModule,
     ClientPortalModule,
     BiModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
