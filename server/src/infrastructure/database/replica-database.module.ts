@@ -38,7 +38,22 @@ export const REPLICA_DATA_SOURCE = 'REPLICA_DATA_SOURCE';
         };
 
         const ds = new DataSource(options);
-        await ds.initialize();
+        try {
+          await ds.initialize();
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn(`[ReplicaDatabaseModule] Replica connection failed, falling back to primary: ${msg}`);
+          const fallback = new DataSource({
+            ...options,
+            host: primaryCfg.host,
+            port: primaryCfg.port,
+            username: primaryCfg.username,
+            password: primaryCfg.password,
+            database: primaryCfg.database,
+          });
+          await fallback.initialize();
+          return fallback;
+        }
         return ds;
       },
     },
