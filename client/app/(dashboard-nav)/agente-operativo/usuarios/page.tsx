@@ -528,7 +528,7 @@ export default function GestionarUsuariosPage() {
                       fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.06em",
                       color: "#C9924B",
                     }}>
-                      {ROLE_LABEL[user.role]}
+                      {ROLE_LABEL[user.role] || user.role || "Usuario"}
                     </span>
                   </div>
 

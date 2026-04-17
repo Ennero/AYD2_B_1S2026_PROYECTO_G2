@@ -252,13 +252,13 @@ function ContractDrawer({
               )}
 
               {/* Tipos de carga */}
-              {detail.cargoTypes.length > 0 && (
+              {(detail?.cargoTypes?.length ?? 0) > 0 && (
                 <div>
                   <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.75rem" }}>
                     Tipos de Mercancía Autorizados
                   </p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                    {detail.cargoTypes.map((ct) => (
+                    {detail?.cargoTypes?.map((ct) => (
                       <span key={ct.cargoTypeId} style={{
                         display: "inline-flex", alignItems: "center", gap: "5px",
                         padding: "4px 10px", borderRadius: "4px",
@@ -275,13 +275,13 @@ function ContractDrawer({
               )}
 
               {/* Rutas */}
-              {detail.routes.length > 0 && (
+              {(detail?.routes?.length ?? 0) > 0 && (
                 <div>
                   <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.75rem" }}>
                     Rutas Contratadas
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {detail.routes.map((cr) => (
+                    {detail?.routes?.map((cr) => (
                       <div key={cr.contractRouteId} style={{
                         background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
                         borderRadius: "6px", padding: "0.85rem",
@@ -290,12 +290,12 @@ function ContractDrawer({
                           <MapPin size={13} style={{ color: "#C9924B", flexShrink: 0, marginTop: "1px" }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {cr.route.origin} <span style={{ color: "#9A9489" }}>→</span> {cr.route.destination}
+                              {cr.route?.origin || "Desconocido"} <span style={{ color: "#9A9489" }}>→</span> {cr.route?.destination || "Desconocido"}
                             </p>
                             <div style={{ display: "flex", gap: "12px", marginTop: "4px", flexWrap: "wrap" }}>
-                              <span style={{ fontSize: "0.65rem", color: "#9A9489" }}>{cr.route.distanceKm} km</span>
-                              <span style={{ fontSize: "0.65rem", color: "#9A9489" }}>Entrega: {cr.promisedDeliveryHours}h</span>
-                              {cr.route.isInternational && (
+                              <span style={{ fontSize: "0.65rem", color: "#9A9489" }}>{cr.route?.distanceKm || 0} km</span>
+                              <span style={{ fontSize: "0.65rem", color: "#9A9489" }}>Entrega: {cr.promisedDeliveryHours || 0}h</span>
+                              {cr.route?.isInternational && (
                                 <span style={{
                                   fontSize: "0.6rem", fontWeight: 700, color: "#8B5CF6",
                                   background: "rgba(139,92,246,0.08)", padding: "1px 6px", borderRadius: "3px",
@@ -303,7 +303,7 @@ function ContractDrawer({
                               )}
                             </div>
                           </div>
-                          <span style={{ fontSize: "0.6rem", color: "#9A9489", flexShrink: 0 }}>{cr.route.routeCode}</span>
+                          <span style={{ fontSize: "0.6rem", color: "#9A9489", flexShrink: 0 }}>{cr.route?.routeCode || "N/A"}</span>
                         </div>
                       </div>
                     ))}
@@ -312,22 +312,22 @@ function ContractDrawer({
               )}
 
               {/* Tarifas */}
-              {detail.rates.length > 0 && (
+              {(detail?.rates?.length ?? 0) > 0 && (
                 <div>
                   <p style={{ fontSize: "0.48rem", letterSpacing: "0.28em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.75rem" }}>
                     Tarifario por Tipo de Unidad
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {detail.rates.map((r) => (
+                    {detail?.rates?.map((r) => (
                       <div key={r.contractRateId} style={{
                         background: "#ffffff", border: "1px solid rgba(12,12,10,0.07)",
                         borderRadius: "6px", padding: "0.85rem",
                       }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.75rem" }}>
                           <Truck size={13} style={{ color: "#C9924B" }} />
-                          <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A" }}>{r.vehicleType.typeName}</p>
+                          <p style={{ fontSize: "0.82rem", fontWeight: 700, color: "#0C0C0A" }}>{r.vehicleType?.typeName || "Unidad"}</p>
                           <span style={{ fontSize: "0.62rem", color: "#9A9489" }}>
-                            ({r.vehicleType.minCapacityTon}{r.vehicleType.maxCapacityTon ? `–${r.vehicleType.maxCapacityTon}` : "+"}t)
+                            ({r.vehicleType?.minCapacityTon || 0}{r.vehicleType?.maxCapacityTon ? `–${r.vehicleType.maxCapacityTon}` : "+"}t)
                           </span>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
