@@ -199,12 +199,14 @@ Ingresa los siguientes datos para el contrato:
 | Rutas Autorizadas | `PBAR-SPS` (Puerto Barrios ↔ San Pedro Sula) |
 | Tipos de Carga | `CARGA GENERAL` |
 
+> **Nota de Mejora**: Ahora el sistema permite la **parametrización individual** de tarifas por tipo de vehículo y rutas específicas para cada contrato. Esto asegura que cada acuerdo comercial sea único y no dependa de configuraciones globales.
+
 > Validación esperada: el formulario debe mostrar símbolo/moneda según el cliente seleccionado. Para recaptura multivisa, usa este mismo flujo con un cliente de otro país/moneda y conserva el resto de pasos.
 
 4. Presiona **"Generar Propuesta"**.
 5. aparecerá un mensaje indicando que la propuesta fue generada correctamente.
 
-![Formulario Formalizar Contrato](imgs/happypath/94_formalizar_contrato_hnl_pbar_sps.jpeg)
+![Formulario Formalizar Contrato con Parametrización Individual](insertar_nueva_captura_contrato_individual.jpg)
 ![Propuesta Generada Correctamente](imgs/happypath/95_formalizar_contrato_propuesta_generada_modal.jpeg)
 
 ### 3.2.1 Correo de propuesta de contrato
@@ -662,11 +664,14 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 	- **Facturación Total** aparece en USD.
 	- El gráfico **Ingresos por Cliente** muestra etiquetas en USD.
 	- El subtítulo de ingresos indica **Monto facturado (USD)**.
+	- **Nuevo**: El gráfico de **Evolución Histórica de Rentabilidad** muestra la tendencia de los últimos 6 meses.
+	- **Nuevo**: El gráfico de **Distribución de Costos Operativos** permite ver el desglose por categoría.
 2. Cambia entre período anual y mensual para verificar estabilidad de cálculo.
 
-> Resultado esperado: todos los montos monetarios del módulo de rentabilidad se muestran normalizados a USD.
+> Resultado esperado: todos los montos monetarios del módulo de rentabilidad se muestran normalizados a USD y los nuevos gráficos cargan datos correctamente.
 
 ![Gerencia - Rentabilidad: Facturación Total e Ingresos por Cliente en USD](imgs/happypath/119_gerencia_rentabilidad_facturacion_total_usd.jpeg)
+![Gerencia - Nuevos Gráficos de Rentabilidad](insertar_nueva_captura_graficos_gerencia.jpg)
 
 ### 12.4 Validar alertas y proyecciones
 

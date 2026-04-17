@@ -840,6 +840,13 @@ LogiTrans soporta operación en tres países con monedas y tasas de impuesto esp
 
 > Los KPIs de gerencia normalizan todos los montos a **USD** para permitir comparativas entre países.
 
+### 8.7 Parametrización Individual de Contratos
+
+Para permitir acuerdos comerciales flexibles, el sistema implementa una **parametrización individual** de tarifas y rutas por contrato:
+- **Tarifas Específicas:** Cada contrato posee su propio set de tarifas en la tabla `CONTRACT_RATES`, desvinculándose de un tarifario global rígido.
+- **Rutas y Cargas:** Las rutas autorizadas (`CONTRACT_ROUTES`) y los tipos de carga permitidos (`CONTRACT_CARGO_TYPES`) se validan contra el ID del contrato activo en cada orden de servicio.
+- **Integridad:** El trigger `VALIDATE_ORDER_ASSIGNMENT` asegura que la orden cumpla con las condiciones pactadas específicamente en su contrato origen.
+
 ---
 
 ## 9. Integraciones externas
