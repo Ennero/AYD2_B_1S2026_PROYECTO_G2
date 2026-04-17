@@ -29,6 +29,8 @@
     - [Frontend](#frontend)
     - [Backend](#backend)
     - [Infraestructura](#infraestructura)
+  - [Arquitectura Actual](#arquitectura-actual)
+  - [Videos de Demostracion](#videos-de-demostracion)
   - [Inicio Rapido](#inicio-rapido)
     - [Requisitos previos](#requisitos-previos)
     - [3 pasos](#3-pasos)
@@ -162,6 +164,24 @@ Regla critica: la factura solo puede enviarse al cliente cuando esta en estado `
 
 ---
 
+## Arquitectura Actual
+
+El sistema se implementa como una **arquitectura híbrida**:
+
+- Coordinación principal **sincrónica** por API REST + PostgreSQL.
+- Capa **asíncrona** con RabbitMQ para eventos de dominio y notificaciones no bloqueantes.
+
+Esta implementación mantiene consistencia transaccional en el flujo principal y desacopla efectos secundarios sin clasificar al sistema como EDA puro.
+
+---
+
+## Videos de Demostracion
+
+- Video (YouTube): https://youtu.be/Wi7t-aH-_w0?si=5yoLN27F77zqG9eu
+- Video (Google Drive): https://drive.google.com/file/d/1ufW0e0h3kbWgO5YF3zCcfsc26B3nqXem/view?usp=sharing
+
+---
+
 ## Inicio Rapido
 
 ### Requisitos previos
@@ -246,6 +266,7 @@ npm run dev
 |---|---|
 | [Manual de Usuario](docs/USER_MANUAL.md) | Guia completa por rol con flujo funcional |
 | [Manual Tecnico](docs/TECHNICAL_MANUAL.md) | Arquitectura, mantenimiento y operacion tecnica |
+| [Reporte de Pruebas](docs/testing-report.md) | Estrategia, ejecucion y plantillas de resultados |
 | [Happy Path](docs/happypath.md) | Evidencia visual end-to-end del MVP |
 | [Despliegue Profundo](docs/despliegue.md) | Guia operativa completa de despliegue |
 | [Deployment Prod](docs/DEPLOYMENT.md) | Despliegue productivo simulado con Nginx |
@@ -349,4 +370,4 @@ Este proyecto utiliza licencia MIT. Consulta el archivo [LICENSE](LICENSE).
 
 ---
 
-**Ultima actualizacion documental:** 05 de abril de 2026.
+**Ultima actualizacion documental:** 17 de abril de 2026.

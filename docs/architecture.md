@@ -31,6 +31,8 @@
 
 El sistema **LogiTrans** es una plataforma de gestión logística y transporte diseñada para operar en múltiples sedes (Ciudad de Guatemala, Xela y Puerto Barrios). Su arquitectura está orientada a soportar la operación diaria de una empresa de transporte de carga, cubriendo desde la negociación comercial y la generación de órdenes de servicio, hasta la facturación electrónica y la inteligencia de negocio gerencial.
 
+**Aclaración del estilo arquitectónico actual:** LogiTrans se implementa como una **arquitectura híbrida**. La coordinación principal del negocio es **sincrónica** (API REST + base de datos relacional compartida) y la mensajería con RabbitMQ se usa para **efectos secundarios asíncronos** (eventos de dominio no bloqueantes), por lo que el sistema no se clasifica como EDA puro.
+
 Los principios que guían la arquitectura son:
 
 | Principio | Descripción |
@@ -45,14 +47,24 @@ Los principios que guían la arquitectura son:
 
 ## 2. Estilo y Patrón Arquitectónico
 
-La plataforma adopta una **arquitectura modular orientada a servicios** con los siguientes elementos:
+La plataforma adopta una **arquitectura híbrida: monolito modular orientado a servicios con capa asíncrona orientada a eventos**:
+
+- **Coordinación sincrónica (principal):** La operación diaria se resuelve por API REST y transacciones de base de datos relacional, priorizando consistencia y trazabilidad en contratos, órdenes, facturas y pagos.
+- **Eventos asíncronos (secundario):** RabbitMQ desacopla efectos secundarios (notificaciones y propagación de eventos) sin bloquear la operación principal cuando un servicio externo está degradado.
+
+Videos de apoyo:
+
+- Video (YouTube): https://youtu.be/Wi7t-aH-_w0?si=5yoLN27F77zqG9eu
+- Video (Google Drive): https://drive.google.com/file/d/1ufW0e0h3kbWgO5YF3zCcfsc26B3nqXem/view?usp=sharing
+
+Elementos de la arquitectura:
 
 - **Backend por módulos:** Cada dominio del negocio (Contratos, Órdenes, Facturación, BI) está encapsulado en un módulo de backend con responsabilidades bien delimitadas, expuesto a través de una API REST.
 - **Frontend desacoplado:** Una aplicación web SPA (Single Page Application) que consume la API del backend, permitiendo que ambas capas escalen de forma independiente.
 - **Contenerización (Docker):** Todos los servicios se empaquetan en contenedores para garantizar la portabilidad entre ambientes (desarrollo, staging, producción on-premise y futura nube).
 - **Integración con sistemas externos:** El sistema expone y consume interfaces estándar para integrarse con el Certificador FEL (SAT) y potenciales ERPs de clientes corporativos.
 - **Base de datos relacional centralizada:** Almacena la información de todos los módulos con integridad referencial, asegurando consistencia de datos entre Contratos, Órdenes, Facturación y Reportes.
-- **Mensajería asíncrona (RabbitMQ):** Eventos de dominio entre módulos desacoplados mediante un message broker, garantizando que los cambios de estado no queden bloqueados por servicios externos.
+- **Mensajería asíncrona (RabbitMQ):** Eventos de dominio entre módulos desacoplados mediante un message broker para notificaciones y efectos secundarios no bloqueantes.
 
 ---
 
