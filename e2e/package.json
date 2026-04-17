@@ -8,6 +8,7 @@
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
+    "test:json": "playwright test --reporter=json 2>&1 | tee ../tests/reports/e2e-results.json",
     "install:browsers": "playwright install --with-deps chromium"
   },
   "devDependencies": {

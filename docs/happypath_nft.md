@@ -164,7 +164,7 @@ Se eligió k6 para este proyecto porque:
 - Los scripts son código JavaScript legible y versionable en el repositorio.
 - Permite definir **stages** (fases de VUs) y **thresholds** (umbrales de aprobación/fallo) de forma declarativa.
 - Produce métricas estándar (`http_req_duration`, `http_req_failed`) y métricas personalizadas (`Trend`, `Rate`, `Counter`).
-- El CI/CD del proyecto (GitHub Actions) tiene un job `k6-load` y `k6-stress` en el stage `post-deploy` que ejecuta exactamente estos scripts.
+- Actualmente en este repositorio las pruebas k6 se ejecutan **manualmente** (local o entorno productivo simulado) y no forman parte del workflow automático de `Build & Test`.
 
 **VU (Virtual User):** un usuario simulado que ejecuta el script en un loop continuo. 50 VUs simultáneos = 50 usuarios haciendo requests al mismo tiempo.
 

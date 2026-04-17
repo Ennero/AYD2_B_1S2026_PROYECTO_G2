@@ -126,6 +126,13 @@ Este manual técnico documenta de forma exhaustiva la arquitectura, decisiones t
 
 LogiTrans implementa una arquitectura de tres capas con clara separación de responsabilidades:
 
+Además de la vista por capas, el estilo operativo vigente es **híbrido**:
+
+- **Sincrónico principal:** API REST + PostgreSQL para el flujo transaccional crítico.
+- **Asíncrono secundario:** RabbitMQ para eventos de dominio y efectos secundarios no bloqueantes.
+
+Esta combinación evita clasificar al sistema como EDA puro.
+
 | Capa | Tecnología | Responsabilidad |
 |---|---|---|
 | **Presentación** | Next.js 16 (App Router) | SPA por rol, consumo de API REST, SSR parcial |
@@ -213,6 +220,11 @@ Internet → Nginx (443/80) → [api-1 | api-2] → db-primary
 ![Diagrama de despliegue productivo — LogiTrans](imgs/architecture/deployment-diagram.png)
 
 > El diagrama de despliegue muestra la topología productiva simulada sobre Docker: nginx como load balancer que distribuye entre dos réplicas del backend, ambas conectadas a la base de datos primaria y a la réplica de solo lectura para reportes de gerencia.
+
+Videos de referencia para despliegue y validación:
+
+- Video (Google Drive): https://drive.google.com/file/d/1ufW0e0h3kbWgO5YF3zCcfsc26B3nqXem/view?usp=sharing
+- Video (YouTube): https://youtu.be/Wi7t-aH-_w0?si=5yoLN27F77zqG9eu
 
 ### 2.4 Principios arquitectónicos aplicados
 
@@ -389,6 +401,8 @@ Cada módulo sigue la siguiente estructura de directorios:
 
 LogiTrans utiliza **RabbitMQ 3.13** (`rabbitmq:3-management-alpine`) como message broker para la propagación de eventos de negocio asíncronos entre módulos. La integración en NestJS se realiza mediante las librerías:
 
+> Nota de arquitectura: RabbitMQ funciona como capa asíncrona auxiliar (eventos y notificaciones), mientras que la coordinación principal del negocio permanece en API REST + PostgreSQL.
+
 | Dependencia | Versión | Rol |
 |---|---|---|
 | `@nestjs/microservices` | `^11.0.1` | Módulo de transporte de NestJS |
@@ -444,6 +458,10 @@ await this.rabbitmq.emit('orden.entregada', { orderId, pilotId, deliveredAt });
 ![Diagrama de secuencia — Eventos y notificaciones](imgs/flow/sequence-diagram.png)
 
 > El diagrama de secuencia detalla las interacciones entre los módulos cuando ocurre una entrega: la orden actualiza su estado, dispara el trigger de creación de factura borrador, y el servicio de notificaciones envía correo al cliente y al agente financiero de forma asíncrona sin bloquear la respuesta al piloto.
+
+Video de referencia del flujo técnico:
+
+- https://youtu.be/Wi7t-aH-_w0?si=5yoLN27F77zqG9eu
 
 ---
 
@@ -822,6 +840,13 @@ LogiTrans soporta operación en tres países con monedas y tasas de impuesto esp
 
 > Los KPIs de gerencia normalizan todos los montos a **USD** para permitir comparativas entre países.
 
+### 8.7 Parametrización Individual de Contratos
+
+Para permitir acuerdos comerciales flexibles, el sistema implementa una **parametrización individual** de tarifas y rutas por contrato:
+- **Tarifas Específicas:** Cada contrato posee su propio set de tarifas en la tabla `CONTRACT_RATES`, desvinculándose de un tarifario global rígido.
+- **Rutas y Cargas:** Las rutas autorizadas (`CONTRACT_ROUTES`) y los tipos de carga permitidos (`CONTRACT_CARGO_TYPES`) se validan contra el ID del contrato activo en cada orden de servicio.
+- **Integridad:** El trigger `VALIDATE_ORDER_ASSIGNMENT` asegura que la orden cumpla con las condiciones pactadas específicamente en su contrato origen.
+
 ---
 
 ## 9. Integraciones externas
@@ -999,6 +1024,15 @@ docker compose exec db psql -U postgres -d logitrans -c "SELECT NOW();"
 ---
 
 ## 13. Pruebas y calidad
+
+Referencia detallada del reporte de pruebas y plantillas de resultados:
+
+- `docs/testing-report.md`
+
+Ejecución en pipeline CI actual:
+
+- Automático en GitHub Actions: **unitarias** (`npm run test`) e **integración** (`npm run test:integration`) del backend.
+- Ejecución manual fuera de pipeline: **E2E** (Playwright), **carga** y **estrés** (k6).
 
 ### Flujo de validación mínimo por cambio
 

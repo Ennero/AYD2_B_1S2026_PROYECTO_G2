@@ -53,6 +53,7 @@ export const dataSourceOptions: DataSourceOptions = {
   migrations: [__dirname + '/../typeorm/migrations/*{.ts,.js}'],
   synchronize: false,
   logging: databaseConfig.logging,
+  extra: { family: 4 }, // Force IPv4 — ECS Fargate VPC has no IPv6 routing
 };
 
 const dataSource = new DataSource(dataSourceOptions);

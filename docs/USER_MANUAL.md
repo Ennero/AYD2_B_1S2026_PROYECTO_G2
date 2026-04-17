@@ -305,7 +305,7 @@ El listado de órdenes se refresca automáticamente mediante un mecanismo de pol
 - **Factura emitida:** cuando el Agente Financiero envía la factura certificada.
 
 **¿Qué pasa si falla el envío de correo?**
-El cambio de estado de la orden es válido y no se revierte. El sistema usa un message broker (RabbitMQ) para desacoplar los cambios de estado de sus notificaciones: el evento queda registrado en la cola aunque el correo falle, garantizando que la operación logística nunca se bloquee por un problema del servidor de correo.
+El cambio de estado de la orden es válido y no se revierte. El sistema desacopla notificaciones con una capa asíncrona (RabbitMQ + servicio de correo), por lo que un fallo de notificación no bloquea la operación logística principal. Si la infraestructura de mensajería/correo está degradada, la operación continúa y el incidente debe revisarse en monitoreo técnico.
 
 **¿Puedo crear una orden sin contrato vigente?**
 No. El sistema bloquea la creación de órdenes si el cliente no tiene un contrato en estado `VIGENTE`.
@@ -375,6 +375,11 @@ Documentos de apoyo:
 ### 10.1 Flujo completo integrado del Happy Path
 
 A continuación se integra el flujo completo documentado en `docs/happypath.md`, incluyendo pasos, validaciones y evidencias visuales.
+
+Videos de demostración relacionados:
+
+- Video (YouTube): https://youtu.be/Wi7t-aH-_w0?si=5yoLN27F77zqG9eu
+- Video (Google Drive): https://drive.google.com/file/d/1ufW0e0h3kbWgO5YF3zCcfsc26B3nqXem/view?usp=sharing
 
 ### Índice del Flujo
 

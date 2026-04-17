@@ -25,6 +25,11 @@ El beneficio concreto para LogiTrans:
 - Nadie puede olvidarse de desplegar — el push a `production` lo hace automáticamente.
 - Cada imagen desplegada tiene el SHA del commit como tag — siempre se sabe exactamente qué versión está corriendo en producción.
 
+Videos de referencia actualizados:
+
+- Video (Google Drive): https://drive.google.com/file/d/1ufW0e0h3kbWgO5YF3zCcfsc26B3nqXem/view?usp=sharing
+- Video (YouTube): https://youtu.be/Wi7t-aH-_w0?si=5yoLN27F77zqG9eu
+
 ---
 
 ## 2. Estructura de ramas
