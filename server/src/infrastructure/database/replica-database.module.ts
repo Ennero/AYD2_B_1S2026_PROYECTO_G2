@@ -33,8 +33,8 @@ export const REPLICA_DATA_SOURCE = 'REPLICA_DATA_SOURCE';
           database: target.database,
           entities: databaseEntities,
           synchronize: false,
-          // Keep replica logging off — high-frequency reads would flood the console
           logging: false,
+          extra: { family: 4 }, // Force IPv4 — ECS Fargate VPC has no IPv6 routing
         };
 
         const ds = new DataSource(options);
