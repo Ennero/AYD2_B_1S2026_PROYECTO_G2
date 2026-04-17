@@ -5,12 +5,19 @@
  * bottlenecks, and recovery behaviour.
  *
  * Prerequisites:
- *   - docker-compose up -d (LogiTrans stack running)
- *   - k6 installed: brew install k6
+ *   - docker compose up -d (LogiTrans stack running on port 3006)
+ *   - k6 installed OR available via Docker:
+ *       docker run --rm -i --network host grafana/k6 run - < tests/k6/stress/api.stress.js
  *
- * Run:
+ * Run (local k6):
  *   k6 run tests/k6/stress/api.stress.js
  *   k6 run --env BASE_URL=http://myserver:3006 tests/k6/stress/api.stress.js
+ *
+ * Run (Docker k6 — no install needed):
+ *   docker run --rm -i --network host grafana/k6 run - < tests/k6/stress/api.stress.js
+ *
+ * Save output to JSON:
+ *   k6 run --out json=stress-result.json tests/k6/stress/api.stress.js
  */
 
 import http from 'k6/http';
@@ -43,12 +50,16 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3006';
 
+// Credenciales reales del seed del proyecto (database-seeder.ts)
 const USERS = [
-  { email: 'agente.operativo@logitrans.com', password: 'password123' },
-  { email: 'agente.logistico@logitrans.com', password: 'password123' },
-  { email: 'piloto@logitrans.com',           password: 'password123' },
-  { email: 'cliente@logitrans.com',          password: 'password123' },
+  { email: '2895884051401+v@ingenieria.usac.edu.gt', password: 'LogiVentas'    }, // AGENTE_OPERATIVO
+  { email: '2895884051401+l@ingenieria.usac.edu.gt', password: 'LogiLogistica' }, // AGENTE_LOGISTICO
+  { email: '2895884051401+t@ingenieria.usac.edu.gt', password: 'LogiPiloto'    }, // PILOTO
+  { email: '2895884051401@ingenieria.usac.edu.gt',   password: 'LogiGerencia'  }, // GERENCIA
 ];
+
+// BI solo acepta el rol GERENCIA — se usa un usuario dedicado para ese endpoint
+const GERENCIA_USER = { email: '2895884051401@ingenieria.usac.edu.gt', password: 'LogiGerencia' };
 
 // ── Test 1: Health check survivability under stress ───────────────────────────
 function stressHealth() {
@@ -62,7 +73,7 @@ function stressHealth() {
 // ── Test 2: Login endpoint under stress ───────────────────────────────────────
 function stressLogin(user) {
   const res = http.post(
-    `${BASE_URL}/auth/login`,
+    `${BASE_URL}/api/auth/login`,
     JSON.stringify({ email: user.email, password: user.password }),
     { headers: { 'Content-Type': 'application/json' }, timeout: '5s' },
   );
@@ -72,13 +83,17 @@ function stressLogin(user) {
     'login survives stress': (r) => r.status === 200 || r.status === 201 || r.status === 429,
   });
   errorRate.add(!ok);
-  return res.status === 200 || res.status === 201 ? res.json('access_token') : null;
+  try {
+    return res.json('data.token');
+  } catch (_) {
+    return null;
+  }
 }
 
 // ── Test 3: Concurrent order reads ────────────────────────────────────────────
 function stressOrders(token) {
   if (!token) return;
-  const res = http.get(`${BASE_URL}/orders`, {
+  const res = http.get(`${BASE_URL}/api/logistics/orders`, {
     headers: { Authorization: `Bearer ${token}` },
     timeout: '5s',
   });
@@ -90,10 +105,10 @@ function stressOrders(token) {
   errorRate.add(!ok);
 }
 
-// ── Test 4: BI/analytics under stress (read-replica path) ─────────────────────
+// ── Test 4: BI/analytics under stress ─────────────────────────────────────────
 function stressBi(token) {
   if (!token) return;
-  const res = http.get(`${BASE_URL}/bi/summary`, {
+  const res = http.get(`${BASE_URL}/api/bi/kpis`, {
     headers: { Authorization: `Bearer ${token}` },
     timeout: '8s',
   });
@@ -109,7 +124,7 @@ function stressBi(token) {
 function stressRapidAuth(user) {
   for (let i = 0; i < 3; i++) {
     const res = http.post(
-      `${BASE_URL}/auth/login`,
+      `${BASE_URL}/api/auth/login`,
       JSON.stringify({ email: user.email, password: user.password }),
       { headers: { 'Content-Type': 'application/json' }, timeout: '3s' },
     );
@@ -130,7 +145,9 @@ export default function () {
   stressOrders(token);
   sleep(0.1);
 
-  stressBi(token);
+  // BI requiere rol GERENCIA — se loguea con usuario dedicado
+  const gerenciaToken = stressLogin(GERENCIA_USER);
+  stressBi(gerenciaToken);
   sleep(0.1);
 
   // Every 5th VU iteration runs the rapid-auth spike scenario
