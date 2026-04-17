@@ -15,7 +15,7 @@ const STATS = [
 
 export default function EncargadoPatioPage() {
   const { user } = useAuth()
-  const name = user?.fullName ?? "Encargado"
+  const name = user?.fullName || "Encargado"
   const firstName = name.split(" ")[0]
 
   return (

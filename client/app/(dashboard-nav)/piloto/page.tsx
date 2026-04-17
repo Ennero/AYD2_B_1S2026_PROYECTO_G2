@@ -65,7 +65,7 @@ export default function PilotoDashboardPage() {
     }
   }
 
-  const firstName = user?.fullName?.split(" ")[0] ?? "Piloto"
+  const firstName = (user?.fullName || "Piloto").split(" ")[0]
 
   /* ── Active trip (EN_TRANSITO) ── */
   const activo = viajes.find(v => v.status === "EN_TRANSITO")

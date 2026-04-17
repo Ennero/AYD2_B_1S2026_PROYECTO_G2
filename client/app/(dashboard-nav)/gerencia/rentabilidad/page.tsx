@@ -40,8 +40,8 @@ function BarChart({ data }: { data: RevenueClient[] }) {
   if (!data.length) return <p style={{ textAlign: "center", fontSize: "0.78rem", color: "#9A9489", padding: "2.5rem 0" }}>Sin datos para el período</p>
   const W = 540; const H = 200; const PAD = { top: 20, bottom: 44, left: 10, right: 10 }
   const chartW = W - PAD.left - PAD.right; const chartH = H - PAD.top - PAD.bottom
-  const maxVal = Math.max(...data.map((d) => d.ingresos))
-  const barGroupW = chartW / data.length; const barW = Math.min(barGroupW * 0.4, 32)
+  const maxVal = Math.max(...data.map((d) => d.ingresos), 1)
+  const barGroupW = chartW / (data.length || 1); const barW = Math.min(barGroupW * 0.4, 32)
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%" }} aria-label="Ingresos por cliente">
       <defs>
@@ -58,9 +58,9 @@ function BarChart({ data }: { data: RevenueClient[] }) {
         const x = PAD.left + i * barGroupW + barGroupW / 2
         const barH = (d.ingresos / maxVal) * chartH
         const barY = PAD.top + chartH - barH
-        const shortName = d.clientName.split(" ")[0]
+        const shortName = d.clientName?.split(" ")[0] || "Cliente"
         return (
-          <g key={d.clientName}>
+          <g key={d.clientName || i}>
             <rect x={x - barW / 2} y={barY} width={barW} height={barH} fill="url(#barGrad)" rx={2} />
             <text x={x} y={barY - 5} textAnchor="middle" fontSize={7.5} fill="#C9924B" fontWeight="700">{formatUsd(d.ingresos)}</text>
             <text x={x} y={H - PAD.bottom + 14} textAnchor="middle" fontSize={8.5} fill="#9A9489">
@@ -81,10 +81,10 @@ function LineChart({ data }: { data: DeliveryTime[] }) {
   const W = 540; const H = 200; const PAD = { top: 20, bottom: 38, left: 38, right: 12 }
   const chartW = W - PAD.left - PAD.right; const chartH = H - PAD.top - PAD.bottom
   const allVals = reversed.flatMap((d) => [d.prometidoHrs, d.realHrs])
-  const maxVal  = Math.max(...allVals) * 1.1
+  const maxVal  = Math.max(...allVals, 1) * 1.1
   const stepX   = chartW / (reversed.length - 1 || 1)
   const toX = (i: number) => PAD.left + i * stepX
-  const toY = (v: number) => PAD.top + chartH - (v / maxVal) * chartH
+  const toY = (v: number) => PAD.top + chartH - (v / (maxVal || 1)) * chartH
   const pathP = reversed.map((d, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(1)},${toY(d.prometidoHrs).toFixed(1)}`).join(" ")
   const pathR = reversed.map((d, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(1)},${toY(d.realHrs).toFixed(1)}`).join(" ")
   return (

@@ -38,19 +38,21 @@ function TrendChart({ trend }: { trend: TrendRow[] }) {
   const chartW = W - PAD.left - PAD.right
   const chartH = H - PAD.top - PAD.bottom
 
-  const maxVal = Math.max(...trend.map((d) => d.ordenes)) * 1.3
-  const stepX  = chartW / (trend.length + 2)
+  const maxVal = Math.max(...trend.map((d) => d.ordenes), 1) * 1.3
+  const stepX  = chartW / ((trend.length || 1) + 2)
 
   const toX = (i: number) => PAD.left + i * stepX
-  const toY = (v: number) => PAD.top + chartH - (v / maxVal) * chartH
+  const toY = (v: number) => PAD.top + chartH - (v / (maxVal || 1)) * chartH
 
   // Linear regression for projection
-  const n = trend.length
+  const n = trend.length || 1
   const sumX  = trend.reduce((s, _, i) => s + i, 0)
   const sumY  = trend.reduce((s, d) => s + d.ordenes, 0)
   const sumXY = trend.reduce((s, d, i) => s + i * d.ordenes, 0)
   const sumX2 = trend.reduce((s, _, i) => s + i * i, 0)
-  const slope     = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
+  
+  const denom = (n * sumX2 - sumX * sumX)
+  const slope     = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0
   const intercept = (sumY - slope * sumX) / n
 
   const projCount = 4
@@ -59,8 +61,12 @@ function TrendChart({ trend }: { trend: TrendRow[] }) {
     v: Math.max(0, Math.round(intercept + slope * (n + i))),
   }))
 
-  const realPath = trend.map((d, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(1)},${toY(d.ordenes).toFixed(1)}`).join(" ")
-  const projStart = `M${toX(n - 1).toFixed(1)},${toY(trend[n - 1].ordenes).toFixed(1)}`
+  const realPath = trend.length > 0 
+    ? trend.map((d, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(1)},${toY(d.ordenes).toFixed(1)}`).join(" ")
+    : `M${PAD.left},${PAD.top + chartH}`
+
+  const lastTrendVal = trend.length > 0 ? trend[trend.length - 1].ordenes : 0
+  const projStart = `M${toX(Math.max(0, n - 1)).toFixed(1)},${toY(lastTrendVal).toFixed(1)}`
   const projPath  = projStart + " " + projPoints.map((p) => `L${toX(p.i).toFixed(1)},${toY(p.v).toFixed(1)}`).join(" ")
 
   return (
