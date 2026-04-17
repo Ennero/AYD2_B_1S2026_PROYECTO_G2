@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { Transport } from '@nestjs/microservices';
 import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
@@ -16,6 +17,17 @@ async function bootstrap() {
   await ensureDatabaseExists();
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.connectMicroservice({
+    transport: Transport.RMQ,
+    options: {
+      urls: [process.env.RABBITMQ_URL ?? 'amqp://guest:guest@localhost:5672'],
+      queue: 'logitrans_queue',
+      queueOptions: { durable: true },
+      noAck: false,
+    },
+  });
+
   app.use(cookieParser());
   app.useBodyParser('json', { limit: '10mb' });
   app.useGlobalPipes(
@@ -40,6 +52,8 @@ async function bootstrap() {
   }
 
   await alignIdentitySequences(dataSource);
+
+  await app.startAllMicroservices();
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');

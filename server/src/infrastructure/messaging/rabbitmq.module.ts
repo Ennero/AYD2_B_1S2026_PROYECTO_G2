@@ -2,12 +2,14 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { RabbitmqService } from './rabbitmq.service';
+import { RabbitmqConsumerController } from './rabbitmq.consumer';
 import { RABBITMQ_CLIENT } from './rabbitmq.constants';
 
 export { RABBITMQ_CLIENT };
 
 @Global()
 @Module({
+  controllers: [RabbitmqConsumerController],
   providers: [
     {
       provide: RABBITMQ_CLIENT,
