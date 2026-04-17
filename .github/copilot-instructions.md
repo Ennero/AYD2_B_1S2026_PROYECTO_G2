@@ -238,3 +238,76 @@ Manual alignment decisions applied:
 
 ### 4) Remaining risks / pending enhancements
 - The integrated flow is intentionally verbose; future updates to `docs/happypath.md` should be mirrored in `docs/USER_MANUAL.md` section 10 to prevent divergence.
+
+## Documentation and Testing Report Alignment Update (2026-04-17)
+
+### 1) New testing report manual created
+- Created full testing report at:
+  - `docs/testing-report.md`
+- Included:
+  - scope and strategy for unit, integration, E2E, load, and stress tests
+  - exact execution commands from repository scripts/workflows
+  - explicit CI section confirming only unit + integration run automatically
+  - result templates intentionally left blank for future completion (date, executor, environment, pass/fail, metrics, evidence, observations, scoring)
+
+### 2) Architecture narrative synchronized to current implementation
+- Updated `docs/architecture.md` to explain architecture style at the beginning as:
+  - hybrid model: synchronous REST + shared PostgreSQL as primary coordination
+  - asynchronous RabbitMQ events as secondary non-blocking side-effects
+- Avoided framing the platform as pure EDA.
+
+### 3) Cross-document consistency updates
+- Updated `docs/TECHNICAL_MANUAL.md`:
+  - added hybrid architecture clarification in architecture section
+  - reinforced RabbitMQ as auxiliary async layer in message broker section
+  - aligned testing section with real CI behavior (automatic: unit/integration; manual: E2E/k6)
+  - linked detailed report `docs/testing-report.md`
+- Updated `docs/USER_MANUAL.md`:
+  - corrected FAQ statement about notification failure semantics to avoid overclaiming queue guarantees
+  - added demo video references in section 10
+- Updated `README.md`:
+  - added hybrid architecture summary section
+  - added demo video section
+  - added `docs/testing-report.md` in documentation table
+  - refreshed documentation date
+- Updated `docs/happypath_cicd.md` with updated demo video references.
+- Updated `docs/happypath_nft.md` to correct CI claim: k6 is manual in current repo workflows.
+
+### 4) Video references inserted where requested
+- Added both links to the agreed documentation points:
+  - `https://drive.google.com/file/d/1ufW0e0h3kbWgO5YF3zCcfsc26B3nqXem/view?usp=sharing`
+  - `https://youtu.be/Wi7t-aH-_w0?si=5yoLN27F77zqG9eu`
+- Files updated with video references:
+  - `docs/testing-report.md`
+  - `docs/architecture.md`
+  - `docs/TECHNICAL_MANUAL.md`
+  - `docs/USER_MANUAL.md`
+  - `README.md`
+  - `docs/happypath_cicd.md`
+
+### 5) Validation executed for this update
+- Documentation consistency review completed for:
+  - `docs/testing-report.md`
+  - `docs/architecture.md`
+  - `docs/TECHNICAL_MANUAL.md`
+  - `docs/USER_MANUAL.md`
+  - `README.md`
+  - `docs/happypath_cicd.md`
+  - `docs/happypath_nft.md`
+- Workflow/source alignment verified against:
+  - `.github/workflows/github-actions-colibri.yml`
+  - `server/package.json`
+  - `e2e/package.json`
+  - `tests/k6/load/LOAD_TESTING.md`
+  - `tests/k6/stress/STRESS_TESTING.md`
+- No build/test/runtime execution required (documentation-only update).
+
+### 6) Canonical conventions preserved
+- Invoice lifecycle preserved: `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`.
+- Payment lifecycle preserved and separate: `PENDIENTE -> APROBADO/RECHAZADO`.
+- Order lifecycle preserved: `REGISTRADA -> ASIGNADA -> LISTA_PARA_DESPACHO -> EN_TRANSITO -> ENTREGADA`.
+
+### 7) Remaining risks / pending enhancements
+- Testing report templates are intentionally empty and require team execution evidence to be completed.
+- If k6 is later integrated into CI, docs must be updated again to avoid drift with current workflow reality.
+- If strict notification delivery guarantees are needed, consider outbox/retry strategy and update docs accordingly.

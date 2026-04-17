@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
 import { DataSource, In, Not } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
@@ -19,7 +19,7 @@ interface DashboardSummaryFilters {
 }
 
 @Injectable()
-export class CertifierService {
+export class CertifierService implements OnModuleInit {
   private readonly logger = new Logger(CertifierService.name);
 
   constructor(
@@ -63,6 +63,42 @@ export class CertifierService {
     });
   }
 
+  async getQueuedInvoices() {
+    return this.dataSource.getRepository(Invoice).find({
+      where: { status: InvoiceStatus.EN_ESPERA },
+      select: ['invoiceId', 'invoiceNumber', 'issueDate', 'clientName', 'clientNit', 'totalAmount', 'currencyCode', 'status'],
+      order: { issueDate: 'ASC' },
+    });
+  }
+
+  onModuleInit() {
+    // Retry queued invoices every 5 minutes automatically
+    setInterval(() => void this.retryQueuedInvoices(), 5 * 60 * 1000);
+  }
+
+  // Move EN_ESPERA invoices back to BORRADOR so the certifier can retry them
+  async retryQueuedInvoices(): Promise<void> {
+    const queuedInvoices = await this.dataSource.getRepository(Invoice).find({
+      where: { status: InvoiceStatus.EN_ESPERA },
+    });
+
+    if (queuedInvoices.length === 0) return;
+
+    this.logger.log(`[FEL Queue] Reintentando ${queuedInvoices.length} facturas en espera...`);
+
+    for (const invoice of queuedInvoices) {
+      try {
+        await this.dataSource.getRepository(Invoice).update(
+          { invoiceId: invoice.invoiceId },
+          { status: InvoiceStatus.BORRADOR },
+        );
+        this.logger.log(`[FEL Queue] Factura ${invoice.invoiceNumber} devuelta a BORRADOR para reintentar certificación.`);
+      } catch (err) {
+        this.logger.error(`[FEL Queue] Error al reintentar ${invoice.invoiceNumber}: ${(err as Error).message}`);
+      }
+    }
+  }
+
   async validateNit(invoiceId: number, clientNit: string) {
     const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
@@ -100,6 +136,24 @@ export class CertifierService {
         );
       }
 
+      // Simulate FEL service availability check.
+      // In production, replace this block with a real HTTP call to the SAT/FEL provider.
+      // If the provider is unreachable, the invoice is moved to EN_ESPERA and retried automatically.
+      const felServiceAvailable = await this.checkFelServiceAvailability();
+      if (!felServiceAvailable) {
+        targetInvoice.status = InvoiceStatus.EN_ESPERA;
+        await invoiceRepo.save(targetInvoice);
+        this.logger.warn(
+          `[FEL] Servicio no disponible. Factura ${targetInvoice.invoiceNumber} puesta EN_ESPERA. Se reintentará automáticamente cada 5 minutos.`,
+        );
+        this.rabbitmq.emit('factura.en_espera', {
+          invoiceId:     targetInvoice.invoiceId,
+          invoiceNumber: targetInvoice.invoiceNumber,
+          queuedAt:      new Date().toISOString(),
+        });
+        return targetInvoice;
+      }
+
       const crypto = require('crypto');
       const generatedFelUuid = crypto.randomUUID();
 
@@ -132,6 +186,15 @@ export class CertifierService {
 
       return targetInvoice;
     });
+
+    if (invoice.status === InvoiceStatus.EN_ESPERA) {
+      return {
+        invoiceId: invoice.invoiceId,
+        status: invoice.status,
+        felUuid: null,
+        certifiedAt: null,
+      };
+    }
 
     await this.notifyFinanceTeam(
       `FEL certificó ${invoice.invoiceNumber}`,
@@ -202,6 +265,23 @@ export class CertifierService {
         status: invoice.status,
       };
     });
+  }
+
+  private async checkFelServiceAvailability(): Promise<boolean> {
+    // Production: replace with real HTTP ping to SAT/FEL provider endpoint.
+    // Returns false when the provider is unreachable, triggering EN_ESPERA queuing.
+    // Environment variable FEL_SERVICE_URL controls the real endpoint.
+    const felUrl = process.env.FEL_SERVICE_URL;
+    if (!felUrl) return true; // no URL configured → assume available (dev mode)
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch(`${felUrl}/health`, { signal: controller.signal });
+      clearTimeout(timeout);
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 
   private async notifyFinanceTeam(

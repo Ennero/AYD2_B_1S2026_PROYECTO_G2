@@ -72,6 +72,22 @@
         {
           "name": "RABBITMQ_URL",
           "valueFrom": "arn:aws:ssm:us-east-1:<ACCOUNT_ID>:parameter/logitrans/prod/RABBITMQ_URL"
+        },
+        {
+          "name": "DB_REPLICA_HOST",
+          "valueFrom": "arn:aws:ssm:us-east-1:<ACCOUNT_ID>:parameter/logitrans/prod/DB_REPLICA_HOST"
+        },
+        {
+          "name": "DB_REPLICA_PORT",
+          "valueFrom": "arn:aws:ssm:us-east-1:<ACCOUNT_ID>:parameter/logitrans/prod/DB_REPLICA_PORT"
+        },
+        {
+          "name": "DB_REPLICA_USERNAME",
+          "valueFrom": "arn:aws:ssm:us-east-1:<ACCOUNT_ID>:parameter/logitrans/prod/DB_REPLICA_USERNAME"
+        },
+        {
+          "name": "DB_REPLICA_ENABLED",
+          "valueFrom": "arn:aws:ssm:us-east-1:<ACCOUNT_ID>:parameter/logitrans/prod/DB_REPLICA_ENABLED"
         }
       ],
       "logConfiguration": {
