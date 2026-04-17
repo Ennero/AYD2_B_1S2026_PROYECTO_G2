@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { useAuth } from "@/hooks/useAuth"
+import { useEvents } from "@/hooks/useEvents"
 import { CheckCircle2, TrendingUp, AlertTriangle, RefreshCw, Calendar, ChevronDown, DollarSign, Activity } from "lucide-react"
 
 const EASE = [0.16, 1, 0.3, 1] as const
@@ -341,6 +342,9 @@ export default function GerenciaDashboardPage() {
       setLoading(false); setRefreshing(false)
     }
   }, [period, year, month])
+
+  // Real-time updates via WebSockets
+  useEvents("gerencia", () => fetchAll(true))
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
