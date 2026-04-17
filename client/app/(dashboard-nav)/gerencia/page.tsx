@@ -304,7 +304,7 @@ function PeriodBar({
 ══════════════════════════════════════════════════════════ */
 export default function GerenciaDashboardPage() {
   const { user } = useAuth()
-  const firstName = user?.fullName?.split(" ")[0] ?? "Gerencia"
+  const firstName = (user?.fullName || "Gerencia").split(" ")[0]
 
   const now = new Date()
   const [year, setYear]   = useState(now.getFullYear())
