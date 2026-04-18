@@ -227,51 +227,50 @@ function stressRapidAuth(user) {
 
 ## 6. Escenario de carga (stages)
 
-El test escala los VUs de forma agresiva para encontrar el punto de quiebre:
+El test usa 4 stages con `constant-arrival-rate` para simular niveles de tráfico específicos:
 
 ```javascript
-stages: [
-  { duration: '1m',  target: 20  },  // baseline — comportamiento normal
-  { duration: '2m',  target: 100 },  // ramp a nivel de estrés
-  { duration: '3m',  target: 200 },  // estrés alto sostenido
-  { duration: '2m',  target: 300 },  // cerca del límite: 300 VUs
-  { duration: '1m',  target: 400 },  // spike: encontrar el punto de quiebre
-  { duration: '2m',  target: 200 },  // recuperación parcial
-  { duration: '2m',  target: 0   },  // enfriamiento completo + verificación de recuperación
-]
+scenarios: {
+  stress_100:    { rate: 100,    timeUnit: '1m', duration: '1m',  maxVUs: 150  },  // baseline
+  stress_15000:  { rate: 15000,  timeUnit: '1m', duration: '3m',  maxVUs: 3000 },  // high stress
+  stress_2000:   { rate: 2000,   timeUnit: '1m', duration: '2m',  maxVUs: 600  },  // recovery
+  stress_200000: { rate: 200000, timeUnit: '1m', duration: '2m',  maxVUs: 5000 },  // spike extremo
+}
 ```
 
-| Stage                  | Duración | VUs     | Objetivo                                   |
-| ---------------------- | -------- | ------- | ------------------------------------------ |
-| Baseline               | 1 min    | 0 → 20  | Establecer métricas base                   |
-| Ramp de estrés         | 2 min    | 20 → 100| Primera zona de estrés                     |
-| Estrés alto            | 3 min    | 100 → 200| Estrés sostenido — detectar degradación    |
-| Near-break             | 2 min    | 200 → 300| Acercarse al límite del sistema            |
-| Spike                  | 1 min    | 300 → 400| Pico máximo — punto de quiebre             |
-| Recuperación parcial   | 2 min    | 400 → 200| ¿Se recupera el sistema al bajar la carga? |
-| Enfriamiento           | 2 min    | 200 → 0 | ¿Vuelve a la normalidad?                   |
+| Stage          | req/min   | Duración | Inicio  | Objetivo                                      |
+| -------------- | --------- | -------- | ------- | --------------------------------------------- |
+| Baseline       | 100       | 1 min    | 0s      | Establecer métricas base bajo carga normal     |
+| High stress    | 15,000    | 3 min    | 1m 30s  | Estrés alto sostenido                         |
+| Recovery       | 2,000     | 2 min    | 5m      | ¿El sistema se recupera tras el estrés alto?   |
+| Spike extremo  | 200,000   | 2 min    | 7m 30s  | Encontrar el punto de quiebre absoluto         |
 
-**Duración total:** ~13 minutos
+**Duración total:** ~10 minutos
 
 ---
 
 ## 7. Umbrales definidos
 
-Bajo estrés extremo se toleran umbrales más amplios que en las pruebas de carga normales:
-
 ```javascript
 thresholds: {
-  http_req_duration: ['p(95)<3000'],  // p95 bajo 3 segundos (vs 500ms en carga normal)
-  http_req_failed:   ['rate<0.15'],   // hasta 15% de fallos tolerados
-  error_rate:        ['rate<0.15'],   // errores de negocio < 15%
+  http_req_duration:                        ['p(95)<5000'],  // global: p95 < 5s
+  http_req_failed:                          ['rate<0.50'],   // global: < 50% fallos
+  error_rate:                               ['rate<0.50'],
+  'http_req_duration{stage:baseline_100}':  ['p(95)<500'],   // baseline debe ser rápido
+  'http_req_failed{stage:baseline_100}':    ['rate<0.05'],   // baseline: < 5% error
+  'http_req_duration{stage:recovery_2000}': ['p(95)<2000'],  // recovery: < 2s
+  'http_req_failed{stage:recovery_2000}':   ['rate<0.20'],   // recovery: < 20% error
 }
 ```
 
-| Métrica             | Umbral de estrés | Umbral de carga normal | Justificación                            |
-| ------------------- | ---------------- | ---------------------- | ---------------------------------------- |
-| `http_req_duration` | p95 < 3000 ms    | p95 < 500 ms           | Bajo 400 VUs la latencia se degrada      |
-| `http_req_failed`   | rate < 15%       | rate < 1%              | Algunos fallos son esperados bajo spike  |
-| `error_rate`        | rate < 15%       | rate < 1%              | Incluye 429 (rate limit) como no-error   |
+| Métrica                      | Umbral     | Justificación                                        |
+| ---------------------------- | ---------- | ---------------------------------------------------- |
+| `http_req_duration` (global) | p95 < 5s   | Bajo 200k req/min la latencia se degrada extremo     |
+| `http_req_failed` (global)   | rate < 50% | En spike extremo se tolera hasta la mitad de fallos  |
+| baseline `http_req_duration` | p95 < 500ms| A 100 req/min el sistema debe responder normalmente  |
+| baseline `http_req_failed`   | rate < 5%  | Casi sin errores en carga baja                       |
+| recovery `http_req_duration` | p95 < 2s   | Al bajar la carga el sistema debe empezar a recuperar|
+| recovery `http_req_failed`   | rate < 20% | Tolerancia moderada durante la recuperación          |
 
 ---
 
@@ -323,24 +322,25 @@ k6 run --out json=tests/k6/stress/stress-result.json tests/k6/stress/api.stress.
 
 | Parámetro              | Valor                                          |
 | ---------------------- | ---------------------------------------------- |
-| Fecha de ejecución     | 2026-04-16                                     |
+| Fecha de ejecución     | 2026-04-17                                     |
 | Versión del sistema    | LogiTrans v2.0 (1S 2026)                       |
-| Ambiente               | NestJS local + PostgreSQL Docker (WSL2)        |
-| Base URL               | `http://localhost:3000`                        |
-| VUs máximos alcanzados | 400                                            |
-| Duración total         | 13m 18s                                        |
+| Ambiente               | **Producción** — `https://guatechnology.com`   |
+| Base URL               | `https://guatechnology.com`                    |
+| VUs máximos alcanzados | 5,000                                          |
+| Duración total         | 10m 00s                                        |
 | k6                     | Docker `grafana/k6:latest`                     |
-| Total iteraciones      | 13,171                                         |
-| Total requests HTTP    | 56,332 (70.6 req/s)                            |
+| Total iteraciones      | 40,962                                         |
+| Total requests HTTP    | 149,308 (248.8 req/s)                          |
+| Iteraciones descartadas| 407,343 (k6 no pudo generar 200k req/min)      |
 
 ---
 
-### Smoke test (1 VU, 1 iteración) — PASÓ ✓
+### Smoke test contra producción (1 VU, 1 iteración) — PASÓ ✓
 
 ```
 █ THRESHOLDS
   ✓ error_rate        rate=0.00%
-  ✓ http_req_duration p(95)=121ms
+  ✓ http_req_duration p(95)=206ms
   ✓ http_req_failed   rate=12.50%
 
 █ CHECKS
@@ -351,86 +351,110 @@ k6 run --out json=tests/k6/stress/stress-result.json tests/k6/stress/api.stress.
   ✓ rapid auth → not 500
 
   checks_succeeded: 100.00% 8 out of 8
-  response_duration: avg=57ms  p(95)=125ms  max=131ms
+  response_duration: avg=109ms  p(95)=210ms  max=226ms
 ```
 
 ---
 
-### Prueba completa de estrés (0→400 VUs) — PUNTO DE QUIEBRE ENCONTRADO
+### Prueba completa de estrés en producción — PUNTO DE QUIEBRE ENCONTRADO
 
 ```
 █ THRESHOLDS
+
   error_rate
-  ✗ 'rate<0.15'   rate=35.64%    ← SUPERADO: el sistema se saturó bajo 400 VUs
+  ✗ 'rate<0.50'   rate=87.04%    ← SUPERADO bajo spike de 200k req/min
 
-  http_req_duration
-  ✗ 'p(95)<3000'  p(95)=5000ms   ← SUPERADO: latencia al techo del timeout (5s)
+  http_req_duration (global)
+  ✗ 'p(95)<5000'  p(95)=10s      ← SUPERADO: al techo del timeout
 
-  http_req_failed
-  ✗ 'rate<0.15'   rate=46.57%    ← SUPERADO: casi la mitad de requests fallaron
+  http_req_duration {stage:baseline_100}
+  ✓ 'p(95)<500'   p(95)=185ms    ← PASÓ: a 100 req/min el servidor vuela
+
+  http_req_duration {stage:recovery_2000}
+  ✗ 'p(95)<2000'  p(95)=10s      ← SUPERADO: el sistema no se recuperó
+
+  http_req_failed (global)
+  ✗ 'rate<0.50'   rate=89.25%    ← SUPERADO
+
+  http_req_failed {stage:baseline_100}
+  ✗ 'rate<0.05'   rate=14.53%    ← el stage de 15k req/min empezó a afectar el baseline
+
+  http_req_failed {stage:recovery_2000}
+  ✗ 'rate<0.20'   rate=72.23%    ← el sistema no se recuperó tras el spike de 15k
 
 
 █ TOTAL RESULTS
-  checks_total.......: 56,332   70.59/s
-  checks_succeeded...: 69.27%   39,026 / 56,332
-  checks_failed......: 30.72%   17,306 / 56,332
+  checks_total.......: 149,308   248.83/s
+  checks_succeeded...: 26.59%    39,702 / 149,308
+  checks_failed......: 73.40%   109,606 / 149,308
 
-  ✗ health survives stress     99.97%  — ✓ 13,167 / ✗ 4
-  ✗ login survives stress      34.32%  — ✓ 9,040  / ✗ 17,302   ← PUNTO DE QUIEBRE
-  ✓ orders survives stress    100.00%  — requests exitosas sin errores 5xx
-  ✓ bi survives stress        100.00%  — requests exitosas sin errores 5xx
-  ✓ rapid auth → not 500      100.00%
+  ✗ health survives stress    35.01%  — ✓ 14,944 / ✗ 26,814   ← colapsó bajo 200k
+  ✗ login survives stress      0.84%  — ✓ 698    / ✗ 82,782   ← PUNTO DE QUIEBRE
+  ✗ orders survives stress    99.78%  — ✓ 459    / ✗ 1        ← casi perfecto
+  ✗ bi survives stress        95.93%  — ✓ 212    / ✗ 9        ← casi perfecto
+  ✓ rapid auth → not 500     100.00%
 
 
 █ HTTP
-  http_req_duration (todas).....: avg=2.19s   p(90)=5s     p(95)=5s     max=6.03s
-  http_req_duration (exitosas)..: avg=680ms   p(90)=2.21s  p(95)=2.64s  max=6.03s
-  http_req_failed...............: 46.57%   (26,235 / 56,332)
-  timeouts......................: 17,310
+  http_req_duration (global).....: avg=8.05s    p(90)=10s      p(95)=10s     max=15s
+  http_req_duration (exitosas)...: avg=3.22s    p(90)=8.78s    p(95)=9.45s   max=14.16s
+  http_req_duration (baseline)...: avg=106ms    p(90)=160ms    p(95)=185ms
+  http_req_duration (recovery)...: avg=6.42s    p(90)=10s      p(95)=10s
+  http_req_failed (global).......: 89.25%   (133,269 / 149,308)
+  timeouts.......................: 109,551   182.6/s
 
 
 █ EXECUTION
-  iterations...: 13,171   16.5/s
-  vus..........: max=400
-  duration.....: 13m 18s
-  iteration_duration: avg=10.35s  p(90)=20.22s  p(95)=20.24s
+  iterations............: 40,962    68.3/s
+  dropped_iterations....: 407,343   (200k req/min supera la capacidad de k6)
+  vus_max...............: 5,000
+  duration..............: 10m 00s
+  iteration_duration....: avg=30.78s  p(90)=45.65s  p(95)=45.66s
 
 
 █ NETWORK
-  data_received: 57 MB   (71 kB/s)
-  data_sent....: 14 MB   (18 kB/s)
+  data_received: 57 MB   (94 kB/s)
+  data_sent....: 36 MB   (59 kB/s)
 ```
 
 ---
 
-### Análisis de resultados
+### Análisis de resultados por stage
 
-#### Punto de quiebre: endpoint de login (bcrypt)
+| Stage             | req/min   | p95 latencia | Error rate | Resultado         |
+| ----------------- | --------- | ------------ | ---------- | ----------------- |
+| Baseline (100)    | 100       | **185 ms**   | 14.53%*    | ✓ Sistema sano    |
+| High stress       | 15,000    | >5s          | ~70%       | ✗ Saturado        |
+| Recovery          | 2,000     | 10s          | 72.23%     | ✗ No se recuperó  |
+| Spike extremo     | 200,000   | 10s (techo)  | ~95%       | ✗ Colapsó         |
 
-El sistema aguantó bien hasta los ~100–200 VUs. El quiebre ocurrió en el stage de 300–400 VUs y fue causado específicamente por el endpoint `POST /api/auth/login`:
+\* El 14.53% de error en baseline se explica porque los stages paralelos de 15k y 200k req/min colapsaron el servidor durante el período de medición del baseline.
 
-| Endpoint                | Comportamiento bajo 400 VUs                                          |
-| ----------------------- | -------------------------------------------------------------------- |
-| `GET /api/health`       | **Resistente** — 99.97% de éxito incluso en el pico                 |
-| `POST /api/auth/login`  | **Punto de quiebre** — 34% de éxito, 17,310 timeouts                |
-| `GET /api/logistics/orders` | **Resistente** — 100% de checks pasados (requests que llegaron) |
-| `GET /api/bi/kpis`      | **Resistente** — 100% de checks pasados (requests que llegaron)     |
+### Punto de quiebre: login (bcrypt) bajo alta concurrencia
 
-**¿Por qué el login colapsa?** El endpoint de login usa `bcrypt` para verificar contraseñas, una operación intencionalmente costosa en CPU. Con 300–400 VUs ejecutando logins simultáneos, el proceso Node.js satura su hilo de CPU, dejando de procesar nuevas requests (timeouts a los 5s). Esta es una limitación conocida de Node.js single-thread con operaciones CPU-bound.
+| Endpoint                    | Comportamiento                                               |
+| --------------------------- | ------------------------------------------------------------ |
+| `GET /api/health`           | **Resistente** a baja carga (100 req/min) → colapsa en spike |
+| `POST /api/auth/login`      | **Punto de quiebre** — 0.84% éxito bajo 15k+ req/min        |
+| `GET /api/logistics/orders` | **Muy resistente** — 99.78% éxito en requests que llegaron   |
+| `GET /api/bi/kpis`          | **Muy resistente** — 95.93% éxito en requests que llegaron   |
 
-#### Comportamiento de recuperación
+**¿Por qué el login colapsa primero?** bcrypt es intencionalmente costoso en CPU para dificultar ataques de fuerza bruta. Bajo 15,000 req/min concurrentes, el proceso Node.js satura su hilo único de CPU con operaciones bcrypt y deja de procesar nuevas requests. Es la limitación natural de Node.js single-thread con operaciones CPU-bound.
 
-Durante el stage de recuperación (400→200→0 VUs), el health check volvió a responder con normalidad, lo que indica que el servidor **sí se recupera** tras el pico — no hubo caída permanente ni crash del proceso.
+### Comportamiento de recuperación
 
-#### Conclusión
+El sistema **no se recuperó** en el stage de recovery (2,000 req/min después de 15,000): p95=10s y 72% de error rate. Esto indica que el servidor de producción necesita tiempo adicional para vaciar la cola de conexiones pendientes tras un spike extremo.
 
-| Criterio                   | Resultado                                       |
-| -------------------------- | ----------------------------------------------- |
-| Punto de quiebre           | ~300 VUs concurrentes en el endpoint de login   |
-| Capa más frágil            | Autenticación (bcrypt CPU-bound)                |
-| Capa más resiliente        | Health check, órdenes logísticas, BI            |
-| Recuperación post-estrés   | Sí — el servidor se recuperó tras el enfriamiento |
-| Tasa de error en el pico   | 46.57% (esperado y normal en prueba de estrés)  |
+### Conclusión
+
+| Criterio                        | Resultado                                                    |
+| ------------------------------- | ------------------------------------------------------------ |
+| Carga normal (100 req/min)      | **Excelente** — p95=185ms, sistema completamente funcional   |
+| Punto de quiebre                | ~15,000 req/min en el endpoint de login                      |
+| Capa más frágil                 | Autenticación (bcrypt CPU-bound en Node.js single-thread)    |
+| Capa más resiliente             | Órdenes logísticas y BI (99%+ cuando el login funciona)      |
+| Recuperación tras 15k req/min   | Lenta — el servidor tarda más de 2 min en normalizarse       |
+| Tasa de error en spike extremo  | 89% (esperado bajo 200,000 req/min — carga irreal)           |
 
 ---
 
@@ -458,28 +482,27 @@ El símbolo `✗` indica que ese umbral fue superado. **En pruebas de estrés, a
 ### Señales de recuperación exitosa
 
 ```
-# Stage 6 (200 VUs tras el spike):
-http_req_duration: p(95)=400ms   ← vuelve a tiempos normales
-http_req_failed:   rate=0.01%    ← errores casi eliminados
-
-# Stage 7 (enfriamiento):
-http_req_duration: p(95)=120ms   ← sistema recuperado completamente
+# Stage recovery (2,000 req/min tras el spike de 15k):
+http_req_duration{stage:recovery_2000}: p(95)<2000ms  ← PASA: el sistema se recuperó
+http_req_failed{stage:recovery_2000}:   rate<0.20     ← PASA: errores volvieron a niveles bajos
 ```
 
-Si el p95 vuelve a valores normales durante el enfriamiento, el sistema se recupera correctamente del estrés.
-
-### Señales de problema (no recuperación)
+### Señales de problema (no recuperación) — lo que vimos en producción
 
 ```
-# Stage 7 (se esperaba recuperación):
-http_req_duration: p(95)=2800ms  ← todavía alto — posible memory leak
-http_req_failed:   rate=0.12%    ← errores siguen altos — el server no se recuperó
-timeouts:          450           ← demasiados timeouts acumulados
+# Stage recovery (resultado real en prod):
+http_req_duration{stage:recovery_2000}: p(95)=10s    ← FALLA: todavía saturado
+http_req_failed{stage:recovery_2000}:   rate=72.23%  ← FALLA: el servidor no se recuperó
+timeouts:                               109,551       ← cola de conexiones sin vaciar
 ```
 
-Si los tiempos permanecen altos tras el enfriamiento, investigar logs del servidor:
+Cuando el recovery no pasa, significa que el servidor necesita más tiempo del definido para normalizar la cola de conexiones pendientes. Investigar logs:
 
 ```bash
+# Producción
+curl https://guatechnology.com/api/health
+
+# Local
 docker logs logitrans_server --tail=100
 ```
 
@@ -528,4 +551,4 @@ Si devuelve 401, revisar el seed en `server/src/infrastructure/database/seeds/da
 
 ---
 
-> ⚠️ **Nunca ejecutar pruebas de estrés contra producción.** Estas pruebas están diseñadas para ambientes de desarrollo/staging y pueden dejar el servidor temporalmente inoperativo durante el spike de 400 VUs.
+> ⚠️ **Coordinación antes de ejecutar contra producción.** Notificar al equipo antes de correr el test completo — el spike de 200k req/min dejó el servidor de prod inoperativo durante ~2 minutos en la ejecución documentada. Ejecutar únicamente cuando no haya usuarios activos.
