@@ -67,20 +67,20 @@ export class CreateContractUseCase {
       throw new NotFoundException(`Cliente ${input.clientId} no encontrado.`);
     }
 
-    // Evitar múltiples contratos activos por cliente con un mensaje de negocio claro.
-    const existingActiveOrPending = await this.dataSource.getRepository(Contract).findOne({
+    // En lugar de bloquear, cancelamos cualquier propuesta PENDIENTE anterior para que solo haya 1 a la vez.
+    // El contrato VIGENTE actual (si existe) se mantiene activo hasta que el cliente acepte este nuevo.
+    const existingPending = await this.dataSource.getRepository(Contract).find({
       where: {
         clientId: normalizedClientId,
-        status: In([ContractStatus.PENDIENTE, ContractStatus.VIGENTE]),
+        status: ContractStatus.PENDIENTE,
       },
-      order: { startDate: 'DESC' },
     });
 
-    if (existingActiveOrPending) {
-      throw new BadRequestException(
-        `No se puede generar un nuevo contrato para este cliente porque ya tiene un contrato ${existingActiveOrPending.status} (${existingActiveOrPending.contractNumber}). ` +
-          'Para continuar, primero debe aceptarse, rechazarse o cerrarse el contrato actual.',
-      );
+    if (existingPending.length > 0) {
+      for (const pending of existingPending) {
+        pending.status = ContractStatus.CANCELADO;
+        await this.dataSource.getRepository(Contract).save(pending);
+      }
     }
 
     // ── 2. Cargar rutas para datos del email ──────────────────────────────────
@@ -223,18 +223,6 @@ export class CreateContractUseCase {
         };
       });
     } catch (error) {
-      const dbError =
-        error instanceof QueryFailedError
-          ? (error.driverError as { code?: string; constraint?: string })
-          : undefined;
-
-      if (dbError?.code === '23505' && dbError.constraint === 'ux_client_active_contract') {
-        throw new BadRequestException(
-          'No se puede generar un nuevo contrato porque el cliente ya tiene un contrato pendiente o vigente. ' +
-            'Debe finalizarse ese contrato antes de crear otro.',
-        );
-      }
-
       throw error;
     }
 

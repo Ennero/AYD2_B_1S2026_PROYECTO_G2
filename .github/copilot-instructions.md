@@ -171,6 +171,25 @@ Both include:
 - Prefer canonical schema source: db/logitrans_postgresql.sql.
 - Keep payment status semantics separate from invoice status semantics in docs and UI copy.
 
+## Contract Superseding / Expiration Update (2026-04-17)
+
+### 1) What changed
+- Removed single active contract constraint `UX_CLIENT_ACTIVE_CONTRACT` from `db/logitrans_postgresql.sql` and `db/logitrans_dbdiagram.dbml`. Executed SQL patch directly to the running database instance to remove the index.
+- Updated `CreateContractUseCase` (`server/src/operations/application/use-cases/create-contract.use-case.ts`) to:
+  - Stop blocking when a client already has an active (`VIGENTE`) contract.
+  - Automatically query and mark any existing `PENDIENTE` contract as `CANCELADO` before saving a new pending proposal, ensuring that a client has maximum 1 pending proposal at a time.
+- Validated that `ClientService.acceptContract` logic already correctly updates any prior `VIGENTE` contract to `VENCIDO` upon accepting the new proposal.
+
+### 2) Validation executed
+- Server unit test `npm run test` succeeded (10 suites, 56 tests).
+- Dropped the database constraint directly via `docker exec`.
+
+### 3) Canonical business conventions affected
+- Instead of being strictly limited to one unfinalized/active contract overall, clients can now possess one `VIGENTE` contract and one simultaneous `PENDIENTE` proposal, which will supersede the active one once accepted.
+
+### 4) Remaining risks / pending work
+- If the application starts heavily relying on the history of `.CANCELADO` proposal contracts, UI might need filters to avoid cluttering client screens as proposals are replaced.
+
 ## Suggested Verification Commands
 - docker compose down -v --remove-orphans && docker compose up -d --build
 - docker compose ps
