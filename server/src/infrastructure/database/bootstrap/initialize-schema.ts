@@ -253,6 +253,23 @@ async function normalizePrematurePaidInvoices(
   );
 }
 
+async function ensureInvoiceStatusEnEspera(dataSource: DataSource): Promise<void> {
+  const rows = await dataSource.query<{ exists: boolean }>(
+    `SELECT EXISTS(
+        SELECT 1 FROM pg_enum e
+        JOIN pg_type t ON t.oid = e.enumtypid
+        WHERE t.typname = 'invoice_status'
+          AND e.enumlabel = 'EN_ESPERA'
+      ) AS exists`,
+  );
+  if (rows[0]?.exists) return;
+  // ALTER TYPE … ADD VALUE cannot run inside a transaction block in PostgreSQL.
+  // dataSource.query() runs outside any explicit transaction here, so this is safe.
+  await dataSource.query(
+    `ALTER TYPE invoice_status ADD VALUE 'EN_ESPERA' BEFORE 'CERTIFICADA'`,
+  );
+}
+
 type IdentityColumnRow = {
   table_name: string;
   column_name: string;
@@ -353,6 +370,7 @@ export async function ensureCanonicalSchema(
     await dropDeprecatedPaymentBankColumns(dataSource);
     await ensurePaymentsMethodSupportConstraint(dataSource);
     await ensureOrderRouteLogImageField(dataSource);
+    await ensureInvoiceStatusEnEspera(dataSource);
     await normalizeDraftInvoiceDescriptions(dataSource);
     await normalizePrematurePaidInvoices(dataSource);
     await relaxIdentityColumnsToByDefault(dataSource);
@@ -376,6 +394,7 @@ export async function ensureCanonicalSchema(
   await dropDeprecatedPaymentBankColumns(dataSource);
   await ensurePaymentsMethodSupportConstraint(dataSource);
   await ensureOrderRouteLogImageField(dataSource);
+  await ensureInvoiceStatusEnEspera(dataSource);
   await normalizeDraftInvoiceDescriptions(dataSource);
   await normalizePrematurePaidInvoices(dataSource);
   await relaxIdentityColumnsToByDefault(dataSource);

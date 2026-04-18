@@ -321,7 +321,7 @@ export default function ClienteDashboardPage() {
                 {loading
                   ? "Bienvenido."
                   : data
-                    ? `Bienvenido, ${(data.displayName || data.clientName).split(" ")[0]}.`
+                    ? `Bienvenido, ${(data.displayName || data.clientName || "Cliente").split(" ")[0]}.`
                     : "Dashboard"}
               </motion.h1>
             </div>
