@@ -1,4 +1,10 @@
-import { IsBoolean, IsEmail, IsOptional, IsString, Matches } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+} from 'class-validator';
 
 const PHONE_PATTERN = /^\+50[234]\d{8}$/;
 

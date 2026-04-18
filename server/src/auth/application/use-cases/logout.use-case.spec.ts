@@ -24,10 +24,10 @@ import { USER_SESSION_REPOSITORY_TOKEN } from '../../domain/repositories/user-se
 /** Simula el objeto UserSession que devolvería el repositorio */
 function fakeSession(overrides: Record<string, unknown> = {}) {
   return {
-    sessionId:   faker.number.int({ min: 1, max: 9999 }),
+    sessionId: faker.number.int({ min: 1, max: 9999 }),
     sessionUuid: faker.string.uuid(),
     sessionToken: faker.string.alphanumeric(64),
-    userId:      faker.number.int({ min: 1, max: 999 }),
+    userId: faker.number.int({ min: 1, max: 999 }),
     expirationAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     ...overrides,
   };
@@ -38,16 +38,16 @@ function fakeSession(overrides: Record<string, unknown> = {}) {
 describe('LogoutUseCase', () => {
   let useCase: LogoutUseCase;
   let sessionRepo: {
-    findActiveByToken:       jest.Mock;
+    findActiveByToken: jest.Mock;
     findActiveBySessionUuid: jest.Mock;
-    softDelete:              jest.Mock;
+    softDelete: jest.Mock;
   };
 
   beforeEach(async () => {
     sessionRepo = {
-      findActiveByToken:       jest.fn(),
+      findActiveByToken: jest.fn(),
       findActiveBySessionUuid: jest.fn(),
-      softDelete:              jest.fn().mockResolvedValue(undefined),
+      softDelete: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -69,11 +69,13 @@ describe('LogoutUseCase', () => {
     sessionRepo.findActiveByToken.mockResolvedValue(session);
 
     await expect(
-      useCase.execute({ sessionToken: session.sessionToken as string }),
+      useCase.execute({ sessionToken: session.sessionToken }),
     ).resolves.toBeUndefined();
 
     // Debe buscar por token y luego hacer soft-delete con el sessionId correcto
-    expect(sessionRepo.findActiveByToken).toHaveBeenCalledWith(session.sessionToken);
+    expect(sessionRepo.findActiveByToken).toHaveBeenCalledWith(
+      session.sessionToken,
+    );
     expect(sessionRepo.softDelete).toHaveBeenCalledWith(session.sessionId);
   });
 
@@ -85,11 +87,13 @@ describe('LogoutUseCase', () => {
     sessionRepo.findActiveBySessionUuid.mockResolvedValue(session);
 
     await expect(
-      useCase.execute({ sessionUuid: session.sessionUuid as string }),
+      useCase.execute({ sessionUuid: session.sessionUuid }),
     ).resolves.toBeUndefined();
 
     expect(sessionRepo.findActiveByToken).not.toHaveBeenCalled();
-    expect(sessionRepo.findActiveBySessionUuid).toHaveBeenCalledWith(session.sessionUuid);
+    expect(sessionRepo.findActiveBySessionUuid).toHaveBeenCalledWith(
+      session.sessionUuid,
+    );
     expect(sessionRepo.softDelete).toHaveBeenCalledWith(session.sessionId);
   });
 
@@ -115,8 +119,8 @@ describe('LogoutUseCase', () => {
     sessionRepo.findActiveByToken.mockResolvedValue(session);
 
     await useCase.execute({
-      sessionToken: session.sessionToken as string,
-      sessionUuid:  session.sessionUuid as string,
+      sessionToken: session.sessionToken,
+      sessionUuid: session.sessionUuid,
     });
 
     // Encontró la sesión vía token, por lo tanto NO intenta con sessionUuid

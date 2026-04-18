@@ -890,7 +890,8 @@ const CLIENT_BLUEPRINTS: ClientBlueprint[] = [
     cargoRisk: RiskLevel.MEDIO,
     amlRisk: RiskLevel.MEDIO,
     isBlocked: true,
-    blockReason: 'Cliente en revision de cumplimiento documental y perfil financiero.',
+    blockReason:
+      'Cliente en revision de cumplimiento documental y perfil financiero.',
     contractStatus: ContractStatus.VIGENTE,
     paymentTermDays: 45,
     discountPercentage: 2,
@@ -1240,10 +1241,18 @@ const ORDER_PLANS: OrderPlan[] = [
   { stage: 'LISTA', preferredVehicleTypeCode: 'HEAVY' },
   { stage: 'TRANSITO', preferredVehicleTypeCode: 'HEAVY' },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY' },
-  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'TRAILER', requiresRefrigeration: true },
+  {
+    stage: 'ENTREGADA',
+    preferredVehicleTypeCode: 'TRAILER',
+    requiresRefrigeration: true,
+  },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'TRAILER' },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'LIGHT' },
-  { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY', requiresRefrigeration: true },
+  {
+    stage: 'ENTREGADA',
+    preferredVehicleTypeCode: 'HEAVY',
+    requiresRefrigeration: true,
+  },
   { stage: 'ENTREGADA', preferredVehicleTypeCode: 'HEAVY' },
 ];
 
@@ -1298,7 +1307,12 @@ export class DatabaseSeeder {
       const clients = await this.seedClients(manager);
       const clientUsers = await this.seedClientUsers(manager, clients);
       await this.seedClientContacts(manager, clients);
-      const contracts = await this.seedContracts(manager, clients, references.cargoTypes, references.vehicleTypes);
+      const contracts = await this.seedContracts(
+        manager,
+        clients,
+        references.cargoTypes,
+        references.vehicleTypes,
+      );
       const contractRoutes = await this.seedContractRoutes(
         manager,
         clients,
@@ -1313,7 +1327,10 @@ export class DatabaseSeeder {
         references.vehicleTypes,
       );
       await this.seedUserSessions(manager, [...internalUsers, ...clientUsers]);
-      await this.seedPasswordRecoveryTokens(manager, [...internalUsers, ...clientUsers]);
+      await this.seedPasswordRecoveryTokens(manager, [
+        ...internalUsers,
+        ...clientUsers,
+      ]);
       const createdOrders = await this.seedOrders(
         manager,
         clients,
@@ -1326,7 +1343,11 @@ export class DatabaseSeeder {
         transportUnits,
       );
       await this.seedOrderLogs(manager, createdOrders);
-      const invoices = await this.seedInvoices(manager, createdOrders, contracts);
+      const invoices = await this.seedInvoices(
+        manager,
+        createdOrders,
+        contracts,
+      );
       await this.seedPayments(manager, invoices, internalUsers);
 
       return {
@@ -1335,7 +1356,9 @@ export class DatabaseSeeder {
           clients: clients.length,
           users: internalUsers.length + clientUsers.length,
           sessions: await manager.getRepository(UserSession).count(),
-          recoveryTokens: await manager.getRepository(PasswordRecoveryToken).count(),
+          recoveryTokens: await manager
+            .getRepository(PasswordRecoveryToken)
+            .count(),
           contacts: CLIENT_BLUEPRINTS.reduce(
             (total, blueprint) => total + blueprint.contactPeople.length,
             0,
@@ -1380,7 +1403,9 @@ export class DatabaseSeeder {
     }
   }
 
-  private async loadReferences(manager: EntityManager): Promise<SeedReferences> {
+  private async loadReferences(
+    manager: EntityManager,
+  ): Promise<SeedReferences> {
     return {
       branches: await manager.getRepository(Branch).find(),
       routes: await manager.getRepository(Route).find(),
@@ -1429,7 +1454,9 @@ export class DatabaseSeeder {
           isBlocked: client.isBlocked ?? false,
           blockReason: client.blockReason,
           ...(client.countryCode && { countryCode: client.countryCode as any }),
-          ...(client.currencyCode && { currencyCode: client.currencyCode as any }),
+          ...(client.currencyCode && {
+            currencyCode: client.currencyCode as any,
+          }),
           ...(client.taxRate !== undefined && { taxRate: client.taxRate }),
         }),
       ),
@@ -1451,7 +1478,10 @@ export class DatabaseSeeder {
       CLIENT_BLUEPRINTS.map(async (client, index) => {
         const entity = mustFind(clientByNit.get(client.nit), client.legalName);
         const passwordHash = await bcrypt.hash('Logi2026', 10);
-        const email = index === 0 ? '2895884051401+c@ingenieria.usac.edu.gt' : `2895884051401+c${index}@ingenieria.usac.edu.gt`;
+        const email =
+          index === 0
+            ? '2895884051401+c@ingenieria.usac.edu.gt'
+            : `2895884051401+c${index}@ingenieria.usac.edu.gt`;
         return repository.create({
           clientId: entity.clientId,
           role: UserRole.CLIENTE,
@@ -1461,7 +1491,7 @@ export class DatabaseSeeder {
           phone: client.primaryContactPhone,
           isActive: true,
         });
-      })
+      }),
     );
 
     await repository.save(clientUsers);
@@ -1480,7 +1510,10 @@ export class DatabaseSeeder {
 
     let contactCounter = 0;
     const contacts = CLIENT_BLUEPRINTS.flatMap((blueprint) => {
-      const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
+      const client = mustFind(
+        clientByNit.get(blueprint.nit),
+        blueprint.legalName,
+      );
       return blueprint.contactPeople.map((contact) => {
         contactCounter++;
         return repository.create({
@@ -1506,22 +1539,27 @@ export class DatabaseSeeder {
     const repository = manager.getRepository(Contract);
     const rateRepo = manager.getRepository(ContractRate);
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
-    const cargoByName = new Map(cargoTypes.map((cargo) => [cargo.cargoName, cargo]));
+    const cargoByName = new Map(
+      cargoTypes.map((cargo) => [cargo.cargoName, cargo]),
+    );
 
     const contracts = await Promise.all(
       CLIENT_BLUEPRINTS.map(async (blueprint) => {
-        const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
+        const client = mustFind(
+          clientByNit.get(blueprint.nit),
+          blueprint.legalName,
+        );
         const currencyCode = blueprint.currencyCode ?? 'GTQ';
         const exchangeRateFromUsd =
-          currencyCode === 'USD' ? 1.0 :
-          currencyCode === 'HNL' ? 24.80 :
-          7.82; // GTQ default
+          currencyCode === 'USD' ? 1.0 : currencyCode === 'HNL' ? 24.8 : 7.82; // GTQ default
 
         const contract = await repository.save(
           repository.create({
             clientId: client.clientId,
             status: blueprint.contractStatus,
-            startDate: toDateOnly(daysFromNow(blueprint.contractStartOffsetDays)),
+            startDate: toDateOnly(
+              daysFromNow(blueprint.contractStartOffsetDays),
+            ),
             endDate: toDateOnly(daysFromNow(blueprint.contractEndOffsetDays)),
             acceptedAt:
               blueprint.contractStatus === ContractStatus.VIGENTE
@@ -1546,8 +1584,12 @@ export class DatabaseSeeder {
         // INSERTAR TARIFAS MANUALMENTE (Simulando la acción del Agente Operativo)
         // Ya que el trigger SYNC_CONTRACT_DEFAULTS ahora no hace nada.
         const rates = vehicleTypes.map((vt) => {
-          const baseRate = roundCurrency(Number(vt.ratePerKm) * exchangeRateFromUsd);
-          const finalRate = roundCurrency(baseRate * (1 - blueprint.discountPercentage / 100));
+          const baseRate = roundCurrency(
+            Number(vt.ratePerKm) * exchangeRateFromUsd,
+          );
+          const finalRate = roundCurrency(
+            baseRate * (1 - blueprint.discountPercentage / 100),
+          );
           return rateRepo.create({
             contractId: contract.contractId,
             vehicleTypeId: vt.vehicleTypeId,
@@ -1575,13 +1617,20 @@ export class DatabaseSeeder {
     routes: Route[],
   ): Promise<ContractRoute[]> {
     const repository = manager.getRepository(ContractRoute);
-    const routeByCode = new Map(routes.map((route) => [route.routeCode, route]));
+    const routeByCode = new Map(
+      routes.map((route) => [route.routeCode, route]),
+    );
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
-    const contractByClientId = new Map(contracts.map((contract) => [contract.clientId, contract]));
+    const contractByClientId = new Map(
+      contracts.map((contract) => [contract.clientId, contract]),
+    );
 
     let routeCounter = 0;
     const records = CLIENT_BLUEPRINTS.flatMap((blueprint) => {
-      const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
+      const client = mustFind(
+        clientByNit.get(blueprint.nit),
+        blueprint.legalName,
+      );
       const contract = mustFind(
         contractByClientId.get(client.clientId),
         blueprint.legalName,
@@ -1595,14 +1644,18 @@ export class DatabaseSeeder {
         return repository.create({
           contractId: contract.contractId,
           routeId: route.routeId,
-          promisedDeliveryHours: roundCurrency(estimatedHours + 0.5 + index * 0.25),
+          promisedDeliveryHours: roundCurrency(
+            estimatedHours + 0.5 + index * 0.25,
+          ),
         });
       });
     });
 
     await repository.save(records);
     return repository.find({
-      where: { contractId: In(contracts.map((contract) => contract.contractId)) },
+      where: {
+        contractId: In(contracts.map((contract) => contract.contractId)),
+      },
     });
   }
 
@@ -1611,7 +1664,9 @@ export class DatabaseSeeder {
     contracts: Contract[],
   ): Promise<ContractRate[]> {
     return manager.getRepository(ContractRate).find({
-      where: { contractId: In(contracts.map((contract) => contract.contractId)) },
+      where: {
+        contractId: In(contracts.map((contract) => contract.contractId)),
+      },
     });
   }
 
@@ -1622,19 +1677,29 @@ export class DatabaseSeeder {
     vehicleTypes: VehicleType[],
   ): Promise<TransportUnit[]> {
     const repository = manager.getRepository(TransportUnit);
-    const userByEmail = new Map(internalUsers.map((user) => [user.email, user]));
-    const branchByCode = new Map(branches.map((branch) => [branch.branchCode, branch]));
+    const userByEmail = new Map(
+      internalUsers.map((user) => [user.email, user]),
+    );
+    const branchByCode = new Map(
+      branches.map((branch) => [branch.branchCode, branch]),
+    );
     const vehicleTypeByCode = new Map(
       vehicleTypes.map((vehicleType) => [vehicleType.typeCode, vehicleType]),
     );
 
     const units = TRANSPORT_UNIT_BLUEPRINTS.map((blueprint, index) => {
-      const branch = mustFind(branchByCode.get(blueprint.branchCode), blueprint.branchCode);
+      const branch = mustFind(
+        branchByCode.get(blueprint.branchCode),
+        blueprint.branchCode,
+      );
       const vehicleType = mustFind(
         vehicleTypeByCode.get(blueprint.vehicleTypeCode),
         blueprint.vehicleTypeCode,
       );
-      const pilot = mustFind(userByEmail.get(blueprint.pilotEmail), blueprint.pilotEmail);
+      const pilot = mustFind(
+        userByEmail.get(blueprint.pilotEmail),
+        blueprint.pilotEmail,
+      );
 
       return repository.create({
         branchId: branch.branchId,
@@ -1669,7 +1734,10 @@ export class DatabaseSeeder {
       return repository.create({
         userId: user.userId,
         userRemote: `10.0.${(index % 8) + 1}.${20 + index}`,
-        userAgent: index % 2 === 0 ? 'Chrome/LogiTrans Seed' : 'MobileApp/LogiTrans Seed',
+        userAgent:
+          index % 2 === 0
+            ? 'Chrome/LogiTrans Seed'
+            : 'MobileApp/LogiTrans Seed',
         userUuid: String(user.userId),
         sessionUuid: randomUUID(),
         sessionToken: `seed-session-token-${index + 1}-${user.userId}`,
@@ -1786,10 +1854,16 @@ export class DatabaseSeeder {
     transportUnits: TransportUnit[],
   ): Promise<CreatedOrderRecord[]> {
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
-    const portalUserByClientId = new Map(clientUsers.map((user) => [user.clientId, user]));
-    const contractByClientId = new Map(contracts.map((contract) => [contract.clientId, contract]));
+    const portalUserByClientId = new Map(
+      clientUsers.map((user) => [user.clientId, user]),
+    );
+    const contractByClientId = new Map(
+      contracts.map((contract) => [contract.clientId, contract]),
+    );
     const routeById = new Map(routes.map((route) => [route.routeId, route]));
-    const cargoByName = new Map(cargoTypes.map((cargo) => [cargo.cargoName, cargo]));
+    const cargoByName = new Map(
+      cargoTypes.map((cargo) => [cargo.cargoName, cargo]),
+    );
     const ratesByContractId = new Map<number, ContractRate[]>(
       contracts.map((contract) => [
         contract.contractId,
@@ -1799,7 +1873,9 @@ export class DatabaseSeeder {
     const contractRoutesByContractId = new Map<number, ContractRoute[]>(
       contracts.map((contract) => [
         contract.contractId,
-        contractRoutes.filter((route) => route.contractId === contract.contractId),
+        contractRoutes.filter(
+          (route) => route.contractId === contract.contractId,
+        ),
       ]),
     );
 
@@ -1810,7 +1886,8 @@ export class DatabaseSeeder {
     ]);
 
     const activeBlueprints = CLIENT_BLUEPRINTS.filter(
-      (client) => client.contractStatus === ContractStatus.VIGENTE && !client.isBlocked,
+      (client) =>
+        client.contractStatus === ContractStatus.VIGENTE && !client.isBlocked,
     );
 
     const createdOrders: CreatedOrderRecord[] = [];
@@ -1820,9 +1897,18 @@ export class DatabaseSeeder {
     let orderCounter = 0;
 
     for (const [clientIndex, blueprint] of activeBlueprints.entries()) {
-      const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
-      const contract = mustFind(contractByClientId.get(client.clientId), blueprint.legalName);
-      const portalUser = mustFind(portalUserByClientId.get(client.clientId), blueprint.legalName);
+      const client = mustFind(
+        clientByNit.get(blueprint.nit),
+        blueprint.legalName,
+      );
+      const contract = mustFind(
+        contractByClientId.get(client.clientId),
+        blueprint.legalName,
+      );
+      const portalUser = mustFind(
+        portalUserByClientId.get(client.clientId),
+        blueprint.legalName,
+      );
       const availableContractRoutes = mustFind(
         contractRoutesByContractId.get(contract.contractId),
         `${blueprint.legalName} rutas`,
@@ -1840,8 +1926,15 @@ export class DatabaseSeeder {
         const contractRoute =
           stage === 'REGISTRADA'
             ? null
-            : availableContractRoutes[planIndex % availableContractRoutes.length];
-        const route = contractRoute ? mustFind(routeById.get(contractRoute.routeId), `${contractRoute.routeId}`) : null;
+            : availableContractRoutes[
+                planIndex % availableContractRoutes.length
+              ];
+        const route = contractRoute
+          ? mustFind(
+              routeById.get(contractRoute.routeId),
+              `${contractRoute.routeId}`,
+            )
+          : null;
 
         // ── Timing por stage, centrado en 17 de Abril de 2026 ──────────────────
         // daysFromNow(0) = 2026-04-17T12:00:00Z (mediodía demo)
@@ -1855,24 +1948,49 @@ export class DatabaseSeeder {
           requestedAt = hoursAfter(daysFromNow(0), -4 - clientIndex * 0.3);
         } else if (stage === 'ASIGNADA') {
           // Solicitada hace 2-4 días, asignada hoy
-          requestedAt = hoursAfter(daysFromNow(-2 - clientIndex % 3), clientIndex * 1.2);
+          requestedAt = hoursAfter(
+            daysFromNow(-2 - (clientIndex % 3)),
+            clientIndex * 1.2,
+          );
           if (route) {
             scheduledPickupAt = hoursAfter(requestedAt, 10 + clientIndex);
-            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+            promisedDeliveryAt = hoursAfter(
+              scheduledPickupAt,
+              Number(
+                contractRoute?.promisedDeliveryHours ?? route.estimatedHours,
+              ),
+            );
           }
         } else if (stage === 'LISTA') {
           // Lista para despacho: solicitada hace 4 días, pickup esta madrugada
-          requestedAt = hoursAfter(daysFromNow(-4 - clientIndex % 2), 8 + clientIndex);
+          requestedAt = hoursAfter(
+            daysFromNow(-4 - (clientIndex % 2)),
+            8 + clientIndex,
+          );
           if (route) {
-            scheduledPickupAt = hoursAfter(daysFromNow(0), -6 - clientIndex * 0.5);
-            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+            scheduledPickupAt = hoursAfter(
+              daysFromNow(0),
+              -6 - clientIndex * 0.5,
+            );
+            promisedDeliveryAt = hoursAfter(
+              scheduledPickupAt,
+              Number(
+                contractRoute?.promisedDeliveryHours ?? route.estimatedHours,
+              ),
+            );
           }
         } else if (stage === 'TRANSITO') {
           // En tránsito AHORA (11 abril): despachado esta mañana, entrega prometida esta tarde
-          requestedAt = hoursAfter(daysFromNow(-3 - clientIndex % 3), 6 + clientIndex * 0.5);
+          requestedAt = hoursAfter(
+            daysFromNow(-3 - (clientIndex % 3)),
+            6 + clientIndex * 0.5,
+          );
           if (route) {
             scheduledPickupAt = hoursAfter(daysFromNow(0), -8 - clientIndex);
-            promisedDeliveryAt = hoursAfter(daysFromNow(0), 4 + clientIndex * 0.5);
+            promisedDeliveryAt = hoursAfter(
+              daysFromNow(0),
+              4 + clientIndex * 0.5,
+            );
             dispatchedAt = hoursAfter(scheduledPickupAt, 1.5);
           }
         } else {
@@ -1881,15 +1999,24 @@ export class DatabaseSeeder {
           requestedAt = hoursAfter(daysFromNow(historyOffset), planIndex * 4);
           if (route) {
             scheduledPickupAt = hoursAfter(requestedAt, 10 + planIndex);
-            promisedDeliveryAt = hoursAfter(scheduledPickupAt, Number(contractRoute?.promisedDeliveryHours ?? route.estimatedHours));
+            promisedDeliveryAt = hoursAfter(
+              scheduledPickupAt,
+              Number(
+                contractRoute?.promisedDeliveryHours ?? route.estimatedHours,
+              ),
+            );
             dispatchedAt = hoursAfter(scheduledPickupAt, 1.5);
           }
         }
         const preferredCargoName =
-          plan.requiresRefrigeration && blueprint.cargoNames.includes('CARGA REFRIGERADA')
+          plan.requiresRefrigeration &&
+          blueprint.cargoNames.includes('CARGA REFRIGERADA')
             ? 'CARGA REFRIGERADA'
             : blueprint.cargoNames[planIndex % blueprint.cargoNames.length];
-        const cargoType = mustFind(cargoByName.get(preferredCargoName), preferredCargoName);
+        const cargoType = mustFind(
+          cargoByName.get(preferredCargoName),
+          preferredCargoName,
+        );
         const unit = route
           ? this.pickTransportUnit(
               transportUnits,
@@ -1897,33 +2024,56 @@ export class DatabaseSeeder {
               availableRates,
               branchNameByOrigin.get(route.origin),
               plan.preferredVehicleTypeCode,
-              cargoType.requiresRefrigeration || Boolean(plan.requiresRefrigeration),
+              cargoType.requiresRefrigeration ||
+                Boolean(plan.requiresRefrigeration),
               isActiveStage ? occupiedUnitIds : noOccupiedUnits,
             )
           : null;
         const contractRate = unit
-          ? availableRates.find(
-              (rate) => Number(rate.vehicleTypeId) === Number(unit.vehicleTypeId),
-            ) ?? availableRates[0]
+          ? (availableRates.find(
+              (rate) =>
+                Number(rate.vehicleTypeId) === Number(unit.vehicleTypeId),
+            ) ?? availableRates[0])
           : null;
         const distance = route ? Number(route.distanceKm) : 0;
-        const baseRatePerKm = contractRate ? Number(contractRate.baseRatePerKm) : 0;
-        const discountPercentage = contractRate ? Number(contractRate.discountPercentage) : 0;
-        const finalRatePerKm = contractRate ? Number(contractRate.finalRatePerKm) : 0;
-        const subtotalAmount = route ? roundCurrency(distance * finalRatePerKm) : 0;
+        const baseRatePerKm = contractRate
+          ? Number(contractRate.baseRatePerKm)
+          : 0;
+        const discountPercentage = contractRate
+          ? Number(contractRate.discountPercentage)
+          : 0;
+        const finalRatePerKm = contractRate
+          ? Number(contractRate.finalRatePerKm)
+          : 0;
+        const subtotalAmount = route
+          ? roundCurrency(distance * finalRatePerKm)
+          : 0;
         const taxAmount = route ? roundCurrency(subtotalAmount * 0.12) : 0;
-        const totalAmount = route ? roundCurrency(subtotalAmount + taxAmount) : 0;
+        const totalAmount = route
+          ? roundCurrency(subtotalAmount + taxAmount)
+          : 0;
 
         const declaredWeight = unit
-          ? this.calculateDeclaredWeight(Number(unit.capacityTon), plan.preferredVehicleTypeCode)
+          ? this.calculateDeclaredWeight(
+              Number(unit.capacityTon),
+              plan.preferredVehicleTypeCode,
+            )
           : roundCurrency(1.2 + planIndex * 0.35 + clientIndex * 0.1);
-        const isStowageConfirmed = ['LISTA', 'TRANSITO', 'ENTREGADA'].includes(stage);
-        const loadedWeight = unit && isStowageConfirmed
-          ? roundCurrency(declaredWeight + (planIndex % 2 === 0 ? 0.01 : -0.01))
-          : null;
-        const fuelCost = unit && distance > 0 ? roundCurrency(distance * 2.15) : 0;
-        const viaticsCost = unit && distance > 0 ? roundCurrency(distance * 0.42) : 0;
-        const maintenanceCost = unit && distance > 0 ? roundCurrency(distance * 0.28) : 0;
+        const isStowageConfirmed = ['LISTA', 'TRANSITO', 'ENTREGADA'].includes(
+          stage,
+        );
+        const loadedWeight =
+          unit && isStowageConfirmed
+            ? roundCurrency(
+                declaredWeight + (planIndex % 2 === 0 ? 0.01 : -0.01),
+              )
+            : null;
+        const fuelCost =
+          unit && distance > 0 ? roundCurrency(distance * 2.15) : 0;
+        const viaticsCost =
+          unit && distance > 0 ? roundCurrency(distance * 0.42) : 0;
+        const maintenanceCost =
+          unit && distance > 0 ? roundCurrency(distance * 0.28) : 0;
         const initialStatus = this.resolveInitialStatus(stage);
 
         orderCounter++;
@@ -1949,15 +2099,11 @@ export class DatabaseSeeder {
             promisedDeliveryAt,
             dispatchedAt,
             stowageConfirmed:
-              stage === 'LISTA' ||
-              stage === 'TRANSITO' ||
-              stage === 'ENTREGADA'
+              stage === 'LISTA' || stage === 'TRANSITO' || stage === 'ENTREGADA'
                 ? true
                 : null,
             isSealed:
-              stage === 'LISTA' ||
-              stage === 'TRANSITO' ||
-              stage === 'ENTREGADA'
+              stage === 'LISTA' || stage === 'TRANSITO' || stage === 'ENTREGADA'
                 ? true
                 : null,
             distanceKm: distance,
@@ -1977,7 +2123,9 @@ export class DatabaseSeeder {
         // Update unit availability if it's assigned to an active order (ASIGNADA, LISTA, TRANSITO)
         if (unit && ['ASIGNADA', 'LISTA', 'TRANSITO'].includes(stage)) {
           occupiedUnitIds.add(unit.unitId);
-          await manager.getRepository(TransportUnit).update(unit.unitId, { isAvailable: false });
+          await manager
+            .getRepository(TransportUnit)
+            .update(unit.unitId, { isAvailable: false });
         }
 
         createdOrders.push({
@@ -1997,9 +2145,13 @@ export class DatabaseSeeder {
       }
     }
 
-    const deliveredOrders = createdOrders.filter((order) => order.finalStage === 'ENTREGADA');
+    const deliveredOrders = createdOrders.filter(
+      (order) => order.finalStage === 'ENTREGADA',
+    );
     for (const [deliveryIdx, record] of deliveredOrders.entries()) {
-      const promisedHours = Number(record.contractRoute?.promisedDeliveryHours ?? 8);
+      const promisedHours = Number(
+        record.contractRoute?.promisedDeliveryHours ?? 8,
+      );
       // Ensure at least three explicit late deliveries for the demo
       let offsetHrs: number;
       if (deliveryIdx < 3) {
@@ -2054,7 +2206,6 @@ export class DatabaseSeeder {
         logCounter++;
         entries.push(
           repository.create({
-
             orderId: record.order.orderId,
             eventType: RouteEventType.OTRO,
             eventTime: hoursAfter(record.scheduledPickupAt, -1),
@@ -2064,13 +2215,13 @@ export class DatabaseSeeder {
       }
 
       if (
-        (record.finalStage === 'TRANSITO' || record.finalStage === 'ENTREGADA') &&
+        (record.finalStage === 'TRANSITO' ||
+          record.finalStage === 'ENTREGADA') &&
         record.dispatchedAt
       ) {
         logCounter++;
         entries.push(
           repository.create({
-
             orderId: record.order.orderId,
             eventType: RouteEventType.SALIDA,
             eventTime: record.dispatchedAt,
@@ -2081,7 +2232,6 @@ export class DatabaseSeeder {
         logCounter++;
         entries.push(
           repository.create({
-
             orderId: record.order.orderId,
             eventType: RouteEventType.PUNTO_CONTROL,
             eventTime: hoursAfter(record.dispatchedAt, 2.5),
@@ -2094,11 +2244,11 @@ export class DatabaseSeeder {
           logCounter++;
           entries.push(
             repository.create({
-  
               orderId: record.order.orderId,
               eventType: RouteEventType.ADUANA,
               eventTime: hoursAfter(record.dispatchedAt, 4.5),
-              description: 'Revision aduanera completada para tramo internacional.',
+              description:
+                'Revision aduanera completada para tramo internacional.',
             }),
           );
         }
@@ -2120,7 +2270,8 @@ export class DatabaseSeeder {
               orderId: record.order.orderId,
               eventType: RouteEventType.INCIDENTE,
               eventTime: hoursAfter(record.dispatchedAt, 5.5),
-              description: incidentDescriptions[index % incidentDescriptions.length],
+              description:
+                incidentDescriptions[index % incidentDescriptions.length],
             }),
           );
         } else if (record.finalStage === 'ENTREGADA' && index % 4 === 0) {
@@ -2131,7 +2282,8 @@ export class DatabaseSeeder {
               orderId: record.order.orderId,
               eventType: RouteEventType.INCIDENTE,
               eventTime: hoursAfter(record.dispatchedAt, 3.0),
-              description: 'Ajuste menor de ruta por congestion. Resuelto sin afectar entrega.',
+              description:
+                'Ajuste menor de ruta por congestion. Resuelto sin afectar entrega.',
             }),
           );
         }
@@ -2141,7 +2293,6 @@ export class DatabaseSeeder {
         logCounter++;
         entries.push(
           repository.create({
-
             orderId: record.order.orderId,
             eventType: RouteEventType.LLEGADA,
             eventTime: record.deliveredAt,
@@ -2165,9 +2316,13 @@ export class DatabaseSeeder {
     contracts: Contract[],
   ): Promise<Invoice[]> {
     const repository = manager.getRepository(Invoice);
-    const deliveredOrders = orders.filter((order) => order.finalStage === 'ENTREGADA');
+    const deliveredOrders = orders.filter(
+      (order) => order.finalStage === 'ENTREGADA',
+    );
     let invoices = await repository.find({
-      where: { orderId: In(deliveredOrders.map((record) => record.order.orderId)) },
+      where: {
+        orderId: In(deliveredOrders.map((record) => record.order.orderId)),
+      },
     });
     const contractById = new Map(
       contracts.map((contract) => [String(contract.contractId), contract]),
@@ -2229,7 +2384,9 @@ export class DatabaseSeeder {
     }
 
     invoices = await repository.find({
-      where: { orderId: In(deliveredOrders.map((record) => record.order.orderId)) },
+      where: {
+        orderId: In(deliveredOrders.map((record) => record.order.orderId)),
+      },
     });
     const invoiceByOrderId = new Map(
       invoices.map((invoice) => [String(invoice.orderId), invoice]),
@@ -2262,60 +2419,62 @@ export class DatabaseSeeder {
         taxAmount,
         totalAmount,
       };
-      const invoiceSeedId = String((invoice as Invoice).invoiceId);
+      const invoiceSeedId = String(invoice.invoiceId);
 
       if (index < 4) {
         // Empty drafts needing finance review
-        await repository.update((invoice as Invoice).invoiceId, {
+        await repository.update(invoice.invoiceId, {
           ...invoiceBaseUpdate,
           serviceDescription: '',
           status: InvoiceStatus.BORRADOR,
-          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-draft.pdf`,
+          pdfPath: `/seed/invoices/${invoice.invoiceId}-draft.pdf`,
         });
       } else if (index < 8) {
         // Drafts reviewed by finance, ready for certifier
-        await repository.update((invoice as Invoice).invoiceId, {
+        await repository.update(invoice.invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.BORRADOR,
-          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-draft.pdf`,
+          pdfPath: `/seed/invoices/${invoice.invoiceId}-draft.pdf`,
         });
       } else if (index < 13) {
-        await repository.update((invoice as Invoice).invoiceId, {
+        await repository.update(invoice.invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.CERTIFICADA,
           certifiedAt: hoursAfter(issueDate, 5),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
         });
       } else if (index < 17) {
-        await repository.update((invoice as Invoice).invoiceId, {
+        await repository.update(invoice.invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 4),
           sentAt: hoursAfter(issueDate, 8),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
         });
       } else if (index < 22) {
-        await repository.update((invoice as Invoice).invoiceId, {
+        await repository.update(invoice.invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.ENVIADA,
           certifiedAt: hoursAfter(issueDate, 3),
           sentAt: hoursAfter(issueDate, 7),
           felUuid: `FEL-${invoiceSeedId.slice(0, 8).toUpperCase()}`,
-          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}.pdf`,
+          pdfPath: `/seed/invoices/${invoice.invoiceId}.pdf`,
         });
       } else {
-        await repository.update((invoice as Invoice).invoiceId, {
+        await repository.update(invoice.invoiceId, {
           ...invoiceBaseUpdate,
           status: InvoiceStatus.RECHAZADA,
-          pdfPath: `/seed/invoices/${(invoice as Invoice).invoiceId}-rejected.pdf`,
+          pdfPath: `/seed/invoices/${invoice.invoiceId}-rejected.pdf`,
         });
       }
     }
 
     return repository.find({
-      where: { orderId: In(deliveredOrders.map((record) => record.order.orderId)) },
+      where: {
+        orderId: In(deliveredOrders.map((record) => record.order.orderId)),
+      },
     });
   }
 
@@ -2333,7 +2492,10 @@ export class DatabaseSeeder {
       .filter((invoice) => invoice.status === InvoiceStatus.ENVIADA)
       .slice(0, 5);
     const remainingInvoices = invoices.filter(
-      (invoice) => !invoicesForApprovedPayments.some((item) => item.invoiceId === invoice.invoiceId),
+      (invoice) =>
+        !invoicesForApprovedPayments.some(
+          (item) => item.invoiceId === invoice.invoiceId,
+        ),
     );
     const invoicesForPendingPayments = remainingInvoices
       .filter(
@@ -2357,15 +2519,22 @@ export class DatabaseSeeder {
           status: PaymentStatus.APROBADO,
           supportDocumentPath: `/seed/payments/support-${invoice.invoiceId}.pdf`,
           amount: Number(invoice.totalAmount),
-          paymentDate: hoursAfter(new Date(invoice.sentAt ?? invoice.issueDate), 24 + index * 2),
+          paymentDate: hoursAfter(
+            new Date(invoice.sentAt ?? invoice.issueDate),
+            24 + index * 2,
+          ),
           reviewedByUserId: financeReviewer.userId,
         }),
       );
     }
 
     for (const [index, invoice] of invoicesForPendingPayments.entries()) {
-      const status = index % 2 === 0 ? PaymentStatus.PENDIENTE : PaymentStatus.RECHAZADO;
-      const financeReviewer = status === PaymentStatus.RECHAZADO ? financeUsers[index % financeUsers.length] : null;
+      const status =
+        index % 2 === 0 ? PaymentStatus.PENDIENTE : PaymentStatus.RECHAZADO;
+      const financeReviewer =
+        status === PaymentStatus.RECHAZADO
+          ? financeUsers[index % financeUsers.length]
+          : null;
 
       await repository.save(
         repository.create({
@@ -2390,37 +2559,51 @@ export class DatabaseSeeder {
     requiresRefrigeration: boolean,
     occupiedUnitIds: Set<number>,
   ): TransportUnit {
-    const vehicleTypeIdByRateOrder = new Set(contractRates.map((rate) => rate.vehicleTypeId));
-    
+    const vehicleTypeIdByRateOrder = new Set(
+      contractRates.map((rate) => rate.vehicleTypeId),
+    );
+
     // Candidatos base: que no estén ocupados y que el contrato permita su tarifa
     const candidates = units.filter((unit) => {
       if (occupiedUnitIds.has(unit.unitId)) return false;
       if (!vehicleTypeIdByRateOrder.has(unit.vehicleTypeId)) return false;
-      
+
       // REGLA DE ORO: Si requiere refrigeración, la unidad DEBE tenerla.
       // No negociable para evitar violar triggers de BD.
       if (requiresRefrigeration && !unit.hasRefrigeration) return false;
-      
+
       return true;
     });
 
     // 1. Intentar priorizar por rama y tipo (ya sabemos que cumplen refrigeración por el filtro de arriba)
     const prioritized = candidates.filter((unit) => {
-      const branchMatches = !preferredBranchCode || this.resolveBranchCodeFromUnit(unit, routes) === preferredBranchCode;
-      const vehicleTypeMatches = !preferredVehicleTypeCode || this.resolveVehicleTypeCode(unit.vehicleTypeId) === preferredVehicleTypeCode;
+      const branchMatches =
+        !preferredBranchCode ||
+        this.resolveBranchCodeFromUnit(unit, routes) === preferredBranchCode;
+      const vehicleTypeMatches =
+        !preferredVehicleTypeCode ||
+        this.resolveVehicleTypeCode(unit.vehicleTypeId) ===
+          preferredVehicleTypeCode;
       return branchMatches && vehicleTypeMatches;
     });
 
     // 2. Si no hay prioridad perfecta, intentar solo por tipo
-    const fallback1 = prioritized.length > 0 ? prioritized : candidates.filter((u) => {
-      return !preferredVehicleTypeCode || this.resolveVehicleTypeCode(u.vehicleTypeId) === preferredVehicleTypeCode;
-    });
+    const fallback1 =
+      prioritized.length > 0
+        ? prioritized
+        : candidates.filter((u) => {
+            return (
+              !preferredVehicleTypeCode ||
+              this.resolveVehicleTypeCode(u.vehicleTypeId) ===
+                preferredVehicleTypeCode
+            );
+          });
 
     const selected = fallback1[0] ?? candidates[0];
-    
+
     if (!selected) {
       throw new Error(
-        `No existe unidad compatible para el seed (refrigeración=${requiresRefrigeration}, tipo=${preferredVehicleTypeCode ?? 'ANY'}, sede=${preferredBranchCode ?? 'ANY'}).`
+        `No existe unidad compatible para el seed (refrigeración=${requiresRefrigeration}, tipo=${preferredVehicleTypeCode ?? 'ANY'}, sede=${preferredBranchCode ?? 'ANY'}).`,
       );
     }
 
@@ -2441,7 +2624,8 @@ export class DatabaseSeeder {
       'TRANSITO',
     ];
 
-    const activeStageForClient = stageRotation[clientIndex % stageRotation.length];
+    const activeStageForClient =
+      stageRotation[clientIndex % stageRotation.length];
     return stage === activeStageForClient ? stage : 'ENTREGADA';
   }
 
@@ -2458,7 +2642,9 @@ export class DatabaseSeeder {
     return mapping.get(unit.branchId);
   }
 
-  private resolveVehicleTypeCode(vehicleTypeId: number): 'LIGHT' | 'HEAVY' | 'TRAILER' | undefined {
+  private resolveVehicleTypeCode(
+    vehicleTypeId: number,
+  ): 'LIGHT' | 'HEAVY' | 'TRAILER' | undefined {
     const mapping = new Map<number, 'LIGHT' | 'HEAVY' | 'TRAILER'>([
       [1, 'LIGHT'],
       [2, 'HEAVY'],
@@ -2504,7 +2690,9 @@ export class DatabaseSeeder {
   }
 }
 
-export async function runInitialSeed(dataSource: DataSource): Promise<SeedSummary> {
+export async function runInitialSeed(
+  dataSource: DataSource,
+): Promise<SeedSummary> {
   const seeder = new DatabaseSeeder(dataSource);
   return seeder.run();
 }

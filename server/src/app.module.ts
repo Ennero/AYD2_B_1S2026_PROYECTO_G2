@@ -27,8 +27,8 @@ import { WebsocketModule } from './infrastructure/websocket/websocket.module';
       isGlobal: true,
     }),
     ThrottlerModule.forRoot([
-      { name: 'short',  ttl: 1000,  limit: 20  },  // 20 req/s per IP
-      { name: 'medium', ttl: 10000, limit: 100 },  // 100 req/10s per IP
+      { name: 'short', ttl: 1000, limit: 20 }, // 20 req/s per IP
+      { name: 'medium', ttl: 10000, limit: 100 }, // 100 req/10s per IP
     ]),
     TypeOrmModule.forRoot(dataSourceOptions),
     ReplicaDatabaseModule,
@@ -47,9 +47,6 @@ import { WebsocketModule } from './infrastructure/websocket/websocket.module';
     WebsocketModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-  ],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

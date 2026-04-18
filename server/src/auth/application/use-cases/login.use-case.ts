@@ -39,7 +39,9 @@ export class LoginUseCase {
     private readonly jwtService: JwtService,
   ) {}
 
-  async execute(input: LoginInput): Promise<{ data: LoginOutput; sessionToken: string }> {
+  async execute(
+    input: LoginInput,
+  ): Promise<{ data: LoginOutput; sessionToken: string }> {
     const user = await this.userRepo.findByEmail(input.email);
 
     // Mensaje genérico para no revelar si el email existe
@@ -47,7 +49,10 @@ export class LoginUseCase {
       throw new UnauthorizedException('Credenciales inválidas.');
     }
 
-    const passwordMatch = await bcrypt.compare(input.password, user.passwordHash);
+    const passwordMatch = await bcrypt.compare(
+      input.password,
+      user.passwordHash,
+    );
     if (!passwordMatch) {
       throw new UnauthorizedException('Credenciales inválidas.');
     }
@@ -77,7 +82,13 @@ export class LoginUseCase {
     const token = this.jwtService.sign(payload);
 
     return {
-      data: { userId: user.userId, sessionUuid, role: user.role, fullName: user.fullName, token },
+      data: {
+        userId: user.userId,
+        sessionUuid,
+        role: user.role,
+        fullName: user.fullName,
+        token,
+      },
       sessionToken,
     };
   }

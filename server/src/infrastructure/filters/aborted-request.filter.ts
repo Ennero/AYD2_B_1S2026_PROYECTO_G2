@@ -21,7 +21,9 @@ export class AbortedRequestFilter implements ExceptionFilter {
         (exception as { type?: string }).type === 'request.aborted');
 
     if (isAborted) {
-      this.logger.warn(`Request aborted by client: ${request.method} ${request.url}`);
+      this.logger.warn(
+        `Request aborted by client: ${request.method} ${request.url}`,
+      );
       if (!response.headersSent) {
         response.status(499).end();
       }

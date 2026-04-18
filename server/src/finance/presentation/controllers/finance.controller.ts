@@ -54,12 +54,22 @@ export class FinanceController {
     @Body() dto: SubmitForCertificationDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    const data = await this.financeService.submitForCertification(invoiceId, user.sub, dto);
-    return { message: 'Factura borrador enviada a certificacion correctamente', data };
+    const data = await this.financeService.submitForCertification(
+      invoiceId,
+      user.sub,
+      dto,
+    );
+    return {
+      message: 'Factura borrador enviada a certificacion correctamente',
+      data,
+    };
   }
 
   @Patch('invoices/:id/send')
-  async sendInvoice(@Param('id', ParseIntPipe) invoiceId: number, @Body() dto: SendInvoiceDto) {
+  async sendInvoice(
+    @Param('id', ParseIntPipe) invoiceId: number,
+    @Body() dto: SendInvoiceDto,
+  ) {
     const data = await this.financeService.sendInvoice(invoiceId, dto.pdfPath);
     return { message: 'Factura enviada al cliente correctamente', data };
   }
@@ -71,7 +81,10 @@ export class FinanceController {
   }
 
   @Patch('payments/:id/approve')
-  async approvePayment(@Param('id', ParseIntPipe) paymentId: number, @CurrentUser() user: JwtPayload) {
+  async approvePayment(
+    @Param('id', ParseIntPipe) paymentId: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
     const data = await this.financeService.approvePayment(paymentId, user.sub);
     return { message: 'Pago aprobado correctamente', data };
   }
@@ -87,7 +100,10 @@ export class FinanceController {
     @Param('id', ParseIntPipe) vehicleTypeId: number,
     @Body() dto: UpdateRateDto,
   ) {
-    const data = await this.financeService.updateRate(vehicleTypeId, dto.ratePerKm);
+    const data = await this.financeService.updateRate(
+      vehicleTypeId,
+      dto.ratePerKm,
+    );
     return { message: 'Tarifa actualizada correctamente', data };
   }
 }

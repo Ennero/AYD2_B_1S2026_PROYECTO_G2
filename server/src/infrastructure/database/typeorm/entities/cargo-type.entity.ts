@@ -1,4 +1,11 @@
-import { PrimaryColumn,  Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
+import {
+  PrimaryColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+} from 'typeorm';
 import { Contract } from './contract.entity';
 import { Order } from './order.entity';
 

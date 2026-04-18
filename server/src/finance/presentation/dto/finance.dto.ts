@@ -48,7 +48,11 @@ export class FinanceInvoicesQueryDto {
 
 export class FinancePaymentsQueryDto {
   @IsOptional()
-  @IsIn([PaymentStatus.PENDIENTE, PaymentStatus.APROBADO, PaymentStatus.RECHAZADO])
+  @IsIn([
+    PaymentStatus.PENDIENTE,
+    PaymentStatus.APROBADO,
+    PaymentStatus.RECHAZADO,
+  ])
   status?: PaymentStatus;
 }
 

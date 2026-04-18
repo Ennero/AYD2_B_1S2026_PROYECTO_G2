@@ -20,7 +20,10 @@ export interface DashboardSummaryData {
  * All methods target the read replica — no writes allowed.
  */
 export interface IFinanceReadRepository {
-  getDashboardSummary(year: number, month: number): Promise<DashboardSummaryData>;
+  getDashboardSummary(
+    year: number,
+    month: number,
+  ): Promise<DashboardSummaryData>;
   findInvoices(status?: InvoiceStatus): Promise<Invoice[]>;
   findInvoiceById(id: number): Promise<Invoice | null>;
   findPayments(status?: PaymentStatus): Promise<Payment[]>;

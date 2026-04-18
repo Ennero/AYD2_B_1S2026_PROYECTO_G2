@@ -1,4 +1,10 @@
-import { PrimaryColumn,  Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  PrimaryColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+} from 'typeorm';
 import { TransportUnit } from './transport-unit.entity';
 import { Order } from './order.entity';
 

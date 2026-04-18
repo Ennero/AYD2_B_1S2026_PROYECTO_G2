@@ -86,8 +86,15 @@ export class GerenciaFinanceController {
     @Body() dto: SubmitForCertificationDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    const data = await this.financeService.submitForCertification(invoiceId, user.sub, dto);
-    return { message: 'Factura borrador enviada a certificacion correctamente', data };
+    const data = await this.financeService.submitForCertification(
+      invoiceId,
+      user.sub,
+      dto,
+    );
+    return {
+      message: 'Factura borrador enviada a certificacion correctamente',
+      data,
+    };
   }
 
   @Patch('payments/:id/approve')
@@ -104,7 +111,10 @@ export class GerenciaFinanceController {
     @Param('id', ParseIntPipe) vehicleTypeId: number,
     @Body() dto: UpdateRateDto,
   ) {
-    const data = await this.financeService.updateRate(vehicleTypeId, dto.ratePerKm);
+    const data = await this.financeService.updateRate(
+      vehicleTypeId,
+      dto.ratePerKm,
+    );
     return { message: 'Tarifa actualizada correctamente', data };
   }
 }

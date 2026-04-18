@@ -38,22 +38,22 @@ import { PASSWORD_RECOVERY_REPOSITORY_TOKEN } from '../../domain/repositories/pa
 
 function fakeRecoveryRecord(overrides: Record<string, unknown> = {}) {
   return {
-    tokenId:   faker.number.int({ min: 1, max: 999 }),
-    userId:    faker.number.int({ min: 1, max: 999 }),
+    tokenId: faker.number.int({ min: 1, max: 999 }),
+    userId: faker.number.int({ min: 1, max: 999 }),
     tokenHash: faker.string.hexadecimal({ length: 64 }),
     expiresAt: new Date(Date.now() + 30 * 60 * 1000),
-    usedAt:    null,
+    usedAt: null,
     ...overrides,
   };
 }
 
 function fakeUser(overrides: Record<string, unknown> = {}) {
   return {
-    userId:       faker.number.int({ min: 1, max: 999 }),
-    email:        faker.internet.email(),
-    fullName:     faker.person.fullName(),
+    userId: faker.number.int({ min: 1, max: 999 }),
+    email: faker.internet.email(),
+    fullName: faker.person.fullName(),
     passwordHash: faker.string.alphanumeric(60),
-    isActive:     true,
+    isActive: true,
     ...overrides,
   };
 }
@@ -61,25 +61,25 @@ function fakeUser(overrides: Record<string, unknown> = {}) {
 // ── Suite ─────────────────────────────────────────────────────────────────────
 
 describe('ResetPasswordUseCase', () => {
-  let useCase:      ResetPasswordUseCase;
-  let userRepo:     { findById: jest.Mock; updatePassword: jest.Mock };
+  let useCase: ResetPasswordUseCase;
+  let userRepo: { findById: jest.Mock; updatePassword: jest.Mock };
   let recoveryRepo: { findValidByTokenHash: jest.Mock; markAsUsed: jest.Mock };
 
   beforeEach(async () => {
     userRepo = {
-      findById:       jest.fn(),
+      findById: jest.fn(),
       updatePassword: jest.fn().mockResolvedValue(undefined),
     };
 
     recoveryRepo = {
       findValidByTokenHash: jest.fn(),
-      markAsUsed:           jest.fn().mockResolvedValue(undefined),
+      markAsUsed: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResetPasswordUseCase,
-        { provide: AUTH_USER_REPOSITORY_TOKEN,        useValue: userRepo },
+        { provide: AUTH_USER_REPOSITORY_TOKEN, useValue: userRepo },
         { provide: PASSWORD_RECOVERY_REPOSITORY_TOKEN, useValue: recoveryRepo },
       ],
     }).compile();
@@ -94,8 +94,8 @@ describe('ResetPasswordUseCase', () => {
   it('lanza BadRequestException cuando password y confirmation no coinciden', async () => {
     await expect(
       useCase.execute({
-        rawToken:     faker.string.alphanumeric(64),
-        password:     'Contraseña_Segura_123',
+        rawToken: faker.string.alphanumeric(64),
+        password: 'Contraseña_Segura_123',
         confirmation: 'Contraseña_Diferente_456',
       }),
     ).rejects.toThrow(BadRequestException);
@@ -109,8 +109,8 @@ describe('ResetPasswordUseCase', () => {
   it('lanza UnauthorizedException cuando rawToken está vacío', async () => {
     await expect(
       useCase.execute({
-        rawToken:     '',
-        password:     'MismaContraseña_123',
+        rawToken: '',
+        password: 'MismaContraseña_123',
         confirmation: 'MismaContraseña_123',
       }),
     ).rejects.toThrow(UnauthorizedException);
@@ -123,8 +123,8 @@ describe('ResetPasswordUseCase', () => {
 
     await expect(
       useCase.execute({
-        rawToken:     faker.string.alphanumeric(64),
-        password:     'NuevaContraseña_123',
+        rawToken: faker.string.alphanumeric(64),
+        password: 'NuevaContraseña_123',
         confirmation: 'NuevaContraseña_123',
       }),
     ).rejects.toThrow(UnauthorizedException);
@@ -143,8 +143,8 @@ describe('ResetPasswordUseCase', () => {
 
     await expect(
       useCase.execute({
-        rawToken:     faker.string.alphanumeric(64),
-        password:     'NuevaContraseña_123',
+        rawToken: faker.string.alphanumeric(64),
+        password: 'NuevaContraseña_123',
         confirmation: 'NuevaContraseña_123',
       }),
     ).rejects.toThrow(UnauthorizedException);
@@ -153,7 +153,7 @@ describe('ResetPasswordUseCase', () => {
   // ── Test 5 ────────────────────────────────────────────────────────────────
 
   it('lanza BadRequestException cuando la nueva contraseña es igual a la actual', async () => {
-    const user   = fakeUser();
+    const user = fakeUser();
     const record = fakeRecoveryRecord({ userId: user.userId });
     recoveryRepo.findValidByTokenHash.mockResolvedValue(record);
     userRepo.findById.mockResolvedValue(user);
@@ -162,8 +162,8 @@ describe('ResetPasswordUseCase', () => {
 
     await expect(
       useCase.execute({
-        rawToken:     faker.string.alphanumeric(64),
-        password:     'MismaContraseñaActual_123',
+        rawToken: faker.string.alphanumeric(64),
+        password: 'MismaContraseñaActual_123',
         confirmation: 'MismaContraseñaActual_123',
       }),
     ).rejects.toThrow(BadRequestException);
@@ -175,7 +175,7 @@ describe('ResetPasswordUseCase', () => {
   // ── Test 6 ────────────────────────────────────────────────────────────────
 
   it('actualiza la contraseña y marca el token como usado cuando todo es válido', async () => {
-    const user   = fakeUser();
+    const user = fakeUser();
     const record = fakeRecoveryRecord({ userId: user.userId });
     recoveryRepo.findValidByTokenHash.mockResolvedValue(record);
     userRepo.findById.mockResolvedValue(user);
@@ -185,13 +185,16 @@ describe('ResetPasswordUseCase', () => {
 
     await expect(
       useCase.execute({
-        rawToken:     faker.string.alphanumeric(64),
-        password:     'NuevaContraseñaSegura_456',
+        rawToken: faker.string.alphanumeric(64),
+        password: 'NuevaContraseñaSegura_456',
         confirmation: 'NuevaContraseñaSegura_456',
       }),
     ).resolves.toBeUndefined();
 
-    expect(userRepo.updatePassword).toHaveBeenCalledWith(user.userId, '$2b$12$nuevohash');
+    expect(userRepo.updatePassword).toHaveBeenCalledWith(
+      user.userId,
+      '$2b$12$nuevohash',
+    );
     expect(recoveryRepo.markAsUsed).toHaveBeenCalledWith(record.tokenId);
   });
 });

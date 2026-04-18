@@ -19,13 +19,13 @@ import { SupabaseStorageAdapter } from './infrastructure/supabase-storage.adapte
  *   @Inject(STORAGE_SERVICE_TOKEN) private readonly storage: IStorageService
  */
 @Module({
-    imports: [ConfigModule],
-    providers: [
-        {
-            provide: STORAGE_SERVICE_TOKEN,
-            useClass: SupabaseStorageAdapter,
-        },
-    ],
-    exports: [STORAGE_SERVICE_TOKEN],
+  imports: [ConfigModule],
+  providers: [
+    {
+      provide: STORAGE_SERVICE_TOKEN,
+      useClass: SupabaseStorageAdapter,
+    },
+  ],
+  exports: [STORAGE_SERVICE_TOKEN],
 })
 export class StorageModule {}

@@ -1,4 +1,10 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateRouteDto {
   @IsString()

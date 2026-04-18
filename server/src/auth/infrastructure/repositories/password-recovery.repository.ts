@@ -23,7 +23,9 @@ export class PasswordRecoveryRepository implements IPasswordRecoveryRepository {
     return this.repo.save(token);
   }
 
-  findValidByTokenHash(tokenHash: string): Promise<PasswordRecoveryToken | null> {
+  findValidByTokenHash(
+    tokenHash: string,
+  ): Promise<PasswordRecoveryToken | null> {
     return this.repo.findOne({
       where: {
         tokenHash,

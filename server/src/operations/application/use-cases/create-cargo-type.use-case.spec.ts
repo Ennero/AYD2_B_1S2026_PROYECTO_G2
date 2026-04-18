@@ -24,10 +24,12 @@ import { CargoType } from '../../../infrastructure/database/typeorm/entities/car
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
-function fakeCargoType(overrides: Record<string, unknown> = {}): Partial<CargoType> {
+function fakeCargoType(
+  overrides: Record<string, unknown> = {},
+): Partial<CargoType> {
   return {
-    cargoTypeId:          faker.number.int({ min: 1, max: 999 }),
-    cargoName:            faker.commerce.productName().toUpperCase(),
+    cargoTypeId: faker.number.int({ min: 1, max: 999 }),
+    cargoName: faker.commerce.productName().toUpperCase(),
     requiresRefrigeration: false,
     ...overrides,
   };
@@ -36,19 +38,19 @@ function fakeCargoType(overrides: Record<string, unknown> = {}): Partial<CargoTy
 // ── Suite ─────────────────────────────────────────────────────────────────────
 
 describe('CreateCargoTypeUseCase', () => {
-  let useCase:       CreateCargoTypeUseCase;
+  let useCase: CreateCargoTypeUseCase;
   let mockCargoRepo: {
     findOne: jest.Mock;
-    create:  jest.Mock;
-    save:    jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
   };
   let mockDataSource: { getRepository: jest.Mock };
 
   beforeEach(async () => {
     mockCargoRepo = {
       findOne: jest.fn(),
-      create:  jest.fn(),
-      save:    jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
     };
 
     mockDataSource = {
@@ -112,7 +114,9 @@ describe('CreateCargoTypeUseCase', () => {
     const existing = fakeCargoType({ cargoName: 'ELECTRODOMÉSTICOS' });
     mockCargoRepo.findOne.mockResolvedValue(existing);
 
-    await expect(useCase.execute('Electrodomésticos', false)).rejects.toThrow(ConflictException);
+    await expect(useCase.execute('Electrodomésticos', false)).rejects.toThrow(
+      ConflictException,
+    );
 
     // save nunca se llama si ya existe
     expect(mockCargoRepo.save).not.toHaveBeenCalled();
@@ -125,13 +129,18 @@ describe('CreateCargoTypeUseCase', () => {
     mockCargoRepo.findOne.mockResolvedValue(existing);
 
     // El usuario escribe en minúsculas pero debe detectarse como duplicado
-    await expect(useCase.execute('perecederos', false)).rejects.toThrow(ConflictException);
+    await expect(useCase.execute('perecederos', false)).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   // ── Test 5 ────────────────────────────────────────────────────────────────
 
   it('guarda requiresRefrigeration = true cuando se indica que requiere refrigeración', async () => {
-    const saved = fakeCargoType({ cargoName: 'ALIMENTOS FRESCOS', requiresRefrigeration: true });
+    const saved = fakeCargoType({
+      cargoName: 'ALIMENTOS FRESCOS',
+      requiresRefrigeration: true,
+    });
     mockCargoRepo.findOne.mockResolvedValue(null);
     mockCargoRepo.create.mockReturnValue(saved);
     mockCargoRepo.save.mockResolvedValue(saved);

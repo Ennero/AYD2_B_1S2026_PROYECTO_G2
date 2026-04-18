@@ -10,9 +10,11 @@ export interface OrderDispatchedTemplateData {
   unitPlate?: string;
 }
 
-export function orderDispatchedTemplate(
-  data: OrderDispatchedTemplateData,
-): { subject: string; html: string; text: string } {
+export function orderDispatchedTemplate(data: OrderDispatchedTemplateData): {
+  subject: string;
+  html: string;
+  text: string;
+} {
   const subject = `LogiTrans — Tu orden ${data.orderNumber} salió del patio`;
 
   const html = baseTemplate(

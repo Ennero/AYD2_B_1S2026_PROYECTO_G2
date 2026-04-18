@@ -18,7 +18,9 @@ describe('Health (integration)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
   });
 
@@ -27,7 +29,9 @@ describe('Health (integration)', () => {
   });
 
   it('GET /api/health returns 200 with db status', async () => {
-    const res = await request(app.getHttpServer()).get('/api/health').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/api/health')
+      .expect(200);
     expect(res.body).toHaveProperty('status');
   });
 

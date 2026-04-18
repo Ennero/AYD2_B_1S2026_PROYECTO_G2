@@ -15,7 +15,9 @@ import { Route } from '../../../infrastructure/database/typeorm/entities/route.e
 export class DeleteRouteUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(routeId: number): Promise<{ routeId: number; routeCode: string; isActive: boolean }> {
+  async execute(
+    routeId: number,
+  ): Promise<{ routeId: number; routeCode: string; isActive: boolean }> {
     const routeRepo = this.dataSource.getRepository(Route);
 
     const route = await routeRepo.findOne({ where: { routeId } });
@@ -24,7 +26,9 @@ export class DeleteRouteUseCase {
     }
 
     if (!route.isActive) {
-      throw new BadRequestException(`La ruta ${route.routeCode} ya se encuentra desactivada.`);
+      throw new BadRequestException(
+        `La ruta ${route.routeCode} ya se encuentra desactivada.`,
+      );
     }
 
     const contractsUsingRoute = await this.dataSource

@@ -34,12 +34,12 @@ import { UserRole } from '../../../domain/enums/user-role.enum';
 
 function fakeUser(overrides: Record<string, unknown> = {}) {
   return {
-    userId:       faker.number.int({ min: 1, max: 999 }),
-    email:        faker.internet.email(),
-    fullName:     faker.person.fullName(),
-    role:         UserRole.AGENTE_OPERATIVO,
+    userId: faker.number.int({ min: 1, max: 999 }),
+    email: faker.internet.email(),
+    fullName: faker.person.fullName(),
+    role: UserRole.AGENTE_OPERATIVO,
     passwordHash: faker.string.alphanumeric(60),
-    isActive:     true,
+    isActive: true,
     ...overrides,
   };
 }
@@ -47,8 +47,8 @@ function fakeUser(overrides: Record<string, unknown> = {}) {
 // ── Suite ─────────────────────────────────────────────────────────────────────
 
 describe('RequestPasswordRecoveryUseCase', () => {
-  let useCase:      RequestPasswordRecoveryUseCase;
-  let userRepo:     { findByEmail: jest.Mock };
+  let useCase: RequestPasswordRecoveryUseCase;
+  let userRepo: { findByEmail: jest.Mock };
   let recoveryRepo: { create: jest.Mock };
   let emailService: { sendPasswordRecovery: jest.Mock };
 
@@ -68,9 +68,9 @@ describe('RequestPasswordRecoveryUseCase', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RequestPasswordRecoveryUseCase,
-        { provide: AUTH_USER_REPOSITORY_TOKEN,         useValue: userRepo },
+        { provide: AUTH_USER_REPOSITORY_TOKEN, useValue: userRepo },
         { provide: PASSWORD_RECOVERY_REPOSITORY_TOKEN, useValue: recoveryRepo },
-        { provide: EmailService,                       useValue: emailService },
+        { provide: EmailService, useValue: emailService },
       ],
     }).compile();
 
@@ -113,7 +113,9 @@ describe('RequestPasswordRecoveryUseCase', () => {
     await useCase.execute({ email: user.email });
 
     expect(recoveryRepo.create).toHaveBeenCalledTimes(1);
-    const [createdRecord] = recoveryRepo.create.mock.calls[0] as [Record<string, unknown>][];
+    const [createdRecord] = recoveryRepo.create.mock.calls[0] as [
+      Record<string, unknown>,
+    ][];
     expect(createdRecord.userId).toBe(user.userId);
     expect(typeof createdRecord.tokenHash).toBe('string');
     expect(createdRecord.tokenHash).toHaveLength(64); // SHA-256 hex = 64 chars
@@ -139,8 +141,12 @@ describe('RequestPasswordRecoveryUseCase', () => {
     // Esperamos que el uso del repositorio haya finalizado
     await new Promise((r) => setImmediate(r));
 
-    const [createdRecord] = recoveryRepo.create.mock.calls[0] as [Record<string, unknown>][];
-    const expectedHash = createHash('sha256').update(capturedRawToken!).digest('hex');
+    const [createdRecord] = recoveryRepo.create.mock.calls[0] as [
+      Record<string, unknown>,
+    ][];
+    const expectedHash = createHash('sha256')
+      .update(capturedRawToken!)
+      .digest('hex');
     expect(createdRecord.tokenHash).toBe(expectedHash);
   });
 
@@ -152,8 +158,10 @@ describe('RequestPasswordRecoveryUseCase', () => {
 
     await useCase.execute({ email: user.email });
 
-    const [createdRecord] = recoveryRepo.create.mock.calls[0] as [Record<string, unknown>][];
-    const deltaMs     = (createdRecord.expiresAt as Date).getTime() - Date.now();
+    const [createdRecord] = recoveryRepo.create.mock.calls[0] as [
+      Record<string, unknown>,
+    ][];
+    const deltaMs = (createdRecord.expiresAt as Date).getTime() - Date.now();
     const thirtyMinMs = 30 * 60 * 1000;
 
     // Tolerancia de ±5 segundos por tiempo de ejecución del test

@@ -4,12 +4,30 @@ import {
   type EmailSendResult,
   type IEmailService,
 } from '../domain/email.service.interface';
-import { welcomeTemplate, WelcomeTemplateData } from './templates/welcome.template';
-import { passwordRecoveryTemplate, PasswordRecoveryTemplateData } from './templates/password-recovery.template';
-import { contractProposalTemplate, ContractProposalTemplateData } from './templates/contract-proposal.template';
-import { invoiceTemplate, InvoiceTemplateData } from './templates/invoice.template';
-import { orderDispatchedTemplate, OrderDispatchedTemplateData } from './templates/order-dispatched.template';
-import { orderDeliveredTemplate, OrderDeliveredTemplateData } from './templates/order-delivered.template';
+import {
+  welcomeTemplate,
+  WelcomeTemplateData,
+} from './templates/welcome.template';
+import {
+  passwordRecoveryTemplate,
+  PasswordRecoveryTemplateData,
+} from './templates/password-recovery.template';
+import {
+  contractProposalTemplate,
+  ContractProposalTemplateData,
+} from './templates/contract-proposal.template';
+import {
+  invoiceTemplate,
+  InvoiceTemplateData,
+} from './templates/invoice.template';
+import {
+  orderDispatchedTemplate,
+  OrderDispatchedTemplateData,
+} from './templates/order-dispatched.template';
+import {
+  orderDeliveredTemplate,
+  OrderDeliveredTemplateData,
+} from './templates/order-delivered.template';
 
 interface FinanceInvoiceStatusMail {
   to: string;
@@ -188,7 +206,9 @@ export class EmailService {
       `Emision: ${data.issueDate}`,
       `Vencimiento: ${data.dueDate}`,
       `Total: ${data.currency} ${data.total}`,
-      data.felAuthorizationCode ? `FEL UUID: ${data.felAuthorizationCode}` : undefined,
+      data.felAuthorizationCode
+        ? `FEL UUID: ${data.felAuthorizationCode}`
+        : undefined,
     ]
       .filter(Boolean)
       .join('\n');

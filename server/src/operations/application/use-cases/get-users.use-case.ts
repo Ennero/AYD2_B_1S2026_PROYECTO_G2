@@ -19,7 +19,10 @@ export interface OperationUserItem {
 export class GetUsersUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(search?: string, role?: UserRole): Promise<OperationUserItem[]> {
+  async execute(
+    search?: string,
+    role?: UserRole,
+  ): Promise<OperationUserItem[]> {
     const queryBuilder = this.dataSource
       .getRepository(User)
       .createQueryBuilder('user')

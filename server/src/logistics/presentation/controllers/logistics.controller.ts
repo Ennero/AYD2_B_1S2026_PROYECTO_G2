@@ -57,7 +57,12 @@ export class LogisticsController {
     @Query('clientId') clientId?: string,
     @Query('clientName') clientName?: string,
   ) {
-    const data = await this.getOrders.execute({ status, startDate, clientId, clientName });
+    const data = await this.getOrders.execute({
+      status,
+      startDate,
+      clientId,
+      clientName,
+    });
     return { message: 'Órdenes obtenidas correctamente', data };
   }
 
@@ -99,7 +104,10 @@ export class LogisticsController {
    */
   @Patch('orders/:id/assignment')
   @HttpCode(HttpStatus.OK)
-  async assign(@Param('id', ParseIntPipe) id: number, @Body() dto: AssignOrderDto) {
+  async assign(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AssignOrderDto,
+  ) {
     const data = await this.assignOrder.execute({
       orderId: id,
       contractRouteId: dto.contractRouteId,

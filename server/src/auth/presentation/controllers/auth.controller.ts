@@ -71,7 +71,9 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(@Req() req: Request) {
-    const sessionToken = (req.cookies as Record<string, string>)?.[SESSION_COOKIE];
+    const sessionToken = (req.cookies as Record<string, string>)?.[
+      SESSION_COOKIE
+    ];
     if (!sessionToken) {
       throw new UnauthorizedException('No se encontró token de sesión.');
     }
@@ -88,7 +90,9 @@ export class AuthController {
     @CurrentUser() user: JwtPayload,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const sessionToken = (req.cookies as Record<string, string>)?.[SESSION_COOKIE];
+    const sessionToken = (req.cookies as Record<string, string>)?.[
+      SESSION_COOKIE
+    ];
     await this.logoutUseCase.execute({
       sessionToken,
       sessionUuid: user?.sessionUuid,

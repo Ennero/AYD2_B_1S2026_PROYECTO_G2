@@ -11,7 +11,9 @@ async function seed() {
     const result = await runInitialSeed(dataSource);
 
     console.log(`Canonical schema: ${schemaState}`);
-    console.log(result.seeded ? 'Seed completed.' : 'Seed skipped: data already present.');
+    console.log(
+      result.seeded ? 'Seed completed.' : 'Seed skipped: data already present.',
+    );
     console.log(result.counts);
   } finally {
     await dataSource.destroy();

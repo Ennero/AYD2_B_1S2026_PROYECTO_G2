@@ -54,10 +54,10 @@ export const dataSourceOptions: DataSourceOptions = {
   synchronize: false,
   logging: databaseConfig.logging,
   extra: {
-    family: 4,       // Force IPv4 — ECS Fargate VPC has no IPv6 routing
-    max: 10,         // Max connections per task — con PgBouncer en puerto 6543 esto escala bien
-    min: 2,          // Keep warm connections to avoid cold-start latency
-    idleTimeoutMillis: 30000,  // Release idle connections after 30s
+    family: 4, // Force IPv4 — ECS Fargate VPC has no IPv6 routing
+    max: 10, // Max connections per task — con PgBouncer en puerto 6543 esto escala bien
+    min: 2, // Keep warm connections to avoid cold-start latency
+    idleTimeoutMillis: 30000, // Release idle connections after 30s
     connectionTimeoutMillis: 5000, // Fail fast instead of queuing forever
   },
 };

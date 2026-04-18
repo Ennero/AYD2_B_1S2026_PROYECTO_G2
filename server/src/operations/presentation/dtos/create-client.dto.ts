@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsEmail, MinLength, Matches } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsEmail,
+  MinLength,
+  Matches,
+} from 'class-validator';
 import { CountryCode } from '../../../domain/enums/country-code.enum';
 import { CurrencyCode } from '../../../domain/enums/currency-code.enum';
 import { RiskLevel } from '../../../domain/enums/risk-level.enum';
@@ -39,7 +47,8 @@ export class CreateClientDto {
   @IsString()
   @IsOptional()
   @Matches(PHONE_PATTERN, {
-    message: 'primaryContactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+    message:
+      'primaryContactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
   })
   primaryContactPhone?: string;
 
