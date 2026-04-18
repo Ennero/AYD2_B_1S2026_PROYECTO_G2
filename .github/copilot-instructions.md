@@ -336,3 +336,42 @@ Manual alignment decisions applied:
 ### 4) Remaining risks / pending work
 - Current combobox UX requires typing at least one character to trigger lookup; if a full initial dropdown is desired, add preload behavior on focus.
 - `ratesRes` remains unused in `formalizar-contrato` and can be removed in a cleanup pass to keep lint output clean.
+
+## Documentation Image Sync Update (2026-04-17)
+
+### 1) What changed
+- Updated visual evidence in both manuals to align with the latest captured flow:
+  - `docs/happypath.md`
+  - `docs/USER_MANUAL.md`
+- Resolved pending image placeholders in happy path:
+  - replaced contract placeholder with `imgs/happypath/94_formalizar_contrato_hnl_pbar_sps.jpeg`
+  - replaced management graphs placeholder with `imgs/happypath/120_gerencia_kpi_facturacion_usd_mensual.jpeg`
+- Updated flow text in contract formalization (both docs) to document the current validation when trying to generate a new contract while one is `VIGENTE` or `PENDIENTE`.
+- Synchronized section 12 (Gerencia) in both docs:
+  - adjusted KPI validation wording
+  - aligned rentability subsection to include new graphs evidence
+- Replaced canonical image assets in `docs/imgs/happypath` with newly captured evidence by overwriting existing filenames:
+  - `94_formalizar_contrato_hnl_pbar_sps.jpeg`
+  - `118_gerencia_kpi_facturacion_usd.jpeg`
+  - `119_gerencia_rentabilidad_facturacion_total_usd.jpeg`
+  - `120_gerencia_kpi_facturacion_usd_mensual.jpeg`
+  - `121_gerencia_alertas_proyecciones_dashboard.jpeg`
+- Removed temporary screenshot files and hash-audit artifacts generated during synchronization.
+
+### 2) Validation executed
+- Confirmed no markdown placeholders remain in updated manuals.
+- Verified all referenced image paths in `docs/happypath.md` and `docs/USER_MANUAL.md` exist on disk.
+- Confirmed cleanup completed:
+  - no `Captura de pantalla_17-4-2026_*.jpeg` files remain
+  - no temporary hash report `.txt` files remain in `docs/imgs/happypath`
+- Problems check for modified markdown files: no errors.
+
+### 3) Canonical business conventions affected
+- No lifecycle or domain-rule regressions introduced.
+- Preserved canonical invoice lifecycle: `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`.
+- Preserved separate payment lifecycle: `PENDIENTE -> APROBADO/RECHAZADO`.
+- Preserved order lifecycle: `REGISTRADA -> ASIGNADA -> LISTA_PARA_DESPACHO -> EN_TRANSITO -> ENTREGADA`.
+
+### 4) Remaining risks / pending work
+- User manual section 10 still mirrors happy path content manually; future image updates should continue being applied to both files in the same change-set to avoid drift.
+- If additional recaptures are requested for Gerencia monthly/annual split views, capture and map them explicitly to keep evidence granularity per subsection.
