@@ -311,3 +311,28 @@ Manual alignment decisions applied:
 - Testing report templates are intentionally empty and require team execution evidence to be completed.
 - If k6 is later integrated into CI, docs must be updated again to avoid drift with current workflow reality.
 - If strict notification delivery guarantees are needed, consider outbox/retry strategy and update docs accordingly.
+
+## UI Fix Update (2026-04-17)
+
+### 1) What changed
+- Fixed operational contract formalization client combobox so it actually queries and displays client options while typing in:
+  - `client/app/(dashboard-nav)/agente-operativo/formalizar-contrato/page.tsx`
+- Added a dedicated `useEffect` for client search with:
+  - debounce (`250ms`)
+  - request to `GET /api/operations/clients?search=...`
+  - safe reset behavior when query is empty or a client is already selected
+  - silent failure handling for transient lookup errors
+
+### 2) Validation executed
+- TypeScript/problems check for modified file: no errors.
+- Client lint run for target page succeeded (only pre-existing warning: unused `ratesRes` in the same page).
+- Client production build succeeded after ensuring workspace dependencies are installed.
+
+### 3) Canonical business conventions affected
+- No business lifecycle changes.
+- Preserved canonical invoice lifecycle: `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`.
+- Preserved separate payment lifecycle: `PENDIENTE -> APROBADO/RECHAZADO`.
+
+### 4) Remaining risks / pending work
+- Current combobox UX requires typing at least one character to trigger lookup; if a full initial dropdown is desired, add preload behavior on focus.
+- `ratesRes` remains unused in `formalizar-contrato` and can be removed in a cleanup pass to keep lint output clean.

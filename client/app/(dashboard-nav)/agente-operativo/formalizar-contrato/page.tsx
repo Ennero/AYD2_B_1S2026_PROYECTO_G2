@@ -139,6 +139,36 @@ export default function FormalizarContratoPage() {
     return () => { mounted = false }
   }, [])
 
+  // Buscar clientes por razón social o NIT (combobox)
+  useEffect(() => {
+    const query = clienteQuery.trim()
+
+    if (!query || selectedClient) {
+      setClients([])
+      setSearching(false)
+      return
+    }
+
+    const timerId = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const res = await api.get<{ message: string; data: Client[] }>(
+          `${ENDPOINTS.CLIENTES.LIST}?search=${encodeURIComponent(query)}`,
+          { silentError: true }
+        )
+        setClients(res.data.data ?? [])
+      } catch {
+        setClients([])
+      } finally {
+        setSearching(false)
+      }
+    }, 250)
+
+    return () => {
+      clearTimeout(timerId)
+    }
+  }, [clienteQuery, selectedClient])
+
   // Actualizar tasa de cambio según el cliente seleccionado
   useEffect(() => {
     if (!selectedClient) {
