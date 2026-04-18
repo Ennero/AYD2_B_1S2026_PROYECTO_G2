@@ -65,7 +65,7 @@ export class RabbitmqConsumerController {
   handleFacturaBorrador(@Payload() data: FacturaBorradorEvent): void {
     this.logger.log(
       `[factura.borrador] factura=${data.invoiceNumber} orden=${data.orderNumber} ` +
-      `cliente=${data.clientName} total=${data.currency} ${data.totalAmount} creada=${data.createdAt}`,
+        `cliente=${data.clientName} total=${data.currency} ${data.totalAmount} creada=${data.createdAt}`,
     );
     this.events.emitFacturaBorrador(data);
   }
@@ -74,7 +74,7 @@ export class RabbitmqConsumerController {
   handleFacturaEnEspera(@Payload() data: FacturaEnEsperaEvent): void {
     this.logger.warn(
       `[factura.en_espera] factura=${data.invoiceNumber} encolada=${data.queuedAt} — ` +
-      `FEL no disponible. Se reintentará automáticamente en 5 min.`,
+        `FEL no disponible. Se reintentará automáticamente en 5 min.`,
     );
     this.events.emitFacturaEnEspera(data);
   }
@@ -83,7 +83,7 @@ export class RabbitmqConsumerController {
   handleOrdenEntregada(@Payload() data: OrdenEntregadaEvent): void {
     this.logger.log(
       `[orden.entregada] orden=${data.orderNumber} cliente=${data.clientId} ` +
-      `total=${data.currency} ${data.totalAmount} entregada=${data.deliveredAt}`,
+        `total=${data.currency} ${data.totalAmount} entregada=${data.deliveredAt}`,
     );
     this.events.emitOrdenEntregada(data);
   }
@@ -92,7 +92,7 @@ export class RabbitmqConsumerController {
   handleFacturaCertificada(@Payload() data: FacturaCertificadaEvent): void {
     this.logger.log(
       `[factura.certificada] factura=${data.invoiceNumber} cliente=${data.clientId} ` +
-      `total=${data.currency} ${data.totalAmount} uuid=${data.felUuid} certificada=${data.certifiedAt}`,
+        `total=${data.currency} ${data.totalAmount} uuid=${data.felUuid} certificada=${data.certifiedAt}`,
     );
     this.events.emitFacturaCertificada(data);
   }
@@ -101,7 +101,7 @@ export class RabbitmqConsumerController {
   handleFacturaRechazada(@Payload() data: FacturaRechazadaEvent): void {
     this.logger.warn(
       `[factura.rechazada] factura=${data.invoiceNumber} ` +
-      `motivo="${data.reason}" rechazada=${data.rejectedAt}`,
+        `motivo="${data.reason}" rechazada=${data.rejectedAt}`,
     );
     this.events.emitFacturaRechazada(data);
   }
@@ -110,7 +110,7 @@ export class RabbitmqConsumerController {
   handlePagoAprobado(@Payload() data: PagoAprobadoEvent): void {
     this.logger.log(
       `[pago.aprobado] pago=${data.paymentId} factura=${data.invoiceId} ` +
-      `monto=${data.currency} ${data.amount} estado=${data.invoiceStatus} aprobado=${data.approvedAt}`,
+        `monto=${data.currency} ${data.amount} estado=${data.invoiceStatus} aprobado=${data.approvedAt}`,
     );
     this.events.emitPagoAprobado(data);
   }

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { Payment } from '../../../infrastructure/database/typeorm/entities/payment.entity';
@@ -97,7 +101,10 @@ export class FinanceService {
     });
 
     const invoiceIds = invoices.map((invoice) => invoice.invoiceId);
-    const paymentFlags = new Map<number, { hasPendingPayment: boolean; hasApprovedPayment: boolean }>();
+    const paymentFlags = new Map<
+      number,
+      { hasPendingPayment: boolean; hasApprovedPayment: boolean }
+    >();
 
     if (invoiceIds.length > 0) {
       const payments = await this.dataSource
@@ -201,16 +208,22 @@ export class FinanceService {
       }
 
       if (invoice.status !== InvoiceStatus.BORRADOR) {
-        throw new BadRequestException('Solo se puede enviar a certificacion una factura en estado BORRADOR');
+        throw new BadRequestException(
+          'Solo se puede enviar a certificacion una factura en estado BORRADOR',
+        );
       }
 
       if (!payload.reviewConfirmed) {
-        throw new BadRequestException('Debes confirmar la revision del borrador antes de enviarlo a certificacion');
+        throw new BadRequestException(
+          'Debes confirmar la revision del borrador antes de enviarlo a certificacion',
+        );
       }
 
       const normalizedDescription = payload.serviceDescription.trim();
       if (!normalizedDescription) {
-        throw new BadRequestException('La descripcion del servicio es obligatoria');
+        throw new BadRequestException(
+          'La descripcion del servicio es obligatoria',
+        );
       }
 
       const dueDate = new Date(payload.dueDate);
@@ -219,10 +232,20 @@ export class FinanceService {
       }
 
       const issueDate = new Date(invoice.issueDate);
-      const issueDateUtc = Date.UTC(issueDate.getUTCFullYear(), issueDate.getUTCMonth(), issueDate.getUTCDate());
-      const dueDateUtc = Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate());
+      const issueDateUtc = Date.UTC(
+        issueDate.getUTCFullYear(),
+        issueDate.getUTCMonth(),
+        issueDate.getUTCDate(),
+      );
+      const dueDateUtc = Date.UTC(
+        dueDate.getUTCFullYear(),
+        dueDate.getUTCMonth(),
+        dueDate.getUTCDate(),
+      );
       if (dueDateUtc < issueDateUtc) {
-        throw new BadRequestException('La fecha de vencimiento no puede ser anterior a la fecha de emision');
+        throw new BadRequestException(
+          'La fecha de vencimiento no puede ser anterior a la fecha de emision',
+        );
       }
 
       invoice.serviceDescription = normalizedDescription;
@@ -262,11 +285,15 @@ export class FinanceService {
     }
 
     if (invoice.status !== InvoiceStatus.PAGADA) {
-      throw new BadRequestException('Solo se puede enviar una factura en estado PAGADA');
+      throw new BadRequestException(
+        'Solo se puede enviar una factura en estado PAGADA',
+      );
     }
 
     if (invoice.sentAt) {
-      throw new BadRequestException('La factura ya fue marcada como enviada anteriormente');
+      throw new BadRequestException(
+        'La factura ya fue marcada como enviada anteriormente',
+      );
     }
 
     const hasApprovedPayment = await paymentRepo.exist({
@@ -277,7 +304,9 @@ export class FinanceService {
     });
 
     if (!hasApprovedPayment) {
-      throw new BadRequestException('La factura debe tener un pago aprobado antes de enviarse al cliente.');
+      throw new BadRequestException(
+        'La factura debe tener un pago aprobado antes de enviarse al cliente.',
+      );
     }
 
     invoice.status = InvoiceStatus.ENVIADA;
@@ -362,16 +391,22 @@ export class FinanceService {
       }
 
       if (payment.status !== PaymentStatus.PENDIENTE) {
-        throw new BadRequestException('Solo se puede aprobar un pago en estado PENDIENTE');
+        throw new BadRequestException(
+          'Solo se puede aprobar un pago en estado PENDIENTE',
+        );
       }
 
-      const invoice = await invoiceRepo.findOne({ where: { invoiceId: payment.invoiceId } });
+      const invoice = await invoiceRepo.findOne({
+        where: { invoiceId: payment.invoiceId },
+      });
       if (!invoice) {
         throw new NotFoundException('Factura asociada al pago no encontrada');
       }
 
       if (invoice.status === InvoiceStatus.RECHAZADA) {
-        throw new BadRequestException('No se puede aprobar un pago asociado a una factura RECHAZADA');
+        throw new BadRequestException(
+          'No se puede aprobar un pago asociado a una factura RECHAZADA',
+        );
       }
 
       payment.status = PaymentStatus.APROBADO;
@@ -386,12 +421,12 @@ export class FinanceService {
       const approvedAt = new Date();
 
       this.rabbitmq.emit('pago.aprobado', {
-        paymentId:   payment.paymentId,
-        invoiceId:   payment.invoiceId,
-        amount:      Number(payment.amount),
-        currency:    payment.currencyCode,
+        paymentId: payment.paymentId,
+        invoiceId: payment.invoiceId,
+        amount: Number(payment.amount),
+        currency: payment.currencyCode,
         invoiceStatus: invoice.status,
-        approvedAt:  approvedAt.toISOString(),
+        approvedAt: approvedAt.toISOString(),
       });
 
       return {
@@ -416,7 +451,8 @@ export class FinanceService {
       typeName: rate.typeName,
       baseCurrency: 'USD',
       minCapacityTon: toNumber(rate.minCapacityTon),
-      maxCapacityTon: rate.maxCapacityTon === null ? null : toNumber(rate.maxCapacityTon),
+      maxCapacityTon:
+        rate.maxCapacityTon === null ? null : toNumber(rate.maxCapacityTon),
       ratePerKm: toNumber(rate.ratePerKm),
     }));
   }

@@ -6,14 +6,21 @@ import { CargoType } from '../../../infrastructure/database/typeorm/entities/car
 export class CreateCargoTypeUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(cargoName: string, requiresRefrigeration: boolean): Promise<CargoType> {
+  async execute(
+    cargoName: string,
+    requiresRefrigeration: boolean,
+  ): Promise<CargoType> {
     const cargoRepo = this.dataSource.getRepository(CargoType);
 
     const nameUpper = cargoName.toUpperCase().trim();
 
-    const existing = await cargoRepo.findOne({ where: { cargoName: nameUpper } });
+    const existing = await cargoRepo.findOne({
+      where: { cargoName: nameUpper },
+    });
     if (existing) {
-      throw new ConflictException(`El tipo de carga ${nameUpper} ya existe en el catálogo.`);
+      throw new ConflictException(
+        `El tipo de carga ${nameUpper} ya existe en el catálogo.`,
+      );
     }
 
     const newCargo = cargoRepo.create({

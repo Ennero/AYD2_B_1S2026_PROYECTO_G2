@@ -45,9 +45,12 @@ async function bootstrap() {
   const databaseConfig = getDatabaseRuntimeConfig();
 
   // Enable CORS
-  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:3001,http://localhost').split(',');
+  const corsOrigins = (
+    process.env.CORS_ORIGINS ??
+    'http://localhost:3000,http://localhost:3001,http://localhost'
+  ).split(',');
   app.enableCors({
-    origin: corsOrigins.map(o => o.trim()),
+    origin: corsOrigins.map((o) => o.trim()),
     credentials: true,
   });
 

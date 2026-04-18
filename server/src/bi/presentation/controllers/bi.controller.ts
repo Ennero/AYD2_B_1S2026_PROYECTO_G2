@@ -84,8 +84,13 @@ export class BiController {
 
   @Get('gastos-ingresos')
   async getGastosIngresos(@Query() query: KpisQueryDto) {
-    const data = await this.biService.getGastosIngresos(query.year ?? new Date().getFullYear());
-    return { message: 'Comparativa gastos/ingresos obtenida correctamente', data };
+    const data = await this.biService.getGastosIngresos(
+      query.year ?? new Date().getFullYear(),
+    );
+    return {
+      message: 'Comparativa gastos/ingresos obtenida correctamente',
+      data,
+    };
   }
 
   @Get('orders/by-status')

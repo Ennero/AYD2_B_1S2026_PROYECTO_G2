@@ -11,9 +11,11 @@ export interface OrderDeliveredTemplateData {
   currency?: string;
 }
 
-export function orderDeliveredTemplate(
-  data: OrderDeliveredTemplateData,
-): { subject: string; html: string; text: string } {
+export function orderDeliveredTemplate(data: OrderDeliveredTemplateData): {
+  subject: string;
+  html: string;
+  text: string;
+} {
   const subject = `LogiTrans — Tu orden ${data.orderNumber} fue entregada`;
 
   const amountSection =

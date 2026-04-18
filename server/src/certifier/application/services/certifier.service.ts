@@ -1,5 +1,11 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, NotFoundException, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { DataSource, In, Not } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
 import { InvoiceStatus } from '../../../domain/enums/invoice-status.enum';
@@ -44,7 +50,7 @@ export class CertifierService implements OnModuleInit {
       month === 12
         ? new Date(Date.UTC(year + 1, 0, 1, 0, 0, 0))
         : new Date(Date.UTC(year, month, 1, 0, 0, 0));
-    
+
     // Counting certified this month as an example for the summary
     const certifiedCount = await invoiceRepo
       .createQueryBuilder('invoice')
@@ -59,7 +65,16 @@ export class CertifierService implements OnModuleInit {
   async getPendingInvoices() {
     return this.dataSource.getRepository(Invoice).find({
       where: { status: InvoiceStatus.BORRADOR, serviceDescription: Not('') },
-      select: ['invoiceId', 'invoiceNumber', 'issueDate', 'clientName', 'clientNit', 'totalAmount', 'currencyCode', 'status'],
+      select: [
+        'invoiceId',
+        'invoiceNumber',
+        'issueDate',
+        'clientName',
+        'clientNit',
+        'totalAmount',
+        'currencyCode',
+        'status',
+      ],
       order: { issueDate: 'ASC' },
     });
   }
@@ -67,7 +82,16 @@ export class CertifierService implements OnModuleInit {
   async getQueuedInvoices() {
     return this.dataSource.getRepository(Invoice).find({
       where: { status: InvoiceStatus.EN_ESPERA },
-      select: ['invoiceId', 'invoiceNumber', 'issueDate', 'clientName', 'clientNit', 'totalAmount', 'currencyCode', 'status'],
+      select: [
+        'invoiceId',
+        'invoiceNumber',
+        'issueDate',
+        'clientName',
+        'clientNit',
+        'totalAmount',
+        'currencyCode',
+        'status',
+      ],
       order: { issueDate: 'ASC' },
     });
   }
@@ -85,29 +109,40 @@ export class CertifierService implements OnModuleInit {
 
     if (queuedInvoices.length === 0) return;
 
-    this.logger.log(`[FEL Queue] Reintentando ${queuedInvoices.length} facturas en espera...`);
+    this.logger.log(
+      `[FEL Queue] Reintentando ${queuedInvoices.length} facturas en espera...`,
+    );
 
     for (const invoice of queuedInvoices) {
       try {
-        await this.dataSource.getRepository(Invoice).update(
-          { invoiceId: invoice.invoiceId },
-          { status: InvoiceStatus.BORRADOR },
+        await this.dataSource
+          .getRepository(Invoice)
+          .update(
+            { invoiceId: invoice.invoiceId },
+            { status: InvoiceStatus.BORRADOR },
+          );
+        this.logger.log(
+          `[FEL Queue] Factura ${invoice.invoiceNumber} devuelta a BORRADOR para reintentar certificación.`,
         );
-        this.logger.log(`[FEL Queue] Factura ${invoice.invoiceNumber} devuelta a BORRADOR para reintentar certificación.`);
       } catch (err) {
-        this.logger.error(`[FEL Queue] Error al reintentar ${invoice.invoiceNumber}: ${(err as Error).message}`);
+        this.logger.error(
+          `[FEL Queue] Error al reintentar ${invoice.invoiceNumber}: ${(err as Error).message}`,
+        );
       }
     }
   }
 
   async validateNit(invoiceId: number, clientNit: string) {
-    const invoice = await this.dataSource.getRepository(Invoice).findOne({ where: { invoiceId } });
+    const invoice = await this.dataSource
+      .getRepository(Invoice)
+      .findOne({ where: { invoiceId } });
     if (!invoice) throw new NotFoundException('Factura no encontrada');
 
     const normalizedInputNit = clientNit.replace(/\D/g, '');
     const normalizedInvoiceNit = invoice.clientNit.replace(/\D/g, '');
     const hasValidFormat = /^\d{8,13}$/.test(normalizedInputNit);
-    const isValid = hasValidFormat && normalizedInputNit === normalizedInvoiceNit;
+    const isValid =
+      hasValidFormat && normalizedInputNit === normalizedInvoiceNit;
 
     return {
       invoiceId,
@@ -148,9 +183,9 @@ export class CertifierService implements OnModuleInit {
           `[FEL] Servicio no disponible. Factura ${targetInvoice.invoiceNumber} puesta EN_ESPERA. Se reintentará automáticamente cada 5 minutos.`,
         );
         this.rabbitmq.emit('factura.en_espera', {
-          invoiceId:     targetInvoice.invoiceId,
+          invoiceId: targetInvoice.invoiceId,
           invoiceNumber: targetInvoice.invoiceNumber,
-          queuedAt:      new Date().toISOString(),
+          queuedAt: new Date().toISOString(),
         });
         return targetInvoice;
       }
@@ -203,12 +238,12 @@ export class CertifierService implements OnModuleInit {
     );
 
     this.rabbitmq.emit('factura.certificada', {
-      invoiceId:   invoice.invoiceId,
+      invoiceId: invoice.invoiceId,
       invoiceNumber: invoice.invoiceNumber,
-      clientId:    invoice.clientId,
+      clientId: invoice.clientId,
       totalAmount: Number(invoice.totalAmount),
-      currency:    invoice.currencyCode,
-      felUuid:     invoice.felUuid,
+      currency: invoice.currencyCode,
+      felUuid: invoice.felUuid,
       certifiedAt: invoice.certifiedAt?.toISOString(),
     });
 
@@ -223,7 +258,9 @@ export class CertifierService implements OnModuleInit {
   async rejectInvoice(invoiceId: number, reason: string) {
     const normalizedReason = reason.trim();
     if (!normalizedReason) {
-      throw new BadRequestException('Debe ingresar un motivo de rechazo valido');
+      throw new BadRequestException(
+        'Debe ingresar un motivo de rechazo valido',
+      );
     }
 
     return this.dataSource.transaction(async (manager) => {
@@ -254,10 +291,10 @@ export class CertifierService implements OnModuleInit {
       );
 
       this.rabbitmq.emit('factura.rechazada', {
-        invoiceId:     invoice.invoiceId,
+        invoiceId: invoice.invoiceId,
         invoiceNumber: invoice.invoiceNumber,
-        reason:        normalizedReason,
-        rejectedAt:    new Date().toISOString(),
+        reason: normalizedReason,
+        rejectedAt: new Date().toISOString(),
       });
 
       return {
@@ -276,7 +313,9 @@ export class CertifierService implements OnModuleInit {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
-      const res = await fetch(`${felUrl}/health`, { signal: controller.signal });
+      const res = await fetch(`${felUrl}/health`, {
+        signal: controller.signal,
+      });
       clearTimeout(timeout);
       return res.ok;
     } catch {
@@ -306,11 +345,15 @@ export class CertifierService implements OnModuleInit {
     );
 
     if (recipients.length === 0) {
-      this.logger.warn(`No se encontraron agentes financieros activos para notificar ${invoice.invoiceNumber}.`);
+      this.logger.warn(
+        `No se encontraron agentes financieros activos para notificar ${invoice.invoiceNumber}.`,
+      );
       return;
     }
 
-    const issueDateText = new Date(invoice.issueDate).toISOString().slice(0, 10);
+    const issueDateText = new Date(invoice.issueDate)
+      .toISOString()
+      .slice(0, 10);
 
     await Promise.all(
       recipients.map((to) =>

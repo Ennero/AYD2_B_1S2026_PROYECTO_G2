@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { InvoiceStatus } from '../../../../domain/enums/invoice-status.enum';
 import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Order } from './order.entity';
@@ -23,7 +30,8 @@ export class Invoice {
     name: 'status',
     type: 'enum',
     enum: InvoiceStatus,
-    default: InvoiceStatus.BORRADOR })
+    default: InvoiceStatus.BORRADOR,
+  })
   status: InvoiceStatus;
 
   @Column({ name: 'issue_date', type: 'timestamptz', default: () => 'NOW()' })
@@ -32,7 +40,11 @@ export class Invoice {
   @Column({ name: 'certified_at', type: 'timestamptz', nullable: true })
   certifiedAt: Date | null;
 
-  @Column({ name: 'due_date', type: 'date', default: () => "(CURRENT_DATE + INTERVAL '30 day')::DATE" })
+  @Column({
+    name: 'due_date',
+    type: 'date',
+    default: () => "(CURRENT_DATE + INTERVAL '30 day')::DATE",
+  })
   dueDate: string;
 
   @Column({ name: 'sent_at', type: 'timestamptz', nullable: true })
@@ -90,7 +102,8 @@ export class Invoice {
     type: 'varchar',
     length: 50,
     unique: true,
-    nullable: true })
+    nullable: true,
+  })
   felUuid: string | null;
 
   @Column({ name: 'pdf_path', type: 'text', nullable: true })

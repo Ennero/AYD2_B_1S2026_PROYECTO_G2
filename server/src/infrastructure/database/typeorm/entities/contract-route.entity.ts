@@ -1,4 +1,12 @@
-import { Entity, Column, ManyToOne, JoinColumn, Index, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Contract } from './contract.entity';
 import { Route } from './route.entity';
 import { Order } from './order.entity';
@@ -20,7 +28,8 @@ export class ContractRoute {
     name: 'promised_delivery_hours',
     type: 'numeric',
     precision: 10,
-    scale: 2 })
+    scale: 2,
+  })
   promisedDeliveryHours: number;
 
   @ManyToOne(() => Contract, (contract) => contract.contractRoutes)

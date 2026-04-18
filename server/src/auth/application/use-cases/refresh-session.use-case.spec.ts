@@ -30,9 +30,9 @@ import { UserRole } from '../../../domain/enums/user-role.enum';
 
 function fakeSession(overrides: Record<string, unknown> = {}) {
   return {
-    sessionId:    faker.number.int({ min: 1, max: 9999 }),
-    sessionUuid:  faker.string.uuid(),
-    userId:       faker.number.int({ min: 1, max: 999 }),
+    sessionId: faker.number.int({ min: 1, max: 9999 }),
+    sessionUuid: faker.string.uuid(),
+    userId: faker.number.int({ min: 1, max: 999 }),
     expirationAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     ...overrides,
   };
@@ -40,12 +40,12 @@ function fakeSession(overrides: Record<string, unknown> = {}) {
 
 function fakeUser(overrides: Record<string, unknown> = {}) {
   return {
-    userId:       faker.number.int({ min: 1, max: 999 }),
-    email:        faker.internet.email(),
-    fullName:     faker.person.fullName(),
-    role:         UserRole.AGENTE_OPERATIVO,
+    userId: faker.number.int({ min: 1, max: 999 }),
+    email: faker.internet.email(),
+    fullName: faker.person.fullName(),
+    role: UserRole.AGENTE_OPERATIVO,
     passwordHash: faker.string.alphanumeric(60),
-    isActive:     true,
+    isActive: true,
     ...overrides,
   };
 }
@@ -53,10 +53,10 @@ function fakeUser(overrides: Record<string, unknown> = {}) {
 // ── Suite ─────────────────────────────────────────────────────────────────────
 
 describe('RefreshSessionUseCase', () => {
-  let useCase:     RefreshSessionUseCase;
-  let userRepo:    { findById: jest.Mock };
+  let useCase: RefreshSessionUseCase;
+  let userRepo: { findById: jest.Mock };
   let sessionRepo: { findActiveByToken: jest.Mock; incrementUsage: jest.Mock };
-  let jwtService:  { sign: jest.Mock };
+  let jwtService: { sign: jest.Mock };
 
   beforeEach(async () => {
     userRepo = {
@@ -65,7 +65,7 @@ describe('RefreshSessionUseCase', () => {
 
     sessionRepo = {
       findActiveByToken: jest.fn(),
-      incrementUsage:    jest.fn().mockResolvedValue(undefined),
+      incrementUsage: jest.fn().mockResolvedValue(undefined),
     };
 
     jwtService = {
@@ -75,9 +75,9 @@ describe('RefreshSessionUseCase', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RefreshSessionUseCase,
-        { provide: AUTH_USER_REPOSITORY_TOKEN,    useValue: userRepo },
+        { provide: AUTH_USER_REPOSITORY_TOKEN, useValue: userRepo },
         { provide: USER_SESSION_REPOSITORY_TOKEN, useValue: sessionRepo },
-        { provide: JwtService,                    useValue: jwtService },
+        { provide: JwtService, useValue: jwtService },
       ],
     }).compile();
 
@@ -89,7 +89,7 @@ describe('RefreshSessionUseCase', () => {
   // ── Test 1 ────────────────────────────────────────────────────────────────
 
   it('retorna sessionUuid y token cuando la sesión y el usuario son válidos', async () => {
-    const user    = fakeUser();
+    const user = fakeUser();
     const session = fakeSession({ userId: user.userId });
     sessionRepo.findActiveByToken.mockResolvedValue(session);
     userRepo.findById.mockResolvedValue(user);
@@ -105,7 +105,9 @@ describe('RefreshSessionUseCase', () => {
   it('lanza UnauthorizedException cuando la sesión no existe o expiró', async () => {
     sessionRepo.findActiveByToken.mockResolvedValue(null);
 
-    await expect(useCase.execute('expired-token')).rejects.toThrow(UnauthorizedException);
+    await expect(useCase.execute('expired-token')).rejects.toThrow(
+      UnauthorizedException,
+    );
     // El usuario nunca se consulta si la sesión ya no es válida
     expect(userRepo.findById).not.toHaveBeenCalled();
   });
@@ -113,12 +115,14 @@ describe('RefreshSessionUseCase', () => {
   // ── Test 3 ────────────────────────────────────────────────────────────────
 
   it('lanza UnauthorizedException cuando el usuario está inactivo', async () => {
-    const user    = fakeUser({ isActive: false });
+    const user = fakeUser({ isActive: false });
     const session = fakeSession({ userId: user.userId });
     sessionRepo.findActiveByToken.mockResolvedValue(session);
     userRepo.findById.mockResolvedValue(user);
 
-    await expect(useCase.execute('some-token')).rejects.toThrow(UnauthorizedException);
+    await expect(useCase.execute('some-token')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   // ── Test 4 ────────────────────────────────────────────────────────────────
@@ -128,13 +132,15 @@ describe('RefreshSessionUseCase', () => {
     sessionRepo.findActiveByToken.mockResolvedValue(session);
     userRepo.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('some-token')).rejects.toThrow(UnauthorizedException);
+    await expect(useCase.execute('some-token')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   // ── Test 5 ────────────────────────────────────────────────────────────────
 
   it('incrementa el contador de uso de la sesión en cada refresh exitoso', async () => {
-    const user    = fakeUser();
+    const user = fakeUser();
     const session = fakeSession({ userId: user.userId });
     sessionRepo.findActiveByToken.mockResolvedValue(session);
     userRepo.findById.mockResolvedValue(user);
@@ -147,14 +153,16 @@ describe('RefreshSessionUseCase', () => {
   // ── Test 6 ────────────────────────────────────────────────────────────────
 
   it('firma el JWT con los campos correctos (sub, email, role, fullName, sessionUuid)', async () => {
-    const user    = fakeUser();
+    const user = fakeUser();
     const session = fakeSession({ userId: user.userId });
     sessionRepo.findActiveByToken.mockResolvedValue(session);
     userRepo.findById.mockResolvedValue(user);
 
     await useCase.execute('valid-token');
 
-    const [payload] = jwtService.sign.mock.calls[0] as [Record<string, unknown>][];
+    const [payload] = jwtService.sign.mock.calls[0] as [
+      Record<string, unknown>,
+    ][];
     expect(payload.sub).toBe(user.userId);
     expect(payload.email).toBe(user.email);
     expect(payload.role).toBe(user.role);

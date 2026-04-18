@@ -9,8 +9,12 @@ export interface CreateRecoveryData {
 export interface IPasswordRecoveryRepository {
   create(data: CreateRecoveryData): Promise<PasswordRecoveryToken>;
   /** Busca un token no usado y no expirado por su hash SHA-256. */
-  findValidByTokenHash(tokenHash: string): Promise<PasswordRecoveryToken | null>;
+  findValidByTokenHash(
+    tokenHash: string,
+  ): Promise<PasswordRecoveryToken | null>;
   markAsUsed(tokenId: number): Promise<void>;
 }
 
-export const PASSWORD_RECOVERY_REPOSITORY_TOKEN = Symbol('IPasswordRecoveryRepository');
+export const PASSWORD_RECOVERY_REPOSITORY_TOKEN = Symbol(
+  'IPasswordRecoveryRepository',
+);

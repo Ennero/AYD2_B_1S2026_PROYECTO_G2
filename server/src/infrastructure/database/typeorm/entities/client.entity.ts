@@ -34,7 +34,8 @@ export class Client {
     name: 'primary_contact_phone',
     type: 'varchar',
     length: 30,
-    nullable: true })
+    nullable: true,
+  })
   primaryContactPhone: string | null;
 
   @Column({
@@ -62,16 +63,36 @@ export class Client {
   })
   taxRate: number;
 
-  @Column({ name: 'payment_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({
+    name: 'payment_risk',
+    type: 'enum',
+    enum: RiskLevel,
+    default: RiskLevel.MEDIO,
+  })
   paymentRisk: RiskLevel;
 
-  @Column({ name: 'customs_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({
+    name: 'customs_risk',
+    type: 'enum',
+    enum: RiskLevel,
+    default: RiskLevel.MEDIO,
+  })
   customsRisk: RiskLevel;
 
-  @Column({ name: 'cargo_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({
+    name: 'cargo_risk',
+    type: 'enum',
+    enum: RiskLevel,
+    default: RiskLevel.MEDIO,
+  })
   cargoRisk: RiskLevel;
 
-  @Column({ name: 'aml_risk', type: 'enum', enum: RiskLevel, default: RiskLevel.MEDIO })
+  @Column({
+    name: 'aml_risk',
+    type: 'enum',
+    enum: RiskLevel,
+    default: RiskLevel.MEDIO,
+  })
   amlRisk: RiskLevel;
 
   @Column({ name: 'is_blocked', type: 'boolean', default: false })
