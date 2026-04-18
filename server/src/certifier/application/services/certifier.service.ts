@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable, NotFoundException, BadRequestException, Logger, OnModuleInit } from '@nestjs/common';
 import { DataSource, In, Not } from 'typeorm';
 import { Invoice } from '../../../infrastructure/database/typeorm/entities/invoice.entity';
@@ -154,8 +155,7 @@ export class CertifierService implements OnModuleInit {
         return targetInvoice;
       }
 
-      const crypto = require('crypto');
-      const generatedFelUuid = crypto.randomUUID();
+      const generatedFelUuid = randomUUID();
 
       targetInvoice.status = InvoiceStatus.CERTIFICADA;
       targetInvoice.felUuid = generatedFelUuid;
