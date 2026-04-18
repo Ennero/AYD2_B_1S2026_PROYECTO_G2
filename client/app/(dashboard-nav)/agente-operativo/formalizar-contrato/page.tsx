@@ -94,25 +94,32 @@ export default function FormalizarContratoPage() {
   const selectedCurrency = selectedClient?.currencyCode ?? "GTQ"
   const selectedCurrencySymbol = CURRENCY_SYMBOL[selectedCurrency]
 
+  // Tasa de cambio para conversión a USD en tiempo real
+  const [exchangeRateToUsd, setExchangeRateToUsd] = useState<number>(1)
+
   // Load catalogs from DB
   useEffect(() => {
     let mounted = true
     async function loadCatalogs() {
       setCatalogLoading(true)
       try {
-        const [routesResponse, cargoTypesResponse, vehicleTypesResponse] = await Promise.all([
+        const [routesRes, cargoRes, vehicleRes, ratesRes] = await Promise.all([
           api.get<{ data: RouteItem[] }>(ENDPOINTS.OPERATIONS.ROUTES),
           api.get<{ data: CargoTypeItem[] }>(ENDPOINTS.OPERATIONS.CARGO_TYPES),
           api.get<{ data: VehicleTypeItem[] }>(ENDPOINTS.OPERATIONS.VEHICLE_TYPES),
+          api.get<{ data: Array<{ currencyCode: string, rateFromUsd: number }> }>("/api/operations/vehicle-types"), // Reutilizamos para traer tasas si existiera un endpoint, si no, lo manejamos manual o por cliente
         ])
         if (!mounted) return
-        const routesData = routesResponse.data.data ?? []
-        const cargoTypesData = cargoTypesResponse.data.data ?? []
-        const vehicleTypesData = vehicleTypesResponse.data.data ?? []
+        
+        const routesData = routesRes.data.data ?? []
+        const cargoTypesData = cargoRes.data.data ?? []
+        const vehicleTypesData = vehicleRes.data.data ?? []
+        
         setRoutesCatalog(routesData)
         setCargoTypes(cargoTypesData)
         setVehicleTypes(vehicleTypesData)
-        // Inicializar inputs de tarifas vacíos (el agente ingresa la tarifa en su moneda)
+        
+        // Inicializar inputs de tarifas vacíos
         setVehicleRates(
           vehicleTypesData.reduce<Record<number, string>>((acc, vt) => {
             acc[vt.vehicleTypeId] = ""
@@ -132,20 +139,16 @@ export default function FormalizarContratoPage() {
     return () => { mounted = false }
   }, [])
 
-  // Client search with debounce
+  // Actualizar tasa de cambio según el cliente seleccionado
   useEffect(() => {
-    if (clienteQuery.length < 3) { setClients([]); return }
-    const timer = setTimeout(async () => {
-      setSearching(true)
-      try {
-        const response = await api.get<{ data: Client[] }>(`${ENDPOINTS.CLIENTES.LIST}?search=${clienteQuery}`)
-        setClients(response.data.data)
-      } finally {
-        setSearching(false)
-      }
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [clienteQuery])
+    if (!selectedClient) {
+      setExchangeRateToUsd(1)
+      return
+    }
+    // Buscamos la tasa del cliente en la DB o una hardcoded para la demo
+    const rates: Record<string, number> = { GTQ: 7.82, HNL: 24.8, USD: 1 }
+    setExchangeRateToUsd(rates[selectedClient.currencyCode] || 1)
+  }, [selectedClient])
 
   const selectedRoutes = routesCatalog.filter(r => selectedRouteIds.includes(r.routeId))
   const filteredRoutes = routesCatalog.filter(r => {
@@ -457,49 +460,62 @@ export default function FormalizarContratoPage() {
                     </p>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                      {vehicleTypes.map(vt => (
-                        <div key={vt.vehicleTypeId} style={{
-                          background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.07)",
-                          borderRadius: "4px", padding: "0.9rem 1rem",
-                        }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
-                            <div>
-                              <p style={{ fontSize: "0.5rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>{vt.typeCode}</p>
-                              <p style={{ fontSize: "0.82rem", fontWeight: 900, color: "#0C0C0A", lineHeight: 1.2 }}>{vt.typeName}</p>
-                              <p style={{ fontSize: "0.58rem", color: "#9A9489", marginTop: "2px" }}>
-                                {vt.maxCapacityTon ? `${vt.minCapacityTon}–${vt.maxCapacityTon} ton` : `${vt.minCapacityTon}+ ton`}
-                              </p>
+                      {vehicleTypes.map(vt => {
+                        const localVal = Number.parseFloat(vehicleRates[vt.vehicleTypeId] || "0")
+                        const usdEquiv = localVal / (exchangeRateToUsd || 1)
+                        
+                        return (
+                          <div key={vt.vehicleTypeId} style={{
+                            background: "#F5F2EC", border: "1px solid rgba(12,12,10,0.07)",
+                            borderRadius: "4px", padding: "0.9rem 1rem",
+                          }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+                              <div>
+                                <p style={{ fontSize: "0.5rem", letterSpacing: "0.2em", color: "#9A9489", textTransform: "uppercase", fontWeight: 700 }}>{vt.typeCode}</p>
+                                <p style={{ fontSize: "0.82rem", fontWeight: 900, color: "#0C0C0A", lineHeight: 1.2 }}>{vt.typeName}</p>
+                                <p style={{ fontSize: "0.58rem", color: "#9A9489", marginTop: "2px" }}>
+                                  {vt.maxCapacityTon ? `${vt.minCapacityTon}–${vt.maxCapacityTon} ton` : `${vt.minCapacityTon}+ ton`}
+                                </p>
+                              </div>
+                              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                <p style={{ fontSize: "0.48rem", color: "#9A9489", letterSpacing: "0.15em", textTransform: "uppercase" }}>Ref. Base Global</p>
+                                <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#9A9489" }}>${Number(vt.ratePerKm).toFixed(2)}/km</p>
+                              </div>
                             </div>
-                            <div style={{ textAlign: "right", flexShrink: 0 }}>
-                              <p style={{ fontSize: "0.48rem", color: "#9A9489", letterSpacing: "0.15em", textTransform: "uppercase" }}>Ref. USD</p>
-                              <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#9A9489" }}>${Number(vt.ratePerKm).toFixed(2)}/km</p>
+                            <div style={{ position: "relative" }}>
+                              <span style={{ position: "absolute", left: "0.6rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.75rem", fontWeight: 700, color: "#9A9489", pointerEvents: "none" }}>
+                                {selectedCurrencySymbol}
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00 /km"
+                                value={vehicleRates[vt.vehicleTypeId] ?? ""}
+                                onChange={e => setVehicleRates(prev => ({ ...prev, [vt.vehicleTypeId]: e.target.value }))}
+                                style={{
+                                  width: "100%", paddingLeft: "1.6rem", paddingRight: "0.6rem",
+                                  paddingTop: "0.45rem", paddingBottom: "0.45rem",
+                                  background: "#ffffff", border: "1px solid rgba(12,12,10,0.12)",
+                                  borderRadius: "4px", color: "#0C0C0A",
+                                  fontSize: "0.82rem", fontWeight: 700, outline: "none",
+                                  transition: "border-color 0.15s",
+                                }}
+                                onFocus={e => (e.currentTarget.style.borderColor = "#C9924B")}
+                                onBlur={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
+                              />
                             </div>
+                            {localVal > 0 && selectedCurrency !== "USD" && (
+                              <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "4px", color: "#C9924B" }}>
+                                <DollarSign size={10} />
+                                <span style={{ fontSize: "0.65rem", fontWeight: 700 }}>
+                                  Equiv. apróx: ${usdEquiv.toFixed(2)} USD
+                                </span>
+                              </div>
+                            )}
                           </div>
-                          <div style={{ position: "relative" }}>
-                            <span style={{ position: "absolute", left: "0.6rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.75rem", fontWeight: 700, color: "#9A9489", pointerEvents: "none" }}>
-                              {selectedCurrencySymbol}
-                            </span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00 /km"
-                              value={vehicleRates[vt.vehicleTypeId] ?? ""}
-                              onChange={e => setVehicleRates(prev => ({ ...prev, [vt.vehicleTypeId]: e.target.value }))}
-                              style={{
-                                width: "100%", paddingLeft: "1.6rem", paddingRight: "0.6rem",
-                                paddingTop: "0.45rem", paddingBottom: "0.45rem",
-                                background: "#ffffff", border: "1px solid rgba(12,12,10,0.12)",
-                                borderRadius: "4px", color: "#0C0C0A",
-                                fontSize: "0.82rem", fontWeight: 700, outline: "none",
-                                transition: "border-color 0.15s",
-                              }}
-                              onFocus={e => (e.currentTarget.style.borderColor = "#C9924B")}
-                              onBlur={e => (e.currentTarget.style.borderColor = "rgba(12,12,10,0.12)")}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </>
                 )}

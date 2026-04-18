@@ -360,6 +360,18 @@ const INTERNAL_USERS: InternalUserBlueprint[] = [
     phone: '+50241000114',
     role: UserRole.PILOTO,
   },
+  {
+    fullName: 'Juan Garcia',
+    email: 'piloto.15@logitrans.gt',
+    phone: '+50241000115',
+    role: UserRole.PILOTO,
+  },
+  {
+    fullName: 'Luis Lopez',
+    email: 'piloto.16@logitrans.gt',
+    phone: '+50241000116',
+    role: UserRole.PILOTO,
+  },
 ];
 
 const MVP_PRIORITY_USER_EMAILS: string[] = [
@@ -1077,7 +1089,7 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     plateNumber: 'C-314BHQ',
     vehicleModel: 'Kia K2700 2022',
     capacityTon: 3.4,
-    hasRefrigeration: false,
+    hasRefrigeration: true,
     pilotLicenseNumber: 'LIC-PLT-0002',
   },
   {
@@ -1200,6 +1212,26 @@ const TRANSPORT_UNIT_BLUEPRINTS = [
     hasRefrigeration: false,
     pilotLicenseNumber: 'LIC-PLT-0014',
   },
+  {
+    branchCode: 'XELA',
+    vehicleTypeCode: 'HEAVY',
+    pilotEmail: 'piloto.15@logitrans.gt',
+    plateNumber: 'O-500XLA',
+    vehicleModel: 'Hino 500 2024',
+    capacityTon: 11.5,
+    hasRefrigeration: true,
+    pilotLicenseNumber: 'LIC-PLT-0015',
+  },
+  {
+    branchCode: 'GUA',
+    vehicleTypeCode: 'TRAILER',
+    pilotEmail: 'piloto.16@logitrans.gt',
+    plateNumber: 'TC-999GUA',
+    vehicleModel: 'Freightliner 2025',
+    capacityTon: 42,
+    hasRefrigeration: true,
+    pilotLicenseNumber: 'LIC-PLT-0016',
+  },
 ];
 
 const ORDER_PLANS: OrderPlan[] = [
@@ -1266,7 +1298,7 @@ export class DatabaseSeeder {
       const clients = await this.seedClients(manager);
       const clientUsers = await this.seedClientUsers(manager, clients);
       await this.seedClientContacts(manager, clients);
-      const contracts = await this.seedContracts(manager, clients, references.cargoTypes);
+      const contracts = await this.seedContracts(manager, clients, references.cargoTypes, references.vehicleTypes);
       const contractRoutes = await this.seedContractRoutes(
         manager,
         clients,
@@ -1469,44 +1501,67 @@ export class DatabaseSeeder {
     manager: EntityManager,
     clients: Client[],
     cargoTypes: CargoType[],
+    vehicleTypes: VehicleType[],
   ): Promise<Contract[]> {
     const repository = manager.getRepository(Contract);
+    const rateRepo = manager.getRepository(ContractRate);
     const clientByNit = new Map(clients.map((client) => [client.nit, client]));
     const cargoByName = new Map(cargoTypes.map((cargo) => [cargo.cargoName, cargo]));
 
-    const contracts = CLIENT_BLUEPRINTS.map((blueprint) => {
-      const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
-      const currencyCode = blueprint.currencyCode ?? 'GTQ';
-      const exchangeRateFromUsd =
-        currencyCode === 'USD' ? 1.0 :
-        currencyCode === 'HNL' ? 24.80 :
-        7.82; // GTQ default
-      return repository.create({
-        clientId: client.clientId,
-        status: blueprint.contractStatus,
-        startDate: toDateOnly(daysFromNow(blueprint.contractStartOffsetDays)),
-        endDate: toDateOnly(daysFromNow(blueprint.contractEndOffsetDays)),
-        acceptedAt:
-          blueprint.contractStatus === ContractStatus.VIGENTE
-            ? daysFromNow(blueprint.contractStartOffsetDays + 1)
-            : null,
-        creditLimit:
-          blueprint.contractStatus === ContractStatus.VIGENTE
-            ? blueprint.creditLimit
-            : null,
-        currencyCode: currencyCode as any,
-        exchangeRateFromUsd,
-        taxRate: blueprint.taxRate ?? 0.12,
-        paymentTermDays: blueprint.paymentTermDays,
-        discountPercentage: blueprint.discountPercentage,
-        notes: `Contrato marco para ${blueprint.legalName}.`,
-        cargoTypes: blueprint.cargoNames.map((cargoName) =>
-          mustFind(cargoByName.get(cargoName), cargoName),
-        ),
-      });
-    });
+    const contracts = await Promise.all(
+      CLIENT_BLUEPRINTS.map(async (blueprint) => {
+        const client = mustFind(clientByNit.get(blueprint.nit), blueprint.legalName);
+        const currencyCode = blueprint.currencyCode ?? 'GTQ';
+        const exchangeRateFromUsd =
+          currencyCode === 'USD' ? 1.0 :
+          currencyCode === 'HNL' ? 24.80 :
+          7.82; // GTQ default
 
-    await repository.save(contracts);
+        const contract = await repository.save(
+          repository.create({
+            clientId: client.clientId,
+            status: blueprint.contractStatus,
+            startDate: toDateOnly(daysFromNow(blueprint.contractStartOffsetDays)),
+            endDate: toDateOnly(daysFromNow(blueprint.contractEndOffsetDays)),
+            acceptedAt:
+              blueprint.contractStatus === ContractStatus.VIGENTE
+                ? daysFromNow(blueprint.contractStartOffsetDays + 1)
+                : null,
+            creditLimit:
+              blueprint.contractStatus === ContractStatus.VIGENTE
+                ? blueprint.creditLimit
+                : null,
+            currencyCode: currencyCode as any,
+            exchangeRateFromUsd,
+            taxRate: blueprint.taxRate ?? 0.12,
+            paymentTermDays: blueprint.paymentTermDays,
+            discountPercentage: blueprint.discountPercentage,
+            notes: `Contrato marco para ${blueprint.legalName}.`,
+            cargoTypes: blueprint.cargoNames.map((cargoName) =>
+              mustFind(cargoByName.get(cargoName), cargoName),
+            ),
+          }),
+        );
+
+        // INSERTAR TARIFAS MANUALMENTE (Simulando la acción del Agente Operativo)
+        // Ya que el trigger SYNC_CONTRACT_DEFAULTS ahora no hace nada.
+        const rates = vehicleTypes.map((vt) => {
+          const baseRate = roundCurrency(Number(vt.ratePerKm) * exchangeRateFromUsd);
+          const finalRate = roundCurrency(baseRate * (1 - blueprint.discountPercentage / 100));
+          return rateRepo.create({
+            contractId: contract.contractId,
+            vehicleTypeId: vt.vehicleTypeId,
+            baseRatePerKm: baseRate,
+            discountPercentage: blueprint.discountPercentage,
+            finalRatePerKm: finalRate,
+          });
+        });
+        await rateRepo.save(rates);
+
+        return contract;
+      }),
+    );
+
     return repository.find({
       where: { clientId: In(clients.map((client) => client.clientId)) },
       relations: ['cargoTypes'],
@@ -2336,37 +2391,36 @@ export class DatabaseSeeder {
     occupiedUnitIds: Set<number>,
   ): TransportUnit {
     const vehicleTypeIdByRateOrder = new Set(contractRates.map((rate) => rate.vehicleTypeId));
+    
+    // Candidatos base: que no estén ocupados y que el contrato permita su tarifa
     const candidates = units.filter((unit) => {
-      if (occupiedUnitIds.has(unit.unitId)) {
-        return false;
-      }
-
-      if (!vehicleTypeIdByRateOrder.has(unit.vehicleTypeId)) {
-        return false;
-      }
-
-      if (requiresRefrigeration && !unit.hasRefrigeration) {
-        return false;
-      }
-
+      if (occupiedUnitIds.has(unit.unitId)) return false;
+      if (!vehicleTypeIdByRateOrder.has(unit.vehicleTypeId)) return false;
+      
+      // REGLA DE ORO: Si requiere refrigeración, la unidad DEBE tenerla.
+      // No negociable para evitar violar triggers de BD.
+      if (requiresRefrigeration && !unit.hasRefrigeration) return false;
+      
       return true;
     });
 
+    // 1. Intentar priorizar por rama y tipo (ya sabemos que cumplen refrigeración por el filtro de arriba)
     const prioritized = candidates.filter((unit) => {
-      const branchMatches =
-        !preferredBranchCode ||
-        this.resolveBranchCodeFromUnit(unit, routes) === preferredBranchCode;
-      const vehicleTypeMatches =
-        !preferredVehicleTypeCode ||
-        this.resolveVehicleTypeCode(unit.vehicleTypeId) === preferredVehicleTypeCode;
-
+      const branchMatches = !preferredBranchCode || this.resolveBranchCodeFromUnit(unit, routes) === preferredBranchCode;
+      const vehicleTypeMatches = !preferredVehicleTypeCode || this.resolveVehicleTypeCode(unit.vehicleTypeId) === preferredVehicleTypeCode;
       return branchMatches && vehicleTypeMatches;
     });
 
-    const selected = prioritized[0] ?? candidates[0];
+    // 2. Si no hay prioridad perfecta, intentar solo por tipo
+    const fallback1 = prioritized.length > 0 ? prioritized : candidates.filter((u) => {
+      return !preferredVehicleTypeCode || this.resolveVehicleTypeCode(u.vehicleTypeId) === preferredVehicleTypeCode;
+    });
+
+    const selected = fallback1[0] ?? candidates[0];
+    
     if (!selected) {
       throw new Error(
-        `No existe unidad compatible para el seed (refrigeración=${requiresRefrigeration}, tipo=${preferredVehicleTypeCode ?? 'ANY'}, sede=${preferredBranchCode ?? 'ANY'}).`,
+        `No existe unidad compatible para el seed (refrigeración=${requiresRefrigeration}, tipo=${preferredVehicleTypeCode ?? 'ANY'}, sede=${preferredBranchCode ?? 'ANY'}).`
       );
     }
 
