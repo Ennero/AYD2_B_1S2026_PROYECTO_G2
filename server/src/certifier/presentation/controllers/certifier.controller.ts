@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { CertifierService } from '../../application/services/certifier.service';
 import { JwtAuthGuard } from '../../../auth/presentation/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/presentation/guards/roles.guard';
@@ -34,20 +44,38 @@ export class CertifierController {
   }
 
   @Post('invoices/:id/validate-nit')
-  async validateNit(@Param('id', ParseIntPipe) invoiceId: number, @Body() dto: ValidateNitDto) {
-    const data = await this.certifierService.validateNit(invoiceId, dto.clientNit);
+  async validateNit(
+    @Param('id', ParseIntPipe) invoiceId: number,
+    @Body() dto: ValidateNitDto,
+  ) {
+    const data = await this.certifierService.validateNit(
+      invoiceId,
+      dto.clientNit,
+    );
     return { message: 'NIT validado correctamente', data };
   }
 
   @Patch('invoices/:id/certify')
-  async certifyInvoice(@Param('id', ParseIntPipe) invoiceId: number, @Body() dto: CertifyInvoiceDto) {
-    const data = await this.certifierService.certifyInvoice(invoiceId, dto.clientNit);
+  async certifyInvoice(
+    @Param('id', ParseIntPipe) invoiceId: number,
+    @Body() dto: CertifyInvoiceDto,
+  ) {
+    const data = await this.certifierService.certifyInvoice(
+      invoiceId,
+      dto.clientNit,
+    );
     return { message: 'Factura certificada correctamente', data };
   }
 
   @Patch('invoices/:id/reject')
-  async rejectInvoice(@Param('id', ParseIntPipe) invoiceId: number, @Body() dto: RejectInvoiceDto) {
-    const data = await this.certifierService.rejectInvoice(invoiceId, dto.reason);
+  async rejectInvoice(
+    @Param('id', ParseIntPipe) invoiceId: number,
+    @Body() dto: RejectInvoiceDto,
+  ) {
+    const data = await this.certifierService.rejectInvoice(
+      invoiceId,
+      dto.reason,
+    );
     return { message: 'Factura rechazada correctamente', data };
   }
 }

@@ -171,6 +171,25 @@ Both include:
 - Prefer canonical schema source: db/logitrans_postgresql.sql.
 - Keep payment status semantics separate from invoice status semantics in docs and UI copy.
 
+## Contract Superseding / Expiration Update (2026-04-17)
+
+### 1) What changed
+- Removed single active contract constraint `UX_CLIENT_ACTIVE_CONTRACT` from `db/logitrans_postgresql.sql` and `db/logitrans_dbdiagram.dbml`. Executed SQL patch directly to the running database instance to remove the index.
+- Updated `CreateContractUseCase` (`server/src/operations/application/use-cases/create-contract.use-case.ts`) to:
+  - Stop blocking when a client already has an active (`VIGENTE`) contract.
+  - Automatically query and mark any existing `PENDIENTE` contract as `CANCELADO` before saving a new pending proposal, ensuring that a client has maximum 1 pending proposal at a time.
+- Validated that `ClientService.acceptContract` logic already correctly updates any prior `VIGENTE` contract to `VENCIDO` upon accepting the new proposal.
+
+### 2) Validation executed
+- Server unit test `npm run test` succeeded (10 suites, 56 tests).
+- Dropped the database constraint directly via `docker exec`.
+
+### 3) Canonical business conventions affected
+- Instead of being strictly limited to one unfinalized/active contract overall, clients can now possess one `VIGENTE` contract and one simultaneous `PENDIENTE` proposal, which will supersede the active one once accepted.
+
+### 4) Remaining risks / pending work
+- If the application starts heavily relying on the history of `.CANCELADO` proposal contracts, UI might need filters to avoid cluttering client screens as proposals are replaced.
+
 ## Suggested Verification Commands
 - docker compose down -v --remove-orphans && docker compose up -d --build
 - docker compose ps
@@ -311,3 +330,67 @@ Manual alignment decisions applied:
 - Testing report templates are intentionally empty and require team execution evidence to be completed.
 - If k6 is later integrated into CI, docs must be updated again to avoid drift with current workflow reality.
 - If strict notification delivery guarantees are needed, consider outbox/retry strategy and update docs accordingly.
+
+## UI Fix Update (2026-04-17)
+
+### 1) What changed
+- Fixed operational contract formalization client combobox so it actually queries and displays client options while typing in:
+  - `client/app/(dashboard-nav)/agente-operativo/formalizar-contrato/page.tsx`
+- Added a dedicated `useEffect` for client search with:
+  - debounce (`250ms`)
+  - request to `GET /api/operations/clients?search=...`
+  - safe reset behavior when query is empty or a client is already selected
+  - silent failure handling for transient lookup errors
+
+### 2) Validation executed
+- TypeScript/problems check for modified file: no errors.
+- Client lint run for target page succeeded (only pre-existing warning: unused `ratesRes` in the same page).
+- Client production build succeeded after ensuring workspace dependencies are installed.
+
+### 3) Canonical business conventions affected
+- No business lifecycle changes.
+- Preserved canonical invoice lifecycle: `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`.
+- Preserved separate payment lifecycle: `PENDIENTE -> APROBADO/RECHAZADO`.
+
+### 4) Remaining risks / pending work
+- Current combobox UX requires typing at least one character to trigger lookup; if a full initial dropdown is desired, add preload behavior on focus.
+- `ratesRes` remains unused in `formalizar-contrato` and can be removed in a cleanup pass to keep lint output clean.
+
+## Documentation Image Sync Update (2026-04-17)
+
+### 1) What changed
+- Updated visual evidence in both manuals to align with the latest captured flow:
+  - `docs/happypath.md`
+  - `docs/USER_MANUAL.md`
+- Resolved pending image placeholders in happy path:
+  - replaced contract placeholder with `imgs/happypath/94_formalizar_contrato_hnl_pbar_sps.jpeg`
+  - replaced management graphs placeholder with `imgs/happypath/120_gerencia_kpi_facturacion_usd_mensual.jpeg`
+- Updated flow text in contract formalization (both docs) to document the current validation when trying to generate a new contract while one is `VIGENTE` or `PENDIENTE`.
+- Synchronized section 12 (Gerencia) in both docs:
+  - adjusted KPI validation wording
+  - aligned rentability subsection to include new graphs evidence
+- Replaced canonical image assets in `docs/imgs/happypath` with newly captured evidence by overwriting existing filenames:
+  - `94_formalizar_contrato_hnl_pbar_sps.jpeg`
+  - `118_gerencia_kpi_facturacion_usd.jpeg`
+  - `119_gerencia_rentabilidad_facturacion_total_usd.jpeg`
+  - `120_gerencia_kpi_facturacion_usd_mensual.jpeg`
+  - `121_gerencia_alertas_proyecciones_dashboard.jpeg`
+- Removed temporary screenshot files and hash-audit artifacts generated during synchronization.
+
+### 2) Validation executed
+- Confirmed no markdown placeholders remain in updated manuals.
+- Verified all referenced image paths in `docs/happypath.md` and `docs/USER_MANUAL.md` exist on disk.
+- Confirmed cleanup completed:
+  - no `Captura de pantalla_17-4-2026_*.jpeg` files remain
+  - no temporary hash report `.txt` files remain in `docs/imgs/happypath`
+- Problems check for modified markdown files: no errors.
+
+### 3) Canonical business conventions affected
+- No lifecycle or domain-rule regressions introduced.
+- Preserved canonical invoice lifecycle: `BORRADOR -> CERTIFICADA -> PAGADA -> ENVIADA`.
+- Preserved separate payment lifecycle: `PENDIENTE -> APROBADO/RECHAZADO`.
+- Preserved order lifecycle: `REGISTRADA -> ASIGNADA -> LISTA_PARA_DESPACHO -> EN_TRANSITO -> ENTREGADA`.
+
+### 4) Remaining risks / pending work
+- User manual section 10 still mirrors happy path content manually; future image updates should continue being applied to both files in the same change-set to avoid drift.
+- If additional recaptures are requested for Gerencia monthly/annual split views, capture and map them explicitly to keep evidence granularity per subsection.

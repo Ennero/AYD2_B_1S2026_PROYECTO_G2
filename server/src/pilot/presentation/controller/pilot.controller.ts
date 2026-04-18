@@ -99,7 +99,7 @@ export class PilotController {
     @CurrentUser() user: JwtPayload,
   ) {
     const data = await this.addLogUseCase.execute(orderId, user.sub, {
-      eventType:   dto.eventType,
+      eventType: dto.eventType,
       description: dto.description,
       imageBase64: dto.imageBase64,
     });
@@ -115,11 +115,11 @@ export class PilotController {
     @CurrentUser() user: JwtPayload,
   ) {
     const data = await this.deliverOrderUseCase.execute(orderId, user.sub, {
-      receiverName:            dto.receiverName,
+      receiverName: dto.receiverName,
       receiverSignatureBase64: dto.receiverSignatureBase64,
-      deliveryEvidenceBase64:  dto.deliveryEvidenceBase64,
-      deliveredAt:             dto.deliveredAt,
-      notes:                   dto.notes,
+      deliveryEvidenceBase64: dto.deliveryEvidenceBase64,
+      deliveredAt: dto.deliveredAt,
+      notes: dto.notes,
     });
     return { message: 'Entrega registrada correctamente', data };
   }

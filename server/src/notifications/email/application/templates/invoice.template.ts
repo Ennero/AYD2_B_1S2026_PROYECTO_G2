@@ -19,9 +19,11 @@ export interface InvoiceTemplateData {
  * Se envía al cliente cuando el Agente Financiero emite la factura
  * con certificación ante la SAT (DTE).
  */
-export function invoiceTemplate(
-  data: InvoiceTemplateData,
-): { subject: string; html: string; text: string } {
+export function invoiceTemplate(data: InvoiceTemplateData): {
+  subject: string;
+  html: string;
+  text: string;
+} {
   const subject = `LogiTrans — Factura ${data.invoiceNumber} emitida`;
 
   const felSection = data.felAuthorizationCode

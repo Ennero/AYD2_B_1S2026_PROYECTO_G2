@@ -36,7 +36,9 @@ describe('Client Portal API (integration)', () => {
 
     app = module.createNestApplication();
     app.use(cookieParser());
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
 
     dataSource = app.get(DataSource);
@@ -67,8 +69,12 @@ describe('Client Portal API (integration)', () => {
   }, 30_000);
 
   afterAll(async () => {
-    await dataSource.query(`DELETE FROM user_sessions WHERE user_id = $1`, [tempNonClientUserId]);
-    await dataSource.query(`DELETE FROM users WHERE user_id = $1`, [tempNonClientUserId]);
+    await dataSource.query(`DELETE FROM user_sessions WHERE user_id = $1`, [
+      tempNonClientUserId,
+    ]);
+    await dataSource.query(`DELETE FROM users WHERE user_id = $1`, [
+      tempNonClientUserId,
+    ]);
     await app.close();
   });
 

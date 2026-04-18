@@ -84,7 +84,8 @@ export class CreateContactDto {
   @IsString()
   @MaxLength(30)
   @Matches(PHONE_PATTERN, {
-    message: 'contactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+    message:
+      'contactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
   })
   contactPhone?: string;
 
@@ -109,7 +110,8 @@ export class UpdateContactDto {
   @IsString()
   @MaxLength(30)
   @Matches(PHONE_PATTERN, {
-    message: 'contactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
+    message:
+      'contactPhone debe tener el formato +502/+503/+504 seguido de 8 dígitos.',
   })
   contactPhone?: string;
 

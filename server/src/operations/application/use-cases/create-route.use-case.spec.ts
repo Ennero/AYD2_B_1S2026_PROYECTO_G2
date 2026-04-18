@@ -27,12 +27,12 @@ import { Route } from '../../../infrastructure/database/typeorm/entities/route.e
 
 function fakeRoute(overrides: Record<string, unknown> = {}): Partial<Route> {
   return {
-    routeId:         faker.number.int({ min: 1, max: 999 }),
-    routeCode:       `RT-${faker.string.alphanumeric(4).toUpperCase()}`,
-    origin:          faker.location.city().toUpperCase(),
-    destination:     faker.location.city().toUpperCase(),
-    distanceKm:      faker.number.float({ min: 10, max: 5000, fractionDigits: 1 }),
-    estimatedHours:  faker.number.float({ min: 1, max: 72, fractionDigits: 1 }),
+    routeId: faker.number.int({ min: 1, max: 999 }),
+    routeCode: `RT-${faker.string.alphanumeric(4).toUpperCase()}`,
+    origin: faker.location.city().toUpperCase(),
+    destination: faker.location.city().toUpperCase(),
+    distanceKm: faker.number.float({ min: 10, max: 5000, fractionDigits: 1 }),
+    estimatedHours: faker.number.float({ min: 1, max: 72, fractionDigits: 1 }),
     isInternational: false,
     ...overrides,
   };
@@ -41,19 +41,19 @@ function fakeRoute(overrides: Record<string, unknown> = {}): Partial<Route> {
 // ── Suite ─────────────────────────────────────────────────────────────────────
 
 describe('CreateRouteUseCase', () => {
-  let useCase:       CreateRouteUseCase;
+  let useCase: CreateRouteUseCase;
   let mockRouteRepo: {
     findOne: jest.Mock;
-    create:  jest.Mock;
-    save:    jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
   };
   let mockDataSource: { getRepository: jest.Mock };
 
   beforeEach(async () => {
     mockRouteRepo = {
       findOne: jest.fn(),
-      create:  jest.fn(),
-      save:    jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
     };
 
     mockDataSource = {
@@ -76,8 +76,8 @@ describe('CreateRouteUseCase', () => {
 
   it('crea la ruta con código, origen y destino en MAYÚSCULAS', async () => {
     const saved = fakeRoute({
-      routeCode:   'GT-MX-001',
-      origin:      'GUATEMALA CITY',
+      routeCode: 'GT-MX-001',
+      origin: 'GUATEMALA CITY',
       destination: 'CIUDAD DE MEXICO',
     });
     mockRouteRepo.findOne.mockResolvedValue(null);
@@ -85,18 +85,18 @@ describe('CreateRouteUseCase', () => {
     mockRouteRepo.save.mockResolvedValue(saved);
 
     await useCase.execute({
-      routeCode:       'gt-mx-001',
-      origin:          'guatemala city',
-      destination:     'ciudad de mexico',
-      distanceKm:      1200,
-      estimatedHours:  16,
+      routeCode: 'gt-mx-001',
+      origin: 'guatemala city',
+      destination: 'ciudad de mexico',
+      distanceKm: 1200,
+      estimatedHours: 16,
       isInternational: true,
     });
 
     expect(mockRouteRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        routeCode:   'GT-MX-001',
-        origin:      'GUATEMALA CITY',
+        routeCode: 'GT-MX-001',
+        origin: 'GUATEMALA CITY',
         destination: 'CIUDAD DE MEXICO',
       }),
     );
@@ -111,16 +111,18 @@ describe('CreateRouteUseCase', () => {
     mockRouteRepo.save.mockResolvedValue(saved);
 
     await useCase.execute({
-      routeCode:       '  RT-100  ',
-      origin:          'CIUDAD',
-      destination:     'OTRA CIUDAD',
-      distanceKm:      300,
-      estimatedHours:  5,
+      routeCode: '  RT-100  ',
+      origin: 'CIUDAD',
+      destination: 'OTRA CIUDAD',
+      distanceKm: 300,
+      estimatedHours: 5,
       isInternational: false,
     });
 
     // La búsqueda de duplicados y la creación usan el código sin espacios
-    expect(mockRouteRepo.findOne).toHaveBeenCalledWith({ where: { routeCode: 'RT-100' } });
+    expect(mockRouteRepo.findOne).toHaveBeenCalledWith({
+      where: { routeCode: 'RT-100' },
+    });
     expect(mockRouteRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({ routeCode: 'RT-100' }),
     );
@@ -134,11 +136,11 @@ describe('CreateRouteUseCase', () => {
 
     await expect(
       useCase.execute({
-        routeCode:       'GT-SV-001',
-        origin:          'GUATEMALA',
-        destination:     'EL SALVADOR',
-        distanceKm:      200,
-        estimatedHours:  3,
+        routeCode: 'GT-SV-001',
+        origin: 'GUATEMALA',
+        destination: 'EL SALVADOR',
+        distanceKm: 200,
+        estimatedHours: 3,
         isInternational: true,
       }),
     ).rejects.toThrow(ConflictException);
@@ -155,11 +157,11 @@ describe('CreateRouteUseCase', () => {
     // El usuario escribe en minúsculas pero debe detectarse como duplicado
     await expect(
       useCase.execute({
-        routeCode:       'gt-hn-002',
-        origin:          'guatemala',
-        destination:     'honduras',
-        distanceKm:      350,
-        estimatedHours:  5,
+        routeCode: 'gt-hn-002',
+        origin: 'guatemala',
+        destination: 'honduras',
+        distanceKm: 350,
+        estimatedHours: 5,
         isInternational: true,
       }),
     ).rejects.toThrow(ConflictException);
@@ -169,8 +171,8 @@ describe('CreateRouteUseCase', () => {
 
   it('persiste distanceKm, estimatedHours e isInternational correctamente', async () => {
     const saved = fakeRoute({
-      distanceKm:      450.5,
-      estimatedHours:  6.5,
+      distanceKm: 450.5,
+      estimatedHours: 6.5,
       isInternational: true,
     });
     mockRouteRepo.findOne.mockResolvedValue(null);
@@ -178,18 +180,18 @@ describe('CreateRouteUseCase', () => {
     mockRouteRepo.save.mockResolvedValue(saved);
 
     const result = await useCase.execute({
-      routeCode:       'RT-NEW-01',
-      origin:          'CIUDAD A',
-      destination:     'CIUDAD B',
-      distanceKm:      450.5,
-      estimatedHours:  6.5,
+      routeCode: 'RT-NEW-01',
+      origin: 'CIUDAD A',
+      destination: 'CIUDAD B',
+      distanceKm: 450.5,
+      estimatedHours: 6.5,
       isInternational: true,
     });
 
     expect(mockRouteRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        distanceKm:      450.5,
-        estimatedHours:  6.5,
+        distanceKm: 450.5,
+        estimatedHours: 6.5,
         isInternational: true,
       }),
     );

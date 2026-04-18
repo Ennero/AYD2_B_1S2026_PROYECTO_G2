@@ -4,7 +4,6 @@ export class AssignOrderDto {
   @Type(() => Number)
   contractRouteId: number;
 
-
   binomialId: string;
   scheduledDeparture: string;
 }

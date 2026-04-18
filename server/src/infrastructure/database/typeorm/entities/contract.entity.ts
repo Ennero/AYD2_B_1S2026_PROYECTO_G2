@@ -1,4 +1,13 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { ContractStatus } from '../../../../domain/enums/contract-status.enum';
 import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Client } from './client.entity';
@@ -16,7 +25,8 @@ export class Contract {
     name: 'contract_number',
     type: 'varchar',
     length: 40,
-    unique: true })
+    unique: true,
+  })
   contractNumber: string;
 
   @Column({ name: 'client_id', type: 'integer' })
@@ -26,13 +36,18 @@ export class Contract {
     name: 'status',
     type: 'enum',
     enum: ContractStatus,
-    default: ContractStatus.BORRADOR })
+    default: ContractStatus.BORRADOR,
+  })
   status: ContractStatus;
 
   @Column({ name: 'start_date', type: 'date', default: () => 'CURRENT_DATE' })
   startDate: string;
 
-  @Column({ name: 'end_date', type: 'date', default: () => "(CURRENT_DATE + INTERVAL '1 year')::DATE" })
+  @Column({
+    name: 'end_date',
+    type: 'date',
+    default: () => "(CURRENT_DATE + INTERVAL '1 year')::DATE",
+  })
   endDate: string;
 
   @Column({ name: 'accepted_at', type: 'timestamptz', nullable: true })
@@ -81,7 +96,8 @@ export class Contract {
     type: 'numeric',
     precision: 5,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   discountPercentage: number;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
@@ -106,6 +122,8 @@ export class Contract {
     joinColumn: { name: 'contract_id', referencedColumnName: 'contractId' },
     inverseJoinColumn: {
       name: 'cargo_type_id',
-      referencedColumnName: 'cargoTypeId' } })
+      referencedColumnName: 'cargoTypeId',
+    },
+  })
   cargoTypes: CargoType[];
 }

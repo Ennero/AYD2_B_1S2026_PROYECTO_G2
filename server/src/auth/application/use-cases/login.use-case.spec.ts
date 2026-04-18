@@ -26,12 +26,12 @@ import { UserRole } from '../../../domain/enums/user-role.enum';
 /** Builds a fake User object matching the shape returned by IAuthUserRepository */
 function fakeUser(overrides: Record<string, unknown> = {}) {
   return {
-    userId:       faker.number.int({ min: 1, max: 9999 }),
-    email:        faker.internet.email(),
+    userId: faker.number.int({ min: 1, max: 9999 }),
+    email: faker.internet.email(),
     passwordHash: faker.string.alphanumeric(60), // placeholder for bcrypt hash
-    fullName:     faker.person.fullName(),
-    role:         UserRole.AGENTE_OPERATIVO,
-    isActive:     true,
+    fullName: faker.person.fullName(),
+    role: UserRole.AGENTE_OPERATIVO,
+    isActive: true,
     ...overrides,
   };
 }
@@ -40,21 +40,21 @@ function fakeUser(overrides: Record<string, unknown> = {}) {
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
-  let userRepo:    { findByEmail: jest.Mock };
+  let userRepo: { findByEmail: jest.Mock };
   let sessionRepo: { create: jest.Mock };
-  let jwtService:  { sign: jest.Mock };
+  let jwtService: { sign: jest.Mock };
 
   beforeEach(async () => {
-    userRepo    = { findByEmail: jest.fn() };
+    userRepo = { findByEmail: jest.fn() };
     sessionRepo = { create: jest.fn().mockResolvedValue(undefined) };
-    jwtService  = { sign:   jest.fn().mockReturnValue('mocked.jwt.token') };
+    jwtService = { sign: jest.fn().mockReturnValue('mocked.jwt.token') };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LoginUseCase,
-        { provide: AUTH_USER_REPOSITORY_TOKEN,    useValue: userRepo },
+        { provide: AUTH_USER_REPOSITORY_TOKEN, useValue: userRepo },
         { provide: USER_SESSION_REPOSITORY_TOKEN, useValue: sessionRepo },
-        { provide: JwtService,                    useValue: jwtService },
+        { provide: JwtService, useValue: jwtService },
       ],
     }).compile();
 
@@ -70,7 +70,10 @@ describe('LoginUseCase', () => {
     userRepo.findByEmail.mockResolvedValue(user);
     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-    const result = await useCase.execute({ email: user.email, password: 'correct_password' });
+    const result = await useCase.execute({
+      email: user.email,
+      password: 'correct_password',
+    });
 
     expect(result.data.token).toBe('mocked.jwt.token');
     expect(result.sessionToken).toBeTruthy();
@@ -84,7 +87,10 @@ describe('LoginUseCase', () => {
     userRepo.findByEmail.mockResolvedValue(null);
 
     await expect(
-      useCase.execute({ email: faker.internet.email(), password: faker.internet.password() }),
+      useCase.execute({
+        email: faker.internet.email(),
+        password: faker.internet.password(),
+      }),
     ).rejects.toThrow(UnauthorizedException);
   });
 
@@ -96,11 +102,16 @@ describe('LoginUseCase', () => {
     userRepo.findByEmail.mockResolvedValue(inactiveUser);
 
     const error = await useCase
-      .execute({ email: inactiveUser.email, password: faker.internet.password() })
+      .execute({
+        email: inactiveUser.email,
+        password: faker.internet.password(),
+      })
       .catch((e: Error) => e);
 
     expect(error).toBeInstanceOf(UnauthorizedException);
-    expect((error as UnauthorizedException).message).toBe('Credenciales inválidas.');
+    expect((error as UnauthorizedException).message).toBe(
+      'Credenciales inválidas.',
+    );
   });
 
   // ── Test 4 ────────────────────────────────────────────────────────────────
@@ -124,9 +135,11 @@ describe('LoginUseCase', () => {
 
     await useCase.execute({ email: user.email, password: 'any' });
 
-    const [sessionData] = sessionRepo.create.mock.calls[0] as [{ expirationAt: Date }];
-    const thirtyDaysMs  = 30 * 24 * 60 * 60 * 1000;
-    const deltaMs       = sessionData.expirationAt.getTime() - Date.now();
+    const [sessionData] = sessionRepo.create.mock.calls[0] as [
+      { expirationAt: Date },
+    ];
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    const deltaMs = sessionData.expirationAt.getTime() - Date.now();
 
     // Allow ±5 s tolerance for test execution time
     expect(deltaMs).toBeGreaterThan(thirtyDaysMs - 5_000);
@@ -142,7 +155,9 @@ describe('LoginUseCase', () => {
 
     await useCase.execute({ email: user.email, password: 'any' });
 
-    const [payload] = jwtService.sign.mock.calls[0] as [Record<string, unknown>];
+    const [payload] = jwtService.sign.mock.calls[0] as [
+      Record<string, unknown>,
+    ];
     expect(payload.sub).toBe(user.userId);
     expect(payload.email).toBe(user.email);
     expect(payload.role).toBe(user.role);

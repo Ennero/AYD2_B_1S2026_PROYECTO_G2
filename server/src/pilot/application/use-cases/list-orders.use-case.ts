@@ -46,7 +46,10 @@ export class ListOrdersUseCase {
     const where: FindOptionsWhere<Order> = { unitId: unit.unitId };
 
     // Filtro por estado
-    if (filters.status && Object.values(OrderStatus).includes(filters.status as OrderStatus)) {
+    if (
+      filters.status &&
+      Object.values(OrderStatus).includes(filters.status as OrderStatus)
+    ) {
       where.status = filters.status as OrderStatus;
     }
 
@@ -107,13 +110,13 @@ export class ListOrdersUseCase {
     }
 
     return result.map((order) => ({
-      orderId:           order.orderId,
-      orderNumber:       order.orderNumber,
-      origin:            order.origin ?? order.pickupAddress,
-      destination:       order.destination ?? order.deliveryAddress,
-      status:            order.status,
-      clientName:        order.contract?.client?.legalName ?? '—',
-      cargoType:         order.cargoType?.cargoName ?? '—',
+      orderId: order.orderId,
+      orderNumber: order.orderNumber,
+      origin: order.origin ?? order.pickupAddress,
+      destination: order.destination ?? order.deliveryAddress,
+      status: order.status,
+      clientName: order.contract?.client?.legalName ?? '—',
+      cargoType: order.cargoType?.cargoName ?? '—',
       declaredWeightTon: Number(order.declaredWeightTon),
       scheduledPickupAt: order.scheduledPickupAt
         ? order.scheduledPickupAt.toISOString()

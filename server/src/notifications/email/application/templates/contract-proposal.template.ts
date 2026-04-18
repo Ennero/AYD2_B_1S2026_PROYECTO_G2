@@ -15,9 +15,11 @@ export interface ContractProposalTemplateData {
  * Se envía al cliente cuando el Agente Operativo crea la propuesta
  * para que éste la acepte o rechace desde el portal.
  */
-export function contractProposalTemplate(
-  data: ContractProposalTemplateData,
-): { subject: string; html: string; text: string } {
+export function contractProposalTemplate(data: ContractProposalTemplateData): {
+  subject: string;
+  html: string;
+  text: string;
+} {
   const subject = `LogiTrans — Propuesta de Contrato ${data.contractCode}`;
 
   const routesHtml = data.routes

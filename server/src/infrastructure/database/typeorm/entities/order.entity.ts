@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { OrderStatus } from '../../../../domain/enums/order-status.enum';
 import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
 import { Contract } from './contract.entity';
@@ -44,20 +51,23 @@ export class Order {
     name: 'status',
     type: 'enum',
     enum: OrderStatus,
-    default: OrderStatus.REGISTRADA })
+    default: OrderStatus.REGISTRADA,
+  })
   status: OrderStatus;
 
   @Column({
     name: 'cargo_description',
     type: 'text',
-    default: 'PENDIENTE_DETALLE' })
+    default: 'PENDIENTE_DETALLE',
+  })
   cargoDescription: string;
 
   @Column({
     name: 'declared_weight_ton',
     type: 'numeric',
     precision: 8,
-    scale: 2 })
+    scale: 2,
+  })
   declaredWeightTon: number;
 
   @Column({
@@ -65,7 +75,8 @@ export class Order {
     type: 'numeric',
     precision: 8,
     scale: 2,
-    nullable: true })
+    nullable: true,
+  })
   loadedWeightTon: number | null;
 
   @Column({ name: 'origin', type: 'text', nullable: true })
@@ -105,7 +116,8 @@ export class Order {
     name: 'receiver_name',
     type: 'varchar',
     length: 160,
-    nullable: true })
+    nullable: true,
+  })
   receiverName: string | null;
 
   @Column({ name: 'receiver_signature_path', type: 'text', nullable: true })
@@ -119,7 +131,8 @@ export class Order {
     type: 'numeric',
     precision: 10,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   distanceKm: number;
 
   @Column({
@@ -127,7 +140,8 @@ export class Order {
     type: 'numeric',
     precision: 12,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   baseRatePerKm: number;
 
   @Column({
@@ -135,7 +149,8 @@ export class Order {
     type: 'numeric',
     precision: 5,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   discountPercentage: number;
 
   @Column({
@@ -143,7 +158,8 @@ export class Order {
     type: 'numeric',
     precision: 12,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   finalRatePerKm: number;
 
   @Column({
@@ -177,7 +193,8 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   subtotalAmount: number;
 
   @Column({
@@ -185,7 +202,8 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   taxAmount: number;
 
   @Column({
@@ -193,7 +211,8 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   totalAmount: number;
 
   @Column({
@@ -201,7 +220,8 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   fuelCost: number;
 
   @Column({
@@ -209,7 +229,8 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   viaticsCost: number;
 
   @Column({
@@ -217,7 +238,8 @@ export class Order {
     type: 'numeric',
     precision: 14,
     scale: 2,
-    default: 0 })
+    default: 0,
+  })
   maintenanceCost: number;
 
   @Column({ name: 'notes', type: 'text', nullable: true })

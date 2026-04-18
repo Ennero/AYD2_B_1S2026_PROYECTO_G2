@@ -2,9 +2,9 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
-    IStorageService,
-    UploadFileOptions,
-    UploadFileResult,
+  IStorageService,
+  UploadFileOptions,
+  UploadFileResult,
 } from '../domain/storage.service.interface';
 
 /**
@@ -20,61 +20,65 @@ import {
  */
 @Injectable()
 export class SupabaseStorageAdapter implements IStorageService, OnModuleInit {
-    private readonly logger = new Logger(SupabaseStorageAdapter.name);
-    private client: SupabaseClient;
+  private readonly logger = new Logger(SupabaseStorageAdapter.name);
+  private client: SupabaseClient;
 
-    constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: ConfigService) {}
 
-    onModuleInit() {
-        const url = this.config.get<string>('SUPABASE_URL', '');
-        const key = this.config.get<string>('SUPABASE_SERVICE_KEY', '');
+  onModuleInit() {
+    const url = this.config.get<string>('SUPABASE_URL', '');
+    const key = this.config.get<string>('SUPABASE_SERVICE_KEY', '');
 
-        if (!url || !key) {
-            throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY are required');
-        }
-
-        // auth.persistSession: false es CRÍTICO — Node.js no tiene localStorage
-        this.client = createClient(url, key, { auth: { persistSession: false } });
-        this.logger.log(`Supabase storage adapter initialised — url: ${url}`);
+    if (!url || !key) {
+      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY are required');
     }
 
-    async upload({
-        buffer,
-        filename,
-        bucket,
-        mimeType = 'application/octet-stream',
-    }: UploadFileOptions): Promise<UploadFileResult> {
-        const { data, error } = await this.client.storage
-            .from(bucket)
-            .upload(filename, buffer, { contentType: mimeType, upsert: true });
+    // auth.persistSession: false es CRÍTICO — Node.js no tiene localStorage
+    this.client = createClient(url, key, { auth: { persistSession: false } });
+    this.logger.log(`Supabase storage adapter initialised — url: ${url}`);
+  }
 
-        if (error) {
-            this.logger.error(`Upload failed [${bucket}/${filename}]: ${error.message}`);
-            return { success: false, error: error.message };
-        }
+  async upload({
+    buffer,
+    filename,
+    bucket,
+    mimeType = 'application/octet-stream',
+  }: UploadFileOptions): Promise<UploadFileResult> {
+    const { data, error } = await this.client.storage
+      .from(bucket)
+      .upload(filename, buffer, { contentType: mimeType, upsert: true });
 
-        // getPublicUrl es construcción de URL pura — sin llamada extra a la API
-        const { data: { publicUrl } } = this.client.storage
-            .from(bucket)
-            .getPublicUrl(data.path);
-
-        return { success: true, path: data.path, url: publicUrl };
+    if (error) {
+      this.logger.error(
+        `Upload failed [${bucket}/${filename}]: ${error.message}`,
+      );
+      return { success: false, error: error.message };
     }
 
-    async getSignedUrl(
-        bucket: string,
-        path: string,
-        expiresInSeconds = 3600,
-    ): Promise<string | null> {
-        const { data, error } = await this.client.storage
-            .from(bucket)
-            .createSignedUrl(path, expiresInSeconds);
+    // getPublicUrl es construcción de URL pura — sin llamada extra a la API
+    const {
+      data: { publicUrl },
+    } = this.client.storage.from(bucket).getPublicUrl(data.path);
 
-        if (error) {
-            this.logger.error(`getSignedUrl failed [${bucket}/${path}]: ${error.message}`);
-            return null;
-        }
+    return { success: true, path: data.path, url: publicUrl };
+  }
 
-        return data.signedUrl;
+  async getSignedUrl(
+    bucket: string,
+    path: string,
+    expiresInSeconds = 3600,
+  ): Promise<string | null> {
+    const { data, error } = await this.client.storage
+      .from(bucket)
+      .createSignedUrl(path, expiresInSeconds);
+
+    if (error) {
+      this.logger.error(
+        `getSignedUrl failed [${bucket}/${path}]: ${error.message}`,
+      );
+      return null;
     }
+
+    return data.signedUrl;
+  }
 }

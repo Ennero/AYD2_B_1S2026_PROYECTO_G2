@@ -40,9 +40,11 @@ import { NotificationsModule } from '../notifications/notifications.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'secretKeyTemporario',
+        secret:
+          configService.get<string>('JWT_SECRET') || 'secretKeyTemporario',
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') || '1d') as any,
+          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
+            '1d') as any,
         },
       }),
     }),
@@ -56,7 +58,10 @@ import { NotificationsModule } from '../notifications/notifications.module';
     // Repositorios — binding interfaz → implementación
     { provide: AUTH_USER_REPOSITORY_TOKEN, useClass: AuthUserRepository },
     { provide: USER_SESSION_REPOSITORY_TOKEN, useClass: UserSessionRepository },
-    { provide: PASSWORD_RECOVERY_REPOSITORY_TOKEN, useClass: PasswordRecoveryRepository },
+    {
+      provide: PASSWORD_RECOVERY_REPOSITORY_TOKEN,
+      useClass: PasswordRecoveryRepository,
+    },
 
     // Casos de uso
     LoginUseCase,

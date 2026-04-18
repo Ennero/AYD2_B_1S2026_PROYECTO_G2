@@ -28,7 +28,10 @@ export class TypeOrmFinanceReadRepository implements IFinanceReadRepository {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getDashboardSummary(year: number, month: number): Promise<DashboardSummaryData> {
+  async getDashboardSummary(
+    year: number,
+    month: number,
+  ): Promise<DashboardSummaryData> {
     const startOfMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
     const endOfMonth =
       month === 12
@@ -38,12 +41,13 @@ export class TypeOrmFinanceReadRepository implements IFinanceReadRepository {
     const invoiceRepo = this.dataSource.getRepository(Invoice);
     const paymentRepo = this.dataSource.getRepository(Payment);
 
-    const [draftCount, certifiedCount, pendingCount, collectedRow] = await Promise.all([
-      invoiceRepo.count({ where: { status: InvoiceStatus.BORRADOR } }),
-      invoiceRepo.count({ where: { status: InvoiceStatus.PAGADA } }),
-      paymentRepo.count({ where: { status: PaymentStatus.PENDIENTE } }),
-      this.dataSource.query<{ collected_amount_usd: string }[]>(
-        `
+    const [draftCount, certifiedCount, pendingCount, collectedRow] =
+      await Promise.all([
+        invoiceRepo.count({ where: { status: InvoiceStatus.BORRADOR } }),
+        invoiceRepo.count({ where: { status: InvoiceStatus.PAGADA } }),
+        paymentRepo.count({ where: { status: PaymentStatus.PENDIENTE } }),
+        this.dataSource.query<{ collected_amount_usd: string }[]>(
+          `
           SELECT
             COALESCE(
               ROUND(
@@ -58,11 +62,17 @@ export class TypeOrmFinanceReadRepository implements IFinanceReadRepository {
             AND p.payment_date >= $2
             AND p.payment_date < $3
         `,
-        [PaymentStatus.APROBADO, startOfMonth.toISOString(), endOfMonth.toISOString()],
-      ),
-    ]);
+          [
+            PaymentStatus.APROBADO,
+            startOfMonth.toISOString(),
+            endOfMonth.toISOString(),
+          ],
+        ),
+      ]);
 
-    const collected = Array.isArray(collectedRow) ? collectedRow[0] : collectedRow;
+    const collected = Array.isArray(collectedRow)
+      ? collectedRow[0]
+      : collectedRow;
 
     return {
       period: 'MONTHLY',

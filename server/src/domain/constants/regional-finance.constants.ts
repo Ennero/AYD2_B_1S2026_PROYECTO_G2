@@ -13,7 +13,10 @@ export const COUNTRY_DEFAULT_TAX_RATE: Record<CountryCode, number> = {
   [CountryCode.HN]: 0.15,
 };
 
-export const COUNTRY_PHONE_PREFIX: Record<CountryCode, '+502' | '+503' | '+504'> = {
+export const COUNTRY_PHONE_PREFIX: Record<
+  CountryCode,
+  '+502' | '+503' | '+504'
+> = {
   [CountryCode.GT]: '+502',
   [CountryCode.SV]: '+503',
   [CountryCode.HN]: '+504',

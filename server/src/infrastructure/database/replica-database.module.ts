@@ -1,7 +1,10 @@
 import { Global, Module, OnApplicationShutdown } from '@nestjs/common';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { databaseEntities } from './config/data-source';
-import { getDatabaseRuntimeConfig, getReplicaDatabaseConfig } from './config/database-env';
+import {
+  getDatabaseRuntimeConfig,
+  getReplicaDatabaseConfig,
+} from './config/database-env';
 
 /**
  * DI token for the read-replica DataSource.
@@ -42,7 +45,9 @@ export const REPLICA_DATA_SOURCE = 'REPLICA_DATA_SOURCE';
           await ds.initialize();
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
-          console.warn(`[ReplicaDatabaseModule] Replica connection failed, falling back to primary: ${msg}`);
+          console.warn(
+            `[ReplicaDatabaseModule] Replica connection failed, falling back to primary: ${msg}`,
+          );
           const fallback = new DataSource({
             ...options,
             host: primaryCfg.host,

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { User } from '../../../infrastructure/database/typeorm/entities/user.entity';
 import { UserRole } from '../../../domain/enums/user-role.enum';
@@ -24,7 +28,10 @@ export interface UpdateUserOutput {
 export class UpdateUserUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(userId: number, input: UpdateUserInput): Promise<UpdateUserOutput> {
+  async execute(
+    userId: number,
+    input: UpdateUserInput,
+  ): Promise<UpdateUserOutput> {
     const repository = this.dataSource.getRepository(User);
 
     const user = await repository.findOne({ where: { userId } });
@@ -39,7 +46,9 @@ export class UpdateUserUseCase {
       input.isActive !== undefined;
 
     if (!hasChanges) {
-      throw new BadRequestException('No se enviaron cambios para actualizar el usuario.');
+      throw new BadRequestException(
+        'No se enviaron cambios para actualizar el usuario.',
+      );
     }
 
     if (input.email !== undefined) {
@@ -48,9 +57,13 @@ export class UpdateUserUseCase {
         throw new BadRequestException('El correo no puede estar vacío.');
       }
 
-      const existing = await repository.findOne({ where: { email: normalizedEmail } });
+      const existing = await repository.findOne({
+        where: { email: normalizedEmail },
+      });
       if (existing && existing.userId !== user.userId) {
-        throw new BadRequestException(`Ya existe otro usuario con el correo ${normalizedEmail}.`);
+        throw new BadRequestException(
+          `Ya existe otro usuario con el correo ${normalizedEmail}.`,
+        );
       }
 
       user.email = normalizedEmail;

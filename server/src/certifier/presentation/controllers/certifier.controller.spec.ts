@@ -16,7 +16,9 @@ describe('CertifierController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CertifierController],
-      providers: [{ provide: CertifierService, useValue: certifierServiceMock }],
+      providers: [
+        { provide: CertifierService, useValue: certifierServiceMock },
+      ],
     }).compile();
 
     controller = module.get<CertifierController>(CertifierController);

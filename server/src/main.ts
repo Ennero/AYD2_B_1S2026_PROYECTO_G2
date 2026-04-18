@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { AbortedRequestFilter } from './infrastructure/filters/aborted-request.filter';
 import { Transport } from '@nestjs/microservices';
 import cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
@@ -18,6 +19,10 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  // Graceful shutdown: when ECS sends SIGTERM, finish in-flight requests before exiting.
+  // Without this, every active request gets ECONNABORTED when the container is killed.
+  app.enableShutdownHooks();
+
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {
@@ -30,6 +35,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.useBodyParser('json', { limit: '10mb' });
+  app.useGlobalFilters(new AbortedRequestFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -39,9 +45,12 @@ async function bootstrap() {
   const databaseConfig = getDatabaseRuntimeConfig();
 
   // Enable CORS
-  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000,http://localhost:3001,http://localhost').split(',');
+  const corsOrigins = (
+    process.env.CORS_ORIGINS ??
+    'http://localhost:3000,http://localhost:3001,http://localhost'
+  ).split(',');
   app.enableCors({
-    origin: corsOrigins.map(o => o.trim()),
+    origin: corsOrigins.map((o) => o.trim()),
     credentials: true,
   });
 

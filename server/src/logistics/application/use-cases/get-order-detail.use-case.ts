@@ -58,7 +58,9 @@ export class GetOrderDetailUseCase {
       throw new NotFoundException(`Orden ${orderId} no encontrada.`);
     }
 
-    const contractRoutes: ContractRouteInfo[] = (order.contract?.contractRoutes ?? []).map((cr) => ({
+    const contractRoutes: ContractRouteInfo[] = (
+      order.contract?.contractRoutes ?? []
+    ).map((cr) => ({
       contractRouteId: cr.contractRouteId,
       routeId: cr.routeId,
       origin: cr.route?.origin ?? '',

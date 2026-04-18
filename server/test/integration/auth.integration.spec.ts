@@ -34,7 +34,9 @@ describe('Auth API (integration)', () => {
 
     app = module.createNestApplication();
     app.use(cookieParser());
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ transform: true, whitelist: true }),
+    );
     await app.init();
 
     dataSource = app.get(DataSource);
@@ -61,8 +63,12 @@ describe('Auth API (integration)', () => {
 
   afterAll(async () => {
     if (createdTestUser) {
-      await dataSource.query(`DELETE FROM user_sessions WHERE user_id = $1`, [seededUserId]);
-      await dataSource.query(`DELETE FROM users WHERE user_id = $1`, [seededUserId]);
+      await dataSource.query(`DELETE FROM user_sessions WHERE user_id = $1`, [
+        seededUserId,
+      ]);
+      await dataSource.query(`DELETE FROM users WHERE user_id = $1`, [
+        seededUserId,
+      ]);
     }
     await app.close();
   });

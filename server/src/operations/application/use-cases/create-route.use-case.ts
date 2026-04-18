@@ -15,13 +15,17 @@ export class CreateRouteUseCase {
     isInternational: boolean;
   }): Promise<Route> {
     const routeRepo = this.dataSource.getRepository(Route);
-    
+
     // Normalizar a mayúsculas
     const upperCode = dto.routeCode.toUpperCase().trim();
 
-    const existing = await routeRepo.findOne({ where: { routeCode: upperCode } });
+    const existing = await routeRepo.findOne({
+      where: { routeCode: upperCode },
+    });
     if (existing) {
-      throw new ConflictException(`La ruta ${upperCode} ya existe en el catálogo.`);
+      throw new ConflictException(
+        `La ruta ${upperCode} ya existe en el catálogo.`,
+      );
     }
 
     const newRoute = routeRepo.create({

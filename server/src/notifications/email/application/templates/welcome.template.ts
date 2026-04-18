@@ -10,7 +10,11 @@ export interface WelcomeTemplateData {
  * HU-02 — Correo de bienvenida con credenciales generadas automáticamente.
  * Se envía tras el registro exitoso del cliente por parte del Agente Operativo.
  */
-export function welcomeTemplate(data: WelcomeTemplateData): { subject: string; html: string; text: string } {
+export function welcomeTemplate(data: WelcomeTemplateData): {
+  subject: string;
+  html: string;
+  text: string;
+} {
   const subject = 'Bienvenido a LogiTrans — Sus credenciales de acceso';
 
   const html = baseTemplate(

@@ -1,4 +1,11 @@
-import { IsInt, IsNumber, IsOptional, IsPositive, Min, ValidateNested } from 'class-validator';
+import {
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 /** Tarifa por tipo de vehículo pactada en este contrato específico */

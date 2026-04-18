@@ -107,7 +107,10 @@ export class BiService {
     return rows.map((r) => ({
       orderNumber: r.order_number,
       clientName: r.client_name,
-      route: r.origin && r.destination ? `${r.origin} → ${r.destination}` : 'Sin ruta asignada',
+      route:
+        r.origin && r.destination
+          ? `${r.origin} → ${r.destination}`
+          : 'Sin ruta asignada',
       status: r.status,
       requestedAt: r.requested_at,
     }));
@@ -245,7 +248,9 @@ export class BiService {
       ? `EXTRACT(YEAR FROM requested_at) = ${year} AND EXTRACT(MONTH FROM requested_at) = ${month}`
       : `EXTRACT(YEAR FROM requested_at) = ${year}`;
 
-    const rows = await this.dataSource.query<{ status: string; total: string }[]>(`
+    const rows = await this.dataSource.query<
+      { status: string; total: string }[]
+    >(`
       SELECT status, COUNT(*) AS total
       FROM orders
       WHERE ${dateFilter}
@@ -329,7 +334,9 @@ export class BiService {
       ? `AND EXTRACT(YEAR FROM o.requested_at) = ${year} AND EXTRACT(MONTH FROM o.requested_at) = ${month}`
       : `AND EXTRACT(YEAR FROM o.requested_at) = ${year}`;
 
-    const rows = await this.dataSource.query<{ ruta: string; total: string }[]>(`
+    const rows = await this.dataSource.query<
+      { ruta: string; total: string }[]
+    >(`
       SELECT
         r.origin || ' → ' || r.destination AS ruta,
         COUNT(o.order_id) AS total
@@ -376,7 +383,12 @@ export class BiService {
 
     // Orders in transit past promised delivery (late)
     const lateOrders = await this.dataSource.query<
-      { order_number: string; delay_hrs: string; origin: string; destination: string }[]
+      {
+        order_number: string;
+        delay_hrs: string;
+        origin: string;
+        destination: string;
+      }[]
     >(`
       SELECT
         o.order_number,
@@ -394,7 +406,9 @@ export class BiService {
     `);
 
     // Monthly trend + projection (last 6 months + next 3 projected)
-    const trend = await this.dataSource.query<{ mes: string; ordenes: string }[]>(`
+    const trend = await this.dataSource.query<
+      { mes: string; ordenes: string }[]
+    >(`
       SELECT
         TO_CHAR(DATE_TRUNC('month', requested_at), 'YYYY-MM') AS mes,
         COUNT(*) AS ordenes
@@ -416,13 +430,19 @@ export class BiService {
       incidents: incidents.map((r) => ({
         description: r.description,
         orderNumber: r.order_number,
-        route: r.origin && r.destination ? `${r.origin} → ${r.destination}` : 'Sin ruta',
+        route:
+          r.origin && r.destination
+            ? `${r.origin} → ${r.destination}`
+            : 'Sin ruta',
         eventTime: r.event_time,
       })),
       lateOrders: lateOrders.map((r) => ({
         orderNumber: r.order_number,
         delayHrs: parseFloat(r.delay_hrs),
-        route: r.origin && r.destination ? `${r.origin} → ${r.destination}` : 'Sin ruta',
+        route:
+          r.origin && r.destination
+            ? `${r.origin} → ${r.destination}`
+            : 'Sin ruta',
       })),
       trend: trend.map((r) => ({
         mes: r.mes,
