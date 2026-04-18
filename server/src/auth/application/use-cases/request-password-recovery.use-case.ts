@@ -33,7 +33,9 @@ export class RequestPasswordRecoveryUseCase {
     private readonly emailService: EmailService,
   ) {}
 
-  async execute(input: RequestPasswordRecoveryInput): Promise<RequestPasswordRecoveryOutput> {
+  async execute(
+    input: RequestPasswordRecoveryInput,
+  ): Promise<RequestPasswordRecoveryOutput> {
     // Siempre retorna éxito para evitar enumeración de emails
     const user = await this.userRepo.findByEmail(input.email);
 
@@ -43,7 +45,11 @@ export class RequestPasswordRecoveryUseCase {
       const tokenHash = createHash('sha256').update(rawToken).digest('hex');
       const expiresAt = new Date(Date.now() + EXPIRES_IN_MINUTES * 60 * 1000);
 
-      await this.recoveryRepo.create({ userId: user.userId, tokenHash, expiresAt });
+      await this.recoveryRepo.create({
+        userId: user.userId,
+        tokenHash,
+        expiresAt,
+      });
 
       // Fire-and-forget: no bloqueamos la respuesta por fallos de email
       this.emailService
@@ -54,7 +60,9 @@ export class RequestPasswordRecoveryUseCase {
           expiresInMinutes: EXPIRES_IN_MINUTES,
         })
         .catch((err: Error) =>
-          this.logger.error(`Error al enviar email de recuperación a ${user.email}: ${err.message}`),
+          this.logger.error(
+            `Error al enviar email de recuperación a ${user.email}: ${err.message}`,
+          ),
         );
     }
 

@@ -538,16 +538,17 @@ Ingresa los siguientes datos para el contrato:
 
 | Campo | Valor de ejemplo |
 |-------|-------------------|
-| Límite de Crédito del Contrato | `120,000.00` *(se visualizará en la moneda del cliente: HNL en este flujo base)* |
-| Días de Pago | `30 días` |
+| Límite de Crédito del Contrato | `50,000.00` *(se visualizará en la moneda del cliente: HNL en este flujo base)* |
+| Días de Pago | `15 días` |
 | Descuento Especial | `5%` |
-| Rutas Autorizadas | `PBAR-SPS` (Puerto Barrios ↔ San Pedro Sula) |
+| Rutas Autorizadas | `SPS-SAL` (San Pedro Sula ↔ San Salvador) |
 | Tipos de Carga | `CARGA GENERAL` |
 
 > Validación esperada: el formulario debe mostrar símbolo/moneda según el cliente seleccionado. Para recaptura multivisa, usa este mismo flujo con un cliente de otro país/moneda y conserva el resto de pasos.
 
 4. Presiona **"Generar Propuesta"**.
-5. aparecerá un mensaje indicando que la propuesta fue generada correctamente.
+5. Si el cliente ya tiene un contrato `VIGENTE` o `PENDIENTE`, el sistema bloquea la creación y muestra una alerta en rojo.
+6. Si no existe restricción activa, el sistema muestra confirmación de propuesta generada correctamente.
 
 ![Formulario Formalizar Contrato](imgs/happypath/94_formalizar_contrato_hnl_pbar_sps.jpeg)
 ![Propuesta Generada Correctamente](imgs/happypath/95_formalizar_contrato_propuesta_generada_modal.jpeg)
@@ -990,16 +991,14 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 
 #### 12.2 Validar KPIs de facturación en USD
 
-1. En **Operaciones y KPIs**, selecciona período mensual.
-2. Cambia mes/año y confirma que el KPI de **Facturación**:
+1. En **Operaciones y KPIs**, valida que el tablero ejecutivo muestre montos monetarios en USD.
+2. Cambia período (mensual/anual) y confirma que el KPI de **Facturación**:
 	- Se muestra en formato USD (`$`).
 	- Conserva consistencia al refrescar (sin mezclar símbolos de moneda).
-3. Repite la validación en período anual.
 
 > Resultado esperado: la tarjeta de facturación mantiene visualización USD para cualquier período.
 
 ![Gerencia - KPI de Facturación en USD (anual)](imgs/happypath/118_gerencia_kpi_facturacion_usd.jpeg)
-![Gerencia - KPI de Facturación en USD (mensual)](imgs/happypath/120_gerencia_kpi_facturacion_usd_mensual.jpeg)
 
 #### 12.3 Validar rentabilidad y montos por cliente en USD
 
@@ -1007,11 +1006,14 @@ Después de que Finanzas marca la factura como `ENVIADA`, el cliente la recibe p
 	- **Facturación Total** aparece en USD.
 	- El gráfico **Ingresos por Cliente** muestra etiquetas en USD.
 	- El subtítulo de ingresos indica **Monto facturado (USD)**.
+  - **Nuevo**: El gráfico de **Evolución Histórica de Rentabilidad** muestra la tendencia de los últimos 6 meses.
+  - **Nuevo**: El gráfico de **Distribución de Costos Operativos** permite ver el desglose por categoría.
 2. Cambia entre período anual y mensual para verificar estabilidad de cálculo.
 
-> Resultado esperado: todos los montos monetarios del módulo de rentabilidad se muestran normalizados a USD.
+> Resultado esperado: todos los montos monetarios del módulo de rentabilidad se muestran normalizados a USD y los nuevos gráficos cargan datos correctamente.
 
 ![Gerencia - Rentabilidad: Facturación Total e Ingresos por Cliente en USD](imgs/happypath/119_gerencia_rentabilidad_facturacion_total_usd.jpeg)
+![Gerencia - Nuevos Gráficos de Rentabilidad](imgs/happypath/120_gerencia_kpi_facturacion_usd_mensual.jpeg)
 
 #### 12.4 Validar alertas y proyecciones
 

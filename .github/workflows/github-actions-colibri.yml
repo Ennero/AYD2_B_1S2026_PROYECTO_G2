@@ -157,3 +157,4 @@ jobs:
       - name: Run integration tests
         working-directory: server
         run: npm run test:integration
+

@@ -6,9 +6,7 @@ import { RABBITMQ_CLIENT } from './rabbitmq.constants';
 export class RabbitmqService implements OnModuleInit {
   private readonly logger = new Logger(RabbitmqService.name);
 
-  constructor(
-    @Inject(RABBITMQ_CLIENT) private readonly client: ClientProxy,
-  ) {}
+  constructor(@Inject(RABBITMQ_CLIENT) private readonly client: ClientProxy) {}
 
   async onModuleInit() {
     try {
@@ -30,9 +28,7 @@ export class RabbitmqService implements OnModuleInit {
   emit<T>(pattern: string, data: T): void {
     this.client.emit(pattern, data).subscribe({
       error: (err: Error) =>
-        this.logger.error(
-          `Failed to emit [${pattern}]: ${err.message}`,
-        ),
+        this.logger.error(`Failed to emit [${pattern}]: ${err.message}`),
     });
   }
 }

@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { createHash } from 'crypto';
 import * as bcrypt from 'bcrypt';
 import {
@@ -29,7 +34,9 @@ export class ResetPasswordUseCase {
 
   async execute(input: ResetPasswordInput): Promise<void> {
     if (input.password !== input.confirmation) {
-      throw new BadRequestException('La contraseña y la confirmación no coinciden.');
+      throw new BadRequestException(
+        'La contraseña y la confirmación no coinciden.',
+      );
     }
 
     if (!input.rawToken) {
@@ -40,7 +47,9 @@ export class ResetPasswordUseCase {
     const record = await this.recoveryRepo.findValidByTokenHash(tokenHash);
 
     if (!record) {
-      throw new UnauthorizedException('El token de recuperación es inválido o ha expirado.');
+      throw new UnauthorizedException(
+        'El token de recuperación es inválido o ha expirado.',
+      );
     }
 
     const user = await this.userRepo.findById(record.userId);
@@ -48,9 +57,14 @@ export class ResetPasswordUseCase {
       throw new UnauthorizedException('Usuario no encontrado.');
     }
 
-    const isSamePassword = await bcrypt.compare(input.password, user.passwordHash);
+    const isSamePassword = await bcrypt.compare(
+      input.password,
+      user.passwordHash,
+    );
     if (isSamePassword) {
-      throw new BadRequestException('La nueva contraseña no puede ser igual a la actual.');
+      throw new BadRequestException(
+        'La nueva contraseña no puede ser igual a la actual.',
+      );
     }
 
     const newHash = await bcrypt.hash(input.password, BCRYPT_ROUNDS);

@@ -7,12 +7,14 @@ export class GetClientsUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
   async execute(search?: string) {
-    const queryBuilder = this.dataSource.getRepository(Client).createQueryBuilder('client');
+    const queryBuilder = this.dataSource
+      .getRepository(Client)
+      .createQueryBuilder('client');
 
     if (search) {
       queryBuilder.where(
         'client.legalName ILIKE :search OR client.nit ILIKE :search',
-        { search: `%${search}%` }
+        { search: `%${search}%` },
       );
     }
 

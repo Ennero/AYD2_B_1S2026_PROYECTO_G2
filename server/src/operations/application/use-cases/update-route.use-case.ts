@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { Route } from '../../../infrastructure/database/typeorm/entities/route.entity';
 
@@ -29,12 +33,16 @@ export class UpdateRouteUseCase {
 
     const existingWithSameCode = await routeRepo
       .createQueryBuilder('route')
-      .where('route.route_code = :routeCode', { routeCode: normalizedRouteCode })
+      .where('route.route_code = :routeCode', {
+        routeCode: normalizedRouteCode,
+      })
       .andWhere('route.route_id != :routeId', { routeId })
       .getOne();
 
     if (existingWithSameCode) {
-      throw new ConflictException(`La ruta ${normalizedRouteCode} ya existe en el catálogo.`);
+      throw new ConflictException(
+        `La ruta ${normalizedRouteCode} ya existe en el catálogo.`,
+      );
     }
 
     const existingWithSamePath = await routeRepo

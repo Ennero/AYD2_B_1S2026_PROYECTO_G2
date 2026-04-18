@@ -1,4 +1,11 @@
-import { Entity, Column, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { UserRole } from '../../../../domain/enums/user-role.enum';
 import { Client } from './client.entity';
 import { PasswordRecoveryToken } from './password-recovery-token.entity';

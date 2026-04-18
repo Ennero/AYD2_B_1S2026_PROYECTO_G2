@@ -10,7 +10,7 @@ export class ListCargasUseCase {
   async execute(): Promise<any[]> {
     const orderRepo = this.dataSource.getRepository(Order);
 
-    // Listamos órdenes que están en ASIGNADA (Pendiente de formalizar) 
+    // Listamos órdenes que están en ASIGNADA (Pendiente de formalizar)
     // o LISTA_PARA_DESPACHO (Ya formalizada)
     const orders = await orderRepo.find({
       where: [
@@ -19,11 +19,11 @@ export class ListCargasUseCase {
       ],
       relations: ['contractRoute', 'unit', 'unit.pilotUser'],
       order: {
-        requestedAt: 'DESC'
-      }
+        requestedAt: 'DESC',
+      },
     });
 
-    return orders.map(order => ({
+    return orders.map((order) => ({
       id: order.orderId,
       codigo: order.orderNumber,
       unitId: order.unitId,
@@ -33,7 +33,10 @@ export class ListCargasUseCase {
       fecha: order.requestedAt.toLocaleDateString('es-GT'),
       origen: order.origin || order.pickupAddress,
       destino: order.destination || order.deliveryAddress,
-      estado: order.status === OrderStatus.LISTA_PARA_DESPACHO ? 'FORMALIZADO' : 'PENDIENTE',
+      estado:
+        order.status === OrderStatus.LISTA_PARA_DESPACHO
+          ? 'FORMALIZADO'
+          : 'PENDIENTE',
       peso: order.loadedWeightTon || order.declaredWeightTon || 0,
       estibaValida: order.stowageConfirmed || false,
     }));

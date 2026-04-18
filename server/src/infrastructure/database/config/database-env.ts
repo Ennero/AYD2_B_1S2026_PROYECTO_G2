@@ -20,7 +20,10 @@ export interface ReplicaDatabaseConfig {
   enabled: boolean;
 }
 
-function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
+function parseBoolean(
+  value: string | undefined,
+  defaultValue: boolean,
+): boolean {
   if (value === undefined) {
     return defaultValue;
   }
@@ -46,9 +49,13 @@ export function getReplicaDatabaseConfig(): ReplicaDatabaseConfig {
   return {
     host: process.env.DB_REPLICA_HOST || 'localhost',
     port: parseInt(process.env.DB_REPLICA_PORT || '5432', 10),
-    username: process.env.DB_REPLICA_USERNAME || process.env.DB_USERNAME || 'postgres',
+    username:
+      process.env.DB_REPLICA_USERNAME || process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_REPLICA_PASSWORD || process.env.DB_PASSWORD,
-    database: process.env.DB_REPLICA_DATABASE || process.env.DB_DATABASE || 'logitrans_db',
+    database:
+      process.env.DB_REPLICA_DATABASE ||
+      process.env.DB_DATABASE ||
+      'logitrans_db',
     enabled: parseBoolean(process.env.DB_REPLICA_ENABLED, false),
   };
 }

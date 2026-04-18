@@ -57,15 +57,20 @@ export class CreateClientUseCase {
     const normalizedEmail = input.primaryContactEmail.trim().toLowerCase();
     const portalPassword = input.portalPassword?.trim();
     const countryCode = input.countryCode ?? CountryCode.GT;
-    const currencyCode = input.currencyCode ?? resolveDefaultCurrency(countryCode);
+    const currencyCode =
+      input.currencyCode ?? resolveDefaultCurrency(countryCode);
     const taxRate = resolveDefaultTaxRate(countryCode);
 
     if (!/^\d{8,13}$/.test(nit)) {
-      throw new BadRequestException('El NIT debe contener entre 8 y 13 digitos.');
+      throw new BadRequestException(
+        'El NIT debe contener entre 8 y 13 digitos.',
+      );
     }
 
     if (!portalPassword || portalPassword.length < 12) {
-      throw new BadRequestException('La contraseña de acceso debe tener al menos 12 caracteres.');
+      throw new BadRequestException(
+        'La contraseña de acceso debe tener al menos 12 caracteres.',
+      );
     }
 
     const clientRepository = this.dataSource.getRepository(Client);
@@ -76,9 +81,13 @@ export class CreateClientUseCase {
       throw new BadRequestException(`Ya existe un cliente con NIT ${nit}.`);
     }
 
-    const existingUser = await userRepository.findOne({ where: { email: normalizedEmail } });
+    const existingUser = await userRepository.findOne({
+      where: { email: normalizedEmail },
+    });
     if (existingUser) {
-      throw new BadRequestException(`Ya existe un usuario con el correo ${normalizedEmail}.`);
+      throw new BadRequestException(
+        `Ya existe un usuario con el correo ${normalizedEmail}.`,
+      );
     }
 
     const client = this.clientFactory.create({
@@ -97,24 +106,26 @@ export class CreateClientUseCase {
       amlRisk: input.amlRisk,
     });
 
-    const { savedClient } = await this.dataSource.transaction(async (manager) => {
-      const savedClient = await manager.getRepository(Client).save(client);
+    const { savedClient } = await this.dataSource.transaction(
+      async (manager) => {
+        const savedClient = await manager.getRepository(Client).save(client);
 
-      const passwordHash = await bcrypt.hash(portalPassword, 10);
-      const portalUser = manager.getRepository(User).create({
-        clientId: Number(savedClient.clientId),
-        role: UserRole.CLIENTE,
-        fullName: `${savedClient.primaryContactName} Portal`,
-        email: normalizedEmail,
-        passwordHash,
-        phone: savedClient.primaryContactPhone,
-        isActive: true,
-      });
+        const passwordHash = await bcrypt.hash(portalPassword, 10);
+        const portalUser = manager.getRepository(User).create({
+          clientId: Number(savedClient.clientId),
+          role: UserRole.CLIENTE,
+          fullName: `${savedClient.primaryContactName} Portal`,
+          email: normalizedEmail,
+          passwordHash,
+          phone: savedClient.primaryContactPhone,
+          isActive: true,
+        });
 
-      await manager.getRepository(User).save(portalUser);
+        await manager.getRepository(User).save(portalUser);
 
-      return { savedClient };
-    });
+        return { savedClient };
+      },
+    );
 
     this.emailService
       .sendWelcome({

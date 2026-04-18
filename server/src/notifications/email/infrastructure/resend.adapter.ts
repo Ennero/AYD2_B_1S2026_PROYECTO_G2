@@ -29,21 +29,35 @@ export class ResendAdapter implements IEmailService, OnModuleInit {
 
   onModuleInit() {
     const isMock = this.config.get<string>('MOCK_SMTP') === 'true';
-    const apiKey = this.config.get<string>('RESEND_API_KEY', isMock ? 'mock-key' : '');
-    const fromEmail = this.config.get<string>('SES_FROM_EMAIL', isMock ? 'mock@logitrans.com' : '');
+    const apiKey = this.config.get<string>(
+      'RESEND_API_KEY',
+      isMock ? 'mock-key' : '',
+    );
+    const fromEmail = this.config.get<string>(
+      'SES_FROM_EMAIL',
+      isMock ? 'mock@logitrans.com' : '',
+    );
     const fromName = this.config.get<string>('SES_FROM_NAME', 'LogiTrans');
 
-    if (!isMock && (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '')) {
+    if (
+      !isMock &&
+      (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '')
+    ) {
       throw new Error('RESEND_API_KEY is required unless MOCK_SMTP is true');
     }
-    if (!isMock && (!fromEmail || typeof fromEmail !== 'string' || fromEmail.trim() === '')) {
+    if (
+      !isMock &&
+      (!fromEmail || typeof fromEmail !== 'string' || fromEmail.trim() === '')
+    ) {
       throw new Error('SES_FROM_EMAIL is required unless MOCK_SMTP is true');
     }
 
     this.client = new Resend(apiKey);
     this.fromAddress = `${fromName} <${fromEmail}>`;
 
-    this.logger.log(`Resend adapter initialised — from: ${this.fromAddress} (Mock: ${isMock})`);
+    this.logger.log(
+      `Resend adapter initialised — from: ${this.fromAddress} (Mock: ${isMock})`,
+    );
   }
 
   async send(options: SendEmailOptions): Promise<EmailSendResult> {
@@ -51,7 +65,9 @@ export class ResendAdapter implements IEmailService, OnModuleInit {
     const isMock = this.config.get<string>('MOCK_SMTP') === 'true';
 
     if (isMock) {
-      this.logger.log(`[MOCK_SMTP] Email enviado simulado — to: ${toAddresses.join(', ')}, subject: "${options.subject}"`);
+      this.logger.log(
+        `[MOCK_SMTP] Email enviado simulado — to: ${toAddresses.join(', ')}, subject: "${options.subject}"`,
+      );
       return { success: true, messageId: 'mock-id-' + Date.now() };
     }
 

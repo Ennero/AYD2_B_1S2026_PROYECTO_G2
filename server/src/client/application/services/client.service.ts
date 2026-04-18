@@ -21,7 +21,13 @@ import { OrderStatus } from '../../../domain/enums/order-status.enum';
 import { ContractStatus } from '../../../domain/enums/contract-status.enum';
 import { PaymentMethod } from '../../../domain/enums/payment-method.enum';
 import { PaymentStatus } from '../../../domain/enums/payment-status.enum';
-import { AcceptContractDto, CreateContactDto, CreateOrderDto, RegisterPaymentDto, UpdateContactDto } from '../../presentation/dto/client.dto';
+import {
+  AcceptContractDto,
+  CreateContactDto,
+  CreateOrderDto,
+  RegisterPaymentDto,
+  UpdateContactDto,
+} from '../../presentation/dto/client.dto';
 
 @Injectable()
 export class ClientService {
@@ -186,7 +192,10 @@ export class ClientService {
         .leftJoinAndSelect('u.vehicleType', 'vt')
         .where('o.contract_id IN (:...ids)', { ids: contractIds })
         .andWhere('o.order_number ILIKE :s', { s: `%${search}%` })
-        .andWhere(status ? 'o.status = :status' : '1=1', status ? { status } : {})
+        .andWhere(
+          status ? 'o.status = :status' : '1=1',
+          status ? { status } : {},
+        )
         .orderBy('o.requestedAt', 'DESC')
         .skip((page - 1) * limit)
         .take(limit)
@@ -206,7 +215,12 @@ export class ClientService {
     return this.mapOrderPage(orders, total, page, limit);
   }
 
-  private mapOrderPage(orders: Order[], total: number, page: number, limit: number) {
+  private mapOrderPage(
+    orders: Order[],
+    total: number,
+    page: number,
+    limit: number,
+  ) {
     return {
       items: orders.map((o) => ({
         orderId: o.orderId,
@@ -251,12 +265,10 @@ export class ClientService {
 
     if (!order) throw new NotFoundException('Orden no encontrada');
 
-    const logs = await this.dataSource
-      .getRepository(OrderRouteLog)
-      .find({
-        where: { orderId },
-        order: { eventTime: 'ASC' },
-      });
+    const logs = await this.dataSource.getRepository(OrderRouteLog).find({
+      where: { orderId },
+      order: { eventTime: 'ASC' },
+    });
 
     return {
       orderId: order.orderId,
@@ -269,7 +281,9 @@ export class ClientService {
       origin: order.origin,
       destination: order.destination,
       declaredWeightTon: Number(order.declaredWeightTon),
-      loadedWeightTon: order.loadedWeightTon ? Number(order.loadedWeightTon) : null,
+      loadedWeightTon: order.loadedWeightTon
+        ? Number(order.loadedWeightTon)
+        : null,
       currencyCode: order.currencyCode,
       totalAmount: Number(order.totalAmount),
       requestedAt: order.requestedAt,
@@ -301,12 +315,7 @@ export class ClientService {
 
   // ── Facturas ───────────────────────────────────────────────────────────
 
-  async getInvoices(
-    userId: number,
-    search?: string,
-    page = 1,
-    limit = 10,
-  ) {
+  async getInvoices(userId: number, search?: string, page = 1, limit = 10) {
     const client = await this.resolveClient(userId);
 
     const qb = this.dataSource
@@ -418,7 +427,8 @@ export class ClientService {
       amount: Number(invoice.totalAmount),
       method: payment.method,
       status: payment.status,
-      message: 'Pago registrado. Quedará pendiente de aprobación por el área financiera.',
+      message:
+        'Pago registrado. Quedará pendiente de aprobación por el área financiera.',
     };
   }
 
@@ -482,13 +492,19 @@ export class ClientService {
       relations: ['client'],
     });
 
-    if (!user || !user.client) throw new NotFoundException('Cliente no encontrado');
+    if (!user || !user.client)
+      throw new NotFoundException('Cliente no encontrado');
 
     const { client } = user;
-    const activeContract = await this.dataSource.getRepository(Contract).findOne({
-      where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
-    });
-    const creditLimit = activeContract?.creditLimit != null ? Number(activeContract.creditLimit) : 0;
+    const activeContract = await this.dataSource
+      .getRepository(Contract)
+      .findOne({
+        where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
+      });
+    const creditLimit =
+      activeContract?.creditLimit != null
+        ? Number(activeContract.creditLimit)
+        : 0;
     const currencyCode = activeContract?.currencyCode ?? client.currencyCode;
 
     // ── Órdenes activas (a través de contratos del cliente) ──────────────
@@ -528,21 +544,20 @@ export class ClientService {
 
     const invoiceIds = outstandingInvoices.map((invoice) => invoice.invoiceId);
     const approvedPayments = invoiceIds.length
-      ? await this.dataSource
-          .getRepository(Payment)
-          .find({
-            where: {
-              invoiceId: In(invoiceIds),
-              status: PaymentStatus.APROBADO,
-            },
-          })
+      ? await this.dataSource.getRepository(Payment).find({
+          where: {
+            invoiceId: In(invoiceIds),
+            status: PaymentStatus.APROBADO,
+          },
+        })
       : [];
 
     const approvedByInvoice = new Map<number, number>();
     for (const payment of approvedPayments) {
       approvedByInvoice.set(
         payment.invoiceId,
-        (approvedByInvoice.get(payment.invoiceId) ?? 0) + Number(payment.amount),
+        (approvedByInvoice.get(payment.invoiceId) ?? 0) +
+          Number(payment.amount),
       );
     }
 
@@ -550,7 +565,10 @@ export class ClientService {
       const approvedAmount = approvedByInvoice.get(invoice.invoiceId) ?? 0;
       return {
         invoice,
-        pendingAmount: Math.max(Number(invoice.totalAmount) - approvedAmount, 0),
+        pendingAmount: Math.max(
+          Number(invoice.totalAmount) - approvedAmount,
+          0,
+        ),
       };
     });
 
@@ -593,13 +611,19 @@ export class ClientService {
       relations: ['client'],
     });
 
-    if (!user || !user.client) throw new NotFoundException('Cliente no encontrado');
+    if (!user || !user.client)
+      throw new NotFoundException('Cliente no encontrado');
 
     const { client } = user;
-    const activeContract = await this.dataSource.getRepository(Contract).findOne({
-      where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
-    });
-    const creditLimit = activeContract?.creditLimit != null ? Number(activeContract.creditLimit) : 0;
+    const activeContract = await this.dataSource
+      .getRepository(Contract)
+      .findOne({
+        where: { clientId: client.clientId, status: ContractStatus.VIGENTE },
+      });
+    const creditLimit =
+      activeContract?.creditLimit != null
+        ? Number(activeContract.creditLimit)
+        : 0;
     const currencyCode = activeContract?.currencyCode ?? client.currencyCode;
 
     // Facturas con deuda activa (CERTIFICADA y ENVIADA menos pagos aprobados)
@@ -614,21 +638,20 @@ export class ClientService {
 
     const invoiceIds = outstandingInvoices.map((invoice) => invoice.invoiceId);
     const approvedPayments = invoiceIds.length
-      ? await this.dataSource
-          .getRepository(Payment)
-          .find({
-            where: {
-              invoiceId: In(invoiceIds),
-              status: PaymentStatus.APROBADO,
-            },
-          })
+      ? await this.dataSource.getRepository(Payment).find({
+          where: {
+            invoiceId: In(invoiceIds),
+            status: PaymentStatus.APROBADO,
+          },
+        })
       : [];
 
     const approvedByInvoice = new Map<number, number>();
     for (const payment of approvedPayments) {
       approvedByInvoice.set(
         payment.invoiceId,
-        (approvedByInvoice.get(payment.invoiceId) ?? 0) + Number(payment.amount),
+        (approvedByInvoice.get(payment.invoiceId) ?? 0) +
+          Number(payment.amount),
       );
     }
 
@@ -728,7 +751,8 @@ export class ClientService {
       startDate: contract.startDate,
       endDate: contract.endDate,
       acceptedAt: contract.acceptedAt,
-      creditLimit: contract.creditLimit !== null ? Number(contract.creditLimit) : null,
+      creditLimit:
+        contract.creditLimit !== null ? Number(contract.creditLimit) : null,
       currencyCode: contract.currencyCode,
       exchangeRateFromUsd: Number(contract.exchangeRateFromUsd),
       taxRate: Number(contract.taxRate),
@@ -760,13 +784,19 @@ export class ClientService {
           typeCode: r.vehicleType.typeCode,
           typeName: r.vehicleType.typeName,
           minCapacityTon: Number(r.vehicleType.minCapacityTon),
-          maxCapacityTon: r.vehicleType.maxCapacityTon ? Number(r.vehicleType.maxCapacityTon) : null,
+          maxCapacityTon: r.vehicleType.maxCapacityTon
+            ? Number(r.vehicleType.maxCapacityTon)
+            : null,
         },
       })),
     };
   }
 
-  async acceptContract(userId: number, contractId: number, dto: AcceptContractDto) {
+  async acceptContract(
+    userId: number,
+    contractId: number,
+    dto: AcceptContractDto,
+  ) {
     const client = await this.resolveClient(userId);
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Contract);
@@ -802,7 +832,8 @@ export class ClientService {
         contractNumber: contract.contractNumber,
         status: contract.status,
         acceptedAt: contract.acceptedAt,
-        creditLimit: contract.creditLimit !== null ? Number(contract.creditLimit) : null,
+        creditLimit:
+          contract.creditLimit !== null ? Number(contract.creditLimit) : null,
         currencyCode: contract.currencyCode,
         exchangeRateFromUsd: Number(contract.exchangeRateFromUsd),
         taxRate: Number(contract.taxRate),
@@ -839,12 +870,10 @@ export class ClientService {
 
   async getContacts(userId: number) {
     const client = await this.resolveClient(userId);
-    const contacts = await this.dataSource
-      .getRepository(ClientContact)
-      .find({
-        where: { clientId: client.clientId, isActive: true },
-        order: { contactName: 'ASC' },
-      });
+    const contacts = await this.dataSource.getRepository(ClientContact).find({
+      where: { clientId: client.clientId, isActive: true },
+      order: { contactName: 'ASC' },
+    });
     return contacts.map((c) => ({
       contactId: c.contactId,
       contactName: c.contactName,
@@ -859,7 +888,11 @@ export class ClientService {
     const repo = this.dataSource.getRepository(ClientContact);
 
     const existing = await repo.findOne({
-      where: { clientId: client.clientId, contactEmail: dto.contactEmail, isActive: true },
+      where: {
+        clientId: client.clientId,
+        contactEmail: dto.contactEmail,
+        isActive: true,
+      },
     });
     if (existing) {
       throw new BadRequestException(
@@ -886,7 +919,11 @@ export class ClientService {
     };
   }
 
-  async updateContact(userId: number, contactId: number, dto: UpdateContactDto) {
+  async updateContact(
+    userId: number,
+    contactId: number,
+    dto: UpdateContactDto,
+  ) {
     const client = await this.resolveClient(userId);
     const repo = this.dataSource.getRepository(ClientContact);
 
@@ -897,7 +934,11 @@ export class ClientService {
 
     if (dto.contactEmail && dto.contactEmail !== contact.contactEmail) {
       const duplicate = await repo.findOne({
-        where: { clientId: client.clientId, contactEmail: dto.contactEmail, isActive: true },
+        where: {
+          clientId: client.clientId,
+          contactEmail: dto.contactEmail,
+          isActive: true,
+        },
       });
       if (duplicate) {
         throw new BadRequestException(
@@ -908,8 +949,10 @@ export class ClientService {
 
     if (dto.contactName !== undefined) contact.contactName = dto.contactName;
     if (dto.contactEmail !== undefined) contact.contactEmail = dto.contactEmail;
-    if (dto.contactPhone !== undefined) contact.contactPhone = dto.contactPhone ?? null;
-    if (dto.positionTitle !== undefined) contact.positionTitle = dto.positionTitle ?? null;
+    if (dto.contactPhone !== undefined)
+      contact.contactPhone = dto.contactPhone ?? null;
+    if (dto.positionTitle !== undefined)
+      contact.positionTitle = dto.positionTitle ?? null;
 
     await repo.save(contact);
 

@@ -44,7 +44,9 @@ export class GerenciaFinanceReadService {
     return invoices.map((invoice) => ({
       currencyCode: 'USD',
       originalCurrencyCode: invoice.currencyCode,
-      exchangeRateFromUsd: resolveExchangeRateFromUsd(invoice.exchangeRateFromUsd),
+      exchangeRateFromUsd: resolveExchangeRateFromUsd(
+        invoice.exchangeRateFromUsd,
+      ),
       invoiceId: invoice.invoiceId,
       invoiceNumber: invoice.invoiceNumber,
       orderId: invoice.orderId,
@@ -82,7 +84,9 @@ export class GerenciaFinanceReadService {
     if (!invoice) {
       throw new NotFoundException('Factura no encontrada');
     }
-    const exchangeRateFromUsd = resolveExchangeRateFromUsd(invoice.exchangeRateFromUsd);
+    const exchangeRateFromUsd = resolveExchangeRateFromUsd(
+      invoice.exchangeRateFromUsd,
+    );
     const subtotalAmountOriginal = toNumber(invoice.subtotalAmount);
     const taxAmountOriginal = toNumber(invoice.taxAmount);
     const totalAmountOriginal = toNumber(invoice.totalAmount);
@@ -123,7 +127,9 @@ export class GerenciaFinanceReadService {
     return payments.map((payment) => ({
       currencyCode: 'USD',
       originalCurrencyCode: payment.currencyCode,
-      exchangeRateFromUsd: resolveExchangeRateFromUsd(payment.invoice?.exchangeRateFromUsd),
+      exchangeRateFromUsd: resolveExchangeRateFromUsd(
+        payment.invoice?.exchangeRateFromUsd,
+      ),
       paymentId: payment.paymentId,
       invoiceId: payment.invoiceId,
       invoiceNumber: payment.invoice?.invoiceNumber ?? null,
@@ -149,7 +155,8 @@ export class GerenciaFinanceReadService {
       typeCode: rate.typeCode,
       typeName: rate.typeName,
       minCapacityTon: toNumber(rate.minCapacityTon),
-      maxCapacityTon: rate.maxCapacityTon === null ? null : toNumber(rate.maxCapacityTon),
+      maxCapacityTon:
+        rate.maxCapacityTon === null ? null : toNumber(rate.maxCapacityTon),
       ratePerKm: toNumber(rate.ratePerKm),
     }));
   }

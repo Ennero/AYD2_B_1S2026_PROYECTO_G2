@@ -17,14 +17,14 @@ import { NotificationsModule } from '../notifications/notifications.module';
  *   - StorageModule provee IStorageService para subir fotos y firmas a Supabase.
  */
 @Module({
-    imports: [StorageModule, NotificationsModule],
-    providers: [
-        ListOrdersUseCase,
-        GetOrderUseCase,
-        StartTripUseCase,
-        AddLogUseCase,
-        DeliverOrderUseCase,
-    ],
-    controllers: [PilotController],
+  imports: [StorageModule, NotificationsModule],
+  providers: [
+    ListOrdersUseCase,
+    GetOrderUseCase,
+    StartTripUseCase,
+    AddLogUseCase,
+    DeliverOrderUseCase,
+  ],
+  controllers: [PilotController],
 })
 export class PilotModule {}

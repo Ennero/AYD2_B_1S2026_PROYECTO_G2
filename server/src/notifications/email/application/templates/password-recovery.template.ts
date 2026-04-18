@@ -11,9 +11,11 @@ export interface PasswordRecoveryTemplateData {
  * HU-03 — Correo de recuperación de contraseña.
  * El token es de un solo uso y expira en 30 minutos (RNF seguridad CDU001).
  */
-export function passwordRecoveryTemplate(
-  data: PasswordRecoveryTemplateData,
-): { subject: string; html: string; text: string } {
+export function passwordRecoveryTemplate(data: PasswordRecoveryTemplateData): {
+  subject: string;
+  html: string;
+  text: string;
+} {
   const subject = 'LogiTrans — Recuperación de contraseña';
 
   const html = baseTemplate(

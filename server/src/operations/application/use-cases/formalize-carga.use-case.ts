@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { DataSource, QueryFailedError } from 'typeorm';
 import { Order } from '../../../infrastructure/database/typeorm/entities/order.entity';
 import { OrderStatus } from '../../../domain/enums/order-status.enum';
@@ -9,9 +13,16 @@ import { OrderRouteLog } from '../../../infrastructure/database/typeorm/entities
 export class FormalizeCargaUseCase {
   constructor(private readonly dataSource: DataSource) {}
 
-  async execute(orderId: number, loadedWeightTon: number, stowageConfirmed: boolean, userFullName: string): Promise<any> {
+  async execute(
+    orderId: number,
+    loadedWeightTon: number,
+    stowageConfirmed: boolean,
+    userFullName: string,
+  ): Promise<any> {
     if (!stowageConfirmed) {
-      throw new BadRequestException('La estiba debe ser validada para formalizar la carga.');
+      throw new BadRequestException(
+        'La estiba debe ser validada para formalizar la carga.',
+      );
     }
 
     return this.dataSource.transaction(async (manager) => {
@@ -29,7 +40,9 @@ export class FormalizeCargaUseCase {
       }
 
       if (order.status === OrderStatus.LISTA_PARA_DESPACHO) {
-        throw new BadRequestException(`La orden ${order.orderNumber} ya está formalizada y lista para despacho.`);
+        throw new BadRequestException(
+          `La orden ${order.orderNumber} ya está formalizada y lista para despacho.`,
+        );
       }
 
       if (order.status !== OrderStatus.ASIGNADA) {

@@ -460,15 +460,41 @@ docker run --rm -i --network host grafana/k6 run \
 
 ### 9.5 Resultado de ejecución
 
+**Ambiente:** Producción — `https://guatechnology.com` · Fecha: 2026-04-17 · k6 vía Docker
+
 | Campo | Valor |
 |---|---|
 | Escenarios ejecutados | 4 |
-| Total de endpoints | 5 |
-| p(95) `http_req_duration` baseline | < 500 ms |
-| Error rate baseline | < 5 % |
-| Recuperación observada post-spike | SI |
+| Total de requests HTTP | 149,308 (248.8 req/s) |
+| Iteraciones completadas | 40,962 |
+| Iteraciones descartadas | 407,343 (200k req/min supera la capacidad del servidor) |
+| VUs máximos alcanzados | 5,000 |
+| Duración total | 10m 00s |
 | Reporte JSON | `tests/k6/reports/stress-result.json` |
 | Dashboard Grafana | `http://localhost:3030` (admin / logitrans) |
+
+**Resultados por stage:**
+
+| Stage | req/min | p(95) latencia | Error rate | Umbral | Resultado |
+|---|---:|---|---|---|---|
+| Baseline (100) | 100 | **185 ms** | 14.53%* | p95<500ms / err<5% | ✗ err* |
+| High stress (15,000) | 15,000 | > 5 s | ~70% | — | Saturado |
+| Recovery (2,000) | 2,000 | 10 s | 72.23% | p95<2s / err<20% | ✗ |
+| Spike extremo (200,000) | 200,000 | 10 s (techo) | ~95% | — | Colapsó |
+
+\* El 14.53% de error en baseline se debe a que los stages concurrentes de 15k y 200k req/min ya estaban saturando el servidor durante la ventana de medición del baseline.
+
+**Resultados por endpoint:**
+
+| Endpoint | Éxito | Fallos | Observación |
+|---|---|---|---|
+| `GET /api/health` | 35.8% (14,944) | 64.2% (26,814) | Resistente a baja carga; colapsa en spike |
+| `POST /api/auth/login` | **0.84%** (698) | **99.2%** (82,782) | **Punto de quiebre** — bcrypt satura CPU de Node.js |
+| `GET /api/logistics/orders` | 99.78% (459) | 0.22% (1) | Muy resiliente |
+| `GET /api/bi/kpis` | 95.93% (212) | 4.07% (9) | Muy resiliente |
+| `POST /api/auth/login` ×3 (rapid) | 100% | 0% | Ningún 500 registrado |
+
+**Conclusión:** El punto de quiebre del sistema es el endpoint de autenticación bajo alta concurrencia (bcrypt + Node.js single-thread). La capa de negocio (órdenes, BI) es significativamente más resiliente. Bajo carga normal (100 req/min) el sistema responde en **185 ms p95**.
 
 ---
 

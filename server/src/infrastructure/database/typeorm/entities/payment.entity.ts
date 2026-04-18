@@ -1,4 +1,10 @@
-import { Entity, Column, ManyToOne, JoinColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { PaymentMethod } from '../../../../domain/enums/payment-method.enum';
 import { PaymentStatus } from '../../../../domain/enums/payment-status.enum';
 import { CurrencyCode } from '../../../../domain/enums/currency-code.enum';
@@ -20,10 +26,9 @@ export class Payment {
     name: 'status',
     type: 'enum',
     enum: PaymentStatus,
-    default: PaymentStatus.PENDIENTE })
+    default: PaymentStatus.PENDIENTE,
+  })
   status: PaymentStatus;
-
-
 
   @Column({ name: 'support_document_path', type: 'text', nullable: true })
   supportDocumentPath: string | null;

@@ -119,7 +119,9 @@ function extractRoutine(sql: string, functionName: string): string {
   const match = sql.match(pattern);
 
   if (!match) {
-    throw new Error(`No se pudo extraer la funcion ${functionName} del SQL canonico.`);
+    throw new Error(
+      `No se pudo extraer la funcion ${functionName} del SQL canonico.`,
+    );
   }
 
   return match[0];
@@ -143,7 +145,10 @@ async function refreshCanonicalRoutines(dataSource: DataSource): Promise<void> {
       const routineSql = extractRoutine(sql, name);
       await dataSource.query(routineSql);
     } catch (err) {
-      console.warn(`No se pudo refrescar la rutina ${name}:`, (err as Error).message);
+      console.warn(
+        `No se pudo refrescar la rutina ${name}:`,
+        (err as Error).message,
+      );
     }
   }
 }
@@ -164,7 +169,9 @@ async function dropDeprecatedClientCreditLimitColumn(
   );
 }
 
-async function dropDeprecatedClientCardsTable(dataSource: DataSource): Promise<void> {
+async function dropDeprecatedClientCardsTable(
+  dataSource: DataSource,
+): Promise<void> {
   await dataSource.query('DROP TABLE IF EXISTS public."client_cards" CASCADE');
 }
 
@@ -253,7 +260,9 @@ async function normalizePrematurePaidInvoices(
   );
 }
 
-async function ensureInvoiceStatusEnEspera(dataSource: DataSource): Promise<void> {
+async function ensureInvoiceStatusEnEspera(
+  dataSource: DataSource,
+): Promise<void> {
   const rows = await dataSource.query<{ exists: boolean }>(
     `SELECT EXISTS(
         SELECT 1 FROM pg_enum e
@@ -281,7 +290,9 @@ type IdentitySequenceRow = {
   sequence_name: string | null;
 };
 
-async function relaxIdentityColumnsToByDefault(dataSource: DataSource): Promise<void> {
+async function relaxIdentityColumnsToByDefault(
+  dataSource: DataSource,
+): Promise<void> {
   const rawRows = await dataSource.query(
     `SELECT table_name, column_name
       FROM information_schema.columns
@@ -303,7 +314,9 @@ async function relaxIdentityColumnsToByDefault(dataSource: DataSource): Promise<
   }
 }
 
-export async function alignIdentitySequences(dataSource: DataSource): Promise<void> {
+export async function alignIdentitySequences(
+  dataSource: DataSource,
+): Promise<void> {
   const rawRows = await dataSource.query(
     `SELECT
         table_name,
@@ -329,7 +342,9 @@ export async function alignIdentitySequences(dataSource: DataSource): Promise<vo
       continue;
     }
 
-    const maxIdRows = await dataSource.query<{ max_id: string | number | null }>(
+    const maxIdRows = await dataSource.query<{
+      max_id: string | number | null;
+    }>(
       `SELECT COALESCE(MAX("${row.column_name}"), 0) AS max_id
         FROM public."${row.table_name}"`,
     );

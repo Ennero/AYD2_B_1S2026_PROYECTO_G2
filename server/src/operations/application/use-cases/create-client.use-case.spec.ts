@@ -51,28 +51,31 @@ const VALID_PASSWORD = 'Contraseña_Segura_123';
 /** Genera un input mínimo válido para CreateClientUseCase */
 function validInput(overrides: Record<string, unknown> = {}) {
   return {
-    legalName:           faker.company.name(),
-    nit:                 VALID_NIT,
-    taxAddress:          faker.location.streetAddress(),
-    primaryContactName:  faker.person.fullName(),
+    legalName: faker.company.name(),
+    nit: VALID_NIT,
+    taxAddress: faker.location.streetAddress(),
+    primaryContactName: faker.person.fullName(),
     primaryContactEmail: faker.internet.email().toLowerCase(),
-    portalPassword:      VALID_PASSWORD,
+    portalPassword: VALID_PASSWORD,
     ...overrides,
   };
 }
 
 /** Simula un Client guardado que devuelve la transacción */
-function fakeSavedClient(email: string, overrides: Record<string, unknown> = {}) {
+function fakeSavedClient(
+  email: string,
+  overrides: Record<string, unknown> = {},
+) {
   return {
-    clientId:            faker.number.int({ min: 1, max: 999 }),
-    clientCode:          `CLI-${faker.string.alphanumeric(6).toUpperCase()}`,
-    legalName:           faker.company.name(),
-    nit:                 VALID_NIT,
+    clientId: faker.number.int({ min: 1, max: 999 }),
+    clientCode: `CLI-${faker.string.alphanumeric(6).toUpperCase()}`,
+    legalName: faker.company.name(),
+    nit: VALID_NIT,
     primaryContactEmail: email,
-    countryCode:         CountryCode.GT,
-    currencyCode:        CurrencyCode.GTQ,
-    taxRate:             0.12,
-    primaryContactName:  faker.person.fullName(),
+    countryCode: CountryCode.GT,
+    currencyCode: CurrencyCode.GTQ,
+    taxRate: 0.12,
+    primaryContactName: faker.person.fullName(),
     primaryContactPhone: null,
     ...overrides,
   };
@@ -81,24 +84,24 @@ function fakeSavedClient(email: string, overrides: Record<string, unknown> = {})
 // ── Suite ─────────────────────────────────────────────────────────────────────
 
 describe('CreateClientUseCase', () => {
-  let useCase:       CreateClientUseCase;
+  let useCase: CreateClientUseCase;
   let mockClientRepo: { findOne: jest.Mock; save: jest.Mock };
-  let mockUserRepo:   { findOne: jest.Mock; create: jest.Mock; save: jest.Mock };
-  let mockManager:   { getRepository: jest.Mock };
+  let mockUserRepo: { findOne: jest.Mock; create: jest.Mock; save: jest.Mock };
+  let mockManager: { getRepository: jest.Mock };
   let mockDataSource: { getRepository: jest.Mock; transaction: jest.Mock };
   let mockClientFactory: { create: jest.Mock };
-  let mockEmailService:  { sendWelcome: jest.Mock };
+  let mockEmailService: { sendWelcome: jest.Mock };
 
   beforeEach(async () => {
     mockClientRepo = {
       findOne: jest.fn(),
-      save:    jest.fn(),
+      save: jest.fn(),
     };
 
     mockUserRepo = {
       findOne: jest.fn(),
-      create:  jest.fn(),
-      save:    jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
     };
 
     // El manager dentro de la transacción
@@ -116,9 +119,11 @@ describe('CreateClientUseCase', () => {
         return mockUserRepo;
       }),
       // Ejecuta el callback con el manager mock
-      transaction: jest.fn(async (cb: (manager: typeof mockManager) => Promise<unknown>) => {
-        return cb(mockManager);
-      }),
+      transaction: jest.fn(
+        async (cb: (manager: typeof mockManager) => Promise<unknown>) => {
+          return cb(mockManager);
+        },
+      ),
     };
 
     mockClientFactory = {
@@ -134,9 +139,9 @@ describe('CreateClientUseCase', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateClientUseCase,
-        { provide: DataSource,     useValue: mockDataSource },
-        { provide: ClientFactory,  useValue: mockClientFactory },
-        { provide: EmailService,   useValue: mockEmailService },
+        { provide: DataSource, useValue: mockDataSource },
+        { provide: ClientFactory, useValue: mockClientFactory },
+        { provide: EmailService, useValue: mockEmailService },
       ],
     }).compile();
 
@@ -186,25 +191,29 @@ describe('CreateClientUseCase', () => {
     mockClientRepo.findOne.mockResolvedValue({ clientId: 1, nit: VALID_NIT });
     mockUserRepo.findOne.mockResolvedValue(null);
 
-    await expect(useCase.execute(validInput())).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(validInput())).rejects.toThrow(
+      BadRequestException,
+    );
     expect(mockDataSource.transaction).not.toHaveBeenCalled();
   });
 
   // ── Test 6 ────────────────────────────────────────────────────────────────
 
   it('lanza BadRequestException cuando ya existe un usuario con ese email', async () => {
-    mockClientRepo.findOne.mockResolvedValue(null);   // NIT libre
+    mockClientRepo.findOne.mockResolvedValue(null); // NIT libre
     mockUserRepo.findOne.mockResolvedValue({ userId: 99 }); // email ocupado
 
-    await expect(useCase.execute(validInput())).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(validInput())).rejects.toThrow(
+      BadRequestException,
+    );
     expect(mockDataSource.transaction).not.toHaveBeenCalled();
   });
 
   // ── Test 7 ────────────────────────────────────────────────────────────────
 
   it('crea el cliente exitosamente y retorna los datos esperados', async () => {
-    const email     = faker.internet.email().toLowerCase();
-    const saved     = fakeSavedClient(email);
+    const email = faker.internet.email().toLowerCase();
+    const saved = fakeSavedClient(email);
     mockClientRepo.findOne.mockResolvedValue(null);
     mockUserRepo.findOne.mockResolvedValue(null);
     // Dentro de la transacción, save del cliente devuelve el savedClient
@@ -212,7 +221,9 @@ describe('CreateClientUseCase', () => {
     mockUserRepo.create.mockReturnValue({ email });
     mockUserRepo.save.mockResolvedValue({ userId: 1 });
 
-    const result = await useCase.execute(validInput({ primaryContactEmail: email }));
+    const result = await useCase.execute(
+      validInput({ primaryContactEmail: email }),
+    );
 
     expect(result.clientId).toBe(Number(saved.clientId));
     expect(result.clientCode).toBe(saved.clientCode);
@@ -225,7 +236,7 @@ describe('CreateClientUseCase', () => {
   it('normaliza el email del usuario portal a minúsculas', async () => {
     const emailMixed = 'Usuario.PORTAL@Empresa.COM';
     const emailLower = 'usuario.portal@empresa.com';
-    const saved      = fakeSavedClient(emailLower);
+    const saved = fakeSavedClient(emailLower);
 
     mockClientRepo.findOne.mockResolvedValue(null);
     mockUserRepo.findOne.mockResolvedValue(null);
@@ -233,7 +244,9 @@ describe('CreateClientUseCase', () => {
     mockUserRepo.create.mockReturnValue({ email: emailLower });
     mockUserRepo.save.mockResolvedValue({ userId: 1 });
 
-    const result = await useCase.execute(validInput({ primaryContactEmail: emailMixed }));
+    const result = await useCase.execute(
+      validInput({ primaryContactEmail: emailMixed }),
+    );
 
     expect(result.portalUserEmail).toBe(emailLower);
   });
@@ -241,22 +254,24 @@ describe('CreateClientUseCase', () => {
   // ── Test 9 ────────────────────────────────────────────────────────────────
 
   it('usa GT y GTQ como defaults de país y moneda cuando no se especifican', async () => {
-    const email  = faker.internet.email().toLowerCase();
-    const saved  = fakeSavedClient(email);
+    const email = faker.internet.email().toLowerCase();
+    const saved = fakeSavedClient(email);
     mockClientRepo.findOne.mockResolvedValue(null);
     mockUserRepo.findOne.mockResolvedValue(null);
     mockClientRepo.save.mockResolvedValue(saved);
     mockUserRepo.create.mockReturnValue({ email });
     mockUserRepo.save.mockResolvedValue({ userId: 1 });
 
-    const result = await useCase.execute(validInput({ primaryContactEmail: email }));
+    const result = await useCase.execute(
+      validInput({ primaryContactEmail: email }),
+    );
 
     // La fábrica debe haberse llamado con GT como país y GTQ como moneda por defecto
     expect(mockClientFactory.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        countryCode:  CountryCode.GT,
+        countryCode: CountryCode.GT,
         currencyCode: CurrencyCode.GTQ,
-        taxRate:      0.12,
+        taxRate: 0.12,
       }),
     );
     expect(result.countryCode).toBe(CountryCode.GT);

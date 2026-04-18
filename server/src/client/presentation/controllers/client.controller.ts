@@ -65,7 +65,10 @@ export class ClientController {
     @CurrentUser() user: JwtPayload,
     @Param('contractId', ParseIntPipe) contractId: number,
   ) {
-    const data = await this.clientService.getContractDetail(user.sub, contractId);
+    const data = await this.clientService.getContractDetail(
+      user.sub,
+      contractId,
+    );
     return { message: 'Detalle del contrato obtenido', data };
   }
 
@@ -75,7 +78,11 @@ export class ClientController {
     @Param('contractId', ParseIntPipe) contractId: number,
     @Body() dto: AcceptContractDto,
   ) {
-    const data = await this.clientService.acceptContract(user.sub, contractId, dto);
+    const data = await this.clientService.acceptContract(
+      user.sub,
+      contractId,
+      dto,
+    );
     return { message: 'Contrato aceptado correctamente', data };
   }
 
@@ -165,7 +172,11 @@ export class ClientController {
     @Param('contactId', ParseIntPipe) contactId: number,
     @Body() dto: UpdateContactDto,
   ) {
-    const data = await this.clientService.updateContact(user.sub, contactId, dto);
+    const data = await this.clientService.updateContact(
+      user.sub,
+      contactId,
+      dto,
+    );
     return { message: 'Contacto actualizado correctamente', data };
   }
 

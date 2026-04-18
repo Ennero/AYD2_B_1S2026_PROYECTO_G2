@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { CargoType } from '../../../infrastructure/database/typeorm/entities/cargo-type.entity';
 
@@ -14,7 +18,9 @@ export class UpdateCargoTypeUseCase {
 
     const cargoType = await cargoRepo.findOne({ where: { cargoTypeId } });
     if (!cargoType) {
-      throw new NotFoundException(`No existe el tipo de carga con ID ${cargoTypeId}.`);
+      throw new NotFoundException(
+        `No existe el tipo de carga con ID ${cargoTypeId}.`,
+      );
     }
 
     const normalizedName = input.cargoName.toUpperCase().trim();
@@ -26,7 +32,9 @@ export class UpdateCargoTypeUseCase {
       .getOne();
 
     if (existingWithSameName) {
-      throw new ConflictException(`El tipo de carga ${normalizedName} ya existe en el catálogo.`);
+      throw new ConflictException(
+        `El tipo de carga ${normalizedName} ya existe en el catálogo.`,
+      );
     }
 
     cargoType.cargoName = normalizedName;
