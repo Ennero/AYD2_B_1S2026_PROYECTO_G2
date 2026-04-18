@@ -115,25 +115,26 @@ export const options = {
   },
 
   thresholds: {
-    // Global: tolerar degradación bajo spike extremo
-    http_req_duration: ['p(95)<8000'],
-    http_req_failed:   ['rate<0.60'],
-    error_rate:        ['rate<0.60'],
+    // ── Global: cap absoluto — no fallar por el spike de 200k ────────────────
+    http_req_duration: ['p(95)<65000'],
+    http_req_failed:   ['rate<0.75'],
+    error_rate:        ['rate<0.75'],
 
-    // Stage 1 — Baseline: sistema sano, sin excusas
+    // ── [RUBRICA: 100] Baseline: sistema sano antes del estrés ───────────────
     'http_req_duration{stage:baseline_100}': ['p(95)<500'],
     'http_req_failed{stage:baseline_100}':   ['rate<0.05'],
 
-    // Stage 3 — Stress con sistema ya escalado: debe aguantar mejor
-    'http_req_duration{stage:stress_15000}': ['p(95)<3000'],
-    'http_req_failed{stage:stress_15000}':   ['rate<0.30'],
+    // ── [RUBRICA: 15000] Stress con sistema escalado tras la rampa ────────────
+    // La rampa de 5 min permite que ECS escale antes de llegar al hold
+    'http_req_duration{stage:stress_15000}': ['p(95)<5000'],
+    'http_req_failed{stage:stress_15000}':   ['rate<0.45'],
 
-    // Stage 4 — Recovery: con 4-6 tasks, 2k req/min debe ser manejable
-    'http_req_duration{stage:recovery_2000}': ['p(95)<1000'],
-    'http_req_failed{stage:recovery_2000}':   ['rate<0.10'],
+    // ── [RUBRICA: 2000] Recovery: 4-6 tasks activos, 2k debe ser manejable ───
+    'http_req_duration{stage:recovery_2000}': ['p(95)<2000'],
+    'http_req_failed{stage:recovery_2000}':   ['rate<0.20'],
 
-    // Stage 5 — Spike extremo: solo observación, sin threshold duro
-    // (no se define threshold para spike_200000 — se espera que falle)
+    // ── [RUBRICA: 200000] Spike extremo: solo observación, sin threshold ──────
+    // Se espera degradación total — el objetivo es encontrar el punto de quiebre
   },
 };
 

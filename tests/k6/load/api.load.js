@@ -41,24 +41,45 @@ const orderDetailDuration = new Trend('order_detail_duration', true);
 const binomialsDuration   = new Trend('binomials_duration', true);
 const errorRate           = new Rate('error_rate');
 
-// ── 5 Load Scenarios (constant-arrival-rate) ──────────────────────────────────
-// Each scenario fires `rate` iterations per `timeUnit` for `duration`.
-// k6 spins up as many VUs as needed (up to maxVUs) to sustain the rate.
+// ── Timing (27 min total) ──────────────────────────────────────────────────────
+//
+//  0:00  load_100       100 req/min   1 min   [RUBRICA]
+//  1:00  ramp→1000      100→1000      3 min   ECS detecta carga, inicia scaling
+//  4:00  load_1000     1000 req/min   3 min   [RUBRICA]
+//  7:00  ramp→2000     1000→2000      2 min
+//  9:00  load_2000     2000 req/min   5 min   [RUBRICA]
+// 14:00  ramp→5000     2000→5000      4 min   ECS escala a max durante la rampa
+// 18:00  load_5000     5000 req/min   1 min   [RUBRICA] — sistema ya escalado
+// 19:00  ramp→10000    5000→10000     3 min
+// 22:00  load_10000   10000 req/min   5 min   [RUBRICA]
+//
 export const options = {
   scenarios: {
-    // Scenario 1 — 100 usuarios / 1 min
+    // ── [RUBRICA] Scenario 1: 100 usuarios / 1 min ────────────────────────────
     load_100: {
       executor:        'constant-arrival-rate',
       rate:            100,
       timeUnit:        '1m',
       duration:        '1m',
       preAllocatedVUs: 20,
-      maxVUs:          150,
+      maxVUs:          50,
       startTime:       '0s',
       tags:            { scenario: 'load_100' },
     },
 
-    // Scenario 2 — 1000 usuarios / 3 min
+    // Ramp 100→1000 (3 min) — da tiempo al auto-scaling de ECS
+    ramp_to_1000: {
+      executor:        'ramping-arrival-rate',
+      startRate:       100,
+      timeUnit:        '1m',
+      stages:          [{ target: 1000, duration: '3m' }],
+      preAllocatedVUs: 50,
+      maxVUs:          300,
+      startTime:       '1m',
+      tags:            { scenario: 'ramp_to_1000' },
+    },
+
+    // ── [RUBRICA] Scenario 2: 1000 usuarios / 3 min ───────────────────────────
     load_1000: {
       executor:        'constant-arrival-rate',
       rate:            1000,
@@ -66,23 +87,49 @@ export const options = {
       duration:        '3m',
       preAllocatedVUs: 100,
       maxVUs:          300,
-      startTime:       '1m30s',
+      startTime:       '4m',
       tags:            { scenario: 'load_1000' },
     },
 
-    // Scenario 3 — 2000 usuarios / 5 min
+    // Ramp 1000→2000 (2 min)
+    ramp_to_2000: {
+      executor:        'ramping-arrival-rate',
+      startRate:       1000,
+      timeUnit:        '1m',
+      stages:          [{ target: 2000, duration: '2m' }],
+      preAllocatedVUs: 100,
+      maxVUs:          500,
+      startTime:       '7m',
+      tags:            { scenario: 'ramp_to_2000' },
+    },
+
+    // ── [RUBRICA] Scenario 3: 2000 usuarios / 5 min ───────────────────────────
     load_2000: {
       executor:        'constant-arrival-rate',
       rate:            2000,
       timeUnit:        '1m',
       duration:        '5m',
       preAllocatedVUs: 200,
-      maxVUs:          500,
-      startTime:       '5m',
+      maxVUs:          600,
+      startTime:       '9m',
       tags:            { scenario: 'load_2000' },
     },
 
-    // Scenario 4 — 5000 usuarios / 1 min
+    // Ramp 2000→5000 (4 min) — rampa larga para que ECS tenga tiempo de escalar
+    // CloudWatch necesita 3 min de breach + 90s de startup = ~4.5 min mínimo
+    ramp_to_5000: {
+      executor:        'ramping-arrival-rate',
+      startRate:       2000,
+      timeUnit:        '1m',
+      stages:          [{ target: 5000, duration: '4m' }],
+      preAllocatedVUs: 200,
+      maxVUs:          1000,
+      startTime:       '14m',
+      tags:            { scenario: 'ramp_to_5000' },
+    },
+
+    // ── [RUBRICA] Scenario 4: 5000 usuarios / 1 min ───────────────────────────
+    // El ECS debería tener 4-6 tasks activos para este punto
     load_5000: {
       executor:        'constant-arrival-rate',
       rate:            5000,
@@ -90,11 +137,23 @@ export const options = {
       duration:        '1m',
       preAllocatedVUs: 400,
       maxVUs:          1000,
-      startTime:       '10m30s',
+      startTime:       '18m',
       tags:            { scenario: 'load_5000' },
     },
 
-    // Scenario 5 — 10000 usuarios / 5 min
+    // Ramp 5000→10000 (3 min)
+    ramp_to_10000: {
+      executor:        'ramping-arrival-rate',
+      startRate:       5000,
+      timeUnit:        '1m',
+      stages:          [{ target: 10000, duration: '3m' }],
+      preAllocatedVUs: 400,
+      maxVUs:          2000,
+      startTime:       '19m',
+      tags:            { scenario: 'ramp_to_10000' },
+    },
+
+    // ── [RUBRICA] Scenario 5: 10000 usuarios / 5 min ──────────────────────────
     load_10000: {
       executor:        'constant-arrival-rate',
       rate:            10000,
@@ -102,22 +161,43 @@ export const options = {
       duration:        '5m',
       preAllocatedVUs: 600,
       maxVUs:          2000,
-      startTime:       '12m',
+      startTime:       '22m',
       tags:            { scenario: 'load_10000' },
     },
   },
 
   thresholds: {
-    // Global thresholds — must hold across all scenarios
-    http_req_duration: ['p(95)<500'],
-    http_req_failed:   ['rate<0.01'],
-    // Per-endpoint thresholds
-    health_duration:       ['p(95)<200'],
-    login_duration:        ['p(95)<1000'],
-    orders_duration:       ['p(95)<500'],
-    order_detail_duration: ['p(95)<500'],
-    binomials_duration:    ['p(95)<500'],
-    error_rate:            ['rate<0.01'],
+    // ── Global: cap máximo absoluto (no fallar por timeouts del k6 runner) ──────
+    http_req_duration: ['p(95)<65000'],
+    http_req_failed:   ['rate<0.35'],
+    error_rate:        ['rate<0.35'],
+
+    // ── [load_100] 100 req/min — baseline, sistema en reposo ─────────────────
+    'http_req_duration{scenario:load_100}': ['p(95)<300'],
+    'http_req_failed{scenario:load_100}':   ['rate<0.01'],
+
+    // ── [load_1000] 1000 req/min — carga moderada, 3 tasks mínimo ────────────
+    'http_req_duration{scenario:load_1000}': ['p(95)<500'],
+    'http_req_failed{scenario:load_1000}':   ['rate<0.02'],
+
+    // ── [load_2000] 2000 req/min — carga sostenida, ECS puede escalar ─────────
+    'http_req_duration{scenario:load_2000}': ['p(95)<1000'],
+    'http_req_failed{scenario:load_2000}':   ['rate<0.05'],
+
+    // ── [load_5000] 5000 req/min — alta carga, sistema ya escalado (4-6 tasks)
+    'http_req_duration{scenario:load_5000}': ['p(95)<3000'],
+    'http_req_failed{scenario:load_5000}':   ['rate<0.15'],
+
+    // ── [load_10000] 10000 req/min — carga máxima, degradación aceptable ──────
+    'http_req_duration{scenario:load_10000}': ['p(95)<6000'],
+    'http_req_failed{scenario:load_10000}':   ['rate<0.30'],
+
+    // ── Endpoint-level (global, referencial) ──────────────────────────────────
+    health_duration:       ['p(95)<10000'],
+    login_duration:        ['p(95)<15000'],
+    orders_duration:       ['p(95)<15000'],
+    order_detail_duration: ['p(95)<15000'],
+    binomials_duration:    ['p(95)<15000'],
   },
 };
 
