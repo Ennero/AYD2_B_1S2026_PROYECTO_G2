@@ -1216,7 +1216,7 @@ const ORDER_PLANS: OrderPlan[] = [
 ];
 
 function daysFromNow(offsetDays: number): Date {
-  const value = new Date('2026-04-11T12:00:00Z');
+  const value = new Date('2026-04-17T12:00:00Z');
   value.setUTCDate(value.getUTCDate() + offsetDays);
   return value;
 }
@@ -1788,8 +1788,8 @@ export class DatabaseSeeder {
             : availableContractRoutes[planIndex % availableContractRoutes.length];
         const route = contractRoute ? mustFind(routeById.get(contractRoute.routeId), `${contractRoute.routeId}`) : null;
 
-        // ── Timing por stage, centrado en 11 de Abril de 2026 ──────────────────
-        // daysFromNow(0) = 2026-04-11T12:00:00Z (mediodía demo)
+        // ── Timing por stage, centrado en 17 de Abril de 2026 ──────────────────
+        // daysFromNow(0) = 2026-04-17T12:00:00Z (mediodía demo)
         let requestedAt: Date;
         let scheduledPickupAt: Date | null = null;
         let promisedDeliveryAt: Date | null = null;

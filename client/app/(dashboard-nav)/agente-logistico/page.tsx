@@ -13,7 +13,7 @@ const EASE = [0.16, 1, 0.3, 1] as const
 
 export default function AgenteLogisticoPage() {
   const { user, loading: authLoading } = useAuth()
-  const firstName = authLoading ? "" : (user?.fullName?.split(" ")[0] ?? "Agente")
+  const firstName = authLoading ? "" : ((user?.fullName || "Agente").split(" ")[0])
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [loadingSummary, setLoadingSummary] = useState(true)

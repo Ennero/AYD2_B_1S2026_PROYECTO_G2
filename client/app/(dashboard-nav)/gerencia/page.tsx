@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { motion } from "framer-motion"
 import { api } from "@/lib/api/client"
 import { useAuth } from "@/hooks/useAuth"
+import { useEvents } from "@/hooks/useEvents"
 import { CheckCircle2, TrendingUp, AlertTriangle, RefreshCw, Calendar, ChevronDown, DollarSign, Activity } from "lucide-react"
 
 const EASE = [0.16, 1, 0.3, 1] as const
@@ -303,7 +304,7 @@ function PeriodBar({
 ══════════════════════════════════════════════════════════ */
 export default function GerenciaDashboardPage() {
   const { user } = useAuth()
-  const firstName = user?.fullName?.split(" ")[0] ?? "Gerencia"
+  const firstName = (user?.fullName || "Gerencia").split(" ")[0]
 
   const now = new Date()
   const [year, setYear]   = useState(now.getFullYear())
@@ -341,6 +342,9 @@ export default function GerenciaDashboardPage() {
       setLoading(false); setRefreshing(false)
     }
   }, [period, year, month])
+
+  // Real-time updates via WebSockets
+  useEvents("gerencia", () => fetchAll(true))
 
   useEffect(() => { fetchAll() }, [fetchAll])
 

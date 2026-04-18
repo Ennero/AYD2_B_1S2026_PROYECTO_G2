@@ -193,7 +193,7 @@ Ingresa los siguientes datos para el contrato:
 
 | Campo | Valor de ejemplo |
 |-------|-------------------|
-| Límite de Crédito del Contrato | `120,000.00` *(se visualizará en la moneda del cliente: HNL en este flujo base)* |
+| Límite de Crédito del Contrato | `120,000.65` *(se visualizará en la moneda del cliente: HNL en este flujo base)* |
 | Días de Pago | `30 días` |
 | Descuento Especial | `5%` |
 | Rutas Autorizadas | `PBAR-SPS` (Puerto Barrios ↔ San Pedro Sula) |

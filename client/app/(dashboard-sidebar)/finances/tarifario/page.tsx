@@ -24,7 +24,7 @@ export default function FinanceRatesPage() {
     setRates(current)
     setEditedRates(
       current.reduce<Record<number, string>>((acc, r) => {
-        acc[r.vehicleTypeId] = r.ratePerKm.toFixed(2)
+        acc[r.vehicleTypeId] = (r.ratePerKm || 0).toFixed(2)
         return acc
       }, {}),
     )

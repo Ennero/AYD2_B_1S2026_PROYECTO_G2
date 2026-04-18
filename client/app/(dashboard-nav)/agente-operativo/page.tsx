@@ -28,7 +28,7 @@ const CARDS = [
 
 export default function AgenteOperativoPage() {
   const { user } = useAuth()
-  const firstName = user?.fullName?.split(" ")[0] ?? "Agente"
+  const firstName = (user?.fullName || "Agente").split(" ")[0]
 
   return (
     <div className="min-h-screen" style={{ background: "#F5F2EC" }}>
