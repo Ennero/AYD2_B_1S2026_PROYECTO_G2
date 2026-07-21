@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
+import { wakeApi } from "@/lib/api/client"
 import { DEMO_PORTALS, type DemoPortal } from "@/lib/demo-accounts"
 import { toast } from "sonner"
 import Link from "next/link"
@@ -24,6 +25,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  // Render free tier se duerme: despertarlo al abrir login reduce el primer error.
+  useEffect(() => {
+    void wakeApi()
+  }, [])
 
   const selectPortal = (portal: DemoPortal) => {
     setSelectedPortal(portal)

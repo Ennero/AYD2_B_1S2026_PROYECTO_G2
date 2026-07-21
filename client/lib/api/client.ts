@@ -6,7 +6,17 @@ import { toast } from "sonner"
    para inyectar auth headers y manejar errores.
    =========================== */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+/**
+ * En staging/prod con proxy de Vercel dejamos string vacío para llamar same-origin `/api/...`.
+ * En local: NEXT_PUBLIC_API_URL=http://localhost:3006
+ */
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL === undefined
+    ? "http://localhost:3000"
+    : process.env.NEXT_PUBLIC_API_URL
+
+const MAX_RETRIES = 3
+const RETRY_DELAY_MS = 2000
 
 /* ---------- Tipos ---------- */
 
@@ -16,6 +26,8 @@ interface ApiRequestOptions extends Omit<RequestInit, "body"> {
   skipAuth?: boolean
   /** Si true, no muestra toast de error */
   silentError?: boolean
+  /** Reintentos ante cold-start / red (default: true) */
+  retry?: boolean
 }
 
 interface ApiResponse<T> {
@@ -51,13 +63,22 @@ export function removeToken(): void {
   document.cookie = "access_token=; path=/; max-age=0"
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isRetryableStatus(status: number) {
+  return status === 404 || status === 502 || status === 503 || status === 504
+}
+
 /* ---------- Core fetch wrapper ---------- */
 
-async function request<T>(
+async function requestOnce<T>(
   endpoint: string,
   options: ApiRequestOptions = {}
 ): Promise<ApiResponse<T>> {
-  const { body, skipAuth = false, silentError = false, ...fetchOptions } = options
+  const { body, skipAuth = false, silentError = false, retry: _retry, ...fetchOptions } =
+    options
 
   // Build headers
   const headers: HeadersInit = {
@@ -108,26 +129,74 @@ async function request<T>(
     // Handle error responses
     if (!response.ok) {
       const errorMessage =
-        (data as Record<string, string>)?.message ||
-        (data as Record<string, string>)?.detail ||
+        (typeof data === "object" &&
+          data &&
+          ((data as Record<string, string>).message ||
+            (data as Record<string, string>).detail)) ||
         `Error ${response.status}`
-
-      if (!silentError) {
-        toast.error(errorMessage)
-      }
 
       throw { message: errorMessage, status: response.status, details: data } as ApiError
     }
 
     return { data, status: response.status, ok: true }
   } catch (error) {
-    // Network errors
+    // Network / CORS errors (no HTTP status)
     if (!(error as ApiError).status) {
-      const message = "Error de conexión. Verifica tu internet."
-      if (!silentError) toast.error(message)
-      throw { message, status: 0 } as ApiError
+      throw {
+        message:
+          "El servidor de pruebas está despertando. Espera unos segundos e inténtalo de nuevo.",
+        status: 0,
+      } as ApiError
     }
     throw error
+  }
+}
+
+async function request<T>(
+  endpoint: string,
+  options: ApiRequestOptions = {}
+): Promise<ApiResponse<T>> {
+  const { silentError = false, retry = true } = options
+  const attempts = retry ? MAX_RETRIES : 1
+  let lastError: ApiError | undefined
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await requestOnce<T>(endpoint, options)
+    } catch (error) {
+      lastError = error as ApiError
+      const canRetry =
+        retry &&
+        attempt < attempts &&
+        (lastError.status === 0 || isRetryableStatus(lastError.status))
+
+      if (!canRetry) break
+
+      if (!silentError && typeof window !== "undefined") {
+        toast.message(`Conectando al servidor… (${attempt}/${attempts - 1})`)
+      }
+      await sleep(RETRY_DELAY_MS * attempt)
+    }
+  }
+
+  if (!silentError && lastError) {
+    toast.error(lastError.message || "Error de conexión. Verifica tu internet.")
+  }
+  throw lastError
+}
+
+/** Despierta el API de Render (free tier) antes del login. */
+export async function wakeApi(): Promise<boolean> {
+  try {
+    await requestOnce("/api/health", {
+      skipAuth: true,
+      silentError: true,
+      method: "GET",
+    })
+    return true
+  } catch {
+    // Un intento basta; el login hará retries.
+    return false
   }
 }
 

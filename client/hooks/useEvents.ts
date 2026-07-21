@@ -4,7 +4,11 @@ import { useEffect } from "react"
 import { io, Socket } from "socket.io-client"
 import { toast } from "sonner"
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3006"
+// WebSockets van directo al API (el rewrite de Vercel no proxya WS).
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:3006"
 
 export const useEvents = (scope: string, onRefresh: () => void) => {
   useEffect(() => {
