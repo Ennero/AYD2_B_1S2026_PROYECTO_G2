@@ -23,15 +23,20 @@ async function bootstrap() {
   // Without this, every active request gets ECONNABORTED when the container is killed.
   app.enableShutdownHooks();
 
-  app.connectMicroservice({
-    transport: Transport.RMQ,
-    options: {
-      urls: [process.env.RABBITMQ_URL ?? 'amqp://guest:guest@localhost:5672'],
-      queue: 'logitrans_queue',
-      queueOptions: { durable: true },
-      noAck: false,
-    },
-  });
+  const rabbitEnabled = ['1', 'true', 'yes', 'on'].includes(
+    (process.env.RABBITMQ_ENABLED ?? '').toLowerCase(),
+  );
+  if (rabbitEnabled) {
+    app.connectMicroservice({
+      transport: Transport.RMQ,
+      options: {
+        urls: [process.env.RABBITMQ_URL ?? 'amqp://guest:guest@localhost:5672'],
+        queue: 'logitrans_queue',
+        queueOptions: { durable: true },
+        noAck: false,
+      },
+    });
+  }
 
   app.use(cookieParser());
   app.useBodyParser('json', { limit: '10mb' });
@@ -44,13 +49,19 @@ async function bootstrap() {
   const dataSource = app.get(DataSource);
   const databaseConfig = getDatabaseRuntimeConfig();
 
-  // Enable CORS
+  // Enable CORS (supports exact origins or '*' for open staging demos)
   const corsOrigins = (
     process.env.CORS_ORIGINS ??
     'http://localhost:3000,http://localhost:3001,http://localhost'
-  ).split(',');
+  )
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const allowAllOrigins = corsOrigins.includes('*');
   app.enableCors({
-    origin: corsOrigins.map((o) => o.trim()),
+    origin: allowAllOrigins
+      ? true
+      : corsOrigins,
     credentials: true,
   });
 
@@ -62,7 +73,11 @@ async function bootstrap() {
 
   await alignIdentitySequences(dataSource);
 
-  await app.startAllMicroservices();
+  if (rabbitEnabled) {
+    await app.startAllMicroservices();
+  } else {
+    console.log('RabbitMQ disabled (set RABBITMQ_ENABLED=true to enable)');
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');

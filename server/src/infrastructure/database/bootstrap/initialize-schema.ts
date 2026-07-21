@@ -107,8 +107,23 @@ async function resetPublicSchema(dataSource: DataSource): Promise<void> {
 }
 
 async function readCanonicalSql(): Promise<string> {
-  const filePath = join(process.cwd(), '..', 'db', 'logitrans_postgresql.sql');
-  return readFile(filePath, 'utf8');
+  const candidates = [
+    join(process.cwd(), '..', 'db', 'logitrans_postgresql.sql'),
+    join(process.cwd(), 'db', 'logitrans_postgresql.sql'),
+    join(__dirname, '..', '..', '..', '..', '..', 'db', 'logitrans_postgresql.sql'),
+  ];
+
+  for (const filePath of candidates) {
+    try {
+      return await readFile(filePath, 'utf8');
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error(
+    `Canonical SQL not found. Tried: ${candidates.join(', ')}`,
+  );
 }
 
 function extractRoutine(sql: string, functionName: string): string {

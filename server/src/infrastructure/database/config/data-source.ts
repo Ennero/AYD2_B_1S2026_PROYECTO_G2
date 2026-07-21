@@ -42,6 +42,10 @@ export const databaseEntities = [
   Payment,
 ];
 
+const sslEnabled = ['1', 'true', 'yes', 'on'].includes(
+  (process.env.DB_SSL ?? '').toLowerCase(),
+);
+
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: databaseConfig.host,
@@ -53,12 +57,15 @@ export const dataSourceOptions: DataSourceOptions = {
   migrations: [__dirname + '/../typeorm/migrations/*{.ts,.js}'],
   synchronize: false,
   logging: databaseConfig.logging,
+  ...(sslEnabled
+    ? { ssl: { rejectUnauthorized: false } }
+    : {}),
   extra: {
     family: 4, // Force IPv4 — ECS Fargate VPC has no IPv6 routing
-    max: 10, // Max connections per task — con PgBouncer en puerto 6543 esto escala bien
-    min: 2, // Keep warm connections to avoid cold-start latency
+    max: sslEnabled ? 5 : 10, // Free-tier poolers have tight connection limits
+    min: sslEnabled ? 0 : 2,
     idleTimeoutMillis: 30000, // Release idle connections after 30s
-    connectionTimeoutMillis: 5000, // Fail fast instead of queuing forever
+    connectionTimeoutMillis: 10000, // Managed DBs can be slower on cold start
   },
 };
 

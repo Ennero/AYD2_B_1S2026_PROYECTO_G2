@@ -21,7 +21,7 @@ import {
 @Injectable()
 export class SupabaseStorageAdapter implements IStorageService, OnModuleInit {
   private readonly logger = new Logger(SupabaseStorageAdapter.name);
-  private client: SupabaseClient;
+  private client?: SupabaseClient;
 
   constructor(private readonly config: ConfigService) {}
 
@@ -30,7 +30,10 @@ export class SupabaseStorageAdapter implements IStorageService, OnModuleInit {
     const key = this.config.get<string>('SUPABASE_SERVICE_KEY', '');
 
     if (!url || !key) {
-      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY are required');
+      this.logger.warn(
+        'SUPABASE_URL / SUPABASE_SERVICE_KEY missing — storage uploads disabled',
+      );
+      return;
     }
 
     // auth.persistSession: false es CRÍTICO — Node.js no tiene localStorage
@@ -44,6 +47,13 @@ export class SupabaseStorageAdapter implements IStorageService, OnModuleInit {
     bucket,
     mimeType = 'application/octet-stream',
   }: UploadFileOptions): Promise<UploadFileResult> {
+    if (!this.client) {
+      return {
+        success: false,
+        error: 'Storage is not configured (missing Supabase credentials)',
+      };
+    }
+
     const { data, error } = await this.client.storage
       .from(bucket)
       .upload(filename, buffer, { contentType: mimeType, upsert: true });
@@ -68,6 +78,10 @@ export class SupabaseStorageAdapter implements IStorageService, OnModuleInit {
     path: string,
     expiresInSeconds = 3600,
   ): Promise<string | null> {
+    if (!this.client) {
+      return null;
+    }
+
     const { data, error } = await this.client.storage
       .from(bucket)
       .createSignedUrl(path, expiresInSeconds);

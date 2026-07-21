@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
+import { DEMO_PORTALS, type DemoPortal } from "@/lib/demo-accounts"
 import { toast } from "sonner"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -19,9 +20,16 @@ const BULLETS = [
 
 export default function LoginPage() {
   const { login } = useAuth()
+  const [selectedPortal, setSelectedPortal] = useState<DemoPortal | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  const selectPortal = (portal: DemoPortal) => {
+    setSelectedPortal(portal)
+    setEmail(portal.email)
+    setPassword(portal.password)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -243,17 +251,69 @@ export default function LoginPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.85, duration: 0.7 }}
-          style={{ fontSize: "0.82rem", color: "#9A9489", marginBottom: "3rem" }}
+          style={{ fontSize: "0.82rem", color: "#9A9489", marginBottom: "1.75rem" }}
         >
-          Ingresa tus credenciales para continuar
+          Elige un portal para autocompletar credenciales de demostración
         </motion.p>
+
+        {/* ── Portal picker ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.95, duration: 0.7, ease: EASE }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: "0.55rem",
+            maxWidth: "26rem",
+            marginBottom: "1.75rem",
+          }}
+        >
+          {DEMO_PORTALS.map((portal) => {
+            const active = selectedPortal?.role === portal.role
+            return (
+              <button
+                key={portal.role}
+                type="button"
+                onClick={() => selectPortal(portal)}
+                disabled={isLoading}
+                style={{
+                  textAlign: "left",
+                  padding: "0.7rem 0.8rem",
+                  background: active ? "rgba(201,146,75,0.12)" : "rgba(245,242,236,0.03)",
+                  border: active
+                    ? "1px solid rgba(201,146,75,0.55)"
+                    : "1px solid rgba(245,242,236,0.09)",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  transition: "border-color 0.2s, background 0.2s",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    color: active ? "#C9924B" : "#F5F2EC",
+                    letterSpacing: "0.02em",
+                    marginBottom: "0.2rem",
+                  }}
+                >
+                  {portal.label}
+                </div>
+                <div style={{ fontSize: "0.62rem", color: "#6B6260", lineHeight: 1.35 }}>
+                  {portal.description}
+                </div>
+              </button>
+            )
+          })}
+        </motion.div>
 
         {/* ── Divider ── */}
         <motion.div
           initial={{ scaleX: 0 }}
           animate={{ scaleX: 1 }}
           transition={{ delay: 0.8, duration: 0.9, ease: EASE }}
-          style={{ height: "1px", background: "rgba(245,242,236,0.07)", marginBottom: "2.5rem", transformOrigin: "left" }}
+          style={{ height: "1px", background: "rgba(245,242,236,0.07)", marginBottom: "2rem", transformOrigin: "left", maxWidth: "26rem" }}
         />
 
         {/* ── Form ── */}
@@ -313,12 +373,13 @@ export default function LoginPage() {
               <Lock size={15} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#6B6260" }} />
               <input
                 id="password"
-                type="password"
+                type="text"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
                 required
+                autoComplete="current-password"
                 className="w-full pl-10 pr-4 py-3.5 text-sm transition-all focus:outline-none"
                 style={{
                   background: "rgba(245,242,236,0.04)",
@@ -336,6 +397,11 @@ export default function LoginPage() {
                 }}
               />
             </div>
+            {selectedPortal && (
+              <p style={{ marginTop: "0.55rem", fontSize: "0.68rem", color: "#6B6260" }}>
+                Portal seleccionado: {selectedPortal.label}
+              </p>
+            )}
           </div>
 
           {/* Forgot password */}

@@ -23,12 +23,24 @@ import { CurrentUser } from '../decorators/current-user.decorator';
 import type { JwtPayload } from '../../domain/interfaces/jwt-payload.interface';
 
 const SESSION_COOKIE = 'sessionToken';
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: 'strict' as const,
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días en ms
-};
+
+/** Cross-origin staging (Vercel ↔ Render) needs SameSite=None + Secure. */
+function getSessionCookieOptions() {
+  const crossOrigin = ['1', 'true', 'yes', 'on'].includes(
+    (process.env.COOKIE_CROSS_SITE ?? '').toLowerCase(),
+  );
+  const secure =
+    crossOrigin ||
+    process.env.NODE_ENV === 'production' ||
+    process.env.NODE_ENV === 'staging';
+
+  return {
+    httpOnly: true,
+    sameSite: (crossOrigin ? 'none' : 'strict') as 'none' | 'strict',
+    secure,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 días en ms
+  };
+}
 
 /**
  * AuthController — Endpoints públicos de autenticación.
@@ -63,7 +75,7 @@ export class AuthController {
       userAgent: req.headers['user-agent'],
     });
 
-    res.cookie(SESSION_COOKIE, sessionToken, COOKIE_OPTIONS);
+    res.cookie(SESSION_COOKIE, sessionToken, getSessionCookieOptions());
     return { message: 'Usuario logueado', data };
   }
 
@@ -97,7 +109,7 @@ export class AuthController {
       sessionToken,
       sessionUuid: user?.sessionUuid,
     });
-    res.clearCookie(SESSION_COOKIE);
+    res.clearCookie(SESSION_COOKIE, getSessionCookieOptions());
     return { message: 'Sesión cerrada correctamente', data: {} };
   }
 
