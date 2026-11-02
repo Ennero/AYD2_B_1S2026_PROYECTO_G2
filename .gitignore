@@ -147,3 +147,5 @@ e2e/node_modules/
 
 # k6 output
 tests/k6/results/
+.DS_Store
+Thumbs.db

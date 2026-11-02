@@ -1,11 +1,17 @@
-# LogiTrans - Plataforma de Gestion Logistica y Transporte
+<div align="center">
 
-> **Plataforma web integral para gestionar operaciones comerciales, logisticas y financieras de transporte de carga.**
+# 🚛 LogiTrans — Plataforma de Gestión Logística y Transporte
 
-[![Version](https://img.shields.io/badge/version-2.0-blue)](https://github.com)
-[![Estado](https://img.shields.io/badge/estado-MVP%20cerrado-brightgreen)](https://github.com)
-[![Licencia](https://img.shields.io/badge/licencia-MIT-green)](LICENSE)
-[![Periodo](https://img.shields.io/badge/periodo-1S%202026-lightblue)](https://github.com)
+**Plataforma web integral para gestionar operaciones comerciales, logísticas y financieras de transporte de carga**
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![University](https://img.shields.io/badge/USAC-An%C3%A1lisis_y_Dise%C3%B1o_2-003366?style=for-the-badge)](https://ingenieria.usac.edu.gt/)
+
+</div>
 
 ---
 
