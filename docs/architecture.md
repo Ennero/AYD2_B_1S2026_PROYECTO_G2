@@ -159,7 +159,7 @@ Módulo de soporte a la decisión gerencial:
 
 ## 5. Diagrama de Componentes
 
-![Diagrama de Componentes](imgs/architecture/components-diagram.jpg)
+![Diagrama de Componentes](imgs/architecture/components-diagram.png)
 
 > **Descripción del diagrama:** El diagrama descompone la arquitectura interna del sistema en cinco capas horizontales claramente diferenciadas: (1) la **Capa de Presentación** con una SPA que ofrece portales diferenciados por rol (Cliente, Agentes, Patio/Piloto y Gerencia); (2) la **Capa de API Gateway** que centraliza la autenticación RBAC/JWT, el enrutamiento y la protección ante ataques; (3) la **Capa de Servicios Backend** con un servicio REST independiente por módulo (Contratos, Órdenes, Facturación, BI y Autenticación); (4) la **Capa de Integración** con adapters dedicados para el Certificador FEL (SAT) y los ERPs de clientes; y (5) la **Capa de Persistencia** compuesta por PostgreSQL como base de datos relacional y un almacén de archivos para evidencias y documentos. Las interfaces entre capas están definidas mediante contratos API REST/JSON.
 

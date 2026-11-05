@@ -65,7 +65,7 @@ Uso recomendado:
 
 Archivo de referencia: [server/.env.example](../server/.env.example)
 
-Archivo local usado por compose base: [server/.env](../server/.env)
+Archivo local usado por compose base: [server/.env](../server/.env.example)
 
 Variables criticas:
 

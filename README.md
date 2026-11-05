@@ -17,48 +17,44 @@
 
 ## Tabla de Contenidos
 
-- [LogiTrans - Plataforma de Gestion Logistica y Transporte](#logitrans---plataforma-de-gestion-logistica-y-transporte)
-  - [Tabla de Contenidos](#tabla-de-contenidos)
-  - [Descripcion General](#descripcion-general)
-    - [Objetivo del Proyecto](#objetivo-del-proyecto)
-  - [Estados Canonicos del Negocio](#estados-canonicos-del-negocio)
-    - [Ordenes](#ordenes)
-    - [Facturas](#facturas)
-    - [Pagos (flujo separado)](#pagos-flujo-separado)
-  - [Caracteristicas Principales](#caracteristicas-principales)
-    - [Para Cliente](#para-cliente)
-    - [Para Operaciones](#para-operaciones)
-    - [Para Piloto y Operacion en Ruta](#para-piloto-y-operacion-en-ruta)
-    - [Para Finanzas y FEL](#para-finanzas-y-fel)
-    - [Para Gerencia](#para-gerencia)
-  - [Stack Tecnologico](#stack-tecnologico)
-    - [Frontend](#frontend)
-    - [Backend](#backend)
-    - [Infraestructura](#infraestructura)
-  - [Arquitectura Actual](#arquitectura-actual)
-  - [Videos de Demostracion](#videos-de-demostracion)
-  - [Inicio Rapido](#inicio-rapido)
-    - [Requisitos previos](#requisitos-previos)
-    - [3 pasos](#3-pasos)
-    - [URLs esperadas](#urls-esperadas)
-  - [Instalacion Detallada](#instalacion-detallada)
-    - [Con Docker (recomendado)](#con-docker-recomendado)
-      - [Stack completo](#stack-completo)
-      - [Entorno productivo simulado](#entorno-productivo-simulado)
-    - [Sin Docker (desarrollo)](#sin-docker-desarrollo)
-      - [Backend](#backend-1)
-      - [Frontend](#frontend-1)
-  - [Documentacion Completa](#documentacion-completa)
-  - [Estructura del Proyecto](#estructura-del-proyecto)
-  - [URLs y Endpoints Importantes](#urls-y-endpoints-importantes)
-    - [Desarrollo local](#desarrollo-local)
-    - [Produccion simulada](#produccion-simulada)
-  - [Equipo de Desarrollo](#equipo-de-desarrollo)
-  - [Comandos Utiles](#comandos-utiles)
-    - [Docker](#docker)
-    - [Backend](#backend-2)
-    - [Frontend](#frontend-2)
-  - [Licencia](#licencia)
+- [Descripcion General](#descripcion-general)
+  - [Objetivo del Proyecto](#objetivo-del-proyecto)
+- [Estados Canonicos del Negocio](#estados-canonicos-del-negocio)
+  - [Ordenes](#ordenes)
+  - [Facturas](#facturas)
+  - [Pagos (flujo separado)](#pagos-flujo-separado)
+- [Caracteristicas Principales](#caracteristicas-principales)
+  - [Para Cliente](#para-cliente)
+  - [Para Operaciones](#para-operaciones)
+  - [Para Piloto y Operacion en Ruta](#para-piloto-y-operacion-en-ruta)
+  - [Para Finanzas y FEL](#para-finanzas-y-fel)
+  - [Para Gerencia](#para-gerencia)
+- [Stack Tecnologico](#stack-tecnologico)
+  - [Frontend](#frontend)
+  - [Backend](#backend)
+  - [Infraestructura](#infraestructura)
+- [Arquitectura Actual](#arquitectura-actual)
+- [Videos de Demostracion](#videos-de-demostracion)
+- [Inicio Rapido](#inicio-rapido)
+  - [Requisitos previos](#requisitos-previos)
+  - [3 pasos](#3-pasos)
+  - [URLs esperadas](#urls-esperadas)
+- [Certificados de desarrollo](#certificados-de-desarrollo)
+- [Instalacion Detallada](#instalacion-detallada)
+  - [Con Docker (recomendado)](#con-docker-recomendado)
+  - [Sin Docker (desarrollo)](#sin-docker-desarrollo)
+- [Documentacion Completa](#documentacion-completa)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [URLs y Endpoints Importantes](#urls-y-endpoints-importantes)
+  - [Desarrollo local](#desarrollo-local)
+  - [Produccion simulada](#produccion-simulada)
+- [Equipo de Desarrollo](#equipo-de-desarrollo)
+- [Comandos Utiles](#comandos-utiles)
+  - [Docker](#docker)
+  - [Backend](#backend-2)
+  - [Frontend](#frontend-2)
+- [Licencia](#licencia)
+- [Licencia y verificación](#licencia-y-verificaci%C3%B3n)
 
 ---
 
@@ -200,7 +196,7 @@ Esta implementación mantiene consistencia transaccional en el flujo principal y
 
 ```bash
 # 1) Clonar repositorio
-git clone <repository-url>
+git clone https://github.com/Ennero/AYD2_B_1S2026_PROYECTO_G2.git
 cd AYD2_B_1S2026_PROYECTO_G2
 
 # 2) Configurar entorno backend
@@ -219,6 +215,16 @@ docker compose up -d --build
 
 ---
 
+## Certificados de desarrollo
+
+El entorno HTTPS simulado requiere generar certificados en la computadora que lo ejecuta:
+
+```bash
+bash nginx/ssl/generate-cert.sh
+```
+
+Las claves `.pem` quedan ignoradas por Git. Para reemplazar una pareja local anterior, usar `bash nginx/ssl/generate-cert.sh --force`. En un despliegue público se deben configurar certificados propios. Copiar `server/.env.production.example` a `server/.env.production` y configurar secretos e integraciones antes de usar el Compose de producción simulada. Los datos iniciales y migraciones deben prepararse según la guía de despliegue; el ejemplo no activa borrado de esquema ni seeds automáticamente.
+
 ## Instalacion Detallada
 
 ### Con Docker (recomendado)
@@ -226,7 +232,7 @@ docker compose up -d --build
 #### Stack completo
 
 ```bash
-docker compose down -v --remove-orphans
+docker compose down --remove-orphans
 docker compose up -d --build
 docker compose ps
 docker compose logs --no-color server | tail -n 200
@@ -347,7 +353,7 @@ docker compose ps
 docker compose logs --no-color server | tail -n 200
 docker compose logs --no-color client | tail -n 200
 docker compose down
-docker compose down -v --remove-orphans
+docker compose down --remove-orphans
 ```
 
 ### Backend
@@ -377,3 +383,9 @@ Este proyecto utiliza licencia MIT. Consulta el archivo [LICENSE](LICENSE).
 ---
 
 **Ultima actualizacion documental:** 17 de abril de 2026.
+
+## Licencia y verificación
+
+La raíz conserva la licencia MIT. El backend NestJS mantiene `UNLICENSED` en su manifiesto: la licencia de la raíz no cambia automáticamente esa declaración del componente. Conservar también los créditos del equipo en la documentación de la entrega.
+
+Los informes de pruebas son evidencia de ejecuciones históricas, no garantía del último commit. Para validar cambios, ejecutar las suites de `server/TESTING.md` y Playwright en una base aislada.

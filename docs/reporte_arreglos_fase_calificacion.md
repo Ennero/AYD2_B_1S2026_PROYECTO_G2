@@ -14,7 +14,7 @@ Se detectó un error en el frontend al intentar visualizar una pantalla específ
 ### Evidencia de Solución
 > Espacio para pegar la captura de pantalla del listado de clientes/usuarios funcionando correctamente sin errores.
 
-![Evidencia Gestión de Clientes](insertar_imagen_aqui.jpg)
+La captura no forma parte de la evidencia adjunta a esta entrega.
 
 ---
 
@@ -28,7 +28,7 @@ Anteriormente, las parametrizaciones de rutas y tarifas se manejaban de forma gl
 ### Evidencia de Solución
 > Espacio para pegar la captura de pantalla del formulario de formalización mostrando las tarifas individuales para un contrato específico.
 
-![Evidencia Contrato Individual](insertar_imagen_aqui.jpg)
+La captura no forma parte de la evidencia adjunta a esta entrega.
 
 ---
 
@@ -42,6 +42,6 @@ Se agregaron los gráficos y métricas que se encontraban ausentes en el dashboa
 ### Evidencia de Solución
 > Espacio para pegar la captura de pantalla del dashboard de gerencia con todos sus gráficos cargados.
 
-![Evidencia Dashboard Gerente](insertar_imagen_aqui.jpg)
+La captura no forma parte de la evidencia adjunta a esta entrega.
 
 
